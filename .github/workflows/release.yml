@@ -29,7 +29,7 @@ jobs:
         run: |
           package_json="$RUNNER_TEMP/npm-pack.json"
           npm pack --json > "$package_json"
-          filename="$(jq -er 'length == 1 and .[0].filename' "$package_json")"
+          filename="$(jq -er 'if length == 1 then .[0].filename else error("expected one packed tarball") end' "$package_json")"
           sha="$(sha256sum "$filename" | awk '{print $1}')"
           echo "filename=$filename" >> "$GITHUB_OUTPUT"
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
