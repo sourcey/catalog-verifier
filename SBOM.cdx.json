@@ -1,0 +1,177 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.6",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "type": "library",
+      "bom-ref": "urn:sourcey:code-distribution:catalog-verifier",
+      "group": "@sourcey",
+      "name": "catalog-verifier",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ]
+    },
+    "tools": {
+      "components": [
+        {
+          "type": "application",
+          "name": "Node.js",
+          "version": "22.23.1"
+        },
+        {
+          "type": "application",
+          "name": "npm",
+          "version": "11.12.1"
+        },
+        {
+          "type": "application",
+          "name": "TypeScript",
+          "version": "6.0.3"
+        }
+      ]
+    },
+    "properties": [
+      {
+        "name": "sourcey:distribution-definition-sha256",
+        "value": "sha256:6231c413cd7110a406519dc25f1212722069313dd7c4e670ad4527616626e56d"
+      },
+      {
+        "name": "sourcey:toolchain-sha256",
+        "value": "sha256:d2584054f475253ad49ac449a779f1d570086b84f0010d60756c4bd5f4c62df0"
+      },
+      {
+        "name": "sourcey:license-policy-sha256",
+        "value": "sha256:7cb7eafd85fcb99d00715142932da6b06f984121fb139ad5256b315c17c7609e"
+      }
+    ]
+  },
+  "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/entities@8.0.0",
+      "name": "entities",
+      "licenses": [
+        {
+          "expression": "BSD-2-Clause"
+        }
+      ],
+      "version": "8.0.0",
+      "purl": "pkg:npm/entities@8.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf07f325e710fd47a3eadbac32ac00a94ffa28bd97681d95676260e7825ee9a84d046347e8493a8378e33421747c6f4459028664d75d3635391756509ffb019c"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/entities/-/entities-8.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/parse5@8.0.1",
+      "name": "parse5",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "version": "8.0.1",
+      "purl": "pkg:npm/parse5@8.0.1",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cf57bf1cc1bdd286d219e89d9658b7863edc6e8728bb4ff06b91da72f237012c77e0f79c36335079a1cda395886695a87cdf64824a95d6ae58bd77b71741683f"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/parse5/-/parse5-8.0.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/yaml@2.9.0",
+      "name": "yaml",
+      "licenses": [
+        {
+          "expression": "ISC"
+        }
+      ],
+      "version": "2.9.0",
+      "purl": "pkg:npm/yaml@2.9.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "d80be1357de66fccdde99cbb20d4ed4a9975175e475ba5a7aa3d2cad696428b729625fe03083098b2b86ab629e236605c543e376507edcb735d2c78c2ed2f870"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/zod@4.4.3",
+      "name": "zod",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "version": "4.4.3",
+      "purl": "pkg:npm/zod@4.4.3",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "cad10d163209165d94c1882575eda37215b61f09b818914b0e249759d4eb25004837d15cca9ee7e0387124489634024c575fc1a967d6fe4920ef55037072724d"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "urn:sourcey:code-distribution:catalog-verifier",
+      "dependsOn": [
+        "pkg:npm/parse5@8.0.1",
+        "pkg:npm/yaml@2.9.0",
+        "pkg:npm/zod@4.4.3"
+      ]
+    },
+    {
+      "ref": "pkg:npm/entities@8.0.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/parse5@8.0.1",
+      "dependsOn": [
+        "pkg:npm/entities@8.0.0"
+      ]
+    },
+    {
+      "ref": "pkg:npm/yaml@2.9.0",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/zod@4.4.3",
+      "dependsOn": []
+    }
+  ]
+}

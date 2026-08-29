@@ -1,0 +1,48 @@
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: npm
+    steps:
+      - uses: actions/checkout@fbc6f3992d24b796d5a048ff273f7fcc4a7b6c09 # v5
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 22.12.0
+          registry-url: https://registry.npmjs.org
+          cache: npm
+      - name: Verify immutable version identity
+        run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
+      - run: npm ci --ignore-scripts
+      - run: npm test
+      - name: Pack once
+        id: pack
+        run: |
+          package_json="$RUNNER_TEMP/npm-pack.json"
+          npm pack --json > "$package_json"
+          filename="$(jq -er 'length == 1 and .[0].filename' "$package_json")"
+          sha="$(sha256sum "$filename" | awk '{print $1}')"
+          echo "filename=$filename" >> "$GITHUB_OUTPUT"
+          echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+      - name: Publish the tested bytes with npm provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish "${{ steps.pack.outputs.filename }}" --access public --provenance
+      - name: Read back the immutable registry release
+        env:
+          EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          url="$(npm view "@sourcey/catalog-verifier@$version" dist.tarball)"
+          curl --fail-with-body --silent --show-error --max-time 120 \
+            --output "$RUNNER_TEMP/readback.tgz" "$url"
+          test "$(sha256sum "$RUNNER_TEMP/readback.tgz" | awk '{print $1}')" = "$EXPECTED_SHA256"

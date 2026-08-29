@@ -1,0 +1,5 @@
+{
+  "code_distribution_license_policy_contract": "sourcey.code-distribution-license-policy/v1",
+  "package_license": "MIT",
+  "allowed_dependency_licenses": ["Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MIT"]
+}

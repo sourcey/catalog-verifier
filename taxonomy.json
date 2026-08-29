@@ -1,0 +1,29 @@
+{
+  "schema_version": "sourcey.taxonomy/v1alpha1",
+  "categories": [
+    "ai-ml",
+    "apis-integration",
+    "auth-security",
+    "banking",
+    "ci-cd",
+    "commerce",
+    "communication",
+    "crm-sales",
+    "data-analytics",
+    "databases",
+    "design",
+    "devtools-other",
+    "finance-accounting",
+    "hosting-infra",
+    "hr-people",
+    "insurance",
+    "legal-compliance",
+    "marketing",
+    "no-code",
+    "observability",
+    "other",
+    "payments-fintech",
+    "productivity",
+    "support"
+  ]
+}

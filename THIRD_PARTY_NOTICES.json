@@ -1,0 +1,69 @@
+{
+  "code_distribution_notices_contract": "sourcey.code-distribution-notices/v1",
+  "distribution_id": "catalog-verifier",
+  "package_name": "@sourcey/catalog-verifier",
+  "package_license": "MIT",
+  "license_policy_sha256": "sha256:7cb7eafd85fcb99d00715142932da6b06f984121fb139ad5256b315c17c7609e",
+  "dependencies": [
+    {
+      "name": "entities",
+      "version": "8.0.0",
+      "license": "BSD-2-Clause",
+      "resolved": "https://registry.npmjs.org/entities/-/entities-8.0.0.tgz",
+      "integrity": "sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==",
+      "lock_path": "node_modules/entities",
+      "license_files": [
+        {
+          "path": "node_modules/entities/LICENSE",
+          "sha256": "sha256:cb992345949ccd6e8394b2cd6c465f7b897c864f845937dbf64e8997f389e164",
+          "bytes": 1260
+        }
+      ]
+    },
+    {
+      "name": "parse5",
+      "version": "8.0.1",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/parse5/-/parse5-8.0.1.tgz",
+      "integrity": "sha512-z1e/HMG90obSGeidlli3hj7cbocou0/wa5HacvI3ASx34PecNjNQeaHNo5WIZpWofN9kgkqV1q5YvXe3F0FoPw==",
+      "lock_path": "node_modules/parse5",
+      "license_files": [
+        {
+          "path": "node_modules/parse5/LICENSE",
+          "sha256": "sha256:8c535800331e1e4439835555b3f9edc7fe9dee2fab0d8bbbd5a982e8b8343d4d",
+          "bytes": 1109
+        }
+      ]
+    },
+    {
+      "name": "yaml",
+      "version": "2.9.0",
+      "license": "ISC",
+      "resolved": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz",
+      "integrity": "sha512-2AvhNX3mb8zd6Zy7INTtSpl1F15HW6Wnqj0srWlkKLcpYl/gMIMJiyuGq2KeI2YFxUPjdlB+3Lc10seMLtL4cA==",
+      "lock_path": "node_modules/yaml",
+      "license_files": [
+        {
+          "path": "node_modules/yaml/LICENSE",
+          "sha256": "sha256:5bba27375d93e9119f76c1015f7672cf9ad5f70952296e0842fb2243d6376869",
+          "bytes": 738
+        }
+      ]
+    },
+    {
+      "name": "zod",
+      "version": "4.4.3",
+      "license": "MIT",
+      "resolved": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz",
+      "integrity": "sha512-ytENFjIJFl2UwYglde2jchW2Hwm4GJFLDiSXWdTrJQBIN9Fcyp7n4DhxJEiWNAJMV1/BqWfW/kkg71UDcHJyTQ==",
+      "lock_path": "node_modules/zod",
+      "license_files": [
+        {
+          "path": "node_modules/zod/LICENSE",
+          "sha256": "sha256:3f1189b28e3866e0d979968d466b78f813f76827cfdca1fbb124cc0a5c8841f8",
+          "bytes": 1072
+        }
+      ]
+    }
+  ]
+}

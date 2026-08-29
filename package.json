@@ -1,0 +1,63 @@
+{
+  "name": "@sourcey/catalog-verifier",
+  "version": "1.0.0",
+  "description": "Validate Sourcey data contributions and verify immutable Sourcey Catalog releases.",
+  "keywords": [
+    "sourcey",
+    "startup-credits",
+    "agent-readiness",
+    "catalog",
+    "validator",
+    "github-actions"
+  ],
+  "homepage": "https://sourcey.com/oss",
+  "bugs": {
+    "url": "https://github.com/sourcey/catalog-verifier/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sourcey/catalog-verifier.git"
+  },
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/packages/catalog-verifier/src/index.d.ts",
+      "import": "./dist/packages/catalog-verifier/src/index.js"
+    }
+  },
+  "bin": {
+    "sourcey-catalog-verify": "./sourcey-catalog-verify.js"
+  },
+  "files": [
+    "dist",
+    "taxonomy.json",
+    "sourcey-catalog-verify.js",
+    "LICENSE",
+    "README.md",
+    "SECURITY.md",
+    "SUPPORT.md",
+    "CHANGELOG.md",
+    "SBOM.cdx.json",
+    "THIRD_PARTY_NOTICES.json",
+    "SOURCEY-CLOSURE.json",
+    "SOURCEY-DISTRIBUTION.json",
+    "SOURCEY-LICENSE-POLICY.json",
+    "SOURCEY-TOOLCHAIN.json"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  },
+  "dependencies": {
+    "parse5": "8.0.1",
+    "yaml": "2.9.0",
+    "zod": "4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "code_distribution_definition_contract": "sourcey.code-distribution-definition/v1",
+  "distribution_id": "catalog-verifier",
+  "package_name": "@sourcey/catalog-verifier",
+  "description": "Validate changed Catalog YAML and verify immutable Sourcey release bundles.",
+  "audience": "Public Catalog pull-request CI, Sourcey release construction, and isolated release custody.",
+  "channel": "One purpose-scoped closure projected as a content-addressed Sourcey artifact and the public @sourcey/catalog-verifier npm package.",
+  "entries": {
+    ".": "index"
+  },
+  "bin": {
+    "sourcey-catalog-verify": "program"
+  },
+  "extras": ["taxonomy.json"],
+  "forbidden_closure_prefixes": [
+    "dist/apps/",
+    "dist/modules/evidence-operations/src/discovery-scanner",
+    "dist/modules/evidence-operations/src/offer-harvest",
+    "dist/modules/evidence-operations/src/offer-refresh",
+    "dist/modules/evidence-operations/src/source-inventory",
+    "dist/modules/evidence-operations/src/workflow"
+  ],
+  "dependencies": ["parse5", "yaml", "zod"]
+}
