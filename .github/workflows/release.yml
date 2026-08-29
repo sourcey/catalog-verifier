@@ -36,13 +36,29 @@ jobs:
       - name: Publish the tested bytes with npm provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: npm publish "${{ steps.pack.outputs.filename }}" --access public --provenance
+          EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
+        run: |
+          version="$(node -p "require('./package.json').version")"
+          if url="$(npm view "@sourcey/catalog-verifier@$version" dist.tarball 2>/dev/null)"; then
+            curl --fail-with-body --silent --show-error --max-time 120 \
+              --output "$RUNNER_TEMP/existing.tgz" "$url"
+            test "$(sha256sum "$RUNNER_TEMP/existing.tgz" | awk '{print $1}')" = "$EXPECTED_SHA256"
+          else
+            npm publish "${{ steps.pack.outputs.filename }}" --access public --provenance
+          fi
       - name: Read back the immutable registry release
         env:
           EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
         run: |
           version="$(node -p "require('./package.json').version")"
-          url="$(npm view "@sourcey/catalog-verifier@$version" dist.tarball)"
+          url=""
+          for attempt in $(seq 1 12); do
+            if url="$(npm view "@sourcey/catalog-verifier@$version" dist.tarball 2>/dev/null)"; then
+              break
+            fi
+            sleep 5
+          done
+          test -n "$url"
           curl --fail-with-body --silent --show-error --max-time 120 \
             --output "$RUNNER_TEMP/readback.tgz" "$url"
           test "$(sha256sum "$RUNNER_TEMP/readback.tgz" | awk '{print $1}')" = "$EXPECTED_SHA256"
