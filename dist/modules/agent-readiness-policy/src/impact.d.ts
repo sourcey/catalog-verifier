@@ -1,6 +1,6 @@
 import type { AgentReadinessOfferRelationRevision, AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
 import type { CatalogPublicationChangeSet, PublicationDependencyRegistration, SurfaceDependencyReference } from "../../../contracts/publication/src/index.js";
-import { type CatalogPublicationImpactIndex } from "../../catalog-admission/src/publication.js";
+import { type CatalogPublicationImpactQuery } from "../../catalog-admission/src/publication-dependencies.js";
 import { type Digest } from "../../primitives/src/index.js";
 export declare function agentReadinessProfileDependencyKey(profileId: string): string;
 export declare function agentReadinessPolicyComponentDependencyKey(input: {
@@ -55,6 +55,7 @@ export declare function agentReadinessStageProjectionDigest(stage: AgentReadines
 export declare function agentReadinessGradeProjectionDigest(projection: AgentReadinessProjection): Digest;
 export interface AgentReadinessDependencySubject {
     readonly profileId: string;
+    readonly profileRevisionDigest: Digest;
     readonly entityId: string;
     readonly entityRevisionDigest: Digest;
     readonly policyDigest: Digest;
@@ -75,7 +76,7 @@ export declare function agentReadinessOfferRelationDependencySubject(relation: A
 export declare function agentReadinessOfferRelationDependencyRegistration(subject: AgentReadinessOfferRelationDependencySubject): PublicationDependencyRegistration;
 export declare function planAgentReadinessOfferRelationImpact(input: {
     readonly changeSet: CatalogPublicationChangeSet;
-    readonly impactIndex: CatalogPublicationImpactIndex;
+    readonly impactIndex: CatalogPublicationImpactQuery;
     readonly subjectsById: ReadonlyMap<string, AgentReadinessOfferRelationDependencySubject>;
 }): {
     readonly actions: readonly {
@@ -88,7 +89,7 @@ export declare function planAgentReadinessOfferRelationImpact(input: {
 };
 export declare function planAgentReadinessImpact(input: {
     readonly changeSet: CatalogPublicationChangeSet;
-    readonly impactIndex: CatalogPublicationImpactIndex;
+    readonly impactIndex: CatalogPublicationImpactQuery;
     readonly subjectsById: ReadonlyMap<string, AgentReadinessDependencySubject>;
     readonly invalidatedEvidenceEventIds?: readonly Digest[];
 }): {

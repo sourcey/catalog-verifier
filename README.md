@@ -37,7 +37,7 @@ sourcey-catalog-verify validate startup-credits \
   --identity-context identity-context.json \
   --root-set sourcey-root-set.json \
   --trusted-root-digest sha256:... \
-  --verified-at "$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+  --verified-at "$(node -p 'new Date().toISOString()')"
 ```
 
 Use `agent-readiness` instead of `startup-credits` for an Agent Ready Services

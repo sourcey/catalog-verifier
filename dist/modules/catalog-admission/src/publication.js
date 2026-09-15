@@ -1,42 +1,26 @@
-import { catalogPublicationChangeSetCoreSchema, catalogPublicationChangeSetSchema, catalogPublicationCurrentStateCoreSchema, catalogPublicationCurrentStateSchema, catalogPublicationProposalCoreSchema, catalogPublicationProposalSchema, publicationIngressReceiptCoreSchema, publicationIngressReceiptSchema, publicationPolicyReferenceSchema, } from "../../../contracts/publication/src/index.js";
+import { catalogPublicationChangeSetCoreSchema, catalogPublicationChangeSetSchema, catalogPublicationProposalCoreSchema, catalogPublicationProposalSchema, publicationIngressReceiptCoreSchema, publicationIngressReceiptSchema, publicationPolicyReferenceSchema, } from "../../../contracts/publication/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
 import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { catalogPublicationAssetBindingKey as assetBindingKey, catalogPublicationAssetBindingMap as assetBindingMap, normalizeCatalogPublicationAssetProposals as normalizeAssetProposals, } from "./publication-assets.js";
-import { CatalogPublicationImpactIndex, dependencyKeysForChanges, orderedUnique, requiredAuthoritiesForChanges, } from "./publication-dependencies.js";
+import { mergeCatalogPublicationAuthorityProposalLanes as mergeAuthorityProposalLanes, normalizeCatalogPublicationAuthorityProposals as normalizeAuthorityProposals, } from "./publication-authorities.js";
+import { CatalogPublicationImpactIndex, catalogPublicationImpactProof, dependencyKeysForChanges, orderedUnique, requiredAuthoritiesForChanges, } from "./publication-dependencies.js";
 import { catalogPublicationEntityMap as entityMap, catalogPublicationTargetAuthoring as publicationCandidateState, } from "./publication-entities.js";
+import { assertCatalogPublicationPreconditions } from "./publication-state.js";
 export * from "./publication-dependencies.js";
 export * from "./publication-entities.js";
 export * from "./publication-recomposition.js";
-export function verifyCatalogPublicationCurrentState(input) {
-    const state = catalogPublicationCurrentStateSchema.parse(input);
-    const targetEntityIds = orderedUnique(state.target_entity_ids);
-    const entities = [...entityMap(state.current_entities).values()].sort((left, right) => compareCanonicalStrings(left.entity.entity_id, right.entity.entity_id));
-    const assets = [...assetBindingMap(state.current_asset_bindings).values()].sort((left, right) => compareCanonicalStrings(assetBindingKey(left.entity_id, left.role), assetBindingKey(right.entity_id, right.role)));
-    if (canonicalJson(state.target_entity_ids) !== canonicalJson(targetEntityIds) ||
-        canonicalJson(state.current_entities) !== canonicalJson(entities) ||
-        canonicalJson(state.current_asset_bindings) !== canonicalJson(assets) ||
-        entities.some(({ entity: { entity_id: entityId } }) => !targetEntityIds.includes(entityId))) {
-        throw new Error("Catalog publication current state is not a canonical targeted slice.");
-    }
-    const { state_digest: stateDigest, ...core } = state;
-    if (digest(catalogPublicationCurrentStateCoreSchema.parse(core)) !== stateDigest) {
-        throw new Error("Catalog publication current-state digest does not match its canonical input.");
-    }
-    return state;
-}
+export { verifyCatalogPublicationCurrentState } from "./publication-state.js";
 export function buildCatalogPublicationProposal(input) {
     const current = entityMap(input.currentEntities);
     const candidates = [...entityMap(input.candidateEntities).values()].sort((left, right) => compareCanonicalStrings(left.entity.entity_id, right.entity.entity_id));
     const currentAssets = assetBindingMap(input.currentAssetBindings ?? []);
     const candidateAssets = normalizeAssetProposals(input.candidateAssetProposals ?? []);
     const removals = orderedUnique(input.removeEntityIds ?? []);
-    const authorityProposals = normalizeAuthorityProposals([
-        ...(input.authorityProposals ?? []),
-        ...candidateAssets.map((proposal) => ({
-            purpose: "catalog-identity",
-            proposal_digest: proposal.proposal_digest,
-        })),
-    ]);
+    const authorityProposals = mergeAuthorityProposalLanes(input.authorityProposals ?? [], candidateAssets.map((proposal) => ({
+        purpose: "catalog-identity",
+        proposal_digest: proposal.proposal_digest,
+        dependency_keys: [],
+    })));
     const candidateIds = new Set(candidates.map(({ entity: { entity_id: entityId } }) => entityId));
     const overlap = removals.filter((entityId) => candidateIds.has(entityId));
     if (overlap.length > 0) {
@@ -64,9 +48,6 @@ export function buildCatalogPublicationProposal(input) {
         throw new Error(`Catalog proposal cannot bind an icon while removing its Entity: ${assetRemovalOverlap.join(", ")}.`);
     }
     for (const proposal of candidateAssets) {
-        if (proposal.base_release_id !== input.liveParentReleaseId) {
-            throw new Error(`Entity asset proposal ${proposal.proposal_digest} targets another release.`);
-        }
         if (!current.has(proposal.entity_id) && !candidateIds.has(proposal.entity_id)) {
             throw new Error(`Entity asset proposal targets unknown Entity ${proposal.entity_id}.`);
         }
@@ -95,7 +76,10 @@ export function buildCatalogPublicationProposal(input) {
                     binding_digest: currentBinding ? digest(currentBinding) : null,
                 };
             }),
-            ...removalAssets.map((binding) => ({
+            ...[...currentAssets.values()]
+                .filter((binding) => targetIds.includes(binding.entity_id) &&
+                !candidateAssets.some((asset) => asset.entity_id === binding.entity_id && asset.role === binding.role))
+                .map((binding) => ({
                 entity_id: binding.entity_id,
                 role: binding.role,
                 binding_event_id: binding.binding_event_id,
@@ -134,9 +118,6 @@ export function verifyCatalogPublicationProposal(input) {
     if (removals.some((entityId) => assetEntityIds.includes(entityId))) {
         throw new Error("Catalog publication proposal cannot bind an icon while removing its Entity.");
     }
-    if (candidateAssets.some((asset) => asset.base_release_id !== proposal.live_parent_release_id)) {
-        throw new Error("Catalog publication asset proposal targets another live parent.");
-    }
     const targetIds = orderedUnique([...candidateIds, ...removals, ...assetEntityIds]);
     if (canonicalJson(expected.map(({ entity_id: entityId }) => entityId)) !== canonicalJson(targetIds)) {
         throw new Error("Catalog publication proposal must bind every targeted live Entity.");
@@ -152,8 +133,7 @@ export function verifyCatalogPublicationProposal(input) {
             !assetEntityIds.includes(binding.entity_id) &&
             !removals.includes(binding.entity_id)) ||
         removals.some((entityId) => expectedAssets.filter((binding) => binding.entity_id === entityId).length !== 1 ||
-            expectedAssets.find((binding) => binding.entity_id === entityId)?.binding_event_id === null) ||
-        expectedAssetByKey.size !== candidateAssets.length + removals.length) {
+            expectedAssets.find((binding) => binding.entity_id === entityId)?.binding_event_id === null)) {
         throw new Error("Catalog publication proposal must bind every exact current asset role.");
     }
     const { proposal_digest: proposalDigest, ...proposalCore } = proposal;
@@ -180,28 +160,11 @@ export function deriveCatalogPublicationChangeSet(input) {
     const proposal = verifyCatalogPublicationProposal(input.proposal);
     const current = entityMap(input.currentEntities);
     const currentAssets = assetBindingMap(input.currentAssetBindings ?? []);
-    const expectedIds = new Set(proposal.expected_current_entities.map(({ entity_id }) => entity_id));
-    if ([...current.keys()].some((id) => !expectedIds.has(id))) {
-        throw new Error("Catalog publication planning received state outside its targeted live slice.");
-    }
-    for (const expected of proposal.expected_current_entities) {
-        const actual = current.get(expected.entity_id);
-        const actualDigest = actual ? digest(actual) : null;
-        if (actualDigest !== expected.snapshot_digest) {
-            throw new Error(`Catalog publication live vendor ${expected.entity_id} has advanced.`);
-        }
-    }
-    const expectedAssetKeys = new Set(proposal.expected_current_asset_bindings.map((binding) => assetBindingKey(binding.entity_id, binding.role)));
-    if ([...currentAssets.keys()].some((key) => !expectedAssetKeys.has(key))) {
-        throw new Error("Catalog publication planning received asset state outside its targeted slice.");
-    }
-    for (const expected of proposal.expected_current_asset_bindings) {
-        const actual = currentAssets.get(assetBindingKey(expected.entity_id, expected.role));
-        if ((actual?.binding_event_id ?? null) !== expected.binding_event_id ||
-            (actual ? digest(actual) : null) !== expected.binding_digest) {
-            throw new Error(`Catalog publication live asset ${expected.entity_id}:${expected.role} has advanced.`);
-        }
-    }
+    assertCatalogPublicationPreconditions({
+        expected: proposal,
+        currentEntities: input.currentEntities,
+        currentAssetBindings: input.currentAssetBindings ?? [],
+    });
     const { revisionChanges, sourceChanges, routeChanges, publicAuthoringPaths } = analyzeCatalogCandidateChanges({
         currentEntities: [...current.values()],
         candidateEntities: publicationCandidateState({
@@ -239,7 +202,7 @@ export function deriveCatalogPublicationChangeSet(input) {
         });
     }
     const currentPolicies = normalizePolicies(input.currentPolicies);
-    const contextChanges = policyChanges(currentPolicies, proposal.target_policies);
+    const contextChanges = catalogPublicationPolicyChanges(currentPolicies, proposal.target_policies);
     if (input.currentContractAuthorityDigest !== proposal.target_contract_authority_digest) {
         contextChanges.push({
             kind: "contract_authority",
@@ -261,9 +224,9 @@ export function deriveCatalogPublicationChangeSet(input) {
         assetChanges,
         routeChanges,
         contextChanges,
+        authorityProposals: proposal.authority_proposals,
     });
     const impactIndex = input.impactIndex ?? new CatalogPublicationImpactIndex();
-    const impact = impactIndex.affected(changedDependencyKeys);
     const requiredAuthorities = requiredAuthoritiesForChanges({
         revisionChanges,
         sourceChanges,
@@ -292,17 +255,34 @@ export function deriveCatalogPublicationChangeSet(input) {
         context_changes: contextChanges,
         public_authoring_paths: publicAuthoringPaths,
         changed_dependency_keys: changedDependencyKeys,
-        impact_index_digest: impactIndex.indexDigest,
-        dependency_lookups: impact.lookups,
-        affected_dependents: impact.dependents,
-        unaffected_dependents_proof_digest: digest({
-            impact_index_digest: impactIndex.indexDigest,
-            changed_dependency_keys: changedDependencyKeys,
-            affected_dependents: impact.dependents,
-        }),
+        ...publicationImpactFields(changedDependencyKeys, impactIndex),
         required_authorities: requiredAuthorities,
     });
     return verifyCatalogPublicationChangeSet({ ...core, change_set_digest: digest(core) });
+}
+/** Resolve impact after a bounded batch's exact authored changes are known.
+ * Proposal, ingress authority and change analysis remain unchanged. This is the
+ * same impact derivation as the ordinary planner, not a second diff or score. */
+export function resolveCatalogPublicationImpact(analysis, impactIndex) {
+    const { change_set_digest: _, ...prior } = verifyCatalogPublicationChangeSet(analysis);
+    const core = catalogPublicationChangeSetCoreSchema.parse({
+        ...prior,
+        ...publicationImpactFields(prior.changed_dependency_keys, impactIndex),
+    });
+    return verifyCatalogPublicationChangeSet({ ...core, change_set_digest: digest(core) });
+}
+function publicationImpactFields(keys, index) {
+    const impact = index.affected(keys);
+    return {
+        impact_index_digest: index.indexDigest,
+        dependency_lookups: impact.lookups,
+        affected_dependents: impact.dependents,
+        unaffected_dependents_proof_digest: catalogPublicationImpactProof({
+            impact_index_digest: index.indexDigest,
+            changed_dependency_keys: keys,
+            affected_dependents: impact.dependents,
+        }),
+    };
 }
 export function verifyCatalogPublicationChangeSet(input) {
     const changeSet = catalogPublicationChangeSetSchema.parse(input);
@@ -419,34 +399,6 @@ export function verifyPublicationIngressReceipt(input) {
     }
     return receipt;
 }
-export function verifyCatalogPublicationInputClosure(input) {
-    const proposal = verifyCatalogPublicationProposal(input.proposal);
-    const changeSet = verifyCatalogPublicationChangeSet(input.changeSet);
-    const ingressReceipts = input.ingressReceipts
-        .map(verifyPublicationIngressReceipt)
-        .sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest));
-    const semanticInputDigest = publicationSemanticInputDigest(proposal);
-    if (ingressReceipts.length === 0 ||
-        changeSet.proposal_digest !== proposal.proposal_digest ||
-        changeSet.live_parent_release_id !== proposal.live_parent_release_id ||
-        ingressReceipts.some((receipt) => receipt.proposal_digest !== proposal.proposal_digest ||
-            receipt.semantic_input_digest !== semanticInputDigest)) {
-        throw new Error("Catalog publication inputs do not close one proposal and live parent.");
-    }
-    if (new Set(ingressReceipts.map((receipt) => receipt.receipt_digest)).size !==
-        ingressReceipts.length) {
-        throw new Error("Catalog publication ingress receipts must be unique.");
-    }
-    return { proposal, changeSet, ingressReceipts };
-}
-export function catalogPublicationAdmittedInputDigests(input) {
-    const verified = verifyCatalogPublicationInputClosure(input);
-    return [
-        verified.proposal.proposal_digest,
-        verified.changeSet.change_set_digest,
-        ...verified.ingressReceipts.map((receipt) => receipt.receipt_digest),
-    ].sort(compareCanonicalStrings);
-}
 export function planAuthenticatedFormCatalogPublication(input, receipt) {
     return planCatalogPublicationWithIngress(input, receipt);
 }
@@ -548,7 +500,7 @@ function semanticJsonPointerChanges(current, candidate, path = "") {
     }
     return [path];
 }
-function policyChanges(current, target) {
+export function catalogPublicationPolicyChanges(current, target) {
     const before = new Map(current.map(({ key, digest: value }) => [key, value]));
     const after = new Map(target.map(({ key, digest: value }) => [key, value]));
     return orderedUnique([...before.keys(), ...after.keys()]).flatMap((key) => {
@@ -565,17 +517,6 @@ function policyChanges(current, target) {
                 },
             ];
     });
-}
-function normalizeAuthorityProposals(proposals) {
-    const normalized = proposals
-        .map((proposal) => ({ ...proposal }))
-        .sort((left, right) => compareCanonicalStrings(left.purpose, right.purpose) ||
-        compareCanonicalStrings(left.proposal_digest, right.proposal_digest));
-    if (new Set(normalized.map((proposal) => `${proposal.purpose}:${proposal.proposal_digest}`))
-        .size !== normalized.length) {
-        throw new Error("Catalog publication authority proposals must be unique.");
-    }
-    return normalized;
 }
 function normalizePolicies(policies) {
     const normalized = policies

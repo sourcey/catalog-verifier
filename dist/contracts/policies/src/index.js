@@ -99,6 +99,9 @@ export function assertCurrentCoveragePolicyClaimClosure(policy) {
             actual.some((path, index) => path !== expected[index])) {
             throw new Error(`Current ${kind} coverage policy must exactly cover: ${expected.join(", ")}.`);
         }
+        if (requirements.some((requirement) => requirement.proof_kinds.includes("attested"))) {
+            throw new Error(`Current ${kind} coverage policy cannot treat vendor attestation as independent evidence.`);
+        }
     }
     return policy;
 }

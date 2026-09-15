@@ -12,7 +12,7 @@ export declare const fundedWorkIntentEnvelopeCoreSchema: z.ZodObject<{
     subject: z.ZodObject<{
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
+        offer_id: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>;
     base_release_id: z.ZodString;
     eligibility_digest: z.ZodString;
@@ -41,7 +41,7 @@ export declare const fundedWorkIntentEnvelopeSchema: z.ZodObject<{
     subject: z.ZodObject<{
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
+        offer_id: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>;
     base_release_id: z.ZodString;
     eligibility_digest: z.ZodString;

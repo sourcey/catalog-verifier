@@ -1,13 +1,13 @@
 import { readdir, readFile } from "node:fs/promises";
 import { isAbsolute, join, resolve, sep } from "node:path";
 import { parse as parseYaml } from "yaml";
-import { agentReadinessDeclarationRevisionSchema, agentReadinessIndexSchema, agentReadinessProfileReleaseInputSchema, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessIndexSchema, agentReadinessProfileReleaseInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { policyCoreSchema } from "../../../contracts/artifact/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
 import { captureReceiptSchema, } from "../../../contracts/evidence/src/index.js";
-import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, } from "../../agent-readiness-policy/src/index.js";
 import { validateProtectedCaptureReceipt, validateProtectedEvent, } from "../../authority/src/index.js";
+import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
 import { canonicalizePublicHttpsUrl, compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 const policyInputSchema = policyCoreSchema;
 export async function loadCheckpointRevisions(directory) {
@@ -15,12 +15,8 @@ export async function loadCheckpointRevisions(directory) {
     for (const path of (await filesUnder(directory))
         .filter((file) => file.endsWith(".json"))
         .sort(compareCanonicalStrings)) {
-        const revision = parseCheckpointRevision(JSON.parse(await readFile(path, "utf8")));
+        const revision = parseRetainedCatalogRevision(JSON.parse(await readFile(path, "utf8")));
         const revisionDigest = revision.revision_digest;
-        const { revision_digest: _revisionDigest, ...core } = revision;
-        if (digest(core) !== revisionDigest) {
-            throw new Error(`Checkpoint revision ${revisionDigest} does not match its canonical core.`);
-        }
         const existing = revisions.get(revisionDigest);
         if (existing && digest(existing) !== digest(revision)) {
             throw new Error(`Checkpoint revision ${revisionDigest} collides with another object.`);
@@ -28,20 +24,6 @@ export async function loadCheckpointRevisions(directory) {
         revisions.set(revisionDigest, revision);
     }
     return revisions;
-}
-function parseCheckpointRevision(value) {
-    for (const schema of [
-        entityRevisionSchema,
-        programRevisionSchema,
-        offerRevisionSchema,
-        agentReadinessRevisionSchema,
-        agentReadinessDeclarationRevisionSchema,
-    ]) {
-        const parsed = schema.safeParse(value);
-        if (parsed.success)
-            return parsed.data;
-    }
-    throw new Error("Checkpoint revision does not use a current canonical revision contract.");
 }
 export async function loadAssetSourceBytes(manifest, assetRoot) {
     const paths = new Set(manifest.objects.flatMap((object) => [
@@ -284,6 +266,18 @@ export async function loadEvents(directory, registry, sequence) {
         events.push(event);
     }
     return events.sort((left, right) => compareCanonicalStrings(left.event_id, right.event_id));
+}
+/**
+ * The former generic verification event remains readable as immutable history,
+ * but it is not an authoring surface and must never enter a successor release as
+ * newly admitted authority. Current assurance uses the typed Entity and Offer
+ * events instead.
+ */
+export function assertNoRetiredVerificationIntroductions(events) {
+    const retired = events.find((event) => event.kind === "verification.completed");
+    if (retired) {
+        throw new Error(`Retired verification event ${retired.event_id} cannot be newly introduced; use typed assurance.`);
+    }
 }
 export async function loadCaptureReceipts(directory, registry, sequence) {
     const receiptDigests = new Set();

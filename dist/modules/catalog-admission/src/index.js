@@ -9,13 +9,17 @@ import { catalogTaxonomySchema, } from "../../../contracts/taxonomy/src/index.js
 import { assertCatalogTaxonomy } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
 import { compileAuthoringFiles } from "../../compiler/src/index.js";
+import { gitComparisonBase } from "../../git-input/src/index.js";
 import { canonicalJson, compareCanonicalStrings } from "../../primitives/src/index.js";
+import { catalogChangedRevisions, } from "./change-analysis.js";
 import { analyzeCatalogCandidateChanges, buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
 const execFileAsync = promisify(execFile);
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
 export * from "./admission-conflicts.js";
+export * from "./change-analysis.js";
 export * from "./machine-admission.js";
 export * from "./publication.js";
+export * from "./publication-composition.js";
 export * from "./submission.js";
 export const CATALOG_ENTITY_ROOT = "entities";
 export async function readCatalogTaxonomy(path) {
@@ -67,6 +71,12 @@ export async function resolveCatalogChangeTree(input) {
 }
 export async function validateCatalogPrTree(input) {
     const analysis = await analyzeCatalogPrTree(input);
+    // Public validation stays strict: a renamed, copied or deleted Entity file
+    // is not a valid contribution shape, even though machine admission names it
+    // as a scope reason instead of failing.
+    if (analysis.unsupportedChanges.length > 0) {
+        throw new Error(`Unsupported Entity change status ${analysis.unsupportedChanges.join(", ")}.`);
+    }
     return {
         entities: analysis.entities,
         programs: analysis.programs,
@@ -145,6 +155,7 @@ export async function analyzeCatalogPrAdmissionTree(input) {
         baseRevision: input.liveRevision,
         headRevision: input.pullRequestHeadRevision,
         entityFiles: pullRequestChanges.entityFiles,
+        unsupportedChanges: pullRequestChanges.unsupportedChanges,
         taxonomy: input.taxonomy,
     });
 }
@@ -217,6 +228,7 @@ async function analyzeCatalogTree(input, rejectMixedPullRequest) {
     return {
         baseRevision: input.baseRevision,
         entityFiles: changes.entityFiles,
+        unsupportedChanges: changes.unsupportedChanges,
         changedEntities,
         changedRevisions: catalogChangedRevisions(changedEntities),
         closure: identityClosure,
@@ -242,6 +254,7 @@ async function analyzeSelectedCatalogTree(input) {
     return {
         baseRevision: input.baseRevision,
         entityFiles: [...input.entityFiles],
+        unsupportedChanges: [...(input.unsupportedChanges ?? [])],
         changedEntities,
         changedRevisions: catalogChangedRevisions(changedEntities),
         closure: identityClosure,
@@ -278,58 +291,7 @@ async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selected
     return { changes, changedAuthoring, identityClosure, dependencyFiles };
 }
 export async function catalogPullRequestComparisonBase(input) {
-    assertGitRevision(input.baseRevision, "base");
-    assertGitRevision(input.headRevision, "head");
-    const { stdout } = await execFileAsync("git", ["merge-base", input.baseRevision, input.headRevision], {
-        cwd: resolve(input.repositoryRoot),
-        encoding: "utf8",
-        maxBuffer: 4 * 1024 * 1024,
-    });
-    const revision = stdout.trim();
-    assertGitRevision(revision, "pull-request comparison base");
-    return revision;
-}
-export function catalogChangedRevisions(changes) {
-    return changes.flatMap(({ entity, entityChanged, changedProgramIds, changedOfferIds }) => [
-        ...(entityChanged
-            ? [
-                {
-                    owner: entity,
-                    kind: "entity",
-                    targetId: entity.revision.entity_id,
-                    revisionDigest: entity.revision.revision_digest,
-                    title: entity.revision.content.name,
-                    accessUrl: entity.revision.content.links.site,
-                    termsUrl: null,
-                    sourceIds: entity.sources.map(({ source_id: sourceId }) => sourceId),
-                },
-            ]
-            : []),
-        ...entity.programs
-            .filter(({ revision }) => changedProgramIds.includes(revision.program_id))
-            .map((program) => ({
-            owner: entity,
-            kind: "program",
-            targetId: program.revision.program_id,
-            revisionDigest: program.revision.revision_digest,
-            title: program.revision.content.title,
-            accessUrl: null,
-            termsUrl: null,
-            sourceIds: program.sourceIds,
-        })),
-        ...entity.offers
-            .filter(({ revision }) => changedOfferIds.includes(revision.offer_id))
-            .map((offer) => ({
-            owner: entity,
-            kind: "offer",
-            targetId: offer.revision.offer_id,
-            revisionDigest: offer.revision.revision_digest,
-            title: offer.revision.content.title,
-            accessUrl: offer.revision.content.access.url ?? null,
-            termsUrl: offer.revision.content.terms_url ?? null,
-            sourceIds: offer.sourceIds,
-        })),
-    ]);
+    return gitComparisonBase(input);
 }
 export async function catalogChangedPaths(input) {
     assertGitRevision(input.baseRevision, "base");
@@ -342,6 +304,7 @@ export async function catalogChangedPaths(input) {
         fields.pop();
     const entityFiles = new Set();
     const otherFiles = new Set();
+    const unsupportedChanges = new Set();
     for (let index = 0; index < fields.length;) {
         const status = fields[index++];
         if (!status)
@@ -352,12 +315,12 @@ export async function catalogChangedPaths(input) {
         if (!path)
             throw new Error("Git produced an incomplete catalog change path.");
         const touchesEntityRoot = [oldPath, path].some((candidate) => candidate === authoringPath || candidate?.startsWith(`${authoringPath}/`));
-        if (touchesEntityRoot && kind === "D") {
-            throw new Error(`Catalog deletion ${path} requires an explicit lifecycle or identity transition.`);
-        }
         if (touchesEntityRoot) {
+            // Renames, copies and deletions are contributor mistakes the scope
+            // policy names, not analyzer failures.
             if (!["A", "M"].includes(kind)) {
-                throw new Error(`Unsupported Entity change status ${status} for ${path}.`);
+                unsupportedChanges.add(`${status}:${path}`);
+                continue;
             }
             entityFiles.add(repositoryPath(authoringRoot, resolve(input.repositoryRoot, path)));
             continue;
@@ -367,6 +330,7 @@ export async function catalogChangedPaths(input) {
     return {
         entityFiles: [...entityFiles].sort(compareCanonicalStrings),
         otherFiles: [...otherFiles].sort(compareCanonicalStrings),
+        unsupportedChanges: [...unsupportedChanges].sort(compareCanonicalStrings),
     };
 }
 /**

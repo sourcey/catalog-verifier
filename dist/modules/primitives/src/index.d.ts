@@ -29,6 +29,8 @@ export declare function visitStrings(value: unknown, visit: (text: string, path:
  * change with the host locale or ICU version.
  */
 export declare function compareCanonicalStrings(left: string, right: string): number;
+/** Chronological ordering for ISO-8601 instants, independent of offset spelling. */
+export declare function compareInstants(left: string, right: string): number;
 export declare function sha256Bytes(bytes: Uint8Array | string): Digest;
 export declare function digest(value: unknown): Digest;
 export declare function deriveOperationId(operationContract: string, value: unknown): OperationId;

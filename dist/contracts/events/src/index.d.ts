@@ -1,46 +1,18 @@
 import { z } from "zod";
-export declare const verificationCompletedPayloadCoreSchema: z.ZodObject<{
-    verification_id: z.ZodString;
-    verifier_id: z.ZodString;
-    method_version: z.ZodString;
-    scope: z.ZodEnum<{
-        "whole-revision": "whole-revision";
-        paths: "paths";
-    }>;
-    verified_paths: z.ZodArray<z.ZodString>;
-    result: z.ZodEnum<{
-        pass: "pass";
-        fail: "fail";
-        inconclusive: "inconclusive";
-    }>;
-    receipt_digest: z.ZodString;
-    checked_at: z.ZodISODateTime;
-    coverage_policy_digest: z.ZodString;
-}, z.core.$strict>;
-export declare function validateVerificationPayloadCoverage(value: {
-    readonly scope: "whole-revision" | "paths";
-    readonly verified_paths: readonly string[];
-}, context: z.RefinementCtx): void;
-export declare const verificationCompletedPayloadSchema: z.ZodObject<{
-    verification_id: z.ZodString;
-    verifier_id: z.ZodString;
-    method_version: z.ZodString;
-    scope: z.ZodEnum<{
-        "whole-revision": "whole-revision";
-        paths: "paths";
-    }>;
-    verified_paths: z.ZodArray<z.ZodString>;
-    result: z.ZodEnum<{
-        pass: "pass";
-        fail: "fail";
-        inconclusive: "inconclusive";
-    }>;
-    receipt_digest: z.ZodString;
-    checked_at: z.ZodISODateTime;
-    coverage_policy_digest: z.ZodString;
-}, z.core.$strict>;
 export declare const authorityClaimMethodKnownValues: readonly ["dns-txt", "domain-email", "well-known", "inbound-dkim"];
 export declare const authorityClaimMethodSchema: z.ZodString;
+export declare const entityEventSubjectSchema: z.ZodObject<{
+    subject_type: z.ZodLiteral<"entity">;
+    entity_id: z.ZodString;
+    revision_digest: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>;
+export declare const offerEventSubjectSchema: z.ZodObject<{
+    subject_type: z.ZodLiteral<"offer">;
+    entity_id: z.ZodString;
+    program_id: z.ZodOptional<z.ZodString>;
+    offer_id: z.ZodString;
+    revision_digest: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>;
 export declare const eventSubjectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     subject_type: z.ZodLiteral<"entity">;
     entity_id: z.ZodString;
@@ -154,29 +126,60 @@ export declare const catalogEventPayloadSchemas: {
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
     }, z.core.$strict>;
+    /**
+     * Retained solely because nine signed production events were admitted before
+     * Entity identity and Offer terms assurance became independent contracts.
+     * Release construction rejects this kind from every new input. It remains in
+     * the read contract so the append-only ledger can expose and verify the exact
+     * historical bytes without treating them as current assurance.
+     */
     readonly "verification.completed": z.ZodObject<{
         verification_id: z.ZodString;
         verifier_id: z.ZodString;
         method_version: z.ZodString;
-        scope: z.ZodEnum<{
-            "whole-revision": "whole-revision";
-            paths: "paths";
-        }>;
+        scope: z.ZodLiteral<"whole-revision">;
+        result: z.ZodLiteral<"pass">;
+        checked_at: z.ZodISODateTime;
         verified_paths: z.ZodArray<z.ZodString>;
-        result: z.ZodEnum<{
-            pass: "pass";
-            fail: "fail";
-            inconclusive: "inconclusive";
-        }>;
+        coverage_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
+    }, z.core.$strict>;
+    readonly "entity.identity-checked": z.ZodObject<{
+        identity_epoch_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
-        coverage_policy_digest: z.ZodString;
     }, z.core.$strict>;
-    readonly "verification.revoked": z.ZodObject<{
-        target_event_id: z.ZodString;
+    readonly "offer.terms-checked": z.ZodObject<{
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
+        checked_at: z.ZodISODateTime;
+    }, z.core.$strict>;
+    readonly "assurance.revoked": z.ZodDiscriminatedUnion<[z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"entity_identity">;
+        identity_epoch_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
-    }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"offer_terms">;
+        revision_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>], "assurance_kind">;
     readonly "freshness.exception-granted": z.ZodObject<{
         paths: z.ZodArray<z.ZodString>;
         valid_until: z.ZodISODateTime;
@@ -468,7 +471,9 @@ export declare const catalogEventKindSchema: z.ZodEnum<{
     "subject.attested": "subject.attested";
     "attestation.revoked": "attestation.revoked";
     "verification.completed": "verification.completed";
-    "verification.revoked": "verification.revoked";
+    "entity.identity-checked": "entity.identity-checked";
+    "offer.terms-checked": "offer.terms-checked";
+    "assurance.revoked": "assurance.revoked";
     "freshness.exception-granted": "freshness.exception-granted";
     "freshness.exception-revoked": "freshness.exception-revoked";
     "dispute.opened": "dispute.opened";
@@ -503,7 +508,9 @@ export declare const catalogEventCoreSchema: z.ZodObject<{
         "subject.attested": "subject.attested";
         "attestation.revoked": "attestation.revoked";
         "verification.completed": "verification.completed";
-        "verification.revoked": "verification.revoked";
+        "entity.identity-checked": "entity.identity-checked";
+        "offer.terms-checked": "offer.terms-checked";
+        "assurance.revoked": "assurance.revoked";
         "freshness.exception-granted": "freshness.exception-granted";
         "freshness.exception-revoked": "freshness.exception-revoked";
         "dispute.opened": "dispute.opened";
@@ -566,7 +573,9 @@ export declare const catalogEventIntentSchema: z.ZodObject<{
             "subject.attested": "subject.attested";
             "attestation.revoked": "attestation.revoked";
             "verification.completed": "verification.completed";
-            "verification.revoked": "verification.revoked";
+            "entity.identity-checked": "entity.identity-checked";
+            "offer.terms-checked": "offer.terms-checked";
+            "assurance.revoked": "assurance.revoked";
             "freshness.exception-granted": "freshness.exception-granted";
             "freshness.exception-revoked": "freshness.exception-revoked";
             "dispute.opened": "dispute.opened";
@@ -628,7 +637,9 @@ export declare const catalogEventSchema: z.ZodObject<{
         "subject.attested": "subject.attested";
         "attestation.revoked": "attestation.revoked";
         "verification.completed": "verification.completed";
-        "verification.revoked": "verification.revoked";
+        "entity.identity-checked": "entity.identity-checked";
+        "offer.terms-checked": "offer.terms-checked";
+        "assurance.revoked": "assurance.revoked";
         "freshness.exception-granted": "freshness.exception-granted";
         "freshness.exception-revoked": "freshness.exception-revoked";
         "dispute.opened": "dispute.opened";

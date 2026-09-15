@@ -1,6 +1,6 @@
 import { catalogEventPayloadSchemas, } from "../../../contracts/events/src/index.js";
 import { deriveAuthorityState, entityAcceptsClaimAuthorityDomain, } from "../../authority-state/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
+import { compareCanonicalStrings, compareInstants, } from "../../primitives/src/index.js";
 import { assertEvidenceBindingClosure, evidenceAssertions } from "./evidence-bindings.js";
 import { applicableEvidenceCoverageRequirements, evidenceAssertionSatisfiesRequirement, evidencePathsOverlap, evidenceRequirementIsCovered, } from "./evidence-coverage.js";
 export { evidenceAssertions } from "./evidence-bindings.js";
@@ -101,7 +101,6 @@ export function buildEventGraph(events, observations) {
     const targetKinds = {
         "evidence.retracted": "evidence.bound",
         "attestation.revoked": "subject.attested",
-        "verification.revoked": "verification.completed",
         "freshness.exception-revoked": "freshness.exception-granted",
     };
     for (const event of events) {
@@ -128,6 +127,42 @@ export function buildEventGraph(events, observations) {
             }
             invalidationTargets.set(target, event.event_id);
             inactive.add(target);
+        }
+        if (event.kind === "assurance.revoked") {
+            const payload = catalogEventPayloadSchemas["assurance.revoked"].parse(event.payload);
+            if (event.occurred_at !== payload.revoked_at) {
+                throw new Error(`${event.kind} occurrence differs from its revocation time.`);
+            }
+            const matching = events.filter((candidate) => {
+                if (payload.assurance_kind === "entity_identity") {
+                    if (event.subject.subject_type !== "entity" ||
+                        event.subject.revision_digest !== undefined ||
+                        candidate.kind !== "entity.identity-checked" ||
+                        candidate.subject.subject_type !== "entity" ||
+                        candidate.subject.entity_id !== event.subject.entity_id) {
+                        return false;
+                    }
+                    const checked = catalogEventPayloadSchemas["entity.identity-checked"].parse(candidate.payload);
+                    return (checked.assurance_id === payload.assurance_id &&
+                        checked.identity_epoch_digest === payload.identity_epoch_digest &&
+                        compareInstants(checked.checked_at, payload.revoked_at) <= 0);
+                }
+                if (event.subject.subject_type !== "offer" ||
+                    event.subject.revision_digest !== payload.revision_digest ||
+                    candidate.kind !== "offer.terms-checked" ||
+                    candidate.subject.subject_type !== "offer" ||
+                    !sameSubject(candidate, event)) {
+                    return false;
+                }
+                const checked = catalogEventPayloadSchemas["offer.terms-checked"].parse(candidate.payload);
+                return (checked.assurance_id === payload.assurance_id &&
+                    compareInstants(checked.checked_at, payload.revoked_at) <= 0);
+            });
+            if (matching.length === 0) {
+                throw new Error(`${event.kind} does not match a completed assurance in its exact scope.`);
+            }
+            for (const target of matching)
+                inactive.add(target.event_id);
         }
         if (event.kind === "identity.transition-superseded") {
             const target = payloadString(event, "target_event_id");
@@ -285,17 +320,6 @@ export function deriveProvenance(input) {
         throw new Error(`Revision ${revision.revision_digest} has multiple active attestations; revoke or supersede one.`);
     }
     const attestation = attestations[0];
-    /* A revision-pinned attestation covers a path only where the coverage policy
-       admits attested proof; its freshness runs on the attested age budget. A
-       policy without the attested budget cannot grade attested coverage fresh. */
-    const attestedBudgetDays = freshnessPolicy.max_age_days.attested;
-    const attestationFresh = (() => {
-        if (!attestation || attestedBudgetDays === undefined)
-            return false;
-        const attestedAt = new Date(payloadString(attestation, "attested_at"));
-        attestedAt.setUTCDate(attestedAt.getUTCDate() + attestedBudgetDays);
-        return attestedAt.getTime() > Date.parse(policyAsOf);
-    })();
     const coverageStates = requirements.map((requirement) => {
         const { path } = requirement;
         const supporting = subjectEvents.filter((event) => event.kind === "evidence.bound" &&
@@ -325,9 +349,7 @@ export function deriveProvenance(input) {
             .at(-1);
         const supportingAssertions = successfulSupporting.flatMap((event) => evidenceAssertions(event).filter((assertion) => evidencePathsOverlap(assertion.path, path) &&
             evidenceAssertionSatisfiesRequirement(assertion, requirement)));
-        const attestedCovers = attestation !== undefined && requirement.proof_kinds.includes("attested");
         const observationComplete = evidenceRequirementIsCovered(revisionValue, requirement, supportingAssertions);
-        const complete = observationComplete || attestedCovers;
         const freshAssertions = supportingObservations.flatMap(({ event, observation }) => observationFreshness(observation, freshnessPolicy, policyAsOf) === "fresh"
             ? evidenceAssertions(event).filter((assertion) => evidencePathsOverlap(assertion.path, path) &&
                 evidenceAssertionSatisfiesRequirement(assertion, requirement))
@@ -339,28 +361,22 @@ export function deriveProvenance(input) {
             ? "fresh"
             : evidenceRequirementIsCovered(revisionValue, requirement, freshAssertions)
                 ? "fresh"
-                : attestedCovers && attestationFresh
-                    ? "fresh"
-                    : complete
-                        ? "stale"
-                        : "unknown";
+                : observationComplete
+                    ? "stale"
+                    : "unknown";
         return {
             complete: observationComplete,
             field: {
                 path,
-                supporting_event_ids: [
-                    ...successfulSupporting.map((event) => event.event_id),
-                    ...(attestedCovers ? [attestation.event_id] : []),
-                ].sort(),
+                supporting_event_ids: successfulSupporting
+                    .map((event) => event.event_id)
+                    .sort(),
                 contradicting_event_ids: effectiveContradictions
                     .map((event) => event.event_id)
                     .sort(),
                 accepted_proof_kinds: [...requirement.proof_kinds],
                 evidence_proof_kinds: [
-                    ...new Set([
-                        ...supportingAssertions.map(({ proof_kind: proofKind }) => proofKind),
-                        ...(attestedCovers ? ["attested"] : []),
-                    ]),
+                    ...new Set(supportingAssertions.map(({ proof_kind: proofKind }) => proofKind)),
                 ].sort(compareCanonicalStrings),
                 ...(latestObservation ? { latest_observation_at: latestObservation.retrieved_at } : {}),
                 freshness,
@@ -368,27 +384,6 @@ export function deriveProvenance(input) {
         };
     });
     const fieldCoverage = coverageStates.map(({ field }) => field);
-    const fullyObserved = coverageStates.every(({ complete, field }) => complete && field.contradicting_event_ids.length === 0);
-    const verifications = subjectEvents.filter((event) => {
-        if (event.kind !== "verification.completed")
-            return false;
-        if (payloadString(event, "result") !== "pass" ||
-            payloadString(event, "coverage_policy_digest") !== coveragePolicy.policy_digest) {
-            return false;
-        }
-        return (payloadString(event, "scope") === "whole-revision" ||
-            requirements.every(({ path }) => payloadStrings(event, "verified_paths").includes(path)));
-    });
-    if (verifications.length > 1) {
-        throw new Error(`Revision ${revision.revision_digest} has multiple active passing verifications.`);
-    }
-    const verification = verifications[0];
-    if (!agentReadinessRevision && !verification && !attestation && !fullyObserved) {
-        const lapsedDeclaration = subjectEvents.some((event) => event.kind === "subject.attested");
-        throw new Error(lapsedDeclaration
-            ? `Declared revision ${revision.revision_digest} lost its authority basis; renew the attestation or author a withdrawal before the next release.`
-            : `Revision ${revision.revision_digest} is neither fully observed, signed, nor verified.`);
-    }
     const openDisputes = subjectEvents.filter((event) => event.kind === "dispute.opened" &&
         !subjectEvents.some((candidate) => candidate.kind === "dispute.resolved" &&
             payloadString(candidate, "opened_event_id") === event.event_id));
@@ -415,19 +410,12 @@ export function deriveProvenance(input) {
                 basis.add(eventId);
         }
     }
-    if (verification)
-        basis.add(verification.event_id);
     for (const event of openDisputes)
         basis.add(event.event_id);
     for (const event of subjectEvents.filter((candidate) => candidate.kind === "dispute.resolved")) {
         basis.add(event.event_id);
     }
-    for (const event of subjectEvents.filter((candidate) => [
-        "evidence.retracted",
-        "attestation.revoked",
-        "verification.revoked",
-        "freshness.exception-revoked",
-    ].includes(candidate.kind))) {
+    for (const event of subjectEvents.filter((candidate) => ["evidence.retracted", "attestation.revoked", "freshness.exception-revoked"].includes(candidate.kind))) {
         basis.add(event.event_id);
     }
     const freshness = fieldCoverage.some((field) => field.freshness === "unknown")
@@ -436,15 +424,19 @@ export function deriveProvenance(input) {
             ? "stale"
             : "fresh";
     return {
-        tier: verification ? "verified" : attestation ? "signed" : "observed",
         freshness,
         dispute: openDisputes.length > 0 ? "open" : hasResolvedDispute ? "resolved" : "none",
         coverage_policy_digest: coveragePolicy.policy_digest,
         freshness_policy_digest: freshnessPolicy.policy_digest,
         basis_event_ids: [...basis].sort(),
         fields: fieldCoverage,
-        ...(attestation ? { attestation_event_id: attestation.event_id } : {}),
-        ...(verification ? { verification_event_id: verification.event_id } : {}),
+        vendor_attestation: attestation
+            ? {
+                status: "current",
+                event_id: attestation.event_id,
+                attested_at: payloadString(attestation, "attested_at"),
+            }
+            : { status: "none" },
     };
 }
 function observationFreshness(observation, policy, policyAsOf) {
@@ -458,14 +450,6 @@ function observationFreshness(observation, policy, policyAsOf) {
     const freshUntil = new Date(observation.retrieved_at);
     freshUntil.setUTCDate(freshUntil.getUTCDate() + maxAge);
     return compareInstants(freshUntil.toISOString(), policyAsOf) > 0 ? "fresh" : "stale";
-}
-function compareInstants(left, right) {
-    const leftTime = Date.parse(left);
-    const rightTime = Date.parse(right);
-    if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) {
-        throw new Error("Provenance instant comparison requires valid ISO-8601 instants.");
-    }
-    return leftTime - rightTime;
 }
 function evidenceBindingIsActive(eventId, graph) {
     return graph.evidenceBindingActivity.get(eventId) ?? true;

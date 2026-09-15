@@ -1,4 +1,5 @@
 export * from "./current-policy.js";
+export * from "./current-policy-validation.js";
 export * from "./grading.js";
 export * from "./impact.js";
 export * from "./offer-relations.js";
@@ -10,7 +11,7 @@ import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index
 import { canonicalJson, compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 import { deriveProvenance, evidenceStatusFor, } from "../../provenance/src/index.js";
 import { verifyStandardEvidenceResult } from "../../standard-evidence/src/index.js";
-import { deriveAgentReadinessGrade, isAgentReadinessGradingSignal, isAgentReadinessResolvedBarrierSignal, isAgentReadinessVerifiedBarrierSignal, } from "./grading.js";
+import { deriveAgentReadinessGrade, isAgentReadinessGradingSignal, isAgentReadinessVerifiedBarrierSignal, } from "./grading.js";
 import { validateAgentReadinessPolicy } from "./policy-validation.js";
 import { priorAgentReadinessVisibility } from "./projection-lineage.js";
 import { agentReadinessValuesSupportedByStandardRequirementResults } from "./standard-mapping.js";
@@ -125,9 +126,16 @@ export function reprojectAgentReadinessCanonicalRoute(input) {
         projection_digest: digest(core),
     });
 }
+/** A relocation changes the locator, never the immutable assessment facts. */
+export function isAgentReadinessRouteOnlySuccession(prior, current) {
+    const { canonical_url: priorUrl, projection_digest: _priorDigest, ...priorFacts } = prior;
+    const { canonical_url: currentUrl, projection_digest: _currentDigest, ...currentFacts } = current;
+    return priorUrl !== currentUrl && canonicalJson(priorFacts) === canonicalJson(currentFacts);
+}
 export function deriveAgentReadinessReprojection(input) {
     const routeProjection = reprojectAgentReadinessCanonicalRoute(input);
-    return canonicalJson(routeProjection) === canonicalJson(input.currentProjection)
+    return isAgentReadinessRouteOnlySuccession(input.priorProjection, input.currentProjection) &&
+        canonicalJson(routeProjection) === canonicalJson(input.currentProjection)
         ? routeProjection
         : regradeAgentReadinessProjection(input);
 }
@@ -217,8 +225,8 @@ function evaluateAgentReadinessProjection(input) {
             };
         });
         const graded = evaluated.filter((entry) => isAgentReadinessGradingSignal(entry.rule));
-        const resolvedBarriers = evaluated.filter((entry) => isAgentReadinessResolvedBarrierSignal(entry.signal));
-        const stageSignals = [...graded, ...resolvedBarriers];
+        const verifiedBarriers = evaluated.filter((entry) => isAgentReadinessVerifiedBarrierSignal(entry.signal));
+        const stageSignals = [...graded, ...verifiedBarriers];
         const outcome = worstAgentReadinessOutcome(stageSignals.map((entry) => entry.outcome), policy.aggregation.outcome_precedence);
         const orderedStageSignals = [...stageSignals].sort((left, right) => compareEvaluatedRules(left, right, policy.aggregation.outcome_precedence));
         const primary = orderedStageSignals[0];
@@ -292,6 +300,8 @@ function projectAgentReadinessProjection(input) {
         .flatMap((stage) => stage.signals
         .filter((signal) => signal.evaluation_role !== "informational" &&
         signal.evidence_status === "supported" &&
+        (signal.evaluation_role === "graded" ||
+            isAgentReadinessVerifiedBarrierSignal(signal)) &&
         (signal.public_state === "blocked" || signal.public_state === "limited"))
         .map((signal) => ({ stage, signal })))
         .sort((left, right) => compareActionableFindings(left, right, policy));

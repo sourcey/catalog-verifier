@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DIGEST_PATTERN, digestPathSegment, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { digest as canonicalDigest, DIGEST_PATTERN, digestPathSegment, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
 import { canonicalArtifactCoreSchema, compiledEntitySchema, identityIndexSchema, provenanceIndexSchema, } from "../../artifact/src/index.js";
 import { entityAuthoringSchema } from "../../authoring/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
@@ -45,6 +45,44 @@ export const releaseObjectManifestSchema = z
  * so a new capability does not change the release envelope shape.
  */
 export const releaseResourceDigestsSchema = z.record(resourceName, digest);
+export const releasePolicyInputsSchema = z
+    .object({
+    input_contract: z.literal("sourcey.policy-inputs/v1alpha1"),
+    agent_readiness_policy_digest: digest,
+    assurance_method_policy_digest: digest,
+    coverage_policy_digest: digest,
+    freshness_policy_digest: digest,
+    public_policy_digests: z.array(digest).superRefine((values, context) => {
+        const canonical = [...new Set(values)].sort();
+        if (canonical.length !== values.length ||
+            values.some((value, index) => value !== canonical[index])) {
+            context.addIssue({
+                code: "custom",
+                message: "Public policy digests must be canonical and unique.",
+            });
+        }
+    }),
+})
+    .strict();
+/** One immutable source of production policy paths shared by release and evidence runtimes. */
+export const productionReleaseConfigurationSchema = z
+    .object({
+    configuration_contract: z.literal("sourcey.production-release-configuration/v1alpha1"),
+    policy_as_of: instant,
+    paths: z
+        .object({
+        taxonomy: z.string().min(1),
+        root_set: z.string().min(1),
+        signer_registry: z.string().min(1),
+        agent_readiness_policy: z.string().min(1),
+        assurance_method_policy: z.string().min(1),
+        coverage_policy: z.string().min(1),
+        freshness_policy: z.string().min(1),
+        public_policy_root: z.string().min(1),
+    })
+        .strict(),
+})
+    .strict();
 export const RELEASE_RESOURCES = {
     agentReadinessIndex: "agent-readiness-index",
     agentReadinessInputs: "agent-readiness-inputs",
@@ -54,6 +92,7 @@ export const RELEASE_RESOURCES = {
     assetIndex: "asset-index",
     assetInputs: "asset-inputs",
     assetManifest: "asset-manifest",
+    assuranceMethodPolicy: "assurance-method-policy",
     coveragePolicy: "coverage-policy",
     freshnessPolicy: "freshness-policy",
     identities: "identities",
@@ -215,6 +254,15 @@ export const catalogReleaseBundleSchema = catalogReleaseBundleCoreSchema
     bundle_digest: digest,
 })
     .strict();
+/** Verifies the immutable bundle envelope; evidence admission is separate. */
+export function verifyCatalogReleaseBundle(input) {
+    const bundle = catalogReleaseBundleSchema.parse(input);
+    const { bundle_digest: bundleDigest, ...core } = bundle;
+    if (canonicalDigest(core) !== bundleDigest) {
+        throw new Error("Release bundle digest does not match its canonical core.");
+    }
+    return bundle;
+}
 /**
  * Stable current-parent metadata used by publication planning. Immutable bundle
  * bytes remain verifier-bound audit evidence and are never a runtime parent

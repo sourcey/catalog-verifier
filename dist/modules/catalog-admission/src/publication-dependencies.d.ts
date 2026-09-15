@@ -1,6 +1,15 @@
+import type { CatalogEvent } from "../../../contracts/events/src/index.js";
 import type { PublicationDependencyRegistration, SurfaceDependencyReference } from "../../../contracts/publication/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
 export declare function catalogSourceLocatorDigest(url: string): Digest;
+export declare function catalogPublicationImpactProof(input: {
+    readonly impact_index_digest: string;
+    readonly changed_dependency_keys: readonly string[];
+    readonly affected_dependents: readonly {
+        readonly domain: string;
+        readonly key: string;
+    }[];
+}): Digest;
 export declare function dependencyKeysForChanges(input: {
     readonly revisionChanges: readonly {
         kind: string;
@@ -36,7 +45,13 @@ export declare function dependencyKeysForChanges(input: {
     } | {
         kind: "contract_authority";
     })[];
+    readonly authorityProposals?: readonly {
+        readonly dependency_keys: readonly string[];
+    }[];
 }): string[];
+/** Event identity and exact revision are generic publication dependencies.
+ * Retractions invalidate their target, not merely the new retraction's ID. */
+export declare function catalogPublicationEventDependencyKeys(events: readonly Pick<CatalogEvent, "event_id" | "subject" | "payload">[]): string[];
 export declare function requiredAuthoritiesForChanges(input: {
     readonly revisionChanges: readonly {
         kind: string;
@@ -59,6 +74,7 @@ export declare function requiredAuthoritiesForChanges(input: {
     }[];
 }): string[];
 export declare const catalogPublicationDependencyKey: {
+    readonly event: (eventId: string) => string;
     readonly entity: (entityId: string) => string;
     readonly subject: (kind: string, targetId: string) => string;
     readonly revision: (revisionDigest: string) => string;
@@ -72,14 +88,22 @@ export declare const catalogPublicationDependencyKey: {
     readonly contractAuthority: () => string;
 };
 export declare function surfaceDependencyReferenceKey(reference: SurfaceDependencyReference): string;
+/** Structural read port across purpose-scoped distributions. Its public shape
+ * is derived from the owner, never copied by a host or coupled to JS private fields. */
+export type CatalogPublicationImpactQuery = Pick<CatalogPublicationImpactIndex, keyof CatalogPublicationImpactIndex>;
+export type CatalogPublicationImpactReader = (input: {
+    readonly releaseId: string;
+    readonly dependencyKeys: readonly string[];
+}) => Promise<CatalogPublicationImpactQuery>;
 export declare class CatalogPublicationImpactIndex {
     #private;
     readonly indexDigest: Digest;
-    constructor(registrations?: readonly PublicationDependencyRegistration[]);
+    constructor(registrations?: readonly PublicationDependencyRegistration[], selectedDependencyKeys?: readonly string[]);
     registration(dependent: {
         readonly domain: string;
         readonly key: string;
     }): PublicationDependencyRegistration | undefined;
+    registrations(): readonly PublicationDependencyRegistration[];
     affected(dependencyKeys: readonly string[]): {
         readonly dependents: readonly {
             domain: string;

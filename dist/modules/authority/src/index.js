@@ -6,6 +6,8 @@ import { captureReceiptCoreSchema, captureReceiptSchema, evidenceReviewDecisionC
 import { changeCursorCoreSchema, changeCursorSchema, searchCursorCoreSchema, searchCursorSchema, } from "../../../contracts/feed/src/index.js";
 import { releasePublicationCoreSchema, releasePublicationSchema, } from "../../../contracts/release/src/index.js";
 import { canonicalJson, digest } from "../../primitives/src/index.js";
+import { retainedCaptureReceiptSchema, } from "./retained-capture-receipt.js";
+export { retainedCaptureReceiptSchema, } from "./retained-capture-receipt.js";
 const REGISTRY_DOMAIN = "sourcey:signer-registry:v1alpha1";
 const CAPTURE_RECEIPT_DOMAIN = "sourcey:capture-receipt:v1alpha1";
 const EVENT_DOMAIN = "sourcey:catalog-event:v1alpha1";
@@ -24,8 +26,12 @@ export function signaturePurposeForKind(kind) {
     if (kind === "subject.attested" || kind === "attestation.revoked") {
         return "catalog-attestation";
     }
-    if (kind.startsWith("verification."))
+    if (kind === "verification.completed" ||
+        kind === "entity.identity-checked" ||
+        kind === "offer.terms-checked" ||
+        kind === "assurance.revoked") {
         return "catalog-verification";
+    }
     if (kind.startsWith("freshness."))
         return "catalog-policy";
     if (kind.startsWith("dispute."))
@@ -265,6 +271,31 @@ export function validateProtectedCaptureReceipt(input, registry, releaseSequence
         receipt.review_decision.decision !== "approved") {
         throw new Error(`Capture receipt ${receiptDigest} lacks its exact approved review decision.`);
     }
+    assertCaptureReceiptAuthority({ receipt, core, registry, releaseSequence });
+    return receipt;
+}
+/**
+ * Replays an already-issued receipt from immutable release history. This does
+ * not authorize the historical shape for current issuance.
+ */
+export function validateProtectedRetainedCaptureReceipt(input, registry, releaseSequence) {
+    const receipt = retainedCaptureReceiptSchema.parse(input);
+    const { receipt_digest: receiptDigest, protected: _protected, ...core } = receipt;
+    const expectedDigest = digest(core);
+    if (receiptDigest !== expectedDigest) {
+        throw new Error(`Retained capture receipt digest mismatch: expected ${expectedDigest}, received ${receiptDigest}.`);
+    }
+    const { decision_digest: decisionDigest, ...decisionCore } = receipt.review_decision;
+    if (digest(decisionCore) !== decisionDigest || receipt.review_decision.decision !== "approved") {
+        throw new Error(`Retained capture receipt ${receiptDigest} lacks its exact approved review decision.`);
+    }
+    assertCaptureReceiptAuthority({ receipt, core, registry, releaseSequence });
+    return receipt;
+}
+function assertCaptureReceiptAuthority(input) {
+    const { receipt, core, registry, releaseSequence } = input;
+    const receiptDigest = receipt.receipt_digest;
+    const protectedSignature = receipt.protected;
     if (protectedSignature.signature_purpose !== "catalog-capture" ||
         protectedSignature.signer_registry_digest !== registry.registry_digest) {
         throw new Error(`Capture receipt ${receiptDigest} uses invalid protected authority.`);
@@ -286,7 +317,6 @@ export function validateProtectedCaptureReceipt(input, registry, releaseSequence
     if (!verify(null, captureReceiptSignaturePreimage(core, receiptDigest, protectedHeader), createPublicKey(key.public_key_pem), Buffer.from(signature, "base64"))) {
         throw new Error(`Capture receipt ${receiptDigest} has an invalid protected signature.`);
     }
-    return receipt;
 }
 export function validateReleasePublication(input, registry) {
     const publication = releasePublicationSchema.parse(input);

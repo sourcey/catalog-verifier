@@ -282,7 +282,7 @@ function requiredSourceEntityId(value, event) {
     }
     return value;
 }
-export function validateIdentityClosure(identities, revisions, facts, agentReadinessProfiles, parent) {
+export function validateIdentityClosure(identities, revisions, facts, agentReadinessProfiles, parent, retainedIdentityFloor) {
     const historicalEntities = new Set();
     const historicalPrograms = new Set();
     const historicalOffers = new Set();
@@ -297,6 +297,20 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
         }
         else if (revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1") {
             historicalAgentReadinessProfiles.add(revision.agent_readiness_profile_id);
+        }
+    }
+    if (retainedIdentityFloor) {
+        for (const entityId of identityFloorEntityIds(retainedIdentityFloor)) {
+            historicalEntities.add(entityId);
+        }
+        for (const programId of identityFloorProgramIds(retainedIdentityFloor)) {
+            historicalPrograms.add(programId);
+        }
+        for (const offerId of identityFloorOfferIds(retainedIdentityFloor)) {
+            historicalOffers.add(offerId);
+        }
+        for (const profileId of identityFloorAgentReadinessProfileIds(retainedIdentityFloor)) {
+            historicalAgentReadinessProfiles.add(profileId);
         }
     }
     const currentEntities = new Set(facts.entities.map((entity) => entity.revision.entity_id));
@@ -390,6 +404,34 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
             throw new Error(`Entity split ${original} is not closed over current entities.`);
         }
     }
+}
+function identityFloorEntityIds(identities) {
+    return new Set([
+        ...Object.keys(identities.canonical_entity_resolutions),
+        ...identities.retired_entities,
+        ...Object.keys(identities.split_relationships),
+    ]);
+}
+function identityFloorProgramIds(identities) {
+    return new Set([
+        ...Object.keys(identities.canonical_program_resolutions),
+        ...identities.retired_programs,
+        ...Object.keys(identities.program_reparents ?? {}),
+    ]);
+}
+function identityFloorOfferIds(identities) {
+    return new Set([
+        ...Object.keys(identities.canonical_offer_resolutions),
+        ...identities.retired_offers,
+        ...Object.keys(identities.offer_reparents ?? {}),
+    ]);
+}
+function identityFloorAgentReadinessProfileIds(identities) {
+    return new Set([
+        ...Object.keys(identities.canonical_agent_readiness_profile_resolutions),
+        ...identities.retired_agent_readiness_profiles,
+        ...Object.keys(identities.agent_readiness_profile_reparents),
+    ]);
 }
 function stringValue(value) {
     if (typeof value !== "string")

@@ -1,4 +1,10 @@
 import { type AgentReadinessOfferRelationIndex, type AgentReadinessOfferRelationInput, type AgentReadinessOfferRelationRevision } from "../../../contracts/agent-readiness/src/index.js";
+/** Undefined means this Offer was not changed; null means it was removed. */
+export declare function agentReadinessOfferRelationRequiresWithdrawal(input: {
+    readonly relation: AgentReadinessOfferRelationRevision;
+    readonly changedOfferRevisionDigest: string | null | undefined;
+    readonly profileRetired: boolean;
+}): boolean;
 export declare function agentReadinessOfferRelationId(input: {
     readonly agentReadinessProfileId: string;
     readonly offerId: string;

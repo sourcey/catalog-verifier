@@ -1,3 +1,4 @@
+import { currentEntityPrimaryDomainValue, hostnameIsWithinDomain, } from "../../../contracts/revisions/src/index.js";
 import { compareCanonicalStrings } from "../../primitives/src/index.js";
 /**
  * The canonical domain used when opening a new authority claim. A claim is
@@ -5,14 +6,11 @@ import { compareCanonicalStrings } from "../../primitives/src/index.js";
  * than from a presentation URL that may use `www` or another site hostname.
  */
 export function currentEntityPrimaryDomain(revision) {
-    const domains = revision.content.domains.filter((domain) => domain.role === "primary" && domain.valid_until === undefined);
-    if (domains.length !== 1) {
+    const primary = currentEntityPrimaryDomainValue(revision.content.domains);
+    if (!primary) {
         throw new Error(`Entity revision ${revision.revision_digest} must have exactly one current primary domain.`);
     }
-    const primary = domains[0];
-    if (!primary)
-        throw new Error("Entity primary domain selection failed.");
-    return primary.value.toLowerCase();
+    return primary;
 }
 /**
  * Exact current hostnames that can support authority for an Entity revision.
@@ -24,9 +22,7 @@ export function currentEntityPrimaryDomain(revision) {
 export function entityClaimAuthorityDomains(revision) {
     const primary = currentEntityPrimaryDomain(revision);
     const site = new URL(revision.content.links.site).hostname.toLowerCase();
-    return [
-        ...new Set([primary, ...(site === primary || site.endsWith(`.${primary}`) ? [site] : [])]),
-    ].sort();
+    return [...new Set([primary, ...(hostnameIsWithinDomain(site, primary) ? [site] : [])])].sort();
 }
 export function entityAcceptsClaimAuthorityDomain(revision, domain) {
     return entityClaimAuthorityDomains(revision).includes(domain.toLowerCase());

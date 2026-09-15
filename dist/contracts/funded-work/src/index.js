@@ -21,7 +21,7 @@ export const fundedWorkIntentEnvelopeCoreSchema = z
         .object({
         entity_id: entityIdSchema,
         program_id: programIdSchema.optional(),
-        offer_id: offerIdSchema,
+        offer_id: offerIdSchema.optional(),
     })
         .strict(),
     base_release_id: digestSchema,

@@ -1,23 +1,23 @@
-import { readdir, readFile } from "node:fs/promises";
-import { basename, join, relative, sep } from "node:path";
+import { basename } from "node:path";
+import { regularReleaseFiles, } from "../../deterministic-release-archive/src/files.js";
 import { compareCanonicalStrings, digestFromPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 export async function verifiedReleaseFiles(directory, bundle) {
-    const actualPaths = (await filesUnder(directory))
-        .map((file) => relative(directory, file).split(sep).join("/"))
-        .filter((path) => path !== "bundle.json")
-        .sort(compareCanonicalStrings);
+    return verifyReleaseFiles(await regularReleaseFiles(directory), bundle);
+}
+export function verifyReleaseFiles(entries, bundle) {
+    const actual = entries.filter(({ path }) => path !== "bundle.json");
+    const actualPaths = actual.map(({ path }) => path).sort(compareCanonicalStrings);
     const declaredPaths = Object.keys(bundle.files).sort(compareCanonicalStrings);
     if (JSON.stringify(actualPaths) !== JSON.stringify(declaredPaths)) {
-        throw new Error("Catalog delta file set does not match its immutable declaration.");
+        throw new Error("Catalog release file set does not match its immutable declaration.");
     }
     const files = new Map();
-    for (const path of declaredPaths) {
-        const bytes = await readFile(join(directory, path));
+    for (const { path, bytes } of actual.sort((left, right) => compareCanonicalStrings(left.path, right.path))) {
         const declaration = bundle.files[path];
         if (!declaration ||
             bytes.byteLength !== declaration.bytes ||
             sha256Bytes(bytes) !== declaration.sha256) {
-            throw new Error(`Catalog delta file ${path} does not match its byte declaration.`);
+            throw new Error(`Catalog release file ${path} does not match its byte declaration.`);
         }
         files.set(path, bytes);
     }
@@ -34,16 +34,5 @@ export function requiredReleaseFile(files, path) {
 }
 export function addressFromReleaseJsonPath(path) {
     return digestFromPathSegment(basename(path, ".json"));
-}
-async function filesUnder(directory) {
-    const entries = await readdir(directory, { withFileTypes: true });
-    const nested = await Promise.all(entries.map((entry) => {
-        const path = join(directory, entry.name);
-        if (entry.isSymbolicLink()) {
-            throw new Error(`Catalog delta bundle contains a symlink: ${path}.`);
-        }
-        return entry.isDirectory() ? filesUnder(path) : [path];
-    }));
-    return nested.flat();
 }
 //# sourceMappingURL=release-directory-files.js.map

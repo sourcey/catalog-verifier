@@ -4,8 +4,15 @@ import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const instantSchema = z.iso.datetime({ offset: true });
 export const verifierRepositoryKindSchema = z.enum(["startup-credits", "agent-readiness"]);
-const gitObjectSchema = z.string().regex(/^[a-f0-9]{40,64}$/u);
+const gitObjectSchema = z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
 const repositorySchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u);
+export const MAXIMUM_CATALOG_ADMISSION_KEYS = 128;
+export const MAXIMUM_CATALOG_ADMISSION_MATCHES = 512;
+export const MAXIMUM_PENDING_ADMISSION_KEYS = 8_192;
+export const catalogAdmissionKeyDigestsSchema = z
+    .array(digestSchema)
+    .max(MAXIMUM_CATALOG_ADMISSION_KEYS)
+    .refine((keys) => new Set(keys).size === keys.length, "Admission lookup keys must be unique.");
 export const catalogAdmissionKeyKindSchema = z.enum([
     "entity_id",
     "entity_slug",
@@ -52,6 +59,7 @@ export const catalogAdmissionCandidateSchema = z.discriminatedUnion("kind", [
         kind: z.literal("detached"),
         repositoryKind: verifierRepositoryKindSchema,
         candidateDigest: digestSchema,
+        candidateReference: z.string().min(1).max(240),
     })
         .strict(),
 ]);
@@ -83,13 +91,33 @@ export const catalogAdmissionKeyMatchSchema = z
             targetCommit: gitObjectSchema,
         })
             .strict(),
+        z
+            .object({
+            kind: z.literal("pending_submission"),
+            candidateReference: z.string().min(1).max(240),
+            candidateDigest: digestSchema,
+        })
+            .strict(),
     ]),
+})
+    .strict();
+/** Private pending-contribution projection, derived by Catalog, never authored by contributors. */
+export const openPullRequestAdmissionKeySchema = catalogAdmissionKeyMatchSchema.omit({
+    source: true,
+});
+export const openPullRequestAdmissionCandidateSchema = z
+    .object({
+    repository: repositorySchema,
+    pullRequestNumber: z.number().int().positive(),
+    headSha: gitObjectSchema,
+    baseSha: gitObjectSchema,
+    keys: z.array(openPullRequestAdmissionKeySchema).max(MAXIMUM_PENDING_ADMISSION_KEYS).readonly(),
 })
     .strict();
 export const catalogAdmissionConflictLookupRequestSchema = z
     .object({
     query_contract: z.literal("sourcey.catalog-admission-conflict-query/v1alpha1"),
-    keys: z.array(catalogAdmissionKeySchema).max(128),
+    keys: z.array(catalogAdmissionKeySchema).max(MAXIMUM_CATALOG_ADMISSION_KEYS),
     liveParentReleaseId: digestSchema,
     candidate: catalogAdmissionCandidateSchema,
 })
@@ -98,7 +126,7 @@ export const catalogAdmissionConflictLookupResponseCoreSchema = z
     .object({
     response_contract: z.literal("sourcey.catalog-admission-conflict-response/v1alpha1"),
     query_digest: digestSchema,
-    matches: z.array(catalogAdmissionKeyMatchSchema).max(512),
+    matches: z.array(catalogAdmissionKeyMatchSchema).max(MAXIMUM_CATALOG_ADMISSION_MATCHES),
 })
     .strict();
 export const catalogAdmissionConflictLookupResponseSchema = catalogAdmissionConflictLookupResponseCoreSchema

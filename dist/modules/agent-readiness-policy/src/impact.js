@@ -1,4 +1,4 @@
-import { catalogPublicationDependencyKey, catalogSourceLocatorDigest, } from "../../catalog-admission/src/publication.js";
+import { catalogPublicationDependencyKey, catalogSourceLocatorDigest, } from "../../catalog-admission/src/publication-dependencies.js";
 import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 export function agentReadinessProfileDependencyKey(profileId) {
     return `agent-readiness:profile:${profileId}`;
@@ -120,6 +120,7 @@ export function agentReadinessGradeProjectionDigest(projection) {
 export function agentReadinessDependencySubject(profile) {
     return {
         profileId: profile.agent_readiness_profile_id,
+        profileRevisionDigest: profile.revision_digest,
         entityId: profile.entity_id,
         entityRevisionDigest: profile.catalog_binding.entity_revision_digest,
         policyDigest: profile.policy_digest,
@@ -133,12 +134,13 @@ export function agentReadinessDependencySubject(profile) {
 }
 export function agentReadinessDependencyRegistration(subject) {
     const keys = [
+        catalogPublicationDependencyKey.revision(subject.profileRevisionDigest),
         catalogPublicationDependencyKey.subject("entity", subject.entityId),
         catalogPublicationDependencyKey.revision(subject.entityRevisionDigest),
         catalogPublicationDependencyKey.policy("agent-readiness-policy"),
         catalogPublicationDependencyKey.policy("freshness-policy"),
         `agent-readiness:policy:${subject.policyDigest}`,
-        ...subject.evidenceEventIds.map((eventId) => agentReadinessEvidenceDependencyKey(eventId)),
+        ...subject.evidenceEventIds.map(catalogPublicationDependencyKey.event),
         ...subject.sourceLocatorDigests.map(catalogPublicationDependencyKey.sourceLocator),
         `agent-readiness:declaration:${subject.declarationRevisionDigest}`,
     ];
@@ -201,7 +203,7 @@ export function planAgentReadinessOfferRelationImpact(input) {
 }
 export function planAgentReadinessImpact(input) {
     assertImpactIndex(input.changeSet, input.impactIndex);
-    const invalidatedKeys = orderedUnique((input.invalidatedEvidenceEventIds ?? []).map(agentReadinessEvidenceDependencyKey));
+    const invalidatedKeys = orderedUnique((input.invalidatedEvidenceEventIds ?? []).map(catalogPublicationDependencyKey.event));
     const evidenceImpact = input.impactIndex.affected(invalidatedKeys);
     const affectedIds = new Set([...input.changeSet.affected_dependents, ...evidenceImpact.dependents]
         .filter((dependent) => dependent.domain === "agent-readiness")
@@ -239,9 +241,6 @@ function assertImpactIndex(changeSet, impactIndex) {
     if (changeSet.impact_index_digest !== impactIndex.indexDigest) {
         throw new Error("Agent Readiness impact requires the Change Set's exact dependency index.");
     }
-}
-function agentReadinessEvidenceDependencyKey(eventId) {
-    return `agent-readiness:evidence:${eventId}`;
 }
 function orderedUnique(values) {
     return [...new Set(values)].sort(compareCanonicalStrings);

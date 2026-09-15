@@ -1,5 +1,11 @@
 import { agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessStageSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+/** Undefined means this Offer was not changed; null means it was removed. */
+export function agentReadinessOfferRelationRequiresWithdrawal(input) {
+    return (input.profileRetired ||
+        (input.changedOfferRevisionDigest !== undefined &&
+            input.changedOfferRevisionDigest !== input.relation.admitted_offer_revision_digest));
+}
 export function agentReadinessOfferRelationId(input) {
     const identityDigest = digest({
         relation_contract: "sourcey.agent-readiness-offer-relation-identity/v1alpha1",

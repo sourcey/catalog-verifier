@@ -1,9 +1,9 @@
 import { entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
-import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, } from "../../../contracts/catalog-verifier/src/index.js";
+import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { validateCatalogVerifierIdentityContext, validateSignerRegistry, } from "../../authority/src/index.js";
 import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
-export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, };
+export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export function createCatalogAdmissionConflictLookupResponse(input) {
     const query = catalogAdmissionConflictLookupRequestSchema.parse(input.query);
     const core = catalogAdmissionConflictLookupResponseCoreSchema.parse({
@@ -72,7 +72,7 @@ export function verifyCatalogVerifierIdentityContextPacket(input) {
 }
 export function createCatalogAdmissionConflictLookupRequest(input) {
     const keys = uniqueAdmissionKeys(input.identities.flatMap((identity) => deriveCatalogEntityIdentityAdmissionKeys(identity)));
-    if (keys.length > 128) {
+    if (keys.length > MAXIMUM_CATALOG_ADMISSION_KEYS) {
         throw new Error("Catalog verifier identity context exceeds its bounded key policy.");
     }
     return catalogAdmissionConflictLookupRequestSchema.parse({
@@ -82,53 +82,76 @@ export function createCatalogAdmissionConflictLookupRequest(input) {
         candidate: input.candidate,
     });
 }
+/** Derive once at capture; pending lookups need neither YAML nor normalized offer text. */
+export function deriveOpenPullRequestAdmissionKeys(input) {
+    const pathKeys = deriveOpenPullRequestPathAdmissionKeys(input.path);
+    let keys;
+    try {
+        keys = deriveCatalogAdmissionKeys(input.document);
+    }
+    catch {
+        // A contract-invalid document cannot pass validation, but its exact path
+        // still proves the slug. Uncaptured bytes must never be supplied as null.
+        keys = pathKeys;
+    }
+    return keys.map((key) => openPullRequestAdmissionKeySchema.parse({
+        keyDigest: key.keyDigest,
+        targetReference: key.candidateReference,
+        ...(key.candidateIdentityDigest ? { targetIdentityDigest: key.candidateIdentityDigest } : {}),
+    }));
+}
 /**
- * Project the bounded current open-PR set through the same exact key authority
- * as live Catalog state. Provider adapters supply inert authoring documents;
- * this owner parses and derives every semantic key.
+ * Query pending keys derived by the same authority as live Catalog state.
+ * The reader returns only requested matches, never sibling authoring documents.
  */
 export class OpenPullRequestCatalogAdmissionConflictQuery {
-    reader;
-    maximumOpenPullRequests;
-    constructor(reader, maximumOpenPullRequests = 256) {
-        this.reader = reader;
-        this.maximumOpenPullRequests = maximumOpenPullRequests;
+    #reader;
+    #maximumOpenPullRequests;
+    #detachedRepository;
+    constructor(configuration) {
+        this.#reader = configuration.reader;
+        this.#maximumOpenPullRequests = configuration.maximumOpenPullRequests ?? 1024;
+        this.#detachedRepository = configuration.detachedRepository;
     }
     async lookupAdmissionKeys(input) {
-        if (input.candidate.kind !== "git_pull_request")
+        const repository = input.candidate.kind === "git_pull_request"
+            ? input.candidate.repository
+            : this.#detachedRepository?.repositoryKind === input.candidate.repositoryKind
+                ? this.#detachedRepository.repository
+                : undefined;
+        if (!repository)
             return [];
-        const requested = new Set(input.keys.map(({ keyDigest }) => keyDigest));
-        const pullRequests = await this.reader.listOpenPullRequestAdmissionCandidates(input.candidate.repository);
-        if (pullRequests.length > this.maximumOpenPullRequests) {
+        const requested = new Set(catalogAdmissionKeyDigestsSchema.parse(input.keys.map(({ keyDigest }) => keyDigest)));
+        if (requested.size === 0)
+            return [];
+        const pullRequests = await this.#reader.listOpenPullRequestAdmissionCandidates(repository, [
+            ...requested,
+        ]);
+        if (pullRequests.length > this.#maximumOpenPullRequests) {
             throw new Error("Open pull-request admission projection exceeds its bounded policy.");
         }
         const matches = [];
-        for (const pullRequest of pullRequests) {
-            if (pullRequest.repository !== input.candidate.repository ||
-                !Number.isInteger(pullRequest.pullRequestNumber) ||
-                pullRequest.pullRequestNumber < 1 ||
-                !/^[a-f0-9]{40,64}$/u.test(pullRequest.headSha) ||
-                pullRequest.entities.length > 8) {
+        for (const value of pullRequests) {
+            const pullRequest = openPullRequestAdmissionCandidateSchema.parse(value);
+            if (pullRequest.repository !== repository ||
+                pullRequest.keys.length > MAXIMUM_CATALOG_ADMISSION_MATCHES) {
                 throw new Error("Open pull-request admission candidate is outside its bounded contract.");
             }
-            for (const entityInput of pullRequest.entities) {
-                const entity = entityAuthoringSchema.parse(entityInput);
-                for (const key of deriveCatalogAdmissionKeys(entity)) {
-                    if (!requested.has(key.keyDigest))
-                        continue;
-                    matches.push({
-                        keyDigest: key.keyDigest,
-                        targetReference: key.candidateReference,
-                        ...(key.candidateIdentityDigest
-                            ? { targetIdentityDigest: key.candidateIdentityDigest }
-                            : {}),
-                        source: {
-                            kind: "open_pull_request",
-                            repository: pullRequest.repository,
-                            pullRequestNumber: pullRequest.pullRequestNumber,
-                            headSha: pullRequest.headSha,
-                        },
-                    });
+            for (const key of pullRequest.keys) {
+                if (!requested.has(key.keyDigest)) {
+                    throw new Error("Pending admission projection returned an unrequested conflict key.");
+                }
+                matches.push({
+                    ...key,
+                    source: {
+                        kind: "open_pull_request",
+                        repository: pullRequest.repository,
+                        pullRequestNumber: pullRequest.pullRequestNumber,
+                        headSha: pullRequest.headSha,
+                    },
+                });
+                if (matches.length > MAXIMUM_CATALOG_ADMISSION_MATCHES) {
+                    throw new Error("Pending admission matches exceed their bounded contract.");
                 }
             }
         }
@@ -191,6 +214,25 @@ export function deriveCatalogEntityIdentityAdmissionKeys(input) {
             add("domain", domain.value, entityReference);
     }
     return uniqueAdmissionKeys(keys);
+}
+/** The one slug key an entity authoring path proves without a parseable document. */
+export function deriveOpenPullRequestPathAdmissionKeys(path) {
+    const match = /^entities\/[a-z0-9]{2}\/(?<slug>[a-z0-9-]+)\.yaml$/u.exec(path);
+    if (!match?.groups?.slug) {
+        throw new Error("Open pull-request entity path is outside its bounded contract.");
+    }
+    const normalizedValue = normalizeAdmissionKey("entity_slug", match.groups.slug);
+    return [
+        {
+            kind: "entity_slug",
+            normalizedValue,
+            keyDigest: digest({
+                kind: "entity_slug",
+                normalized_value: normalizedValue,
+            }),
+            candidateReference: `path:${path}`,
+        },
+    ];
 }
 /** Derive all exact conflict keys once from the canonical compiled candidate. */
 export function deriveCatalogAdmissionKeys(input) {
@@ -279,6 +321,14 @@ export function evaluateCatalogAdmissionConflicts(input) {
             }
             continue;
         }
+        if (match.source.kind === "pending_submission" &&
+            input.candidate.kind === "detached" &&
+            match.source.candidateReference === input.candidate.candidateReference) {
+            if (match.source.candidateDigest !== input.candidate.candidateDigest) {
+                throw new Error("Catalog admission conflict result includes a rebound detached candidate.");
+            }
+            continue;
+        }
         if ((match.source.kind === "current_catalog" || match.source.kind === "pending_git_lineage") &&
             match.targetReference === key.candidateReference) {
             if (key.kind === "entity_id" && match.targetIdentityDigest !== key.candidateIdentityDigest) {
@@ -308,7 +358,9 @@ export function evaluateCatalogAdmissionConflicts(input) {
                     ? "open_pull_request"
                     : matches.some(({ source }) => source.kind === "pending_git_lineage")
                         ? "pending_git_lineage"
-                        : conflictKind(key.kind),
+                        : matches.some(({ source }) => source.kind === "pending_submission")
+                            ? "pending_submission"
+                            : conflictKind(key.kind),
             strength: conflictStrength(key.kind),
             keyDigest,
             targetReferences: [...new Set(matches.map(({ targetReference }) => targetReference))].sort(compareCanonicalStrings),
@@ -328,6 +380,9 @@ function conflictSourceReference(match) {
     }
     if (match.source.kind === "pending_git_lineage") {
         return `git:${match.source.repository}@${match.source.liveSourceCommit}..${match.source.targetCommit}:${match.targetReference}`;
+    }
+    if (match.source.kind === "pending_submission") {
+        return `submission:${match.source.candidateReference}@${match.source.candidateDigest}:${match.targetReference}`;
     }
     return `github:${match.source.repository}#${match.source.pullRequestNumber}@${match.source.headSha}:${match.targetReference}`;
 }

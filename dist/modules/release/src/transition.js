@@ -4,6 +4,7 @@ import { catalogDeltaCoreSchema, catalogStateTransitionCoreSchema, RELEASE_RESOU
 import { offerCanonicalPath, programCanonicalPath } from "../../../contracts/routes/src/index.js";
 import { assetIndexTransitionDigest, verifyAssetDelta } from "../../assets/src/index.js";
 import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
 import { buildAgentReadinessChanges } from "./changes.js";
 export function buildDeltaChanges(entities, identities, agentReadiness = { current: [], prior: [] }, assetDelta = null) {
     const changes = [];
@@ -14,22 +15,25 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             subject_id: current.entity_id,
             ...(prior ? { previous_revision_digest: prior.revision_digest } : {}),
             revision_digest: current.revision_digest,
-            ...(prior ? { previous_projection_digest: digest(prior) } : {}),
-            projection_digest: digest(current),
+            ...(prior ? { previous_projection_digest: catalogEntityProjectionDigest(prior) } : {}),
+            projection_digest: catalogEntityProjectionDigest(current),
             basis_event_ids: [...current.provenance.basis_event_ids],
         })));
         const priorPrograms = new Map(prior?.programs.map((value) => [value.program_id, value]) ?? []);
         for (const program of current.programs) {
             const previous = priorPrograms.get(program.program_id);
-            if (!previous || digest(previous) !== digest(program)) {
+            if (!previous ||
+                catalogProgramProjectionDigest(previous) !== catalogProgramProjectionDigest(program)) {
                 changes.push(releaseChangeSchema.parse(withChangeId({
                     kind: previous ? "program.updated" : "program.added",
                     subject_type: "program",
                     subject_id: program.program_id,
                     ...(previous ? { previous_revision_digest: previous.revision_digest } : {}),
                     revision_digest: program.revision_digest,
-                    ...(previous ? { previous_projection_digest: digest(previous) } : {}),
-                    projection_digest: digest(program),
+                    ...(previous
+                        ? { previous_projection_digest: catalogProgramProjectionDigest(previous) }
+                        : {}),
+                    projection_digest: catalogProgramProjectionDigest(program),
                     basis_event_ids: [...program.provenance.basis_event_ids],
                 })));
             }
@@ -44,7 +48,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
                 subject_type: "program",
                 subject_id: program.program_id,
                 previous_revision_digest: program.revision_digest,
-                previous_projection_digest: digest(program),
+                previous_projection_digest: catalogProgramProjectionDigest(program),
                 basis_event_ids: [],
                 tombstone: {
                     reason: "retired",
@@ -58,7 +62,8 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
         const priorOffers = new Map(prior?.offers.map((value) => [value.offer_id, value]) ?? []);
         for (const offer of current.offers) {
             const previous = priorOffers.get(offer.offer_id);
-            if (!previous || digest(previous) !== digest(offer)) {
+            if (!previous ||
+                catalogOfferProjectionDigest(previous) !== catalogOfferProjectionDigest(offer)) {
                 const kind = offer.lifecycle === "ended"
                     ? "offer.ended"
                     : offer.lifecycle === "withdrawn"
@@ -72,8 +77,10 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
                     subject_id: offer.offer_id,
                     ...(previous ? { previous_revision_digest: previous.revision_digest } : {}),
                     revision_digest: offer.revision_digest,
-                    ...(previous ? { previous_projection_digest: digest(previous) } : {}),
-                    projection_digest: digest(offer),
+                    ...(previous
+                        ? { previous_projection_digest: catalogOfferProjectionDigest(previous) }
+                        : {}),
+                    projection_digest: catalogOfferProjectionDigest(offer),
                     basis_event_ids: [...offer.provenance.basis_event_ids],
                     ...(kind === "offer.ended" || kind === "offer.withdrawn"
                         ? {
@@ -99,7 +106,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
                 subject_type: "offer",
                 subject_id: offer.offer_id,
                 previous_revision_digest: offer.revision_digest,
-                previous_projection_digest: digest(offer),
+                previous_projection_digest: catalogOfferProjectionDigest(offer),
                 basis_event_ids: [],
                 tombstone: {
                     reason: "retired",

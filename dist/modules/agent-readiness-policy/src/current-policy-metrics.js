@@ -42,7 +42,7 @@ export const METRICS = [
     {
         stage: "evaluate",
         code: "terms_access",
-        role: "graded",
+        role: "informational",
         selectorAlternatives: [[resource("terms")]],
         evidence: "availability",
         evidenceTerms: [
@@ -62,7 +62,7 @@ export const METRICS = [
     {
         stage: "evaluate",
         code: "eligibility_decidability",
-        role: "graded",
+        role: "informational",
         allowNotApplicable: true,
         selectorAlternatives: [[resource("eligibility")], [resource("terms")]],
         evidence: "quality",

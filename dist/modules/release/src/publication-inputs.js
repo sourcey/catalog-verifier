@@ -1,5 +1,5 @@
 import { catalogPublicationChangeSetCoreSchema, catalogPublicationChangeSetSchema, catalogPublicationProposalCoreSchema, catalogPublicationProposalSchema, publicationIngressReceiptCoreSchema, publicationIngressReceiptSchema, } from "../../../contracts/publication/src/index.js";
-import { catalogPublicationAdmittedInputDigests, verifyCatalogPublicationInputClosure, } from "../../catalog-admission/src/index.js";
+import { catalogPublicationAdmittedInputDigests, catalogPublicationIngressUnion, verifyCatalogPublicationInputClosure, } from "../../catalog-admission/src/index.js";
 import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, } from "../../primitives/src/index.js";
 export function verifyPublicationInputs(bundle, delta, files) {
     const proposals = valuesUnder(files, "publication/proposals/").map(([path, input]) => {
@@ -22,32 +22,46 @@ export function verifyPublicationInputs(bundle, delta, files) {
         return receipt;
     })
         .sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest));
-    const proposal = proposals[0];
-    const changeSet = changeSets[0];
-    if (!proposal || proposals.length !== 1 || !changeSet || changeSets.length !== 1) {
-        throw new Error("Catalog delta must close one canonical proposal and one Change Set.");
-    }
     if (receipts.length === 0 || !delta.base) {
         throw new Error("Catalog delta must close ingress receipt provenance and an exact live base.");
     }
+    const proposalsByDigest = new Map(proposals.map((proposal) => [proposal.proposal_digest, proposal]));
+    const changeSetsByProposal = new Map(changeSets.map((changeSet) => [changeSet.proposal_digest, changeSet]));
+    if (proposalsByDigest.size !== proposals.length ||
+        changeSetsByProposal.size !== changeSets.length)
+        throw new Error("Catalog publication must retain exactly one Change Set for each addressed proposal.");
+    const ingresses = receipts.map((receipt) => {
+        const proposal = proposalsByDigest.get(receipt.proposal_digest);
+        const changeSet = changeSetsByProposal.get(receipt.proposal_digest);
+        if (!proposal || !changeSet)
+            throw new Error("Catalog ingress lacks its retained proposal or Change Set.");
+        return { proposal, change_set: changeSet, ingress_receipt: receipt };
+    });
+    const union = catalogPublicationIngressUnion(ingresses);
+    const proposal = proposalsByDigest.get(union.proposal_digest);
+    const changeSet = changeSetsByProposal.get(union.proposal_digest);
+    if (!proposal || !changeSet)
+        throw new Error("Catalog delta lacks its exact aggregate publication plan.");
     const publication = verifyCatalogPublicationInputClosure({
         proposal,
-        changeSet,
-        ingressReceipts: receipts,
+        change_set: changeSet,
+        ingresses,
     });
     if (publication.proposal.live_parent_release_id !== delta.base.release.release_id) {
         throw new Error("Catalog publication inputs do not share one proposal and live parent.");
     }
     const admittedInputs = catalogPublicationAdmittedInputDigests(publication);
-    if (canonicalJson(admittedInputs) !== canonicalJson(bundle.admitted_input_digests) ||
+    const retainedInputs = [
+        ...proposals.map(({ proposal_digest }) => proposal_digest),
+        ...changeSets.map(({ change_set_digest }) => change_set_digest),
+        ...receipts.map(({ receipt_digest }) => receipt_digest),
+    ].sort(compareCanonicalStrings);
+    if (canonicalJson(admittedInputs) !== canonicalJson(retainedInputs) ||
+        canonicalJson(admittedInputs) !== canonicalJson(bundle.admitted_input_digests) ||
         canonicalJson(admittedInputs) !== canonicalJson(delta.admitted_input_digests)) {
         throw new Error("Catalog publication objects do not close the admitted input digest set.");
     }
-    return {
-        proposal: publication.proposal,
-        changeSet: publication.changeSet,
-        receipts: publication.ingressReceipts,
-    };
+    return publication;
 }
 function valuesUnder(files, prefix) {
     return [...files.entries()]
@@ -60,7 +74,7 @@ function assertAddressed(path, declared, computed, label) {
     const address = filename?.endsWith(".json")
         ? digestFromPathSegment(filename.slice(0, -".json".length))
         : null;
-    if (address !== declared || computed !== declared) {
+    if (path.split("/").length !== 3 || address !== declared || computed !== declared) {
         throw new Error(`Catalog publication ${label} ${path} is not content-addressed.`);
     }
 }

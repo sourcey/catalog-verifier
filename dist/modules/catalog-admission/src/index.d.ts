@@ -1,15 +1,15 @@
 import type { AssetBindingProjection, EntityAssetProposal } from "../../../contracts/assets/src/index.js";
 import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
-import type { SignaturePurpose } from "../../../contracts/authority/src/index.js";
 import { type CatalogTaxonomy } from "../../../contracts/taxonomy/src/index.js";
-import { type CompiledEntityFacts } from "../../catalog-model/src/index.js";
-import { type CompiledCatalogFacts } from "../../compiler/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
-import { type CatalogPublicationImpactIndex, type CatalogPublicationPolicyReference } from "./publication.js";
+import { type CatalogChangeAnalysis } from "./change-analysis.js";
+import { type CatalogPublicationImpactIndex, type CatalogPublicationPlanningInput, type CatalogPublicationPolicyReference } from "./publication.js";
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
 export * from "./admission-conflicts.js";
+export * from "./change-analysis.js";
 export * from "./machine-admission.js";
 export * from "./publication.js";
+export * from "./publication-composition.js";
 export * from "./submission.js";
 export declare const CATALOG_ENTITY_ROOT = "entities";
 export declare function readCatalogTaxonomy(path: string): Promise<CatalogTaxonomy>;
@@ -23,34 +23,6 @@ export declare function resolveCatalogChangeTree(input: {
     readonly revision: string;
     readonly entityFiles: readonly string[];
 }): Promise<string>;
-export interface CatalogChangedEntity {
-    readonly entity: CompiledEntityFacts;
-    readonly currentAuthoring: EntityAuthoring;
-    readonly priorAuthoring: EntityAuthoring | null;
-    readonly entityChanged: boolean;
-    readonly changedProgramIds: readonly string[];
-    readonly changedOfferIds: readonly string[];
-}
-export interface CatalogChangedRevision {
-    readonly owner: CompiledEntityFacts;
-    readonly kind: "entity" | "program" | "offer";
-    readonly targetId: string;
-    readonly revisionDigest: Digest;
-    readonly title: string;
-    readonly accessUrl: string | null;
-    readonly termsUrl: string | null;
-    readonly sourceIds: readonly string[];
-}
-export interface CatalogChangeAnalysis {
-    readonly baseRevision: string;
-    readonly entityFiles: readonly string[];
-    readonly changedEntities: readonly CatalogChangedEntity[];
-    readonly changedRevisions: readonly CatalogChangedRevision[];
-    readonly closure: CompiledCatalogFacts;
-    readonly entities: number;
-    readonly programs: number;
-    readonly offers: number;
-}
 export declare function validateCatalogPrTree(input: {
     readonly repositoryRoot: string;
     readonly baseRevision: string;
@@ -132,10 +104,7 @@ export declare function planCatalogGitPublication(input: {
     readonly currentEntities: readonly EntityAuthoring[];
     readonly currentAssetBindings?: readonly AssetBindingProjection[];
     readonly candidateAssetProposals?: readonly EntityAssetProposal[];
-    readonly authorityProposals?: readonly {
-        readonly purpose: SignaturePurpose;
-        readonly proposal_digest: string;
-    }[];
+    readonly authorityProposals?: CatalogPublicationPlanningInput["authorityProposals"];
     readonly taxonomy: CatalogTaxonomy;
     readonly currentPolicies: readonly CatalogPublicationPolicyReference[];
     readonly targetPolicies: readonly CatalogPublicationPolicyReference[];
@@ -156,6 +125,7 @@ export declare function planCatalogGitPublication(input: {
         receipt_digest: string;
     } | {
         kind: "authenticated_form";
+        submission_work_item_digest: string;
         schema_digest: string;
         payload_digest: string;
         authentication_digest: string;
@@ -167,10 +137,12 @@ export declare function planCatalogGitPublication(input: {
         receipt_digest: string;
     } | {
         kind: "paid_agent";
+        submission_work_item_digest: string;
         schema_digest: string;
         payload_digest: string;
         authentication_digest: string;
         authorization_digest: string;
+        operator_admission_digest: string | null;
         request_id: string;
         idempotency_key: string;
         proposal_digest: string;
@@ -178,6 +150,7 @@ export declare function planCatalogGitPublication(input: {
         receipt_digest: string;
     } | {
         kind: "governed_ops";
+        submission_work_item_digest: string | null;
         command_digest: string;
         grant_digest: string;
         approval_digest: string | null;
@@ -222,7 +195,6 @@ export declare function catalogPullRequestComparisonBase(input: {
     readonly baseRevision: string;
     readonly headRevision: string;
 }): Promise<string>;
-export declare function catalogChangedRevisions(changes: readonly CatalogChangedEntity[]): CatalogChangedRevision[];
 export declare function catalogChangedPaths(input: {
     readonly repositoryRoot: string;
     readonly baseRevision: string;
@@ -230,6 +202,8 @@ export declare function catalogChangedPaths(input: {
 }): Promise<{
     readonly entityFiles: string[];
     readonly otherFiles: string[];
+    /** Entity-root changes the policy cannot admit (renames, copies, deletions), as `status:path`. */
+    readonly unsupportedChanges: string[];
 }>;
 /**
  * A PR may independently trail the live release when its changed vendor paths

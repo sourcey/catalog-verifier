@@ -4,6 +4,10 @@ export declare const verifierRepositoryKindSchema: z.ZodEnum<{
     "agent-readiness": "agent-readiness";
 }>;
 export type VerifierRepositoryKind = z.infer<typeof verifierRepositoryKindSchema>;
+export declare const MAXIMUM_CATALOG_ADMISSION_KEYS = 128;
+export declare const MAXIMUM_CATALOG_ADMISSION_MATCHES = 512;
+export declare const MAXIMUM_PENDING_ADMISSION_KEYS = 8192;
+export declare const catalogAdmissionKeyDigestsSchema: z.ZodArray<z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>>;
 export declare const catalogAdmissionKeyKindSchema: z.ZodEnum<{
     entity_id: "entity_id";
     entity_name: "entity_name";
@@ -51,6 +55,7 @@ export declare const catalogAdmissionCandidateSchema: z.ZodDiscriminatedUnion<[z
         "agent-readiness": "agent-readiness";
     }>;
     candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+    candidateReference: z.ZodString;
 }, z.core.$strict>], "kind">;
 export type CatalogAdmissionCandidate = z.infer<typeof catalogAdmissionCandidateSchema>;
 export declare const catalogAdmissionKeyMatchSchema: z.ZodObject<{
@@ -70,7 +75,28 @@ export declare const catalogAdmissionKeyMatchSchema: z.ZodObject<{
         repository: z.ZodString;
         liveSourceCommit: z.ZodString;
         targetCommit: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"pending_submission">;
+        candidateReference: z.ZodString;
+        candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
     }, z.core.$strict>], "kind">;
+}, z.core.$strict>;
+/** Private pending-contribution projection, derived by Catalog, never authored by contributors. */
+export declare const openPullRequestAdmissionKeySchema: z.ZodObject<{
+    keyDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+    targetReference: z.ZodString;
+    targetIdentityDigest: z.ZodOptional<z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>>;
+}, z.core.$strict>;
+export declare const openPullRequestAdmissionCandidateSchema: z.ZodObject<{
+    repository: z.ZodString;
+    pullRequestNumber: z.ZodNumber;
+    headSha: z.ZodString;
+    baseSha: z.ZodString;
+    keys: z.ZodReadonly<z.ZodArray<z.ZodObject<{
+        keyDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+        targetReference: z.ZodString;
+        targetIdentityDigest: z.ZodOptional<z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>>;
+    }, z.core.$strict>>>;
 }, z.core.$strict>;
 export declare const catalogAdmissionConflictLookupRequestSchema: z.ZodObject<{
     query_contract: z.ZodLiteral<"sourcey.catalog-admission-conflict-query/v1alpha1">;
@@ -107,6 +133,7 @@ export declare const catalogAdmissionConflictLookupRequestSchema: z.ZodObject<{
             "agent-readiness": "agent-readiness";
         }>;
         candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+        candidateReference: z.ZodString;
     }, z.core.$strict>], "kind">;
 }, z.core.$strict>;
 export declare const catalogAdmissionConflictLookupResponseCoreSchema: z.ZodObject<{
@@ -129,6 +156,10 @@ export declare const catalogAdmissionConflictLookupResponseCoreSchema: z.ZodObje
             repository: z.ZodString;
             liveSourceCommit: z.ZodString;
             targetCommit: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"pending_submission">;
+            candidateReference: z.ZodString;
+            candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -152,6 +183,10 @@ export declare const catalogAdmissionConflictLookupResponseSchema: z.ZodObject<{
             repository: z.ZodString;
             liveSourceCommit: z.ZodString;
             targetCommit: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"pending_submission">;
+            candidateReference: z.ZodString;
+            candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
     response_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
@@ -306,6 +341,7 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
                 "agent-readiness": "agent-readiness";
             }>;
             candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+            candidateReference: z.ZodString;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>;
     response: z.ZodObject<{
@@ -328,6 +364,10 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
                 repository: z.ZodString;
                 liveSourceCommit: z.ZodString;
                 targetCommit: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"pending_submission">;
+                candidateReference: z.ZodString;
+                candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>>;
         response_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
@@ -387,4 +427,13 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
 export type CatalogVerifierIdentityContextCore = z.infer<typeof catalogVerifierIdentityContextCoreSchema>;
 export type CatalogVerifierIdentityContext = z.infer<typeof catalogVerifierIdentityContextSchema>;
 export type CatalogVerifierIdentityContextPacket = z.infer<typeof catalogVerifierIdentityContextPacketSchema>;
+/** Optional operation resolved only when recovering a retained submission.
+ * Work remains opaque to the host; its bound verifier interprets it. Results
+ * are internal application values, not another serialized release contract. */
+export interface CatalogSubmissionVerifierModule<Result = unknown> {
+    readonly verifyCatalogSubmissionDirectory: (input: {
+        readonly directory: string;
+        readonly workItem: unknown;
+    }) => Promise<Result>;
+}
 //# sourceMappingURL=index.d.ts.map

@@ -1,33 +1,32 @@
 import { readFile } from "node:fs/promises";
 import { basename, join } from "node:path";
-import { agentReadinessDeltaObjectSchema, agentReadinessInputsSchema, agentReadinessOfferRelationDeltaObjectSchema, agentReadinessOfferRelationInputsSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessProfileInputSchema, agentReadinessProjectionSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { releaseChangeSchema, releaseDiffSchema } from "../../../contracts/artifact/src/index.js";
+import { agentReadinessDeltaObjectSchema, agentReadinessInputsSchema, agentReadinessOfferRelationDeltaObjectSchema, agentReadinessOfferRelationInputsSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessProfileInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { assetDeltaSchema } from "../../../contracts/assets/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
 import { captureReceiptSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
-import { catalogDeltaAuthoringObjectSchema, catalogDeltaEntityObjectSchema, catalogDeltaSchema, catalogReleaseBundleCoreSchema, catalogReleaseBundleSchema, RELEASE_RESOURCES, releaseDescriptorSchema, releaseObjectManifestSchema, releaseResourceDigest, releaseRootSetObjectPath, releaseSignerRegistryObjectPath, } from "../../../contracts/release/src/index.js";
-import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, deriveAgentReadinessProjection, deriveAgentReadinessReprojection, } from "../../agent-readiness-policy/src/index.js";
+import { catalogDeltaAuthoringObjectSchema, catalogDeltaEntityObjectSchema, catalogDeltaSchema, RELEASE_RESOURCES, releaseDescriptorSchema, releaseObjectManifestSchema, releaseResourceDigest, releaseRootSetObjectPath, releaseSignerRegistryObjectPath, verifyCatalogReleaseBundle, } from "../../../contracts/release/src/index.js";
+import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, deriveAgentReadinessProjection, } from "../../agent-readiness-policy/src/index.js";
+import { addressFromReleaseJsonPath, parseReleaseJson, verifiedReleaseFiles, } from "../../artifact/src/release-directory-files.js";
 import { verifyAssetDelta } from "../../assets/src/index.js";
 import { validateProtectedCaptureReceipt, validateProtectedEvent, validateSignerRegistry, } from "../../authority/src/index.js";
+import { verifyCatalogPublicationAuthoringChanges } from "../../catalog-admission/src/publication-composition.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
 import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 import { buildEventGraph } from "../../provenance/src/index.js";
+import { verifyAgentReadinessPublicationInputs } from "./agent-readiness-publication-inputs.js";
+import { AGENT_READINESS_REGRADE_EVIDENCE_PREFIX, assertAgentReadinessRegradeEvidenceClosure, expectedAgentReadinessRegradeProjection, readAgentReadinessRegradeEvidenceFile, selectAgentReadinessEvidenceChanges, } from "./agent-readiness-regrade-evidence.js";
 import { assertCatalogAssetDeltaClosure } from "./asset-delta-verifier.js";
 import { assertAgentReadinessReleaseAdmission, validateAgentReadinessClosure } from "./inputs.js";
 import { verifyPublicationInputs } from "./publication-inputs.js";
-import { addressFromReleaseJsonPath, parseReleaseJson, requiredReleaseFile, verifiedReleaseFiles, } from "./release-directory-files.js";
+import { catalogPublicationParentGuard, } from "./publication-parent-guard.js";
 import { parseReleaseRevision } from "./release-revision-parser.js";
-import { buildDeltaChanges, buildDeltaSnapshotCore, verifyCatalogDeltaState, } from "./transition.js";
+import { buildDeltaSnapshotCore, verifyCatalogDeltaState } from "./transition.js";
+import { verifyChanges } from "./verification-changes.js";
 import { verifyCatalogDeltaPolicies } from "./verification-policies.js";
-import { verifiedAgentReadinessOfferRelationTransitions, verifiedAgentReadinessTransitions, } from "./verification-transitions.js";
+import { verifiedAgentReadinessOfferRelationTransitions, verifiedAgentReadinessTransitions, verifyAgentReadinessOfferRelationWithdrawals, } from "./verification-transitions.js";
 export async function verifyCatalogDeltaDirectory(directory, trust) {
-    const bundle = catalogReleaseBundleSchema.parse(JSON.parse(await readFile(join(directory, "bundle.json"), "utf8")));
-    const { bundle_digest: bundleDigest, ...bundleCoreInput } = bundle;
-    const bundleCore = catalogReleaseBundleCoreSchema.parse(bundleCoreInput);
-    if (digest(bundleCore) !== bundleDigest) {
-        throw new Error("Catalog delta bundle digest does not match its canonical core.");
-    }
+    const bundle = verifyCatalogReleaseBundle(JSON.parse(await readFile(join(directory, "bundle.json"), "utf8")));
     const admittedInputs = [...new Set(bundle.admitted_input_digests)].sort(compareCanonicalStrings);
     if (canonicalJson(admittedInputs) !== canonicalJson(bundle.admitted_input_digests)) {
         throw new Error("Catalog delta admitted inputs must be unique and canonically ordered.");
@@ -99,9 +98,22 @@ export async function verifyCatalogDeltaDirectory(directory, trust) {
     const observations = [];
     const captureReceipts = [];
     const agentReadinessObjects = new Map();
+    const agentReadinessRegradeEvidence = new Map();
     const agentReadinessOfferRelationObjects = new Map();
     for (const [path, bytes] of files) {
-        if (path.startsWith("agent-readiness-offer-relations/")) {
+        if (path.startsWith(AGENT_READINESS_REGRADE_EVIDENCE_PREFIX)) {
+            const [address, evidence] = readAgentReadinessRegradeEvidenceFile({
+                path,
+                bytes,
+                registry,
+                releaseSequence: descriptor.release_core.release_sequence,
+            });
+            if (agentReadinessRegradeEvidence.has(address)) {
+                throw new Error(`Catalog delta regrade evidence ${path} repeats a profile.`);
+            }
+            agentReadinessRegradeEvidence.set(address, evidence);
+        }
+        else if (path.startsWith("agent-readiness-offer-relations/")) {
             const object = agentReadinessOfferRelationDeltaObjectSchema.parse(JSON.parse(bytes.toString("utf8")));
             const address = basename(path, ".json");
             if (object.relation_id !== address || agentReadinessOfferRelationObjects.has(address)) {
@@ -194,12 +206,20 @@ export async function verifyCatalogDeltaDirectory(directory, trust) {
             captureReceipts.push(receipt);
         }
     }
-    assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuthoring, publication.proposal, revisions, events, observations, captureReceipts, files, agentReadinessObjects, agentReadinessOfferRelationObjects, policies, assetDelta, safeAssetBytes);
+    assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuthoring, publication.proposal, publication.change_set, revisions, events, observations, captureReceipts, files, agentReadinessObjects, agentReadinessRegradeEvidence, agentReadinessOfferRelationObjects, policies, assetDelta, safeAssetBytes);
+    verifyCatalogPublicationAuthoringChanges({ publication, priorAuthoring });
     const readinessTransitions = verifiedAgentReadinessTransitions(agentReadinessObjects);
     const relationTransitions = verifiedAgentReadinessOfferRelationTransitions(agentReadinessOfferRelationObjects);
     verifyReleaseChain(bundle, delta, descriptor, readinessTransitions, relationTransitions, assetDelta);
     const changes = verifyChanges(files, descriptor, delta, entities, priorEntities, agentReadinessObjects, assetDelta);
     return {
+        parentGuard: catalogPublicationParentGuard({
+            publicationProposal: publication.proposal,
+            publicationChangeSet: publication.change_set,
+            agentReadinessObjects,
+            agentReadinessOfferRelationObjects,
+            files,
+        }),
         bundle,
         delta,
         entities,
@@ -216,8 +236,9 @@ export async function verifyCatalogDeltaDirectory(directory, trust) {
         observations: observations.sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id)),
         captureReceipts: captureReceipts.sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest)),
         publicationProposal: publication.proposal,
-        publicationChangeSet: publication.changeSet,
-        ingressReceipts: publication.receipts,
+        publicationChangeSet: publication.change_set,
+        ingressReceipts: publication.ingresses.map(({ ingress_receipt }) => ingress_receipt),
+        publicationIngresses: publication.ingresses,
         rootSet,
         registry,
         files,
@@ -255,7 +276,20 @@ function verifyReleaseChain(bundle, delta, descriptor, agentReadinessChanges, ag
         throw new Error("Catalog delta does not form one exact canonical successor.");
     }
 }
-function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuthoring, publicationProposal, revisions, events, observations, captureReceipts, files, agentReadinessObjects, agentReadinessOfferRelationObjects, policies, assetDelta, safeAssetBytes) {
+function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuthoring, publicationProposal, publicationChangeSet, revisions, events, observations, captureReceipts, files, agentReadinessObjects, agentReadinessRegradeEvidence, agentReadinessOfferRelationObjects, policies, assetDelta, safeAssetBytes) {
+    assertAgentReadinessRegradeEvidenceClosure(agentReadinessRegradeEvidence, agentReadinessObjects);
+    verifyAgentReadinessOfferRelationWithdrawals({
+        admittedProfileInputs: verifyAgentReadinessPublicationInputs({
+            files,
+            proposal: publicationProposal,
+            profiles: agentReadinessObjects,
+        }),
+        objects: agentReadinessOfferRelationObjects,
+        profiles: agentReadinessObjects,
+        revisions,
+        changeSet: publicationChangeSet,
+        retiredProfileIds: new Set(delta.identities.retired_agent_readiness_profiles),
+    });
     const candidates = new Map(publicationProposal.candidate_entities.map((authoring) => [
         authoring.entity.entity_id,
         authoring,
@@ -387,13 +421,6 @@ function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuth
     if (relationInputEntries.size !== changedRelationInputCount) {
         throw new Error("Offer relation input index escapes its changed relation closure.");
     }
-    // Asset transitions are closed above against their exact proposal, protected
-    // event, safe bytes, and parent binding. They are not Agent Readiness
-    // evidence and may legitimately reference a binding retained by the parent
-    // rather than repeated in this changed-only delta.
-    const graph = buildEventGraph(events.filter((event) => event.kind !== "asset.bound" &&
-        event.kind !== "asset.withdrawn" &&
-        event.kind !== "asset.takedown-ordered"), observations);
     const profileInputs = [];
     for (const [profileId, object] of agentReadinessObjects) {
         const current = object.projection;
@@ -427,6 +454,13 @@ function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuth
         }
         let expected;
         if (object.profile_input) {
+            const profileEvidence = selectAgentReadinessEvidenceChanges({
+                profileId,
+                revisionDigest: revision.revision_digest,
+                events,
+                observations,
+            });
+            const graph = buildEventGraph(profileEvidence.events, profileEvidence.observations);
             const inputEntry = inputEntries.get(profileId);
             if (!inputEntry ||
                 inputEntry.input_digest !== digest(object.profile_input) ||
@@ -458,17 +492,21 @@ function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuth
             });
         }
         else {
-            if (!object.prior_projection) {
-                throw new Error(`Agent Readiness regrade ${profileId} lacks its exact prior projection.`);
-            }
-            expected = deriveAgentReadinessReprojection({
-                currentProjection: current,
+            expected = expectedAgentReadinessRegradeProjection({
+                profileId,
+                object,
+                current,
                 revision,
                 declarationRevision,
-                authorityEntityRevision: context.entity_revision,
-                priorProjection: agentReadinessProjectionSchema.parse(object.prior_projection),
-                graph,
+                entityRevision: context.entity_revision,
                 entitySlug: context.entity_slug,
+                evidence: agentReadinessRegradeEvidence.get(profileId),
+                deltaEvidence: selectAgentReadinessEvidenceChanges({
+                    profileId,
+                    revisionDigest: revision.revision_digest,
+                    events,
+                    observations,
+                }),
                 policy: policies.agentReadinessPolicy,
                 policyAsOf: delta.policy_as_of,
                 freshnessPolicy: policies.freshnessPolicy,
@@ -526,52 +564,5 @@ function assertDeltaClosure(delta, entities, priorEntities, authoring, priorAuth
         captures,
         normalizedObjects,
     });
-}
-function verifyChanges(files, descriptor, delta, entities, priorEntities, agentReadinessObjects, assetDelta) {
-    const bytes = requiredReleaseFile(files, "changes.ndjson");
-    if (sha256Bytes(bytes) !== descriptor.release_core.diff_digest) {
-        throw new Error("Catalog delta change bytes do not match the release descriptor.");
-    }
-    const changes = bytes
-        .toString("utf8")
-        .split("\n")
-        .filter(Boolean)
-        .map((line) => releaseChangeSchema.parse(JSON.parse(line)));
-    const diff = releaseDiffSchema.parse(parseReleaseJson(files, "release-diff.json"));
-    if (diff.parent_snapshot_id !==
-        (descriptor.release_core.parent_release_id
-            ? (delta.base?.release.snapshot_id ?? null)
-            : null) ||
-        diff.snapshot_id !== descriptor.snapshot_id ||
-        JSON.stringify(diff.changes) !== JSON.stringify(changes)) {
-        throw new Error("Catalog delta change feed does not bind the exact snapshot transition.");
-    }
-    const ordered = [...changes].sort((left, right) => compareCanonicalStrings(left.subject_type, right.subject_type) ||
-        compareCanonicalStrings(left.subject_id, right.subject_id) ||
-        compareCanonicalStrings(left.kind, right.kind));
-    if (JSON.stringify(ordered) !== JSON.stringify(changes)) {
-        throw new Error("Catalog delta changes are not in canonical order.");
-    }
-    const expected = buildDeltaChanges([...entities.entries()]
-        .map(([entityId, current]) => ({
-        current,
-        prior: priorEntities.get(entityId) ?? null,
-    }))
-        .sort((left, right) => compareCanonicalStrings(left.current.entity_id, right.current.entity_id)), delta.identities, {
-        current: [...agentReadinessObjects.values()].flatMap((object) => object.projection ? [object.projection] : []),
-        prior: [...agentReadinessObjects.values()].flatMap((object) => object.prior_projection ? [object.prior_projection] : []),
-        regradedProfileIds: new Set([...agentReadinessObjects.values()].flatMap((object) => object.projection && object.profile_input === null
-            ? [object.agent_readiness_profile_id]
-            : [])),
-    }, assetDelta);
-    if (JSON.stringify(expected) !== JSON.stringify(changes)) {
-        throw new Error("Catalog delta change feed does not match its exact Entity transitions.");
-    }
-    for (const change of changes) {
-        const { change_id: changeId, ...core } = change;
-        if (digest(core) !== changeId)
-            throw new Error(`Catalog change ${changeId} is misaddressed.`);
-    }
-    return changes;
 }
 //# sourceMappingURL=verifier.js.map

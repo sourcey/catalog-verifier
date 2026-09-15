@@ -1,20 +1,7 @@
-import { agentReadinessAssessmentMethodPackCoreSchema, agentReadinessPolicyCoreSchema, agentReadinessPolicySchema, methodCapabilityFor, missingAssessableValues, } from "../../../contracts/agent-readiness/src/index.js";
-import { digest } from "../../primitives/src/index.js";
-import { CURRENT_AGENT_READINESS_POLICY_DIGEST } from "./current-policy.js";
+import { methodCapabilityFor, missingAssessableValues, } from "../../../contracts/agent-readiness/src/index.js";
+import { validateAgentReadinessPolicyIdentity } from "../../policy-identity/src/index.js";
 export function validateAgentReadinessPolicy(input) {
-    const policy = agentReadinessPolicySchema.parse(input);
-    const { policy_digest: _, ...coreInput } = policy;
-    const core = agentReadinessPolicyCoreSchema.parse(coreInput);
-    if (digest(core) !== policy.policy_digest) {
-        throw new Error("Agent readiness policy digest does not match its canonical core.");
-    }
-    for (const method of policy.assessment_methods) {
-        const { method_digest: __, ...methodCoreInput } = method;
-        const methodCore = agentReadinessAssessmentMethodPackCoreSchema.parse(methodCoreInput);
-        if (digest(methodCore) !== method.method_digest) {
-            throw new Error(`Agent readiness method ${method.name}@${method.version} digest does not match its canonical core.`);
-        }
-    }
+    const policy = validateAgentReadinessPolicyIdentity(input);
     for (const rule of policy.signal_rules) {
         const methods = rule.allowed_method_digests.map((methodDigest) => {
             const method = policy.assessment_methods.find((candidate) => candidate.method_digest === methodDigest);
@@ -46,13 +33,6 @@ export function validateAgentReadinessPolicy(input) {
                 throw new Error(`Agent readiness methods cannot satisfy evidence for ${rule.stage}:${rule.signal_code}=${evidenceRule.value}.`);
             }
         }
-    }
-    return policy;
-}
-export function verifyCurrentAgentReadinessPolicy(input) {
-    const policy = validateAgentReadinessPolicy(input);
-    if (policy.policy_digest !== CURRENT_AGENT_READINESS_POLICY_DIGEST) {
-        throw new Error("Agent Readiness population operations require the current readiness policy.");
     }
     return policy;
 }

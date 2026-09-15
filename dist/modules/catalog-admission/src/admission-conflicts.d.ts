@@ -1,8 +1,8 @@
 import type { z } from "zod";
-import { type CatalogAdmissionCandidate, type CatalogAdmissionKeyKind, type CatalogVerifierIdentityContextCore, catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema } from "../../../contracts/catalog-verifier/src/index.js";
+import { type CatalogAdmissionCandidate, type CatalogAdmissionKeyKind, type CatalogVerifierIdentityContextCore, catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema } from "../../../contracts/catalog-verifier/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
 export type { CatalogAdmissionCandidate, CatalogAdmissionKeyKind };
-export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, };
+export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export declare function createCatalogAdmissionConflictLookupResponse(input: {
     readonly query: z.infer<typeof catalogAdmissionConflictLookupRequestSchema>;
     readonly matches: readonly CatalogAdmissionKeyMatch[];
@@ -25,6 +25,10 @@ export declare function createCatalogAdmissionConflictLookupResponse(input: {
             repository: string;
             liveSourceCommit: string;
             targetCommit: string;
+        } | {
+            kind: "pending_submission";
+            candidateReference: string;
+            candidateDigest: `sha256:${string}`;
         };
         targetIdentityDigest?: `sha256:${string}` | undefined;
     }[];
@@ -52,6 +56,10 @@ export declare function verifyCatalogAdmissionConflictLookupResponse(input: {
             repository: string;
             liveSourceCommit: string;
             targetCommit: string;
+        } | {
+            kind: "pending_submission";
+            candidateReference: string;
+            candidateDigest: `sha256:${string}`;
         };
         targetIdentityDigest?: `sha256:${string}` | undefined;
     }[];
@@ -90,6 +98,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
             kind: "detached";
             repositoryKind: "startup-credits" | "agent-readiness";
             candidateDigest: `sha256:${string}`;
+            candidateReference: string;
         };
     };
     response: {
@@ -111,6 +120,10 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
                 repository: string;
                 liveSourceCommit: string;
                 targetCommit: string;
+            } | {
+                kind: "pending_submission";
+                candidateReference: string;
+                candidateDigest: `sha256:${string}`;
             };
             targetIdentityDigest?: `sha256:${string}` | undefined;
         }[];
@@ -184,6 +197,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                 kind: "detached";
                 repositoryKind: "startup-credits" | "agent-readiness";
                 candidateDigest: `sha256:${string}`;
+                candidateReference: string;
             };
         };
         response: {
@@ -205,6 +219,10 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                     repository: string;
                     liveSourceCommit: string;
                     targetCommit: string;
+                } | {
+                    kind: "pending_submission";
+                    candidateReference: string;
+                    candidateDigest: `sha256:${string}`;
                 };
                 targetIdentityDigest?: `sha256:${string}` | undefined;
             }[];
@@ -270,6 +288,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
             kind: "detached";
             repositoryKind: "startup-credits" | "agent-readiness";
             candidateDigest: `sha256:${string}`;
+            candidateReference: string;
         };
     };
     response: {
@@ -291,6 +310,10 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                 repository: string;
                 liveSourceCommit: string;
                 targetCommit: string;
+            } | {
+                kind: "pending_submission";
+                candidateReference: string;
+                candidateDigest: `sha256:${string}`;
             };
             targetIdentityDigest?: `sha256:${string}` | undefined;
         }[];
@@ -338,10 +361,14 @@ export interface CatalogAdmissionKeyMatch {
         readonly repository: string;
         readonly liveSourceCommit: string;
         readonly targetCommit: string;
+    } | {
+        readonly kind: "pending_submission";
+        readonly candidateReference: string;
+        readonly candidateDigest: Digest;
     };
 }
 export interface CatalogAdmissionConflict {
-    readonly kind: "domain" | "identity" | "slug" | "name" | "url" | "program" | "offer" | "semantic_offer" | "open_pull_request" | "pending_git_lineage";
+    readonly kind: "domain" | "identity" | "slug" | "name" | "url" | "program" | "offer" | "semantic_offer" | "open_pull_request" | "pending_git_lineage" | "pending_submission";
     readonly strength: "exact" | "ambiguous";
     readonly keyDigest: Digest;
     readonly targetReferences: readonly string[];
@@ -378,26 +405,41 @@ export declare function createCatalogAdmissionConflictLookupRequest(input: {
         kind: "detached";
         repositoryKind: "startup-credits" | "agent-readiness";
         candidateDigest: `sha256:${string}`;
+        candidateReference: string;
     };
 };
-export interface OpenPullRequestAdmissionCandidate {
-    readonly repository: string;
-    readonly pullRequestNumber: number;
-    readonly headSha: string;
-    readonly entities: readonly unknown[];
-}
+export type OpenPullRequestAdmissionCandidate = z.infer<typeof openPullRequestAdmissionCandidateSchema>;
+export type OpenPullRequestAdmissionKey = z.infer<typeof openPullRequestAdmissionKeySchema>;
+/** Derive once at capture; pending lookups need neither YAML nor normalized offer text. */
+export declare function deriveOpenPullRequestAdmissionKeys(input: {
+    readonly path: string;
+    readonly document: unknown;
+}): readonly OpenPullRequestAdmissionKey[];
 export interface OpenPullRequestAdmissionCandidateReader {
-    listOpenPullRequestAdmissionCandidates(repository: string): Promise<readonly OpenPullRequestAdmissionCandidate[]>;
+    listOpenPullRequestAdmissionCandidates(repository: string, keyDigests: readonly Digest[]): Promise<readonly OpenPullRequestAdmissionCandidate[]>;
+}
+type DetachedCatalogAdmissionCandidate = Extract<CatalogAdmissionCandidate, {
+    readonly kind: "detached";
+}>;
+export interface OpenPullRequestCatalogAdmissionConflictQueryConfiguration {
+    readonly reader: OpenPullRequestAdmissionCandidateReader;
+    readonly maximumOpenPullRequests?: number;
+    /**
+     * A detached candidate names its product collection, not a Git repository.
+     * The host binds that collection to the one repository projection it owns.
+     */
+    readonly detachedRepository?: {
+        readonly repositoryKind: DetachedCatalogAdmissionCandidate["repositoryKind"];
+        readonly repository: string;
+    };
 }
 /**
- * Project the bounded current open-PR set through the same exact key authority
- * as live Catalog state. Provider adapters supply inert authoring documents;
- * this owner parses and derives every semantic key.
+ * Query pending keys derived by the same authority as live Catalog state.
+ * The reader returns only requested matches, never sibling authoring documents.
  */
 export declare class OpenPullRequestCatalogAdmissionConflictQuery implements CatalogAdmissionConflictQuery {
-    private readonly reader;
-    private readonly maximumOpenPullRequests;
-    constructor(reader: OpenPullRequestAdmissionCandidateReader, maximumOpenPullRequests?: number);
+    #private;
+    constructor(configuration: OpenPullRequestCatalogAdmissionConflictQueryConfiguration);
     lookupAdmissionKeys(input: Parameters<CatalogAdmissionConflictQuery["lookupAdmissionKeys"]>[0]): Promise<CatalogAdmissionKeyMatch[]>;
 }
 export declare class CompositeCatalogAdmissionConflictQuery implements CatalogAdmissionConflictQuery {
@@ -411,6 +453,8 @@ export declare class CompositeCatalogAdmissionConflictQuery implements CatalogAd
  * redefine identity matching.
  */
 export declare function deriveCatalogEntityIdentityAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
+/** The one slug key an entity authoring path proves without a parseable document. */
+export declare function deriveOpenPullRequestPathAdmissionKeys(path: string): readonly CatalogAdmissionKey[];
 /** Derive all exact conflict keys once from the canonical compiled candidate. */
 export declare function deriveCatalogAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
 export declare function evaluateCatalogAdmissionConflicts(input: {

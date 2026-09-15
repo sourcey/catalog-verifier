@@ -6,11 +6,15 @@ export * from "./evidence.js";
 export * from "./interaction.js";
 export * from "./method-pack.js";
 export * from "./shared.js";
+/** Rendering residue in a captured segment: the surface did not render. */
+export declare function agentReadinessRenderingResidue(value: string): string | null;
 /**
  * Finds deterministic evidence of unresolved runtime or interpolation residue
  * in text that would otherwise become a public factual claim.
  */
 export declare function agentReadinessPublicClaimResidue(value: string): string | null;
+/** The one bound on public claim text: observation notes, the fact response schema and its prompt share it. */
+export declare const AGENT_READINESS_PUBLIC_CLAIM_TEXT_MAXIMUM_CHARACTERS = 500;
 export declare const agentReadinessPublicClaimTextSchema: z.ZodString;
 export declare const agentReadinessSignalInputSchema: z.ZodObject<{
     stage: z.ZodEnum<{
@@ -534,6 +538,16 @@ export declare const agentReadinessProfileReleaseInputSchema: z.ZodObject<{
         revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
         entity_id: z.ZodString;
         declaration: z.ZodObject<{
+            scope: z.ZodObject<{
+                product: z.ZodObject<{
+                    key: z.ZodString;
+                    name: z.ZodString;
+                }, z.core.$strict>;
+                funnel: z.ZodObject<{
+                    key: z.ZodString;
+                    name: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
             resources: z.ZodArray<z.ZodObject<{
                 resource_id: z.ZodString;
                 uri: z.ZodURL;
@@ -595,16 +609,6 @@ export declare const agentReadinessProfileReleaseInputSchema: z.ZodObject<{
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             declaration_id: z.ZodString;
-            scope: z.ZodObject<{
-                product: z.ZodObject<{
-                    key: z.ZodString;
-                    name: z.ZodString;
-                }, z.core.$strict>;
-                funnel: z.ZodObject<{
-                    key: z.ZodString;
-                    name: z.ZodString;
-                }, z.core.$strict>;
-            }, z.core.$strict>;
             declared_at: z.ZodISODateTime;
             assessment_targets: z.ZodArray<z.ZodObject<{
                 target_id: z.ZodString;
@@ -3728,11 +3732,6 @@ export declare const agentReadinessProjectionCoreSchema: z.ZodObject<{
         stale: "stale";
     }>;
     provenance: z.ZodObject<{
-        tier: z.ZodEnum<{
-            observed: "observed";
-            signed: "signed";
-            verified: "verified";
-        }>;
         freshness: z.ZodEnum<{
             unknown: "unknown";
             fresh: "fresh";
@@ -3769,8 +3768,13 @@ export declare const agentReadinessProjectionCoreSchema: z.ZodObject<{
                 stale: "stale";
             }>;
         }, z.core.$strict>>;
-        attestation_event_id: z.ZodOptional<z.ZodString>;
-        verification_event_id: z.ZodOptional<z.ZodString>;
+        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            status: z.ZodLiteral<"none">;
+        }, z.core.$strict>, z.ZodObject<{
+            status: z.ZodLiteral<"current">;
+            event_id: z.ZodString;
+            attested_at: z.ZodISODateTime;
+        }, z.core.$strict>], "status">;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
 }, z.core.$strict>;
@@ -4374,11 +4378,6 @@ export declare const agentReadinessProjectionSchema: z.ZodObject<{
         stale: "stale";
     }>;
     provenance: z.ZodObject<{
-        tier: z.ZodEnum<{
-            observed: "observed";
-            signed: "signed";
-            verified: "verified";
-        }>;
         freshness: z.ZodEnum<{
             unknown: "unknown";
             fresh: "fresh";
@@ -4415,8 +4414,13 @@ export declare const agentReadinessProjectionSchema: z.ZodObject<{
                 stale: "stale";
             }>;
         }, z.core.$strict>>;
-        attestation_event_id: z.ZodOptional<z.ZodString>;
-        verification_event_id: z.ZodOptional<z.ZodString>;
+        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            status: z.ZodLiteral<"none">;
+        }, z.core.$strict>, z.ZodObject<{
+            status: z.ZodLiteral<"current">;
+            event_id: z.ZodString;
+            attested_at: z.ZodISODateTime;
+        }, z.core.$strict>], "status">;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
     projection_digest: z.ZodString;
@@ -4458,16 +4462,18 @@ export declare const agentReadinessProvenanceSummarySchema: z.ZodObject<{
         fresh: "fresh";
         stale: "stale";
     }>;
-    tier: z.ZodEnum<{
-        observed: "observed";
-        signed: "signed";
-        verified: "verified";
-    }>;
     dispute: z.ZodEnum<{
         none: "none";
         open: "open";
         resolved: "resolved";
     }>;
+    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        status: z.ZodLiteral<"none">;
+    }, z.core.$strict>, z.ZodObject<{
+        status: z.ZodLiteral<"current">;
+        event_id: z.ZodString;
+        attested_at: z.ZodISODateTime;
+    }, z.core.$strict>], "status">;
 }, z.core.$strict>;
 export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
     policy_digest: z.ZodString;
@@ -4475,18 +4481,6 @@ export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
     effective_from: z.ZodISODateTime;
     revision_digest: z.ZodString;
     agent_readiness_profile_id: z.ZodString;
-    lifecycle: z.ZodEnum<{
-        active: "active";
-        ended: "ended";
-        withdrawn: "withdrawn";
-    }>;
-    freshness: z.ZodEnum<{
-        unknown: "unknown";
-        fresh: "fresh";
-        stale: "stale";
-    }>;
-    policy_as_of: z.ZodISODateTime;
-    projection_digest: z.ZodString;
     scope: z.ZodObject<{
         product: z.ZodObject<{
             key: z.ZodString;
@@ -4497,7 +4491,6 @@ export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
             name: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>;
-    declaration_revision_digest: z.ZodString;
     coverage: z.ZodObject<{
         status: z.ZodEnum<{
             incomplete: "incomplete";
@@ -4510,6 +4503,19 @@ export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
         verified_barrier_signals: z.ZodNumber;
         barrier_ratio: z.ZodNumber;
     }, z.core.$strict>;
+    lifecycle: z.ZodEnum<{
+        active: "active";
+        ended: "ended";
+        withdrawn: "withdrawn";
+    }>;
+    freshness: z.ZodEnum<{
+        unknown: "unknown";
+        fresh: "fresh";
+        stale: "stale";
+    }>;
+    policy_as_of: z.ZodISODateTime;
+    projection_digest: z.ZodString;
+    declaration_revision_digest: z.ZodString;
     policy_version: z.ZodString;
     grade_derivation: z.ZodObject<{
         label: z.ZodString;
@@ -4623,16 +4629,18 @@ export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
             fresh: "fresh";
             stale: "stale";
         }>;
-        tier: z.ZodEnum<{
-            observed: "observed";
-            signed: "signed";
-            verified: "verified";
-        }>;
         dispute: z.ZodEnum<{
             none: "none";
             open: "open";
             resolved: "resolved";
         }>;
+        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            status: z.ZodLiteral<"none">;
+        }, z.core.$strict>, z.ZodObject<{
+            status: z.ZodLiteral<"current">;
+            event_id: z.ZodString;
+            attested_at: z.ZodISODateTime;
+        }, z.core.$strict>], "status">;
     }, z.core.$strict>;
 }, z.core.$strict>;
 /** The one compact public-list projection of a complete released profile. */
@@ -4854,6 +4862,16 @@ export declare const agentReadinessOfferRelationDeltaObjectSchema: z.ZodObject<{
             revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
             entity_id: z.ZodString;
             declaration: z.ZodObject<{
+                scope: z.ZodObject<{
+                    product: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                    funnel: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
                 resources: z.ZodArray<z.ZodObject<{
                     resource_id: z.ZodString;
                     uri: z.ZodURL;
@@ -4915,16 +4933,6 @@ export declare const agentReadinessOfferRelationDeltaObjectSchema: z.ZodObject<{
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 declaration_id: z.ZodString;
-                scope: z.ZodObject<{
-                    product: z.ZodObject<{
-                        key: z.ZodString;
-                        name: z.ZodString;
-                    }, z.core.$strict>;
-                    funnel: z.ZodObject<{
-                        key: z.ZodString;
-                        name: z.ZodString;
-                    }, z.core.$strict>;
-                }, z.core.$strict>;
                 declared_at: z.ZodISODateTime;
                 assessment_targets: z.ZodArray<z.ZodObject<{
                     target_id: z.ZodString;
@@ -6133,11 +6141,6 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
             stale: "stale";
         }>;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -6174,8 +6177,13 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         projection_digest: z.ZodString;
@@ -6245,6 +6253,16 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
             revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
             entity_id: z.ZodString;
             declaration: z.ZodObject<{
+                scope: z.ZodObject<{
+                    product: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                    funnel: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
                 resources: z.ZodArray<z.ZodObject<{
                     resource_id: z.ZodString;
                     uri: z.ZodURL;
@@ -6306,16 +6324,6 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 declaration_id: z.ZodString;
-                scope: z.ZodObject<{
-                    product: z.ZodObject<{
-                        key: z.ZodString;
-                        name: z.ZodString;
-                    }, z.core.$strict>;
-                    funnel: z.ZodObject<{
-                        key: z.ZodString;
-                        name: z.ZodString;
-                    }, z.core.$strict>;
-                }, z.core.$strict>;
                 declared_at: z.ZodISODateTime;
                 assessment_targets: z.ZodArray<z.ZodObject<{
                     target_id: z.ZodString;

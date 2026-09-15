@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { digest as canonicalDigest, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
 import { agentReadinessProfileIdSchema, agentReadinessSignalCodeSchema, agentReadinessStageSchema, } from "../../agent-readiness/src/index.js";
 import { assetBindingProjectionSchema, entityAssetProposalSchema } from "../../assets/src/index.js";
 import { entityAuthoringSchema } from "../../authoring/src/index.js";
@@ -8,6 +8,21 @@ const digestSchema = z.string().regex(DIGEST_PATTERN);
 const entityIdSchema = z.string().regex(ENTITY_ID_PATTERN);
 const identifierSchema = z.string().regex(IDENTIFIER_PATTERN);
 const gitObjectIdSchema = z.string().regex(/^[a-f0-9]{40,64}$/);
+export const catalogGitSyncResultSchema = z.discriminatedUnion("status", [
+    z
+        .object({
+        status: z.enum(["up_to_date", "no_changes", "awaiting_admission"]),
+        head_commit: gitObjectIdSchema,
+    })
+        .strict(),
+    z
+        .object({
+        status: z.enum(["published", "converged_elsewhere"]),
+        head_commit: gitObjectIdSchema,
+        release_id: digestSchema,
+    })
+        .strict(),
+]);
 const safeRelativePathSchema = z
     .string()
     .regex(/^[^/\\]+(?:\/[^/\\]+)*$/)
@@ -46,6 +61,34 @@ export const publicationStageResultSchema = z
     diagnostics: z.array(publicationDiagnosticSchema),
 })
     .strict();
+/** Private recovery binding, not admission or a live-release selector. The
+ * archive remains in ordinary immutable artifact storage; the submission owner
+ * retains this exact association before any publication effect. */
+export const catalogSubmissionPublicationReferenceCoreSchema = z
+    .object({
+    work_item_digest: digestSchema,
+    release_id: digestSchema,
+    release_sequence: z.number().int().positive(),
+    parent_release_id: digestSchema,
+    bundle_digest: digestSchema,
+    verifier_digest: digestSchema,
+    archive_digest: digestSchema,
+    archive_bytes: z.number().int().positive(),
+    archive_expanded_bytes: z.number().int().positive(),
+    archive_file_count: z.number().int().positive(),
+})
+    .strict();
+export const catalogSubmissionPublicationReferenceSchema = catalogSubmissionPublicationReferenceCoreSchema
+    .extend({ reference_digest: digestSchema })
+    .strict()
+    .superRefine(({ reference_digest: referenceDigest, ...core }, context) => {
+    if (canonicalDigest(core) !== referenceDigest)
+        context.addIssue({
+            code: "custom",
+            path: ["reference_digest"],
+            message: "Submission publication reference differs from its exact retained binding.",
+        });
+});
 export const publicationAdmissionTargetSchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("git"), changed_tree: gitObjectIdSchema }).strict(),
     z
@@ -58,7 +101,7 @@ export const publicationAdmissionTargetSchema = z.discriminatedUnion("kind", [
 ]);
 export const publicationAdmissionAuthoritySchema = z
     .object({
-    kind: z.enum(["asset", "evidence", "identity", "claim", "verification"]),
+    kind: z.enum(["asset", "assurance", "evidence", "identity", "claim"]),
     root: safeRelativePathSchema,
     tree_digest: digestSchema,
 })
@@ -100,6 +143,10 @@ export const publicationAuthorityProposalSchema = z
     .object({
     purpose: signaturePurposeSchema,
     proposal_digest: digestSchema,
+    dependency_keys: z.array(z.string().min(1)),
+    // Public canonical input committed by this authority, when its semantic
+    // payload is not already carried by candidate_entities/candidate_assets.
+    public_input_digest: digestSchema.optional(),
 })
     .strict();
 export const catalogPublicationProposalCoreSchema = z
@@ -137,6 +184,7 @@ export const authenticatedFormPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("authenticated_form"),
+    submission_work_item_digest: digestSchema,
     schema_digest: digestSchema,
     payload_digest: digestSchema,
     authentication_digest: digestSchema,
@@ -149,10 +197,12 @@ export const paidAgentPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("paid_agent"),
+    submission_work_item_digest: digestSchema,
     schema_digest: digestSchema,
     payload_digest: digestSchema,
     authentication_digest: digestSchema,
     authorization_digest: digestSchema,
+    operator_admission_digest: digestSchema.nullable(),
     request_id: z
         .string()
         .trim()
@@ -164,6 +214,7 @@ export const governedOpsPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("governed_ops"),
+    submission_work_item_digest: digestSchema.nullable(),
     command_digest: digestSchema,
     grant_digest: digestSchema,
     approval_digest: digestSchema.nullable(),
@@ -522,12 +573,29 @@ export const catalogPublicationChangeSetCoreSchema = z
 export const catalogPublicationChangeSetSchema = catalogPublicationChangeSetCoreSchema
     .extend({ change_set_digest: digestSchema })
     .strict();
-/** Immutable composer input. It carries only the targeted live slice, never a Catalog copy. */
-export const catalogPublicationAdmissionInputSchema = z
+/** Private exact-parent index read; these are the planner's existing selectors. */
+export const catalogPublicationImpactSelectionSchema = catalogPublicationChangeSetCoreSchema.pick({
+    live_parent_release_id: true,
+    changed_dependency_keys: true,
+});
+/** One ingress retains its own plan. A combined release never broadens its authority. */
+export const catalogPublicationIngressSchema = z
     .object({
     proposal: catalogPublicationProposalSchema,
     change_set: catalogPublicationChangeSetSchema,
-    ingress_receipts: z.array(publicationIngressReceiptSchema).min(1),
+    ingress_receipt: publicationIngressReceiptSchema,
+})
+    .strict();
+export const catalogPublicationCompositionSchema = z
+    .object({
+    proposal: catalogPublicationProposalSchema,
+    change_set: catalogPublicationChangeSetSchema,
+    ingresses: z.array(catalogPublicationIngressSchema).min(1),
+})
+    .strict();
+/** Immutable composer input. It carries only the targeted live slice, never a Catalog copy. */
+export const catalogPublicationAdmissionInputSchema = catalogPublicationCompositionSchema
+    .extend({
     current_entities: z.array(entityAuthoringSchema),
     current_asset_bindings: z.array(assetBindingProjectionSchema).default([]),
 })

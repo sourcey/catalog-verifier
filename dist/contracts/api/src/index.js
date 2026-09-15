@@ -1,18 +1,22 @@
 import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, OPERATION_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
-import { agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionLineageSchema, agentReadinessProjectionSchema, agentReadinessPublicStateSchema, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
-import { canonicalArtifactSchema, compiledEntitySchema, compiledOfferSchema, compiledProgramSchema, provenanceEntrySchema, } from "../../artifact/src/index.js";
+import { agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionLineageSchema, agentReadinessProjectionSchema, agentReadinessPublicationVisibilitySchema, agentReadinessPublicStateSchema, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
+import { canonicalArtifactSchema, compiledEntitySchema, compiledOfferSchema, compiledPolicySchema, compiledProgramSchema, provenanceEntrySchema, } from "../../artifact/src/index.js";
 import { assetBindingProjectionSchema, assetMediaTypeSchema, ENTITY_ICON_MAX_SOURCE_BYTES, entityAssetSubmissionSchema, entityAssetUploadHeadersSchema, entityAssetUploadReceiptSchema, } from "../../assets/src/index.js";
+import { entityIdentityAssuranceSchema } from "../../assurance/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
+import { commercialOrderIdSchema } from "../../billing/src/index.js";
 import { catalogAdmissionConflictLookupRequestSchema, catalogVerifierIdentityContextPacketSchema, } from "../../catalog-verifier/src/index.js";
-import { startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../commercial-work/src/index.js";
+import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../commercial-work/src/index.js";
+import { agentReadinessDatasetSchema, companiesDatasetSchema, startupCreditsDatasetSchema, } from "../../datasets/src/index.js";
 import { catalogEventPayloadSchemas, eventSubjectSchema } from "../../events/src/index.js";
 import { captureReceiptSchema } from "../../evidence/src/index.js";
 import { changeFeedPageSchema } from "../../feed/src/index.js";
 import { observationSchema } from "../../observations/src/index.js";
-import { PUBLICATION_STAGES, publicationDiagnosticSchema, publicationStageResultSchema, } from "../../publication/src/index.js";
+import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, PUBLICATION_STAGES, publicationDiagnosticSchema, publicationStageResultSchema, } from "../../publication/src/index.js";
 import { releaseDescriptorSchema, releaseResourceDigestsSchema } from "../../release/src/index.js";
 import { eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
+import { agentReadinessJsonCanonicalPath, companiesJsonCanonicalPath, startupCreditsJsonCanonicalPath, } from "../../routes/src/index.js";
 import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const nonEmpty = z.string().min(1);
@@ -25,8 +29,25 @@ const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 export const SOURCEY_PUBLIC_API_VERSION = "1.1.0";
+/**
+ * Sourcey's response-header budget leaves transport headroom beneath the
+ * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
+ * protocol permits larger envelopes; Sourcey's payable products do not.
+ */
+export const SOURCEY_X402_PAYMENT_REQUIRED_MAX_BYTES = 14 * 1_024;
 export const catalogApiContractSchema = z.literal("sourcey.catalog-api/v1");
+export const catalogSiteRecordContract = "sourcey.site-record/v1alpha1";
+export const siteRecordEnvelopeSchema = z
+    .object({
+    contract: z.literal(catalogSiteRecordContract),
+    release_id: digest,
+    snapshot_id: digest,
+    artifact_sha256: digest,
+    data: z.unknown(),
+})
+    .strict();
 export const catalogApiErrorCodeSchema = z.enum([
+    "already_verified",
     "authentication_required",
     "capacity_unavailable",
     "capability_unavailable",
@@ -151,8 +172,9 @@ export const catalogEntityListSummarySchema = z
     program_count: z.number().int().nonnegative(),
     offer_count: z.number().int().nonnegative(),
     active_offer_count: z.number().int().nonnegative(),
-    signed_entity_count: z.number().int().nonnegative(),
+    vendor_confirmed_entity_count: z.number().int().nonnegative(),
     verified_entity_count: z.number().int().nonnegative(),
+    terms_checked_offer_count: z.number().int().nonnegative(),
     latest_observation_at: instant.nullable(),
     categories: z.array(z
         .object({
@@ -266,6 +288,10 @@ export const entityResponseSchema = apiEnvelope(z.union([compiledEntitySchema, e
 export const entityAssetListResponseSchema = pagedApiEnvelope(assetBindingProjectionSchema).extend({
     entity_id: entityId.nullable(),
 });
+export const policyResponseSchema = apiEnvelope(compiledPolicySchema);
+export const policyListResponseSchema = pagedApiEnvelope(compiledPolicySchema).required({
+    next_cursor: true,
+});
 export const programResponseSchema = apiEnvelope(z.union([
     z.object({ entity: compiledEntitySchema, program: compiledProgramSchema }).strict(),
     programTombstoneSchema,
@@ -286,6 +312,7 @@ const offerSearchResultBaseSchema = z
     entity_slug: slug,
     entity_name: nonEmpty,
     category: slug,
+    identity_assurance: entityIdentityAssuranceSchema.optional(),
     offer: compiledOfferSchema,
     canonical_url: z.url(),
 })
@@ -428,6 +455,44 @@ export const catalogClosureResponseSchema = apiEnvelope(z
     capture_receipts: z.array(captureReceiptSchema),
 })
     .strict());
+/**
+ * Canonical root-level downloads over the current Catalog release.
+ *
+ * These belong to the public HTTP contract even though they are not members of
+ * the versioned resource API. Hosted transports must import this registry
+ * rather than restating paths, operation names, or response schemas.
+ */
+export const publicDatasetEndpointByDataset = {
+    companies: {
+        operationId: "getCompaniesDataset",
+        method: "GET",
+        path: companiesJsonCanonicalPath(),
+        summary: "Download the current company records dataset.",
+        tags: ["Datasets"],
+        responses: { 200: companiesDatasetSchema },
+    },
+    startupCredits: {
+        operationId: "getStartupCreditsDataset",
+        method: "GET",
+        path: startupCreditsJsonCanonicalPath(),
+        summary: "Download the current startup credits dataset.",
+        tags: ["Datasets"],
+        responses: { 200: startupCreditsDatasetSchema },
+    },
+    agentReadiness: {
+        operationId: "getAgentReadinessDataset",
+        method: "GET",
+        path: agentReadinessJsonCanonicalPath(),
+        summary: "Download the current Agent Readiness dataset.",
+        tags: ["Datasets"],
+        responses: { 200: agentReadinessDatasetSchema },
+    },
+};
+export const publicDatasetEndpoints = [
+    publicDatasetEndpointByDataset.companies,
+    publicDatasetEndpointByDataset.startupCredits,
+    publicDatasetEndpointByDataset.agentReadiness,
+];
 const idPath = z.object({ id: nonEmpty }).strict();
 const releaseIdPath = z.object({ release_id: digest }).strict();
 const entityIdPath = z.object({ entity: entityId }).strict();
@@ -441,13 +506,13 @@ const entityAgentReadinessScopePath = z
     funnel: agentReadinessScopeKeySchema,
 })
     .strict();
-const query = z
+const pageQuery = z
     .object({
-    q: z.string().max(256).default(""),
     cursor: z.string().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).default(20),
 })
     .strict();
+const query = pageQuery.extend({ q: z.string().max(256).default("") });
 const entityListQuery = z
     .object({
     q: z.string().max(256).default(""),
@@ -473,6 +538,9 @@ export const agentReadinessProfileListQuerySchema = z
     funnel_key: agentReadinessScopeKeySchema.optional(),
     grade: agentReadinessGradeSchema.optional(),
     public_state: agentReadinessPublicStateSchema.optional(),
+    visibility: agentReadinessPublicationVisibilitySchema.exclude(["private"]).optional().meta({
+        description: "Publication visibility. Defaults to discoverable. Select resolvable_only to enumerate public records retained outside discovery, including stale report cards. Private candidates are never returned.",
+    }),
     lifecycle: lifecycleStatusSchema.optional(),
     freshness: agentReadinessFreshnessSchema.optional(),
     cursor: z.string().min(1).optional(),
@@ -491,13 +559,14 @@ const eventListQuery = z
     .object({
     operation_id: operationId.optional(),
     entity_id: entityId.optional(),
+    revision_digest: digest.optional(),
     cursor: z.string().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
 })
     .strict()
-    .refine((value) => value.operation_id !== undefined || value.entity_id !== undefined, {
-    message: "An exact operation_id or entity_id filter is required.",
-});
+    .refine((value) => value.operation_id !== undefined ||
+    value.entity_id !== undefined ||
+    value.revision_digest !== undefined, { message: "An exact operation_id, entity_id or revision_digest filter is required." });
 const operationLookupQuery = z
     .object({
     operation_id: operationId,
@@ -551,9 +620,20 @@ export const catalogSubmissionRequestSchema = z
     authoring_files: z.array(catalogSubmissionAuthoringFileSchema).default([]),
     remove_entity_ids: z.array(entityId).default([]),
     asset_submissions: z.array(entityAssetSubmissionSchema).default([]),
+    expected_current_entities: z.array(expectedPublicationEntitySchema).max(100).optional(),
     authority: catalogSubmissionAuthoritySchema,
 })
     .strict()
+    .superRefine((value, context) => {
+    const ids = value.expected_current_entities?.map(({ entity_id: entityId }) => entityId) ?? [];
+    if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+            code: "custom",
+            path: ["expected_current_entities"],
+            message: "Expected current Entity preconditions must be unique.",
+        });
+    }
+})
     .refine((value) => value.authoring_files.length > 0 ||
     value.remove_entity_ids.length > 0 ||
     value.asset_submissions.length > 0, "A submission must contain authoring, an Entity removal, or an Entity asset.");
@@ -565,6 +645,8 @@ export const catalogSubmissionOperatorAdmissionCoreSchema = z
     payload_digest: digest,
     live_parent_release_id: digest,
     prior_work_item_digest: digest,
+    reviewed_authoring_files: z.array(catalogSubmissionAuthoringFileSchema),
+    reviewed_payload_digest: digest,
     admission_artifact_digests: z.array(digest).min(1),
     operator_id: z.string().trim().min(1),
     publication_authorization_digest: digest,
@@ -595,6 +677,13 @@ export const catalogSubmissionWorkItemCoreSchema = z
     .strict();
 export const catalogSubmissionWorkItemSchema = catalogSubmissionWorkItemCoreSchema
     .extend({ work_item_digest: digest })
+    .strict();
+/** Mutable execution progress never rewrites the protected submission identity. */
+export const catalogSubmissionExecutionSchema = z
+    .object({
+    work_item: catalogSubmissionWorkItemSchema,
+    publication_base: catalogPublicationCurrentStateSchema,
+})
     .strict();
 export const catalogSubmissionHeadersSchema = z.looseObject({
     "idempotency-key": z.string().min(8).max(128),
@@ -629,7 +718,7 @@ export const catalogSubmissionTelemetrySchema = z
 export const catalogSubmissionProcessingResultSchema = z.discriminatedUnion("state", [
     z
         .object({
-        state: z.literal("awaiting_review"),
+        state: z.enum(["awaiting_review", "invalidated"]),
         proposal_digest: z.null(),
         change_set_digest: z.null(),
         live_parent_release_id: digest,
@@ -727,6 +816,24 @@ export const publicCatalogV1Endpoints = [
         tags: ["Catalog"],
         request: { query: entityListQuery },
         responses: { 200: entityListResponseSchema, 400: catalogApiErrorResponseSchema },
+    },
+    {
+        operationId: "listPolicies",
+        method: "GET",
+        path: "/v1/policies",
+        summary: "List current Sourcey policy records, with their exact text and revision digests.",
+        tags: ["Catalog"],
+        request: { query: pageQuery },
+        responses: { 200: policyListResponseSchema, 400: catalogApiErrorResponseSchema },
+    },
+    {
+        operationId: "getPolicy",
+        method: "GET",
+        path: "/v1/policies/{slug}",
+        summary: "Read one current Sourcey policy record by slug.",
+        tags: ["Catalog"],
+        request: { path: z.object({ slug }).strict() },
+        responses: { 200: policyResponseSchema, ...commonErrors },
     },
     {
         operationId: "getEntity",
@@ -870,7 +977,7 @@ export const publicCatalogV1Endpoints = [
         operationId: "listEvents",
         method: "GET",
         path: "/v1/events",
-        summary: "Find catalog events by exact operation identity.",
+        summary: "Find catalog events by exact operation, company or revision identity.",
         tags: ["Catalog"],
         request: { query: eventListQuery },
         responses: { 200: eventListResponseSchema, 400: catalogApiErrorResponseSchema },
@@ -1085,10 +1192,24 @@ export const catalogVerifierV1Endpoints = [
 /** One product-semantic commercial operation; payment never changes Catalog authority. */
 export const startupCreditsReviewV1Endpoints = [
     {
+        operationId: "prepareStartupCreditsExistingRecordReview",
+        method: "POST",
+        path: "/v1/startup-credits/review-preparations",
+        summary: "Prepare current Human verification terms and exact assurance work for one published startup Offer.",
+        tags: ["Catalog"],
+        request: { body: startupCreditsExistingRecordReviewPreparationRequestSchema },
+        responses: {
+            200: startupCreditsExistingRecordReviewPreparationResponseSchema,
+            400: catalogApiErrorResponseSchema,
+            409: catalogApiErrorResponseSchema,
+            503: catalogApiErrorResponseSchema,
+        },
+    },
+    {
         operationId: "getStartupCreditsReviewPaymentRequirements",
         method: "GET",
         path: "/v1/startup-credits/reviews",
-        summary: "Read effect-free x402 payment requirements for a Sourcey Startup Review.",
+        summary: "Read effect-free x402 payment requirements for Sourcey Human Verification.",
         tags: ["Catalog"],
         responses: {},
         x402Discovery: startupCreditsReviewProductDescriptor,
@@ -1097,7 +1218,7 @@ export const startupCreditsReviewV1Endpoints = [
         operationId: "createStartupCreditsReview",
         method: "POST",
         path: "/v1/startup-credits/reviews",
-        summary: "Create one evidence-backed human review of a startup credit or startup program.",
+        summary: "Start Human verification for one startup credit or startup program.",
         tags: ["Catalog"],
         request: {
             headers: z
@@ -1108,6 +1229,7 @@ export const startupCreditsReviewV1Endpoints = [
         responses: {
             202: startupCreditsReviewResponseSchema,
             400: catalogApiErrorResponseSchema,
+            401: catalogApiErrorResponseSchema,
             409: catalogApiErrorResponseSchema,
             503: catalogApiErrorResponseSchema,
         },
@@ -1117,17 +1239,34 @@ export const startupCreditsReviewV1Endpoints = [
         operationId: "getStartupCreditsReview",
         method: "GET",
         path: "/v1/startup-credits/reviews/{request_id}",
-        summary: "Read the durable status of one exact paid Startup Review request.",
+        summary: "Read the durable status of one exact Human verification request.",
         tags: ["Catalog"],
         request: {
             path: z.object({ request_id: startupCreditsReviewRequestIdSchema }).strict(),
             headers: z
-                .object({ "payment-signature": z.string().trim().min(1).max(65_536) })
+                .object({ "payment-signature": z.string().trim().min(1).max(65_536).optional() })
                 .passthrough(),
         },
         responses: {
             200: startupCreditsReviewResponseSchema,
             400: catalogApiErrorResponseSchema,
+            401: catalogApiErrorResponseSchema,
+            404: catalogApiErrorResponseSchema,
+        },
+    },
+    {
+        operationId: "getStartupCreditsReviewByOrder",
+        method: "GET",
+        path: "/v1/startup-credits/reviews/orders/{order_id}",
+        summary: "Recover one Human verification from its Stripe order.",
+        tags: ["Catalog"],
+        request: {
+            path: z.object({ order_id: commercialOrderIdSchema }).strict(),
+        },
+        responses: {
+            200: startupCreditsReviewResponseSchema,
+            400: catalogApiErrorResponseSchema,
+            401: catalogApiErrorResponseSchema,
             404: catalogApiErrorResponseSchema,
         },
     },
@@ -1138,6 +1277,7 @@ export const catalogOpenApiV1Endpoints = [
     ...agentReadinessDeclarationDraftV1Endpoints,
     ...catalogVerifierV1Endpoints,
     ...startupCreditsReviewV1Endpoints,
+    ...publicDatasetEndpoints,
 ];
 export const publicCatalogV1BoundaryErrors = {
     401: catalogApiErrorResponseSchema,

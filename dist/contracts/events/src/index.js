@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, OPERATION_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { assuranceRevokedPayloadSchema, entityIdentityCheckedPayloadSchema, offerTermsCheckedPayloadSchema, } from "../../assurance/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
 import { evidenceAssertionSchema } from "../../evidence/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
@@ -11,36 +12,6 @@ const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
-export const verificationCompletedPayloadCoreSchema = z
-    .object({
-    verification_id: identifier,
-    verifier_id: identifier,
-    method_version: z.string().min(1),
-    scope: z.enum(["whole-revision", "paths"]),
-    verified_paths: z.array(pointer),
-    result: z.enum(["pass", "fail", "inconclusive"]),
-    receipt_digest: digest,
-    checked_at: instant,
-    coverage_policy_digest: digest,
-})
-    .strict();
-export function validateVerificationPayloadCoverage(value, context) {
-    if (value.scope === "paths" && value.verified_paths.length === 0) {
-        context.addIssue({
-            code: "custom",
-            path: ["verified_paths"],
-            message: "Path-scoped verification requires exact verified paths.",
-        });
-    }
-    if (value.scope === "whole-revision" && value.verified_paths.length !== 0) {
-        context.addIssue({
-            code: "custom",
-            path: ["verified_paths"],
-            message: "Whole-revision verification must not duplicate path coverage.",
-        });
-    }
-}
-export const verificationCompletedPayloadSchema = verificationCompletedPayloadCoreSchema.superRefine(validateVerificationPayloadCoverage);
 export const authorityClaimMethodKnownValues = [
     "dns-txt",
     "domain-email",
@@ -55,14 +26,24 @@ export const authorityClaimMethodSchema = z
     examples: authorityClaimMethodKnownValues,
     "x-sourcey-extensible-enum": true,
 });
+export const entityEventSubjectSchema = z
+    .object({
+    subject_type: z.literal("entity"),
+    entity_id: entityId,
+    revision_digest: digest.optional(),
+})
+    .strict();
+export const offerEventSubjectSchema = z
+    .object({
+    subject_type: z.literal("offer"),
+    entity_id: entityId,
+    program_id: programId.optional(),
+    offer_id: offerId,
+    revision_digest: digest.optional(),
+})
+    .strict();
 export const eventSubjectSchema = z.discriminatedUnion("subject_type", [
-    z
-        .object({
-        subject_type: z.literal("entity"),
-        entity_id: entityId,
-        revision_digest: digest.optional(),
-    })
-        .strict(),
+    entityEventSubjectSchema,
     z
         .object({
         subject_type: z.literal("agent_readiness_profile"),
@@ -79,15 +60,7 @@ export const eventSubjectSchema = z.discriminatedUnion("subject_type", [
         revision_digest: digest.optional(),
     })
         .strict(),
-    z
-        .object({
-        subject_type: z.literal("offer"),
-        entity_id: entityId,
-        program_id: programId.optional(),
-        offer_id: offerId,
-        revision_digest: digest.optional(),
-    })
-        .strict(),
+    offerEventSubjectSchema,
 ]);
 const identityDispositionSchema = z
     .object({
@@ -240,14 +213,29 @@ export const catalogEventPayloadSchemas = {
         reason_code: z.string().min(1),
     })
         .strict(),
-    "verification.completed": verificationCompletedPayloadSchema,
-    "verification.revoked": z
+    /**
+     * Retained solely because nine signed production events were admitted before
+     * Entity identity and Offer terms assurance became independent contracts.
+     * Release construction rejects this kind from every new input. It remains in
+     * the read contract so the append-only ledger can expose and verify the exact
+     * historical bytes without treating them as current assurance.
+     */
+    "verification.completed": z
         .object({
-        target_event_id: digest,
-        revoked_at: instant,
-        reason_code: z.string().min(1),
+        verification_id: operationId,
+        verifier_id: identifier,
+        method_version: z.string().min(1),
+        scope: z.literal("whole-revision"),
+        result: z.literal("pass"),
+        checked_at: instant,
+        verified_paths: z.array(pointer),
+        coverage_policy_digest: digest,
+        receipt_digest: digest,
     })
         .strict(),
+    "entity.identity-checked": entityIdentityCheckedPayloadSchema,
+    "offer.terms-checked": offerTermsCheckedPayloadSchema,
+    "assurance.revoked": assuranceRevokedPayloadSchema,
     "freshness.exception-granted": z
         .object({
         paths: z.array(pointer).min(1),
@@ -492,7 +480,7 @@ const catalogEventIdentitySchema = z
         "subject.attested",
         "attestation.revoked",
         "verification.completed",
-        "verification.revoked",
+        "offer.terms-checked",
         "freshness.exception-granted",
         "freshness.exception-revoked",
         "dispute.opened",
@@ -507,6 +495,65 @@ const catalogEventIdentitySchema = z
             path: ["subject", "revision_digest"],
             message: `${value.kind} must target an exact revision.`,
         });
+    }
+    if (value.kind === "entity.identity-checked") {
+        if (value.subject.subject_type !== "entity" || value.subject.revision_digest !== undefined) {
+            context.addIssue({
+                code: "custom",
+                path: ["subject"],
+                message: "Entity identity assurance must target an Entity identity epoch, not a revision.",
+            });
+        }
+        if (parsed.success &&
+            value.occurred_at !==
+                parsed.data
+                    .checked_at) {
+            context.addIssue({
+                code: "custom",
+                path: ["occurred_at"],
+                message: "Entity identity check occurrence must equal its check time.",
+            });
+        }
+    }
+    if (value.kind === "offer.terms-checked") {
+        if (value.subject.subject_type !== "offer") {
+            context.addIssue({
+                code: "custom",
+                path: ["subject", "subject_type"],
+                message: "Offer terms assurance must target an exact Offer revision.",
+            });
+        }
+        if (parsed.success &&
+            value.occurred_at !==
+                parsed.data
+                    .checked_at) {
+            context.addIssue({
+                code: "custom",
+                path: ["occurred_at"],
+                message: "Offer terms check occurrence must equal its check time.",
+            });
+        }
+    }
+    if (value.kind === "assurance.revoked" && parsed.success) {
+        const payload = parsed.data;
+        const validSubject = payload.assurance_kind === "entity_identity"
+            ? value.subject.subject_type === "entity" && value.subject.revision_digest === undefined
+            : value.subject.subject_type === "offer" &&
+                value.subject.revision_digest === payload.revision_digest;
+        if (!validSubject) {
+            context.addIssue({
+                code: "custom",
+                path: ["subject"],
+                message: "Assurance revocation must target its exact Entity identity epoch or Offer revision.",
+            });
+        }
+        if (value.occurred_at !== payload.revoked_at) {
+            context.addIssue({
+                code: "custom",
+                path: ["occurred_at"],
+                message: "Assurance revocation occurrence must equal its revocation time.",
+            });
+        }
     }
 });
 export const catalogEventCoreSchema = catalogEventIdentitySchema;

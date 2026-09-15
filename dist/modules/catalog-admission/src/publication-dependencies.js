@@ -8,6 +8,13 @@ export function catalogSourceLocatorDigest(url) {
         }),
     });
 }
+export function catalogPublicationImpactProof(input) {
+    return digest({
+        impact_index_digest: input.impact_index_digest,
+        changed_dependency_keys: input.changed_dependency_keys,
+        affected_dependents: input.affected_dependents,
+    });
+}
 export function dependencyKeysForChanges(input) {
     const keys = [];
     for (const change of input.revisionChanges) {
@@ -57,7 +64,22 @@ export function dependencyKeysForChanges(input) {
             ? catalogPublicationDependencyKey.policy(change.key)
             : catalogPublicationDependencyKey.contractAuthority());
     }
+    for (const proposal of input.authorityProposals ?? [])
+        keys.push(...proposal.dependency_keys);
     return orderedUnique(keys);
+}
+/** Event identity and exact revision are generic publication dependencies.
+ * Retractions invalidate their target, not merely the new retraction's ID. */
+export function catalogPublicationEventDependencyKeys(events) {
+    return orderedUnique(events.flatMap((event) => {
+        const keys = [catalogPublicationDependencyKey.event(event.event_id)];
+        if (event.subject.revision_digest)
+            keys.push(catalogPublicationDependencyKey.revision(event.subject.revision_digest));
+        const target = event.payload.target_event_id;
+        if (typeof target === "string")
+            keys.push(catalogPublicationDependencyKey.event(target));
+        return keys;
+    }));
 }
 export function requiredAuthoritiesForChanges(input) {
     const purposes = new Set(["catalog-release"]);
@@ -85,6 +107,7 @@ export function requiredAuthoritiesForChanges(input) {
     return [...purposes].sort(compareCanonicalStrings);
 }
 export const catalogPublicationDependencyKey = {
+    event: (eventId) => `catalog:event:${eventId}`,
     entity: (entityId) => `catalog:entity:${entityId}`,
     subject: (kind, targetId) => `catalog:subject:${kind}:${targetId}`,
     revision: (revisionDigest) => `catalog:revision:${revisionDigest}`,
@@ -126,7 +149,9 @@ export class CatalogPublicationImpactIndex {
     indexDigest;
     #byDependency = new Map();
     #registrations = new Map();
-    constructor(registrations = []) {
+    #selectedKeys;
+    constructor(registrations = [], selectedDependencyKeys) {
+        this.#selectedKeys = selectedDependencyKeys ? new Set(selectedDependencyKeys) : undefined;
         const normalized = registrations
             .map((registration) => publicationDependencyRegistrationSchema.parse({
             dependent: registration.dependent,
@@ -154,8 +179,13 @@ export class CatalogPublicationImpactIndex {
     registration(dependent) {
         return this.#registrations.get(dependentKey(dependent));
     }
+    registrations() {
+        return [...this.#registrations.values()];
+    }
     affected(dependencyKeys) {
         const keys = orderedUnique(dependencyKeys);
+        if (this.#selectedKeys && keys.some((key) => !this.#selectedKeys?.has(key)))
+            throw new Error("Publication impact lookup exceeds its complete dependency selection.");
         const affected = new Map();
         for (const key of keys) {
             for (const dependent of this.#byDependency.get(key) ?? []) {

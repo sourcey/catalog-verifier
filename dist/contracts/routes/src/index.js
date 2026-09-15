@@ -32,21 +32,119 @@ export const agentReadinessCanonicalPathInputSchema = z
 })
     .strict();
 export const entityIconCurrentPathInputSchema = z.object({ entity_id: entityId }).strict();
+export function catalogCanonicalPath() {
+    return "/companies";
+}
+export function companiesJsonCanonicalPath() {
+    return "/companies.json";
+}
+export function startupCreditsJsonCanonicalPath() {
+    return "/startup-credits.json";
+}
+export function agentReadinessJsonCanonicalPath() {
+    return "/agent-readiness.json";
+}
+/** Canonical namespace for an individual company and every record it owns. */
+export function entityRecordCanonicalRootPath() {
+    return "/c";
+}
+export function policyCanonicalPath(slug) {
+    return `/policies/${publicRouteSlugSchema.parse(slug)}`;
+}
+/** Retained namespaces resolve historical route rows without rewriting history. */
+export const catalogRecordNamespaceRelocations = [
+    { from: "/log", to: entityRecordCanonicalRootPath() },
+    { from: "/catalog", to: entityRecordCanonicalRootPath() },
+];
+/** Permanent public URL moves, not aliases for a second record surface. */
+export const catalogRecordRedirects = [
+    {
+        kind: "exact",
+        path: "/log.json",
+        canonical_target: startupCreditsJsonCanonicalPath(),
+        action: "301",
+    },
+    {
+        kind: "exact",
+        path: "/catalog.json",
+        canonical_target: startupCreditsJsonCanonicalPath(),
+        action: "301",
+    },
+    { kind: "exact", path: "/catalog", canonical_target: catalogCanonicalPath(), action: "301" },
+    { kind: "exact", path: "/catalog/", canonical_target: catalogCanonicalPath(), action: "301" },
+    {
+        kind: "exact",
+        path: "/log",
+        canonical_target: catalogCanonicalPath(),
+        action: "301",
+    },
+    {
+        kind: "exact",
+        path: "/log/",
+        canonical_target: catalogCanonicalPath(),
+        action: "301",
+    },
+    ...catalogRecordNamespaceRelocations.flatMap(({ from, to }) => [
+        {
+            kind: "pattern",
+            path: `${from}/*/`,
+            canonical_target: `${to}/:splat`,
+            action: "301",
+        },
+        {
+            kind: "pattern",
+            path: `${from}/*`,
+            canonical_target: `${to}/:splat`,
+            action: "301",
+        },
+    ]),
+];
+export function currentCatalogRecordPath(path) {
+    for (const move of catalogRecordNamespaceRelocations) {
+        if (path.length > move.from.length + 1 && path.startsWith(`${move.from}/`)) {
+            return `${move.to}${path.slice(move.from.length)}`;
+        }
+    }
+    return path;
+}
 export function entityCanonicalPath(input) {
     const parsed = entityCanonicalPathInputSchema.parse(input);
-    return `/catalog/${parsed.entity_slug}`;
+    return `${entityRecordCanonicalRootPath()}/${parsed.entity_slug}`;
+}
+export function parseEntityCanonicalPath(path) {
+    const current = currentCatalogRecordPath(path).replace(/\/$/u, "");
+    const prefix = `${entityRecordCanonicalRootPath()}/`;
+    if (!current.startsWith(prefix))
+        return null;
+    const slug = publicRouteSlugSchema.safeParse(current.slice(prefix.length));
+    return slug.success ? { entity_slug: slug.data } : null;
 }
 export function programCanonicalPath(input) {
     const parsed = programCanonicalPathInputSchema.parse(input);
-    return `/catalog/${parsed.entity_slug}/programs/${parsed.program_slug}`;
+    return `${entityCanonicalPath({ entity_slug: parsed.entity_slug })}/programs/${parsed.program_slug}`;
 }
 export function offerCanonicalPath(input) {
     const parsed = offerCanonicalPathInputSchema.parse(input);
-    return `/catalog/${parsed.entity_slug}/offers/${parsed.offer_slug}`;
+    return `${entityCanonicalPath({ entity_slug: parsed.entity_slug })}/offers/${parsed.offer_slug}`;
+}
+/** Resolve a current or retained Offer path without duplicating its namespace in consumers. */
+export function parseOfferCanonicalPath(path) {
+    const current = currentCatalogRecordPath(path).replace(/\/$/u, "");
+    const prefix = `${entityRecordCanonicalRootPath()}/`;
+    if (!current.startsWith(prefix))
+        return null;
+    const segments = current.slice(prefix.length).split("/");
+    if (segments.length !== 3 || segments[1] !== "offers")
+        return null;
+    const parsed = offerCanonicalPathInputSchema.safeParse({
+        entity_slug: segments[0],
+        offer_slug: segments[2],
+    });
+    return parsed.success ? parsed.data : null;
 }
 export function agentReadinessCanonicalPath(input) {
     const parsed = agentReadinessCanonicalPathInputSchema.parse(input);
-    return `/catalog/${parsed.entity_slug}/agent-readiness/${parsed.product_key}/${parsed.funnel_key}`;
+    return `${entityCanonicalPath({ entity_slug: parsed.entity_slug })}/agent-readiness/${parsed.product_key}/${parsed.funnel_key}`;
 }
 /**
  * Stable public delivery route for the current icon binding. The transport

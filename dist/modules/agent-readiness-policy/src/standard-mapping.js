@@ -5,7 +5,8 @@ export function agentReadinessValuesSupportedByStandardRequirementResults(input)
             return [];
         const mapping = input.mappings.find((candidate) => candidate.requirement.namespace === requirementResult.requirement.namespace &&
             candidate.requirement.version === requirementResult.requirement.version &&
-            candidate.requirement.requirement_id === requirementResult.requirement.requirement_id);
+            candidate.requirement.requirement_id === requirementResult.requirement.requirement_id &&
+            candidate.requirement.relation === requirementResult.requirement.relation);
         return (mapping?.support.find((support) => support.result === requirementResult.status)?.values ?? []);
     });
     return [...new Set(values)].sort(compareCanonicalStrings);

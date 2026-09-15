@@ -1,5 +1,5 @@
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
-import type { EntityRevision } from "../../../contracts/revisions/src/index.js";
+import { type EntityRevision } from "../../../contracts/revisions/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
 export interface ActiveAuthorityClaim {
     readonly authorityClaimId: string;

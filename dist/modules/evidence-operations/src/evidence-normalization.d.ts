@@ -1,5 +1,10 @@
 import { z } from "zod";
 import { type Digest } from "../../primitives/src/index.js";
+/** The document normalized to nothing: no metadata, no structured data, no content. */
+export declare class EmptyEvidenceDocumentError extends Error {
+    readonly documentKind: "html" | "text";
+    constructor(documentKind: "html" | "text");
+}
 export declare const EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN: {
     readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
     readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];

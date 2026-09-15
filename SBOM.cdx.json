@@ -24,7 +24,7 @@
         {
           "type": "application",
           "name": "npm",
-          "version": "11.12.1"
+          "version": "11.19.1"
         },
         {
           "type": "application",
@@ -40,11 +40,11 @@
       },
       {
         "name": "sourcey:toolchain-sha256",
-        "value": "sha256:d2584054f475253ad49ac449a779f1d570086b84f0010d60756c4bd5f4c62df0"
+        "value": "sha256:32c522e74f0c57b5de55b8be91fb24a67b8a040c0659f5df32e03445e5812bdc"
       },
       {
         "name": "sourcey:license-policy-sha256",
-        "value": "sha256:7cb7eafd85fcb99d00715142932da6b06f984121fb139ad5256b315c17c7609e"
+        "value": "sha256:29c87d888815d60f2f693e7515f048116af31b9c084bae4c7afcec5edc47d761"
       }
     ]
   },

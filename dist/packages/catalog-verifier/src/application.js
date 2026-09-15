@@ -167,12 +167,11 @@ export class CatalogVerifierApplication {
         try {
             assertDigest(input.trustedRootDigest, "trusted root digest");
             const bundle = catalogReleaseBundleSchema.parse(JSON.parse(await readFile(join(input.directory, "bundle.json"), "utf8")));
-            const genesis = bundle.release.release_core.release_sequence === 1 &&
-                bundle.release.release_core.parent_release_id === null;
+            const delta = Object.hasOwn(bundle.files, "delta.json");
             const trust = { rootSetDigest: input.trustedRootDigest };
-            const result = genesis
-                ? await verifyCatalogReleaseDirectory(input.directory, trust)
-                : await verifyCatalogDeltaDirectory(input.directory, trust);
+            const result = delta
+                ? await verifyCatalogDeltaDirectory(input.directory, trust)
+                : await verifyCatalogReleaseDirectory(input.directory, trust);
             return valid(operation, {
                 entities: "artifact" in result ? result.artifact.entities.length : result.entities.size,
                 release_id: result.bundle.release.release_id,
@@ -261,13 +260,15 @@ function verifyIdentityContext(input) {
     return verified;
 }
 function detachedCandidate(input) {
+    const candidateDigest = digest({
+        repository_kind: input.repositoryKind,
+        sources: [...input.sources].sort((left, right) => compareCanonicalStrings(left.source, right.source)),
+    });
     return catalogAdmissionCandidateSchema.parse({
         kind: "detached",
         repositoryKind: input.repositoryKind,
-        candidateDigest: digest({
-            repository_kind: input.repositoryKind,
-            sources: [...input.sources].sort((left, right) => compareCanonicalStrings(left.source, right.source)),
-        }),
+        candidateDigest,
+        candidateReference: candidateDigest,
     });
 }
 class CatalogVerifierInputError extends Error {

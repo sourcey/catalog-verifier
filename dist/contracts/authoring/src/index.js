@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, visitStrings, } from "../../../modules/primitives/src/index.js";
-import { accessSchema, catalogAccessUrlSchema, catalogAuthoringUrlSchema, catalogUrlSchema, domainSchema, economicsSchema, eligibilitySchema, entityRevisionContentSchema, entitySynopsisInvariant, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
+import { accessSchema, catalogAccessUrlSchema, catalogAuthoringUrlSchema, catalogUrlSchema, domainSchema, economicsSchema, eligibilitySchema, entityOfficialSiteProblem, entityRevisionContentSchema, entitySynopsisInvariant, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
 const offerId = z.string().regex(OFFER_ID_PATTERN);
@@ -131,6 +131,14 @@ export const retainedEntityAuthoringSchema = z
 })
     .strict()
     .superRefine((authoring, context) => {
+    if (entityOfficialSiteProblem(authoring.entity.domains, authoring.profile.links.site) ===
+        "site-outside-current-domains") {
+        context.addIssue({
+            code: "custom",
+            path: ["profile", "links", "site"],
+            message: "The official site must use a current Entity domain or one of its subdomains.",
+        });
+    }
     const sourceIds = new Set(authoring.sources.map((source) => source.source_id));
     const programIds = new Set();
     const programSlugs = new Set();

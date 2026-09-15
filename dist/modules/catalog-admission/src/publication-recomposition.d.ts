@@ -1,6 +1,6 @@
 import type { CatalogPublicationChangeSet, PublicationRecompositionNode, PublicationRecompositionWorkCounts } from "../../../contracts/publication/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
-import { type CatalogPublicationImpactIndex } from "./publication-dependencies.js";
+import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 export interface CatalogPublicationRecompositionAction {
     readonly dependent: {
         readonly domain: string;
@@ -35,7 +35,7 @@ export interface CatalogPublicationRecompositionPlan {
  */
 export declare function planCatalogPublicationRecomposition(input: {
     readonly changeSet: CatalogPublicationChangeSet;
-    readonly impactIndex: CatalogPublicationImpactIndex;
+    readonly impactIndex: CatalogPublicationImpactQuery;
     readonly nodes: readonly PublicationRecompositionNode[];
     readonly invalidatedDependencyKeys?: readonly string[];
 }): CatalogPublicationRecompositionPlan;

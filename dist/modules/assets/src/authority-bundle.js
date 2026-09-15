@@ -1,7 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join, relative, sep } from "node:path";
 import { assetAuthorityBundleCoreSchema, assetAuthorityBundleManifestSchema, entityAssetReviewArtifactCoreSchema, entityAssetReviewArtifactSchema, } from "../../../contracts/assets/src/index.js";
-import { catalogEventCoreSchema, catalogEventSchema, } from "../../../contracts/events/src/index.js";
+import { catalogEventCoreSchema, catalogEventPayloadSchemas, catalogEventSchema, } from "../../../contracts/events/src/index.js";
 import { validateProtectedEvent } from "../../authority/src/index.js";
 import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, digestFromPathSegment, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 import { verifyEntityAssetProposal } from "./index.js";
@@ -132,19 +132,32 @@ export async function readAssetAuthorityBundle(root) {
     return { manifest, proposals, reviews, events, safeBytes };
 }
 export function admitAssetAuthorityBundle(input) {
-    if (input.bundle.manifest.publication_proposal_digest !==
-        input.publicationProposal.proposal_digest ||
-        input.bundle.manifest.base_release_id !== input.publicationProposal.live_parent_release_id ||
-        input.bundle.manifest.target_signer_registry_digest !== input.targetRegistry.registry_digest) {
-        throw new Error("Asset authority bundle targets another publication or trust context.");
+    // The base is immutable review provenance. The activation proposal binds the
+    // current Entity and icon snapshots; each retained event must still satisfy
+    // its exact signed registry and the target release sequence below.
+    if (input.bundle.manifest.target_signer_registry_digest !== input.targetRegistry.registry_digest) {
+        throw new Error("Asset authority bundle targets another signer registry.");
     }
     const declared = new Map(input.publicationProposal.candidate_assets.map((proposal) => [
         proposal.proposal_digest,
         proposal,
     ]));
-    if (declared.size !== input.bundle.proposals.length ||
-        input.bundle.proposals.some((proposal) => canonicalJson(declared.get(proposal.proposal_digest)) !== canonicalJson(proposal))) {
-        throw new Error("Asset authority bundle differs from the publication asset proposal set.");
+    const undeclared = input.bundle.proposals.filter((proposal) => {
+        const match = declared.get(proposal.proposal_digest);
+        return match === undefined || canonicalJson(match) !== canonicalJson(proposal);
+    });
+    if (undeclared.length > 0) {
+        throw new Error(`Asset authority bundle carries proposals this publication does not declare: ${undeclared
+            .map(({ proposal_digest: proposalDigest }) => proposalDigest)
+            .join(", ")}.`);
+    }
+    const previouslyUsedReviews = new Set(input.existingEvents
+        .filter((event) => event.kind === "asset.bound")
+        .map((event) => `${event.subject.entity_id}:${catalogEventPayloadSchemas["asset.bound"].parse(event.payload).approval_receipt_digest}`));
+    for (const proposal of input.bundle.proposals) {
+        if (previouslyUsedReviews.has(`${proposal.entity_id}:${proposal.review.review_artifact_digest}`)) {
+            throw new Error(`Asset review ${proposal.review.review_artifact_digest} was already published; rebinding requires a new review.`);
+        }
     }
     const expected = new Map(input.bundle.proposals.map((proposal) => {
         const intent = createAssetBindingEventIntent({
@@ -175,6 +188,22 @@ export function admitAssetAuthorityBundle(input) {
         events: input.bundle.events,
         safeBytes: input.bundle.safeBytes,
     };
+}
+/**
+ * The converse of one bundle's own check, asserted where every admitted bundle
+ * is visible: each declared asset has signed binding authority. Distinct
+ * materializations may carry the same exact proposal; each is independently
+ * admitted before the release owner composes their byte-identical events.
+ */
+export function assertAssetAuthorityCoverage(input) {
+    const carried = input.admitted.flatMap((authority) => authority.proposals.map(({ proposal_digest: proposalDigest }) => proposalDigest));
+    const carriedOnce = new Set(carried);
+    const uncarried = input.declared
+        .map(({ proposal_digest: proposalDigest }) => proposalDigest)
+        .filter((proposalDigest) => !carriedOnce.has(proposalDigest));
+    if (uncarried.length > 0) {
+        throw new Error(`Publication asset proposals lack an admitted authority bundle: ${uncarried.join(", ")}.`);
+    }
 }
 export function assetAuthorityObjectPaths(input) {
     return [

@@ -17,7 +17,8 @@ export async function main(arguments_) {
     }
 }
 async function run(arguments_) {
-    const [command, subject, ...args] = arguments_;
+    const [command, ...commandArguments] = arguments_;
+    const [subject, ...args] = commandArguments;
     const application = new CatalogVerifierApplication();
     if (command === "validate") {
         const repositoryKind = verifierRepositoryKindSchema.parse(subject);
@@ -76,14 +77,14 @@ async function run(arguments_) {
         return;
     }
     if (command === "verify-release") {
-        if (subject !== undefined) {
+        if (commandArguments[0] && !commandArguments[0].startsWith("--")) {
             throw new Error("verify-release accepts flags only.");
         }
         const result = await application.verifyRelease({
-            directory: requiredPath(args, "--release"),
-            trustedRootDigest: requiredFlag(args, "--trusted-root-digest"),
+            directory: requiredPath(commandArguments, "--release"),
+            trustedRootDigest: requiredFlag(commandArguments, "--trusted-root-digest"),
         });
-        renderResult(result, outputFormat(args));
+        renderResult(result, outputFormat(commandArguments));
         if (result.status === "invalid")
             process.exitCode = 2;
         return;
@@ -108,14 +109,16 @@ function candidateIdentity(repositoryKind, baseRevision, headRevision, args) {
             headSha: headRevision,
         };
     }
+    const candidateDigest = digest({
+        repository_kind: repositoryKind,
+        base_revision: baseRevision,
+        head_revision: headRevision,
+    });
     return {
         kind: "detached",
         repositoryKind,
-        candidateDigest: digest({
-            repository_kind: repositoryKind,
-            base_revision: baseRevision,
-            head_revision: headRevision,
-        }),
+        candidateDigest,
+        candidateReference: candidateDigest,
     };
 }
 function optionalFlag(args, name) {

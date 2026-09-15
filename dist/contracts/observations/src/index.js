@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { DIGEST_PATTERN, IDENTIFIER_PATTERN } from "../../../modules/primitives/src/index.js";
-import { evidenceNormalizedObjectSchema, evidenceRedirectSchema, evidenceSourceStandingSchema, } from "../../evidence/src/index.js";
+import { evidenceCaptureAvailabilitySchema, evidenceNormalizedObjectSchema, evidenceRedirectSchema, evidenceSourceStandingSchema, } from "../../evidence/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const instant = z.iso.datetime({ offset: true });
@@ -21,7 +21,7 @@ const captureSchema = z
     digest,
     bytes: z.number().int().nonnegative(),
     media_type: z.string().min(1),
-    availability: z.enum(["public", "private-receipt"]),
+    availability: evidenceCaptureAvailabilitySchema,
     requested_uri: z.url({ protocol: /^https$/ }).optional(),
     final_uri: z.url({ protocol: /^https$/ }).optional(),
     redirect_chain: z.array(evidenceRedirectSchema).max(5).optional(),

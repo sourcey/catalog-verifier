@@ -19,6 +19,22 @@ export declare const domainSchema: z.ZodObject<{
     valid_from: z.ZodISODateTime;
     valid_until: z.ZodOptional<z.ZodISODateTime>;
 }, z.core.$strict>;
+type EntityDomain = z.infer<typeof domainSchema>;
+/** The single current primary domain, or undefined when the identity is invalid. */
+export declare function currentEntityPrimaryDomainValue(domains: readonly EntityDomain[]): string | undefined;
+/** True only for the canonical domain itself or one of its DNS subdomains. */
+export declare function hostnameIsWithinDomain(hostname: string, domain: string): boolean;
+export declare function entityOfficialSiteProblem(domains: readonly EntityDomain[], site: string): "primary-domain-count" | "site-outside-current-domains" | undefined;
+/**
+ * An Entity's official site participates in identity and outbound-link trust,
+ * so it must remain inside one of the identity epoch's current domain boundaries.
+ */
+export declare function entityOfficialSiteInvariant(value: {
+    readonly domains: readonly EntityDomain[];
+    readonly links: {
+        readonly site: string;
+    };
+}, context: z.core.$RefinementCtx): void;
 export declare const moneySchema: z.ZodObject<{
     currency: z.ZodString;
     minor_units: z.ZodNumber;

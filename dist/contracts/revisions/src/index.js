@@ -68,6 +68,53 @@ export const domainSchema = z
     valid_until: instant.optional(),
 })
     .strict();
+/** The single current primary domain, or undefined when the identity is invalid. */
+export function currentEntityPrimaryDomainValue(domains) {
+    const current = domains.filter((domain) => domain.role === "primary" && domain.valid_until === undefined);
+    return current.length === 1 ? current[0]?.value.toLowerCase() : undefined;
+}
+/** True only for the canonical domain itself or one of its DNS subdomains. */
+export function hostnameIsWithinDomain(hostname, domain) {
+    const normalizedHostname = hostname.toLowerCase();
+    const normalizedDomain = domain.toLowerCase();
+    return (normalizedHostname === normalizedDomain || normalizedHostname.endsWith(`.${normalizedDomain}`));
+}
+export function entityOfficialSiteProblem(domains, site) {
+    const primary = currentEntityPrimaryDomainValue(domains);
+    if (!primary)
+        return "primary-domain-count";
+    try {
+        const hostname = new URL(site).hostname;
+        return domains.some((domain) => domain.valid_until === undefined && hostnameIsWithinDomain(hostname, domain.value))
+            ? undefined
+            : "site-outside-current-domains";
+    }
+    catch {
+        return undefined;
+    }
+}
+/**
+ * An Entity's official site participates in identity and outbound-link trust,
+ * so it must remain inside one of the identity epoch's current domain boundaries.
+ */
+export function entityOfficialSiteInvariant(value, context) {
+    const problem = entityOfficialSiteProblem(value.domains, value.links.site);
+    if (problem === "primary-domain-count") {
+        context.addIssue({
+            code: "custom",
+            path: ["domains"],
+            message: "Exactly one current primary domain is required.",
+        });
+        return;
+    }
+    if (problem === "site-outside-current-domains") {
+        context.addIssue({
+            code: "custom",
+            path: ["links", "site"],
+            message: "The official site must use a current Entity domain or one of its subdomains.",
+        });
+    }
+}
 export const moneySchema = z
     .object({
     currency,
@@ -407,7 +454,8 @@ export const entityRevisionContentSchema = z
         .strict(),
 })
     .strict()
-    .superRefine(entitySynopsisInvariant);
+    .superRefine(entitySynopsisInvariant)
+    .superRefine(entityOfficialSiteInvariant);
 export const entityRevisionCoreSchema = z
     .object({
     revision_contract: z.literal("sourcey.entity-revision/v1alpha1"),

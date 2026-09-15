@@ -19,6 +19,30 @@ export declare const releaseObjectManifestSchema: z.ZodObject<{
  * so a new capability does not change the release envelope shape.
  */
 export declare const releaseResourceDigestsSchema: z.ZodRecord<z.ZodString, z.ZodString>;
+export declare const releasePolicyInputsSchema: z.ZodObject<{
+    input_contract: z.ZodLiteral<"sourcey.policy-inputs/v1alpha1">;
+    agent_readiness_policy_digest: z.ZodString;
+    assurance_method_policy_digest: z.ZodString;
+    coverage_policy_digest: z.ZodString;
+    freshness_policy_digest: z.ZodString;
+    public_policy_digests: z.ZodArray<z.ZodString>;
+}, z.core.$strict>;
+/** One immutable source of production policy paths shared by release and evidence runtimes. */
+export declare const productionReleaseConfigurationSchema: z.ZodObject<{
+    configuration_contract: z.ZodLiteral<"sourcey.production-release-configuration/v1alpha1">;
+    policy_as_of: z.ZodISODateTime;
+    paths: z.ZodObject<{
+        taxonomy: z.ZodString;
+        root_set: z.ZodString;
+        signer_registry: z.ZodString;
+        agent_readiness_policy: z.ZodString;
+        assurance_method_policy: z.ZodString;
+        coverage_policy: z.ZodString;
+        freshness_policy: z.ZodString;
+        public_policy_root: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>;
+export type ProductionReleaseConfiguration = z.infer<typeof productionReleaseConfigurationSchema>;
 export declare const RELEASE_RESOURCES: {
     readonly agentReadinessIndex: "agent-readiness-index";
     readonly agentReadinessInputs: "agent-readiness-inputs";
@@ -28,6 +52,7 @@ export declare const RELEASE_RESOURCES: {
     readonly assetIndex: "asset-index";
     readonly assetInputs: "asset-inputs";
     readonly assetManifest: "asset-manifest";
+    readonly assuranceMethodPolicy: "assurance-method-policy";
     readonly coveragePolicy: "coverage-policy";
     readonly freshnessPolicy: "freshness-policy";
     readonly identities: "identities";
@@ -572,11 +597,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
         category: z.ZodString;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -613,9 +633,24 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         programs: z.ZodArray<z.ZodObject<{
             program_id: z.ZodString;
             slug: z.ZodString;
@@ -623,11 +658,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -664,8 +694,13 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offers: z.ZodArray<z.ZodObject<{
@@ -888,11 +923,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -929,9 +959,24 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>;
     prior_entity: z.ZodNullable<z.ZodObject<{
@@ -945,11 +990,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
         category: z.ZodString;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -986,9 +1026,24 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         programs: z.ZodArray<z.ZodObject<{
             program_id: z.ZodString;
             slug: z.ZodString;
@@ -996,11 +1051,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1037,8 +1087,13 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offers: z.ZodArray<z.ZodObject<{
@@ -1261,11 +1316,6 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1302,9 +1352,24 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -1911,6 +1976,8 @@ export declare const catalogReleaseBundleSchema: z.ZodObject<{
     }, z.core.$strict>>;
     bundle_digest: z.ZodString;
 }, z.core.$strict>;
+/** Verifies the immutable bundle envelope; evidence admission is separate. */
+export declare function verifyCatalogReleaseBundle(input: unknown): CatalogReleaseBundle;
 /**
  * Stable current-parent metadata used by publication planning. Immutable bundle
  * bytes remain verifier-bound audit evidence and are never a runtime parent

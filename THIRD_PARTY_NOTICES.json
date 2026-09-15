@@ -3,7 +3,7 @@
   "distribution_id": "catalog-verifier",
   "package_name": "@sourcey/catalog-verifier",
   "package_license": "MIT",
-  "license_policy_sha256": "sha256:7cb7eafd85fcb99d00715142932da6b06f984121fb139ad5256b315c17c7609e",
+  "license_policy_sha256": "sha256:29c87d888815d60f2f693e7515f048116af31b9c084bae4c7afcec5edc47d761",
   "dependencies": [
     {
       "name": "entities",

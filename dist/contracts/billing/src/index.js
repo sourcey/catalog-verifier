@@ -3,7 +3,7 @@ import { digest } from "../../../modules/primitives/src/index.js";
 import { commercialPriceLookupKeySchema, commercialProductCodeSchema, fundedWorkIntentEnvelopeSchema, } from "../../funded-work/src/index.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const instantSchema = z.iso.datetime({ offset: true });
-const orderIdSchema = z.string().regex(/^ord_[a-f0-9]{64}$/u);
+export const commercialOrderIdSchema = z.string().regex(/^ord_[a-f0-9]{64}$/u);
 const paymentAttemptIdSchema = z.string().regex(/^pat_[a-f0-9]{64}$/u);
 export const paymentRailSchema = z.enum(["stripe", "x402"]);
 export const commercialProductDefinitionSchema = z
@@ -36,7 +36,7 @@ export const commercialProductDefinitionSchema = z
 const paymentAttemptCoreSchema = z.object({
     attempt_contract: z.literal("sourcey.payment-attempt/v1alpha1"),
     attempt_id: paymentAttemptIdSchema,
-    order_id: orderIdSchema,
+    order_id: commercialOrderIdSchema,
     request_binding_digest: digestSchema,
     amount: commercialProductDefinitionSchema.shape.amount,
     state: z.enum([
@@ -64,13 +64,14 @@ export const stripePaymentAttemptSchema = paymentAttemptCoreSchema
 })
     .strict()
     .superRefine((attempt, context) => {
-    if (attempt.state !== "prepared" &&
-        (attempt.checkout_session_id === null || attempt.checkout_url === null)) {
+    if (attempt.state !== "prepared" && attempt.checkout_session_id === null) {
         context.addIssue({
             code: "custom",
             message: "A Stripe attempt past preparation requires its hosted Checkout identity.",
         });
     }
+    // Payment can still be processing after hosted Checkout has closed.
+    // The session identity is authoritative; its temporary URL is not.
     if (["verified", "settlement_pending", "settled", "refund_pending", "refunded"].includes(attempt.state) &&
         attempt.payment_intent_id === null) {
         context.addIssue({
@@ -78,10 +79,16 @@ export const stripePaymentAttemptSchema = paymentAttemptCoreSchema
             message: "A verified Stripe attempt requires its payment intent identity.",
         });
     }
-    if ((attempt.state === "refunded") !== (attempt.refund_id !== null)) {
+    if (attempt.state === "refunded" && attempt.refund_id === null) {
         context.addIssue({
             code: "custom",
-            message: "A completed Stripe refund requires exactly one refund identity.",
+            message: "A completed Stripe refund requires its refund identity.",
+        });
+    }
+    if (!["refund_pending", "refunded"].includes(attempt.state) && attempt.refund_id !== null) {
+        context.addIssue({
+            code: "custom",
+            message: "A Stripe refund identity is valid only during or after refund processing.",
         });
     }
 });
@@ -121,10 +128,16 @@ export const x402PaymentAttemptSchema = paymentAttemptCoreSchema
             message: "A settled x402 payment requires its settlement identity.",
         });
     }
-    if ((attempt.state === "refunded") !== (attempt.refund_ref !== null)) {
+    if (attempt.state === "refunded" && attempt.refund_ref === null) {
         context.addIssue({
             code: "custom",
-            message: "A completed x402 refund requires exactly one refund identity.",
+            message: "A completed x402 refund requires its refund identity.",
+        });
+    }
+    if (!["refund_pending", "refunded"].includes(attempt.state) && attempt.refund_ref !== null) {
+        context.addIssue({
+            code: "custom",
+            message: "An x402 refund identity is valid only during or after refund processing.",
         });
     }
 });
@@ -135,7 +148,7 @@ export const paymentAttemptSchema = z.discriminatedUnion("rail", [
 export const commercialOrderSchema = z
     .object({
     order_contract: z.literal("sourcey.commercial-order/v1alpha1"),
-    order_id: orderIdSchema,
+    order_id: commercialOrderIdSchema,
     actor_ref: z.string().trim().min(1).max(512),
     product_code: commercialProductCodeSchema,
     purchase_kind: z.literal("one_off"),
@@ -194,7 +207,7 @@ export const paymentEffectSchema = z
     .object({
     effect_contract: z.literal("sourcey.payment-effect/v1alpha1"),
     effect_id: digestSchema,
-    order_id: orderIdSchema,
+    order_id: commercialOrderIdSchema,
     attempt_id: paymentAttemptIdSchema,
     rail: paymentRailSchema,
     kind: z.enum([
@@ -247,7 +260,7 @@ export const commercialOrderEventSchema = z
     .object({
     event_contract: z.literal("sourcey.commercial-order-event/v1alpha1"),
     event_id: digestSchema,
-    order_id: orderIdSchema,
+    order_id: commercialOrderIdSchema,
     kind: z.enum([
         "order.created",
         "payment.attempted",
@@ -297,6 +310,35 @@ export const commercialOrderProjectionSchema = z
         });
     }
 });
+/**
+ * The rail-neutral order state a product may return to its purchaser. Internal
+ * payment-attempt identities and provider reconciliation evidence remain in
+ * Billing; callers retain the exact product, intent, money, work, SLA, refund,
+ * receipt, and revision bindings needed to understand their purchase.
+ */
+export const commercialOrderStatusSchema = z
+    .object({
+    status_contract: z.literal("sourcey.commercial-order-status/v1alpha1"),
+    order_id: commercialOrderSchema.shape.order_id,
+    product_code: commercialOrderSchema.shape.product_code,
+    purchase_kind: commercialOrderSchema.shape.purchase_kind,
+    product_definition_digest: commercialOrderSchema.shape.product_definition_digest,
+    funded_work_intent_digest: commercialOrderSchema.shape.funded_work_intent_digest,
+    amount: commercialOrderSchema.shape.amount,
+    payment_rail: paymentRailSchema,
+    payment_state: commercialOrderSchema.shape.payment_state,
+    work_state: commercialOrderSchema.shape.work_state,
+    paid_at: commercialOrderSchema.shape.paid_at,
+    sla_due_at: commercialOrderSchema.shape.sla_due_at,
+    refund_reason: commercialOrderSchema.shape.refund_reason,
+    refund_requested_at: commercialOrderSchema.shape.refund_requested_at,
+    refunded_at: commercialOrderSchema.shape.refunded_at,
+    fulfilment_receipt_digest: commercialOrderSchema.shape.fulfilment_receipt_digest,
+    failure_receipt_digest: commercialOrderSchema.shape.failure_receipt_digest,
+    created_at: commercialOrderSchema.shape.created_at,
+    updated_at: commercialOrderSchema.shape.updated_at,
+})
+    .strict();
 export const createCommercialOrderResponseSchema = commercialOrderProjectionSchema;
 export const commercialOrderResponseSchema = commercialOrderProjectionSchema;
 export const fulfilCommercialOrderRequestSchema = z
@@ -304,6 +346,30 @@ export const fulfilCommercialOrderRequestSchema = z
     .strict();
 export function commercialProductDefinitionDigest(definition) {
     return digest(commercialProductDefinitionSchema.parse(definition));
+}
+export function projectCommercialOrderStatus(projection) {
+    const { order, payment_attempt: paymentAttempt } = commercialOrderProjectionSchema.parse(projection);
+    return commercialOrderStatusSchema.parse({
+        status_contract: "sourcey.commercial-order-status/v1alpha1",
+        order_id: order.order_id,
+        product_code: order.product_code,
+        purchase_kind: order.purchase_kind,
+        product_definition_digest: order.product_definition_digest,
+        funded_work_intent_digest: order.funded_work_intent_digest,
+        amount: order.amount,
+        payment_rail: paymentAttempt.rail,
+        payment_state: order.payment_state,
+        work_state: order.work_state,
+        paid_at: order.paid_at,
+        sla_due_at: order.sla_due_at,
+        refund_reason: order.refund_reason,
+        refund_requested_at: order.refund_requested_at,
+        refunded_at: order.refunded_at,
+        fulfilment_receipt_digest: order.fulfilment_receipt_digest,
+        failure_receipt_digest: order.failure_receipt_digest,
+        created_at: order.created_at,
+        updated_at: order.updated_at,
+    });
 }
 export function buildCommercialOrderEvent(order, kind, paymentEffectId, payload, occurredAt) {
     const core = {

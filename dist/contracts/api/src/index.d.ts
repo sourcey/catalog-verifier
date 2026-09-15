@@ -1,11 +1,27 @@
 import { z } from "zod";
 import { type PayableProductDescriptor } from "../../commercial-work/src/index.js";
 export declare const SOURCEY_PUBLIC_API_VERSION = "1.1.0";
+/**
+ * Sourcey's response-header budget leaves transport headroom beneath the
+ * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
+ * protocol permits larger envelopes; Sourcey's payable products do not.
+ */
+export declare const SOURCEY_X402_PAYMENT_REQUIRED_MAX_BYTES: number;
 export declare const catalogApiContractSchema: z.ZodLiteral<"sourcey.catalog-api/v1">;
+export declare const catalogSiteRecordContract: "sourcey.site-record/v1alpha1";
+export declare const siteRecordEnvelopeSchema: z.ZodObject<{
+    contract: z.ZodLiteral<"sourcey.site-record/v1alpha1">;
+    release_id: z.ZodString;
+    snapshot_id: z.ZodString;
+    artifact_sha256: z.ZodString;
+    data: z.ZodUnknown;
+}, z.core.$strict>;
+export type SiteRecordEnvelope = z.infer<typeof siteRecordEnvelopeSchema>;
 export declare const catalogApiErrorCodeSchema: z.ZodEnum<{
     authentication_required: "authentication_required";
     payment_pending: "payment_pending";
     not_found: "not_found";
+    already_verified: "already_verified";
     capacity_unavailable: "capacity_unavailable";
     capability_unavailable: "capability_unavailable";
     draft_changed: "draft_changed";
@@ -29,6 +45,7 @@ export declare const catalogApiErrorSchema: z.ZodObject<{
         authentication_required: "authentication_required";
         payment_pending: "payment_pending";
         not_found: "not_found";
+        already_verified: "already_verified";
         capacity_unavailable: "capacity_unavailable";
         capability_unavailable: "capability_unavailable";
         draft_changed: "draft_changed";
@@ -59,6 +76,7 @@ export declare const catalogApiErrorResponseSchema: z.ZodObject<{
             authentication_required: "authentication_required";
             payment_pending: "payment_pending";
             not_found: "not_found";
+            already_verified: "already_verified";
             capacity_unavailable: "capacity_unavailable";
             capability_unavailable: "capability_unavailable";
             draft_changed: "draft_changed";
@@ -225,6 +243,7 @@ export declare const catalogVerifierIdentityContextResponseSchema: z.ZodObject<{
                     "agent-readiness": "agent-readiness";
                 }>;
                 candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+                candidateReference: z.ZodString;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>;
         response: z.ZodObject<{
@@ -247,6 +266,10 @@ export declare const catalogVerifierIdentityContextResponseSchema: z.ZodObject<{
                     repository: z.ZodString;
                     liveSourceCommit: z.ZodString;
                     targetCommit: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"pending_submission">;
+                    candidateReference: z.ZodString;
+                    candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
                 }, z.core.$strict>], "kind">;
             }, z.core.$strict>>;
             response_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
@@ -355,11 +378,6 @@ export declare const catalogResponseSchema: z.ZodObject<{
             category: z.ZodString;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -396,9 +414,24 @@ export declare const catalogResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            identity_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                assurance_id: z.ZodString;
+                verified_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
             programs: z.ZodArray<z.ZodObject<{
                 program_id: z.ZodString;
                 slug: z.ZodString;
@@ -406,11 +439,6 @@ export declare const catalogResponseSchema: z.ZodObject<{
                 summary: z.ZodOptional<z.ZodString>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -447,8 +475,13 @@ export declare const catalogResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             offers: z.ZodArray<z.ZodObject<{
@@ -671,11 +704,6 @@ export declare const catalogResponseSchema: z.ZodObject<{
                 effective_until: z.ZodOptional<z.ZodISODateTime>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -712,9 +740,24 @@ export declare const catalogResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                terms_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"checked">;
+                    assurance_id: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                    revision_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>;
@@ -733,8 +776,9 @@ export declare const catalogEntityListSummarySchema: z.ZodObject<{
     program_count: z.ZodNumber;
     offer_count: z.ZodNumber;
     active_offer_count: z.ZodNumber;
-    signed_entity_count: z.ZodNumber;
+    vendor_confirmed_entity_count: z.ZodNumber;
     verified_entity_count: z.ZodNumber;
+    terms_checked_offer_count: z.ZodNumber;
     latest_observation_at: z.ZodNullable<z.ZodISODateTime>;
     categories: z.ZodArray<z.ZodObject<{
         category: z.ZodString;
@@ -760,11 +804,6 @@ export declare const entityListResponseSchema: z.ZodObject<{
         category: z.ZodString;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -801,9 +840,24 @@ export declare const entityListResponseSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         programs: z.ZodArray<z.ZodObject<{
             program_id: z.ZodString;
             slug: z.ZodString;
@@ -811,11 +865,6 @@ export declare const entityListResponseSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -852,8 +901,13 @@ export declare const entityListResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offers: z.ZodArray<z.ZodObject<{
@@ -1076,11 +1130,6 @@ export declare const entityListResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1117,9 +1166,24 @@ export declare const entityListResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
     next_cursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -1130,8 +1194,9 @@ export declare const entityListResponseSchema: z.ZodObject<{
         program_count: z.ZodNumber;
         offer_count: z.ZodNumber;
         active_offer_count: z.ZodNumber;
-        signed_entity_count: z.ZodNumber;
+        vendor_confirmed_entity_count: z.ZodNumber;
         verified_entity_count: z.ZodNumber;
+        terms_checked_offer_count: z.ZodNumber;
         latest_observation_at: z.ZodNullable<z.ZodISODateTime>;
         categories: z.ZodArray<z.ZodObject<{
             category: z.ZodString;
@@ -1247,11 +1312,6 @@ export declare const entityResponseSchema: z.ZodObject<{
         category: z.ZodString;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -1288,9 +1348,24 @@ export declare const entityResponseSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         programs: z.ZodArray<z.ZodObject<{
             program_id: z.ZodString;
             slug: z.ZodString;
@@ -1298,11 +1373,6 @@ export declare const entityResponseSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1339,8 +1409,13 @@ export declare const entityResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offers: z.ZodArray<z.ZodObject<{
@@ -1563,11 +1638,6 @@ export declare const entityResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1604,9 +1674,24 @@ export declare const entityResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity_tombstone">;
@@ -1706,6 +1791,77 @@ export declare const entityAssetListResponseSchema: z.ZodObject<{
     next_cursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
     entity_id: z.ZodNullable<z.ZodString>;
 }, z.core.$strict>;
+export declare const policyResponseSchema: z.ZodObject<{
+    api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+    release_id: z.ZodString;
+    artifact_sha256: z.ZodString;
+    data: z.ZodObject<{
+        schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+        slug: z.ZodString;
+        title: z.ZodString;
+        summary: z.ZodString;
+        sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"prose">;
+            heading: z.ZodOptional<z.ZodString>;
+            paragraphs: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"clauses">;
+            heading: z.ZodOptional<z.ZodString>;
+            clauses: z.ZodArray<z.ZodObject<{
+                title: z.ZodString;
+                body: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"definitions">;
+            heading: z.ZodOptional<z.ZodString>;
+            definitions: z.ZodArray<z.ZodObject<{
+                term: z.ZodString;
+                detail: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"steps">;
+            heading: z.ZodOptional<z.ZodString>;
+            steps: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>], "kind">>;
+        revision_digest: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>;
+export declare const policyListResponseSchema: z.ZodObject<{
+    api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+    release_id: z.ZodString;
+    artifact_sha256: z.ZodString;
+    data: z.ZodArray<z.ZodObject<{
+        schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+        slug: z.ZodString;
+        title: z.ZodString;
+        summary: z.ZodString;
+        sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"prose">;
+            heading: z.ZodOptional<z.ZodString>;
+            paragraphs: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"clauses">;
+            heading: z.ZodOptional<z.ZodString>;
+            clauses: z.ZodArray<z.ZodObject<{
+                title: z.ZodString;
+                body: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"definitions">;
+            heading: z.ZodOptional<z.ZodString>;
+            definitions: z.ZodArray<z.ZodObject<{
+                term: z.ZodString;
+                detail: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"steps">;
+            heading: z.ZodOptional<z.ZodString>;
+            steps: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>], "kind">>;
+        revision_digest: z.ZodString;
+    }, z.core.$strict>>;
+    next_cursor: z.ZodNonOptional<z.ZodOptional<z.ZodNullable<z.ZodString>>>;
+}, z.core.$strict>;
 export declare const programResponseSchema: z.ZodObject<{
     api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
     release_id: z.ZodString;
@@ -1722,11 +1878,6 @@ export declare const programResponseSchema: z.ZodObject<{
             category: z.ZodString;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -1763,9 +1914,24 @@ export declare const programResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            identity_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                assurance_id: z.ZodString;
+                verified_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
             programs: z.ZodArray<z.ZodObject<{
                 program_id: z.ZodString;
                 slug: z.ZodString;
@@ -1773,11 +1939,6 @@ export declare const programResponseSchema: z.ZodObject<{
                 summary: z.ZodOptional<z.ZodString>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -1814,8 +1975,13 @@ export declare const programResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             offers: z.ZodArray<z.ZodObject<{
@@ -2038,11 +2204,6 @@ export declare const programResponseSchema: z.ZodObject<{
                 effective_until: z.ZodOptional<z.ZodISODateTime>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -2079,9 +2240,24 @@ export declare const programResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                terms_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"checked">;
+                    assurance_id: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                    revision_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         program: z.ZodObject<{
@@ -2091,11 +2267,6 @@ export declare const programResponseSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -2132,8 +2303,13 @@ export declare const programResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>;
     }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2164,11 +2340,6 @@ export declare const offerResponseSchema: z.ZodObject<{
             category: z.ZodString;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -2205,9 +2376,24 @@ export declare const offerResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            identity_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                assurance_id: z.ZodString;
+                verified_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
             programs: z.ZodArray<z.ZodObject<{
                 program_id: z.ZodString;
                 slug: z.ZodString;
@@ -2215,11 +2401,6 @@ export declare const offerResponseSchema: z.ZodObject<{
                 summary: z.ZodOptional<z.ZodString>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -2256,8 +2437,13 @@ export declare const offerResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             offers: z.ZodArray<z.ZodObject<{
@@ -2480,11 +2666,6 @@ export declare const offerResponseSchema: z.ZodObject<{
                 effective_until: z.ZodOptional<z.ZodISODateTime>;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -2521,9 +2702,24 @@ export declare const offerResponseSchema: z.ZodObject<{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                terms_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"checked">;
+                    assurance_id: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                    revision_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         program: z.ZodOptional<z.ZodObject<{
@@ -2533,11 +2729,6 @@ export declare const offerResponseSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -2574,8 +2765,13 @@ export declare const offerResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offer: z.ZodObject<{
@@ -2798,11 +2994,6 @@ export declare const offerResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -2839,9 +3030,24 @@ export declare const offerResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
     }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"offer_tombstone">;
@@ -2860,6 +3066,16 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
     entity_slug: z.ZodString;
     entity_name: z.ZodString;
     category: z.ZodString;
+    identity_assurance: z.ZodOptional<z.ZodObject<{
+        status: z.ZodLiteral<"verified">;
+        assurance_id: z.ZodString;
+        verified_at: z.ZodISODateTime;
+        identity_epoch_digest: z.ZodString;
+        method_policy_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        event_id: z.ZodString;
+        receipt_digest: z.ZodString;
+    }, z.core.$strict>>;
     offer: z.ZodObject<{
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
@@ -3080,11 +3296,6 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
         effective_until: z.ZodOptional<z.ZodISODateTime>;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -3121,9 +3332,24 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        terms_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"checked">;
+            assurance_id: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            revision_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
     program_id: z.ZodString;
@@ -3134,6 +3360,16 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
     entity_slug: z.ZodString;
     entity_name: z.ZodString;
     category: z.ZodString;
+    identity_assurance: z.ZodOptional<z.ZodObject<{
+        status: z.ZodLiteral<"verified">;
+        assurance_id: z.ZodString;
+        verified_at: z.ZodISODateTime;
+        identity_epoch_digest: z.ZodString;
+        method_policy_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        event_id: z.ZodString;
+        receipt_digest: z.ZodString;
+    }, z.core.$strict>>;
     offer: z.ZodObject<{
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
@@ -3354,11 +3590,6 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
         effective_until: z.ZodOptional<z.ZodISODateTime>;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -3395,9 +3626,24 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        terms_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"checked">;
+            assurance_id: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            revision_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
 }, z.core.$strict>]>;
@@ -3416,11 +3662,6 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
         category: z.ZodString;
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -3457,9 +3698,24 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         programs: z.ZodArray<z.ZodObject<{
             program_id: z.ZodString;
             slug: z.ZodString;
@@ -3467,11 +3723,6 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
             summary: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -3508,8 +3759,13 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
         }, z.core.$strict>>;
         offers: z.ZodArray<z.ZodObject<{
@@ -3732,11 +3988,6 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -3773,9 +4024,24 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
     query: z.ZodString;
@@ -3790,6 +4056,16 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
         entity_slug: z.ZodString;
         entity_name: z.ZodString;
         category: z.ZodString;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         offer: z.ZodObject<{
             program_id: z.ZodOptional<z.ZodString>;
             offer_id: z.ZodString;
@@ -4010,11 +4286,6 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -4051,9 +4322,24 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         program_id: z.ZodString;
@@ -4064,6 +4350,16 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
         entity_slug: z.ZodString;
         entity_name: z.ZodString;
         category: z.ZodString;
+        identity_assurance: z.ZodOptional<z.ZodObject<{
+            status: z.ZodLiteral<"verified">;
+            assurance_id: z.ZodString;
+            verified_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            method_policy_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            event_id: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
         offer: z.ZodObject<{
             program_id: z.ZodOptional<z.ZodString>;
             offer_id: z.ZodString;
@@ -4284,11 +4580,6 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
             effective_until: z.ZodOptional<z.ZodISODateTime>;
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -4325,9 +4616,24 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
+            terms_assurance: z.ZodOptional<z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                assurance_id: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                method_policy_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                event_id: z.ZodString;
+                receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
     }, z.core.$strict>]>>;
@@ -4938,11 +5244,6 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
             stale: "stale";
         }>;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -4979,8 +5280,13 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         projection_digest: z.ZodString;
@@ -5591,11 +5897,6 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
             stale: "stale";
         }>;
         provenance: z.ZodObject<{
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             freshness: z.ZodEnum<{
                 unknown: "unknown";
                 fresh: "fresh";
@@ -5632,8 +5933,13 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                     stale: "stale";
                 }>;
             }, z.core.$strict>>;
-            attestation_event_id: z.ZodOptional<z.ZodString>;
-            verification_event_id: z.ZodOptional<z.ZodString>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         projection_digest: z.ZodString;
@@ -5792,18 +6098,6 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
         effective_from: z.ZodISODateTime;
         revision_digest: z.ZodString;
         agent_readiness_profile_id: z.ZodString;
-        lifecycle: z.ZodEnum<{
-            active: "active";
-            ended: "ended";
-            withdrawn: "withdrawn";
-        }>;
-        freshness: z.ZodEnum<{
-            unknown: "unknown";
-            fresh: "fresh";
-            stale: "stale";
-        }>;
-        policy_as_of: z.ZodISODateTime;
-        projection_digest: z.ZodString;
         scope: z.ZodObject<{
             product: z.ZodObject<{
                 key: z.ZodString;
@@ -5814,7 +6108,6 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
                 name: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>;
-        declaration_revision_digest: z.ZodString;
         coverage: z.ZodObject<{
             status: z.ZodEnum<{
                 incomplete: "incomplete";
@@ -5827,6 +6120,19 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
             verified_barrier_signals: z.ZodNumber;
             barrier_ratio: z.ZodNumber;
         }, z.core.$strict>;
+        lifecycle: z.ZodEnum<{
+            active: "active";
+            ended: "ended";
+            withdrawn: "withdrawn";
+        }>;
+        freshness: z.ZodEnum<{
+            unknown: "unknown";
+            fresh: "fresh";
+            stale: "stale";
+        }>;
+        policy_as_of: z.ZodISODateTime;
+        projection_digest: z.ZodString;
+        declaration_revision_digest: z.ZodString;
         policy_version: z.ZodString;
         grade_derivation: z.ZodObject<{
             label: z.ZodString;
@@ -5940,16 +6246,18 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
                 fresh: "fresh";
                 stale: "stale";
             }>;
-            tier: z.ZodEnum<{
-                observed: "observed";
-                signed: "signed";
-                verified: "verified";
-            }>;
             dispute: z.ZodEnum<{
                 none: "none";
                 open: "open";
                 resolved: "resolved";
             }>;
+            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                status: z.ZodLiteral<"none">;
+            }, z.core.$strict>, z.ZodObject<{
+                status: z.ZodLiteral<"current">;
+                event_id: z.ZodString;
+                attested_at: z.ZodISODateTime;
+            }, z.core.$strict>], "status">;
         }, z.core.$strict>;
     }, z.core.$strict>>;
     query: z.ZodString;
@@ -6643,11 +6951,6 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                 stale: "stale";
             }>;
             provenance: z.ZodObject<{
-                tier: z.ZodEnum<{
-                    observed: "observed";
-                    signed: "signed";
-                    verified: "verified";
-                }>;
                 freshness: z.ZodEnum<{
                     unknown: "unknown";
                     fresh: "fresh";
@@ -6684,8 +6987,13 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                         stale: "stale";
                     }>;
                 }, z.core.$strict>>;
-                attestation_event_id: z.ZodOptional<z.ZodString>;
-                verification_event_id: z.ZodOptional<z.ZodString>;
+                vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    status: z.ZodLiteral<"none">;
+                }, z.core.$strict>, z.ZodObject<{
+                    status: z.ZodLiteral<"current">;
+                    event_id: z.ZodString;
+                    attested_at: z.ZodISODateTime;
+                }, z.core.$strict>], "status">;
             }, z.core.$strict>;
             canonical_url: z.ZodURL;
             projection_digest: z.ZodString;
@@ -7157,6 +7465,16 @@ export declare const revisionResponseSchema: z.ZodObject<{
         revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
         entity_id: z.ZodString;
         declaration: z.ZodObject<{
+            scope: z.ZodObject<{
+                product: z.ZodObject<{
+                    key: z.ZodString;
+                    name: z.ZodString;
+                }, z.core.$strict>;
+                funnel: z.ZodObject<{
+                    key: z.ZodString;
+                    name: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
             resources: z.ZodArray<z.ZodObject<{
                 resource_id: z.ZodString;
                 uri: z.ZodURL;
@@ -7218,16 +7536,6 @@ export declare const revisionResponseSchema: z.ZodObject<{
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             declaration_id: z.ZodString;
-            scope: z.ZodObject<{
-                product: z.ZodObject<{
-                    key: z.ZodString;
-                    name: z.ZodString;
-                }, z.core.$strict>;
-                funnel: z.ZodObject<{
-                    key: z.ZodString;
-                    name: z.ZodString;
-                }, z.core.$strict>;
-            }, z.core.$strict>;
             declared_at: z.ZodISODateTime;
             assessment_targets: z.ZodArray<z.ZodObject<{
                 target_id: z.ZodString;
@@ -7391,23 +7699,39 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
     }, z.core.$strict>], "subject_type">;
     occurred_at: z.ZodISODateTime;
     payload: z.ZodObject<{
-        verification_id: z.ZodString;
-        verifier_id: z.ZodString;
-        method_version: z.ZodString;
-        scope: z.ZodEnum<{
-            "whole-revision": "whole-revision";
-            paths: "paths";
-        }>;
-        verified_paths: z.ZodArray<z.ZodString>;
-        result: z.ZodEnum<{
-            pass: "pass";
-            fail: "fail";
-            inconclusive: "inconclusive";
-        }>;
+        identity_epoch_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
-        coverage_policy_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
+        checked_at: z.ZodISODateTime;
+    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"entity_identity">;
+        identity_epoch_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"offer_terms">;
+        revision_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
         observation_id: z.ZodString;
         capture_receipt_digest: z.ZodOptional<z.ZodString>;
         normalized_object_digest: z.ZodString;
@@ -7490,9 +7814,15 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
-        target_event_id: z.ZodString;
-        revoked_at: z.ZodISODateTime;
-        reason_code: z.ZodString;
+        verification_id: z.ZodString;
+        verifier_id: z.ZodString;
+        method_version: z.ZodString;
+        scope: z.ZodLiteral<"whole-revision">;
+        result: z.ZodLiteral<"pass">;
+        checked_at: z.ZodISODateTime;
+        verified_paths: z.ZodArray<z.ZodString>;
+        coverage_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
         paths: z.ZodArray<z.ZodString>;
         valid_until: z.ZodISODateTime;
@@ -7796,23 +8126,39 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
     }, z.core.$strict>], "subject_type">;
     occurred_at: z.ZodISODateTime;
     payload: z.ZodObject<{
-        verification_id: z.ZodString;
-        verifier_id: z.ZodString;
-        method_version: z.ZodString;
-        scope: z.ZodEnum<{
-            "whole-revision": "whole-revision";
-            paths: "paths";
-        }>;
-        verified_paths: z.ZodArray<z.ZodString>;
-        result: z.ZodEnum<{
-            pass: "pass";
-            fail: "fail";
-            inconclusive: "inconclusive";
-        }>;
+        identity_epoch_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
-        coverage_policy_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
+        checked_at: z.ZodISODateTime;
+    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"entity_identity">;
+        identity_epoch_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"offer_terms">;
+        revision_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
         observation_id: z.ZodString;
         capture_receipt_digest: z.ZodOptional<z.ZodString>;
         normalized_object_digest: z.ZodString;
@@ -7895,9 +8241,15 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
-        target_event_id: z.ZodString;
-        revoked_at: z.ZodISODateTime;
-        reason_code: z.ZodString;
+        verification_id: z.ZodString;
+        verifier_id: z.ZodString;
+        method_version: z.ZodString;
+        scope: z.ZodLiteral<"whole-revision">;
+        result: z.ZodLiteral<"pass">;
+        checked_at: z.ZodISODateTime;
+        verified_paths: z.ZodArray<z.ZodString>;
+        coverage_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
         paths: z.ZodArray<z.ZodString>;
         valid_until: z.ZodISODateTime;
@@ -8201,23 +8553,39 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
     }, z.core.$strict>], "subject_type">;
     occurred_at: z.ZodISODateTime;
     payload: z.ZodObject<{
-        verification_id: z.ZodString;
-        verifier_id: z.ZodString;
-        method_version: z.ZodString;
-        scope: z.ZodEnum<{
-            "whole-revision": "whole-revision";
-            paths: "paths";
-        }>;
-        verified_paths: z.ZodArray<z.ZodString>;
-        result: z.ZodEnum<{
-            pass: "pass";
-            fail: "fail";
-            inconclusive: "inconclusive";
-        }>;
+        identity_epoch_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
-        coverage_policy_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        method_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
+        checked_at: z.ZodISODateTime;
+    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"entity_identity">;
+        identity_epoch_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        assurance_kind: z.ZodLiteral<"offer_terms">;
+        revision_digest: z.ZodString;
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
+    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
         observation_id: z.ZodString;
         capture_receipt_digest: z.ZodOptional<z.ZodString>;
         normalized_object_digest: z.ZodString;
@@ -8300,9 +8668,15 @@ export declare const publicCatalogEventSchema: z.ZodUnion<[z.ZodObject<{
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
-        target_event_id: z.ZodString;
-        revoked_at: z.ZodISODateTime;
-        reason_code: z.ZodString;
+        verification_id: z.ZodString;
+        verifier_id: z.ZodString;
+        method_version: z.ZodString;
+        scope: z.ZodLiteral<"whole-revision">;
+        result: z.ZodLiteral<"pass">;
+        checked_at: z.ZodISODateTime;
+        verified_paths: z.ZodArray<z.ZodString>;
+        coverage_policy_digest: z.ZodString;
+        receipt_digest: z.ZodString;
     }, z.core.$strict> | z.ZodObject<{
         paths: z.ZodArray<z.ZodString>;
         valid_until: z.ZodISODateTime;
@@ -8611,23 +8985,39 @@ export declare const eventResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -8710,9 +9100,15 @@ export declare const eventResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -9016,23 +9412,39 @@ export declare const eventResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -9115,9 +9527,15 @@ export declare const eventResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -9421,23 +9839,39 @@ export declare const eventResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -9520,9 +9954,15 @@ export declare const eventResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -9832,23 +10272,39 @@ export declare const eventListResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -9931,9 +10387,15 @@ export declare const eventListResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -10237,23 +10699,39 @@ export declare const eventListResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -10336,9 +10814,15 @@ export declare const eventListResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -10642,23 +11126,39 @@ export declare const eventListResponseSchema: z.ZodObject<{
         }, z.core.$strict>], "subject_type">;
         occurred_at: z.ZodISODateTime;
         payload: z.ZodObject<{
-            verification_id: z.ZodString;
-            verifier_id: z.ZodString;
-            method_version: z.ZodString;
-            scope: z.ZodEnum<{
-                "whole-revision": "whole-revision";
-                paths: "paths";
-            }>;
-            verified_paths: z.ZodArray<z.ZodString>;
-            result: z.ZodEnum<{
-                pass: "pass";
-                fail: "fail";
-                inconclusive: "inconclusive";
-            }>;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
             checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+        }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"entity_identity">;
+            identity_epoch_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            assurance_kind: z.ZodLiteral<"offer_terms">;
+            revision_digest: z.ZodString;
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            receipt_digest: z.ZodString;
+            revoked_at: z.ZodISODateTime;
+            reason_code: z.ZodString;
+        }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_receipt_digest: z.ZodOptional<z.ZodString>;
             normalized_object_digest: z.ZodString;
@@ -10741,9 +11241,15 @@ export declare const eventListResponseSchema: z.ZodObject<{
             revoked_at: z.ZodISODateTime;
             reason_code: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
-            target_event_id: z.ZodString;
-            revoked_at: z.ZodISODateTime;
-            reason_code: z.ZodString;
+            verification_id: z.ZodString;
+            verifier_id: z.ZodString;
+            method_version: z.ZodString;
+            scope: z.ZodLiteral<"whole-revision">;
+            result: z.ZodLiteral<"pass">;
+            checked_at: z.ZodISODateTime;
+            verified_paths: z.ZodArray<z.ZodString>;
+            coverage_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -11242,9 +11748,9 @@ export declare const publicObservationSchema: z.ZodObject<{
     }, z.core.$strict>;
     outcome: z.ZodEnum<{
         error: "error";
-        unreachable: "unreachable";
         "supports-candidate": "supports-candidate";
         "contradicts-candidate": "contradicts-candidate";
+        unreachable: "unreachable";
     }>;
     capture: z.ZodOptional<z.ZodObject<{
         digest: z.ZodString;
@@ -11305,9 +11811,9 @@ export declare const observationResponseSchema: z.ZodObject<{
         }, z.core.$strict>;
         outcome: z.ZodEnum<{
             error: "error";
-            unreachable: "unreachable";
             "supports-candidate": "supports-candidate";
             "contradicts-candidate": "contradicts-candidate";
+            unreachable: "unreachable";
         }>;
         capture: z.ZodOptional<z.ZodObject<{
             digest: z.ZodString;
@@ -11681,23 +12187,39 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
             }, z.core.$strict>], "subject_type">;
             occurred_at: z.ZodISODateTime;
             payload: z.ZodObject<{
-                verification_id: z.ZodString;
-                verifier_id: z.ZodString;
-                method_version: z.ZodString;
-                scope: z.ZodEnum<{
-                    "whole-revision": "whole-revision";
-                    paths: "paths";
-                }>;
-                verified_paths: z.ZodArray<z.ZodString>;
-                result: z.ZodEnum<{
-                    pass: "pass";
-                    fail: "fail";
-                    inconclusive: "inconclusive";
-                }>;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
                 checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+            }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"entity_identity">;
+                identity_epoch_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"offer_terms">;
+                revision_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_receipt_digest: z.ZodOptional<z.ZodString>;
                 normalized_object_digest: z.ZodString;
@@ -11780,9 +12302,15 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 revoked_at: z.ZodISODateTime;
                 reason_code: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
-                target_event_id: z.ZodString;
-                revoked_at: z.ZodISODateTime;
-                reason_code: z.ZodString;
+                verification_id: z.ZodString;
+                verifier_id: z.ZodString;
+                method_version: z.ZodString;
+                scope: z.ZodLiteral<"whole-revision">;
+                result: z.ZodLiteral<"pass">;
+                checked_at: z.ZodISODateTime;
+                verified_paths: z.ZodArray<z.ZodString>;
+                coverage_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
@@ -12086,23 +12614,39 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
             }, z.core.$strict>], "subject_type">;
             occurred_at: z.ZodISODateTime;
             payload: z.ZodObject<{
-                verification_id: z.ZodString;
-                verifier_id: z.ZodString;
-                method_version: z.ZodString;
-                scope: z.ZodEnum<{
-                    "whole-revision": "whole-revision";
-                    paths: "paths";
-                }>;
-                verified_paths: z.ZodArray<z.ZodString>;
-                result: z.ZodEnum<{
-                    pass: "pass";
-                    fail: "fail";
-                    inconclusive: "inconclusive";
-                }>;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
                 checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+            }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"entity_identity">;
+                identity_epoch_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"offer_terms">;
+                revision_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_receipt_digest: z.ZodOptional<z.ZodString>;
                 normalized_object_digest: z.ZodString;
@@ -12185,9 +12729,15 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 revoked_at: z.ZodISODateTime;
                 reason_code: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
-                target_event_id: z.ZodString;
-                revoked_at: z.ZodISODateTime;
-                reason_code: z.ZodString;
+                verification_id: z.ZodString;
+                verifier_id: z.ZodString;
+                method_version: z.ZodString;
+                scope: z.ZodLiteral<"whole-revision">;
+                result: z.ZodLiteral<"pass">;
+                checked_at: z.ZodISODateTime;
+                verified_paths: z.ZodArray<z.ZodString>;
+                coverage_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
@@ -12491,23 +13041,39 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
             }, z.core.$strict>], "subject_type">;
             occurred_at: z.ZodISODateTime;
             payload: z.ZodObject<{
-                verification_id: z.ZodString;
-                verifier_id: z.ZodString;
-                method_version: z.ZodString;
-                scope: z.ZodEnum<{
-                    "whole-revision": "whole-revision";
-                    paths: "paths";
-                }>;
-                verified_paths: z.ZodArray<z.ZodString>;
-                result: z.ZodEnum<{
-                    pass: "pass";
-                    fail: "fail";
-                    inconclusive: "inconclusive";
-                }>;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
                 checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+            }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"entity_identity">;
+                identity_epoch_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                assurance_kind: z.ZodLiteral<"offer_terms">;
+                revision_digest: z.ZodString;
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                receipt_digest: z.ZodString;
+                revoked_at: z.ZodISODateTime;
+                reason_code: z.ZodString;
+            }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_receipt_digest: z.ZodOptional<z.ZodString>;
                 normalized_object_digest: z.ZodString;
@@ -12590,9 +13156,15 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 revoked_at: z.ZodISODateTime;
                 reason_code: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
-                target_event_id: z.ZodString;
-                revoked_at: z.ZodISODateTime;
-                reason_code: z.ZodString;
+                verification_id: z.ZodString;
+                verifier_id: z.ZodString;
+                method_version: z.ZodString;
+                scope: z.ZodLiteral<"whole-revision">;
+                result: z.ZodLiteral<"pass">;
+                checked_at: z.ZodISODateTime;
+                verified_paths: z.ZodArray<z.ZodString>;
+                coverage_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
@@ -12880,9 +13452,9 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
             }, z.core.$strict>;
             outcome: z.ZodEnum<{
                 error: "error";
-                unreachable: "unreachable";
                 "supports-candidate": "supports-candidate";
                 "contradicts-candidate": "contradicts-candidate";
+                unreachable: "unreachable";
             }>;
             capture: z.ZodOptional<z.ZodObject<{
                 digest: z.ZodString;
@@ -13035,7 +13607,7 @@ export interface CatalogApiEndpointContract {
     readonly method: "GET" | "POST";
     readonly path: string;
     readonly summary: string;
-    readonly tags: readonly ["Catalog"];
+    readonly tags: readonly [string];
     readonly auth?: "optional_bearer" | "cookie_or_bearer";
     readonly request?: {
         readonly path?: z.ZodType;
@@ -13051,6 +13623,1481 @@ export interface CatalogApiEndpointContract {
     readonly payable?: PayableProductDescriptor;
     readonly x402Discovery?: PayableProductDescriptor;
 }
+/**
+ * Canonical root-level downloads over the current Catalog release.
+ *
+ * These belong to the public HTTP contract even though they are not members of
+ * the versioned resource API. Hosted transports must import this registry
+ * rather than restating paths, operation names, or response schemas.
+ */
+export declare const publicDatasetEndpointByDataset: {
+    readonly companies: {
+        readonly operationId: "getCompaniesDataset";
+        readonly method: "GET";
+        readonly path: string;
+        readonly summary: "Download the current company records dataset.";
+        readonly tags: readonly ["Datasets"];
+        readonly responses: {
+            readonly 200: z.ZodObject<{
+                release_id: z.ZodString;
+                artifact_sha256: z.ZodString;
+                dataset_contract: z.ZodLiteral<"sourcey.companies-dataset/v1alpha1">;
+                companies: z.ZodArray<z.ZodObject<{
+                    entity_id: z.ZodString;
+                    slug: z.ZodString;
+                    revision_digest: z.ZodString;
+                    name: z.ZodString;
+                    website: z.ZodURL;
+                    description: z.ZodString;
+                    summary: z.ZodOptional<z.ZodString>;
+                    category: z.ZodString;
+                    slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+                assets: z.ZodArray<z.ZodObject<{
+                    entity_id: z.ZodString;
+                    role: z.ZodEnum<{
+                        "logo-light": "logo-light";
+                        "logo-dark": "logo-dark";
+                        icon: "icon";
+                    }>;
+                    asset_object_digest: z.ZodString;
+                    served_digest: z.ZodString;
+                    served_path: z.ZodString;
+                    media_type: z.ZodEnum<{
+                        "image/jpeg": "image/jpeg";
+                        "image/png": "image/png";
+                        "image/webp": "image/webp";
+                        "image/svg+xml": "image/svg+xml";
+                    }>;
+                    bytes: z.ZodNumber;
+                    width: z.ZodNumber;
+                    height: z.ZodNumber;
+                    authority_basis: z.ZodEnum<{
+                        "sourcey-owned": "sourcey-owned";
+                        "vendor-authority": "vendor-authority";
+                        "editorial-review": "editorial-review";
+                        "licensed-source": "licensed-source";
+                    }>;
+                    authority_claim_id: z.ZodOptional<z.ZodString>;
+                    approval_receipt_digest: z.ZodString;
+                    source_basis: z.ZodString;
+                    license_basis: z.ZodString;
+                    effective_from: z.ZodISODateTime;
+                    effective_until: z.ZodOptional<z.ZodISODateTime>;
+                    binding_event_id: z.ZodString;
+                }, z.core.$strict>>;
+            }, z.core.$strict>;
+        };
+    };
+    readonly startupCredits: {
+        readonly operationId: "getStartupCreditsDataset";
+        readonly method: "GET";
+        readonly path: string;
+        readonly summary: "Download the current startup credits dataset.";
+        readonly tags: readonly ["Datasets"];
+        readonly responses: {
+            readonly 200: z.ZodObject<{
+                release_id: z.ZodString;
+                artifact_sha256: z.ZodString;
+                dataset_contract: z.ZodLiteral<"sourcey.startup-credits-dataset/v1alpha1">;
+                root_set_digest: z.ZodString;
+                signer_registry_digest: z.ZodString;
+                policy_as_of: z.ZodISODateTime;
+                policy_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+                policies: z.ZodArray<z.ZodObject<{
+                    schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                    slug: z.ZodString;
+                    title: z.ZodString;
+                    summary: z.ZodString;
+                    sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"prose">;
+                        heading: z.ZodOptional<z.ZodString>;
+                        paragraphs: z.ZodArray<z.ZodString>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"clauses">;
+                        heading: z.ZodOptional<z.ZodString>;
+                        clauses: z.ZodArray<z.ZodObject<{
+                            title: z.ZodString;
+                            body: z.ZodString;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"definitions">;
+                        heading: z.ZodOptional<z.ZodString>;
+                        definitions: z.ZodArray<z.ZodObject<{
+                            term: z.ZodString;
+                            detail: z.ZodString;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"steps">;
+                        heading: z.ZodOptional<z.ZodString>;
+                        steps: z.ZodArray<z.ZodString>;
+                    }, z.core.$strict>], "kind">>;
+                    revision_digest: z.ZodString;
+                }, z.core.$strict>>;
+                companies: z.ZodArray<z.ZodObject<{
+                    entity_id: z.ZodString;
+                    slug: z.ZodString;
+                    slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                    name: z.ZodString;
+                    summary: z.ZodOptional<z.ZodString>;
+                    description: z.ZodString;
+                    website: z.ZodURL;
+                    category: z.ZodString;
+                    revision_digest: z.ZodString;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        coverage_policy_digest: z.ZodString;
+                        freshness_policy_digest: z.ZodString;
+                        basis_event_ids: z.ZodArray<z.ZodString>;
+                        fields: z.ZodArray<z.ZodObject<{
+                            path: z.ZodString;
+                            supporting_event_ids: z.ZodArray<z.ZodString>;
+                            contradicting_event_ids: z.ZodArray<z.ZodString>;
+                            accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                        }, z.core.$strict>>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    programs: z.ZodArray<z.ZodObject<{
+                        program_id: z.ZodString;
+                        slug: z.ZodString;
+                        title: z.ZodString;
+                        summary: z.ZodOptional<z.ZodString>;
+                        revision_digest: z.ZodString;
+                        provenance: z.ZodObject<{
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                            dispute: z.ZodEnum<{
+                                none: "none";
+                                open: "open";
+                                resolved: "resolved";
+                            }>;
+                            coverage_policy_digest: z.ZodString;
+                            freshness_policy_digest: z.ZodString;
+                            basis_event_ids: z.ZodArray<z.ZodString>;
+                            fields: z.ZodArray<z.ZodObject<{
+                                path: z.ZodString;
+                                supporting_event_ids: z.ZodArray<z.ZodString>;
+                                contradicting_event_ids: z.ZodArray<z.ZodString>;
+                                accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                    observed: "observed";
+                                    derived: "derived";
+                                    editorial: "editorial";
+                                    attested: "attested";
+                                }>>;
+                                evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                    observed: "observed";
+                                    derived: "derived";
+                                    editorial: "editorial";
+                                    attested: "attested";
+                                }>>;
+                                latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                                freshness: z.ZodEnum<{
+                                    unknown: "unknown";
+                                    fresh: "fresh";
+                                    stale: "stale";
+                                }>;
+                            }, z.core.$strict>>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>>;
+                    offers: z.ZodArray<z.ZodObject<{
+                        program_id: z.ZodOptional<z.ZodString>;
+                        offer_id: z.ZodString;
+                        slug: z.ZodString;
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                        description: z.ZodOptional<z.ZodString>;
+                        economics: z.ZodObject<{
+                            consideration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"fixed">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"variable">;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"unknown">;
+                                description: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                            benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodString;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"other">;
+                                benefit_id: z.ZodString;
+                                description: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>;
+                        eligibility: z.ZodObject<{
+                            rule: z.ZodType<import("../../revisions/src/index.js").EligibilityRule, unknown, z.core.$ZodTypeInternals<import("../../revisions/src/index.js").EligibilityRule, unknown>>;
+                        }, z.core.$strict>;
+                        roles: z.ZodObject<{
+                            terms_authority_entity_id: z.ZodString;
+                            access_operator_entity_id: z.ZodString;
+                        }, z.core.$strict>;
+                        access: z.ZodObject<{
+                            availability: z.ZodEnum<{
+                                public: "public";
+                                other: "other";
+                                referral: "referral";
+                                membership: "membership";
+                                invite: "invite";
+                                automatic: "automatic";
+                            }>;
+                            method: z.ZodEnum<{
+                                code: "code";
+                                other: "other";
+                                automatic: "automatic";
+                                form: "form";
+                                contact: "contact";
+                            }>;
+                            url: z.ZodOptional<z.ZodURL>;
+                            public_code: z.ZodOptional<z.ZodString>;
+                            instructions: z.ZodOptional<z.ZodString>;
+                        }, z.core.$strict>;
+                        terms_url: z.ZodOptional<z.ZodURL>;
+                        lifecycle: z.ZodEnum<{
+                            active: "active";
+                            ended: "ended";
+                            withdrawn: "withdrawn";
+                        }>;
+                        effective_from: z.ZodISODateTime;
+                        effective_until: z.ZodOptional<z.ZodISODateTime>;
+                        revision_digest: z.ZodString;
+                        provenance: z.ZodObject<{
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                            dispute: z.ZodEnum<{
+                                none: "none";
+                                open: "open";
+                                resolved: "resolved";
+                            }>;
+                            coverage_policy_digest: z.ZodString;
+                            freshness_policy_digest: z.ZodString;
+                            basis_event_ids: z.ZodArray<z.ZodString>;
+                            fields: z.ZodArray<z.ZodObject<{
+                                path: z.ZodString;
+                                supporting_event_ids: z.ZodArray<z.ZodString>;
+                                contradicting_event_ids: z.ZodArray<z.ZodString>;
+                                accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                    observed: "observed";
+                                    derived: "derived";
+                                    editorial: "editorial";
+                                    attested: "attested";
+                                }>>;
+                                evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                    observed: "observed";
+                                    derived: "derived";
+                                    editorial: "editorial";
+                                    attested: "attested";
+                                }>>;
+                                latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                                freshness: z.ZodEnum<{
+                                    unknown: "unknown";
+                                    fresh: "fresh";
+                                    stale: "stale";
+                                }>;
+                            }, z.core.$strict>>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
+                        }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>;
+        };
+    };
+    readonly agentReadiness: {
+        readonly operationId: "getAgentReadinessDataset";
+        readonly method: "GET";
+        readonly path: string;
+        readonly summary: "Download the current Agent Readiness dataset.";
+        readonly tags: readonly ["Datasets"];
+        readonly responses: {
+            readonly 200: z.ZodObject<{
+                release_id: z.ZodString;
+                artifact_sha256: z.ZodString;
+                dataset_contract: z.ZodLiteral<"sourcey.agent-readiness-dataset/v1alpha1">;
+                profiles: z.ZodArray<z.ZodObject<{
+                    policy_digest: z.ZodString;
+                    entity_id: z.ZodString;
+                    effective_from: z.ZodISODateTime;
+                    revision_digest: z.ZodString;
+                    agent_readiness_profile_id: z.ZodString;
+                    scope: z.ZodObject<{
+                        product: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                        funnel: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    coverage: z.ZodObject<{
+                        status: z.ZodEnum<{
+                            incomplete: "incomplete";
+                            complete: "complete";
+                        }>;
+                        required_signals: z.ZodNumber;
+                        covered_signals: z.ZodNumber;
+                        ratio: z.ZodNumber;
+                        barrier_signals: z.ZodNumber;
+                        verified_barrier_signals: z.ZodNumber;
+                        barrier_ratio: z.ZodNumber;
+                    }, z.core.$strict>;
+                    lifecycle: z.ZodEnum<{
+                        active: "active";
+                        ended: "ended";
+                        withdrawn: "withdrawn";
+                    }>;
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    policy_as_of: z.ZodISODateTime;
+                    projection_digest: z.ZodString;
+                    declaration_revision_digest: z.ZodString;
+                    policy_version: z.ZodString;
+                    grade_derivation: z.ZodObject<{
+                        label: z.ZodString;
+                        explanation: z.ZodString;
+                        coverage_rule: z.ZodString;
+                        outcome_rule: z.ZodString;
+                    }, z.core.$strict>;
+                    public_state: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        ready: "ready";
+                        limited: "limited";
+                        blocked: "blocked";
+                    }>;
+                    primary_finding: z.ZodOptional<z.ZodObject<{
+                        stage: z.ZodEnum<{
+                            evaluate: "evaluate";
+                            sign_up: "sign_up";
+                            pay: "pay";
+                            provision: "provision";
+                            operate: "operate";
+                        }>;
+                        stage_label: z.ZodString;
+                        public_state: z.ZodEnum<{
+                            limited: "limited";
+                            blocked: "blocked";
+                        }>;
+                        finding: z.ZodObject<{
+                            signal_code: z.ZodString;
+                            condition: z.ZodString;
+                            finding: z.ZodString;
+                            context: z.ZodOptional<z.ZodString>;
+                        }, z.core.$strict>;
+                        blocker: z.ZodOptional<z.ZodObject<{
+                            signal_code: z.ZodString;
+                            code: z.ZodString;
+                            explanation: z.ZodString;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                    state_label: z.ZodString;
+                    overall_outcome: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        pass: "pass";
+                        constrained: "constrained";
+                        fail: "fail";
+                    }>;
+                    grade: z.ZodEnum<{
+                        "A+": "A+";
+                        A: "A";
+                        "B+": "B+";
+                        B: "B";
+                        "C+": "C+";
+                        C: "C";
+                        D: "D";
+                        F: "F";
+                        unrated: "unrated";
+                    }>;
+                    last_tested_at: z.ZodISODateTime;
+                    publication: z.ZodObject<{
+                        visibility: z.ZodEnum<{
+                            discoverable: "discoverable";
+                            resolvable_only: "resolvable_only";
+                            private: "private";
+                        }>;
+                        reasons: z.ZodArray<z.ZodEnum<{
+                            unrated: "unrated";
+                            lifecycle_not_active: "lifecycle_not_active";
+                            coverage_incomplete: "coverage_incomplete";
+                            required_evidence_not_supported: "required_evidence_not_supported";
+                            freshness_not_fresh: "freshness_not_fresh";
+                            no_useful_finding: "no_useful_finding";
+                            open_dispute: "open_dispute";
+                        }>>;
+                    }, z.core.$strict>;
+                    canonical_url: z.ZodURL;
+                    stages: z.ZodArray<z.ZodObject<{
+                        outcome: z.ZodEnum<{
+                            unknown: "unknown";
+                            not_applicable: "not_applicable";
+                            pass: "pass";
+                            constrained: "constrained";
+                            fail: "fail";
+                        }>;
+                        stage: z.ZodEnum<{
+                            evaluate: "evaluate";
+                            sign_up: "sign_up";
+                            pay: "pay";
+                            provision: "provision";
+                            operate: "operate";
+                        }>;
+                        public_state: z.ZodEnum<{
+                            unknown: "unknown";
+                            not_applicable: "not_applicable";
+                            ready: "ready";
+                            limited: "limited";
+                            blocked: "blocked";
+                        }>;
+                        primary_finding: z.ZodObject<{
+                            signal_code: z.ZodString;
+                            condition: z.ZodString;
+                            finding: z.ZodString;
+                            context: z.ZodOptional<z.ZodString>;
+                        }, z.core.$strict>;
+                        stage_label: z.ZodString;
+                        state_label: z.ZodString;
+                    }, z.core.$strict>>;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+                offer_relations: z.ZodArray<z.ZodObject<{
+                    relation_id: z.ZodString;
+                    agent_readiness_profile_id: z.ZodString;
+                    offer_id: z.ZodString;
+                    purpose: z.ZodEnum<{
+                        application_path: "application_path";
+                        redemption_path: "redemption_path";
+                        operating_path: "operating_path";
+                    }>;
+                    applicable_stages: z.ZodArray<z.ZodEnum<{
+                        evaluate: "evaluate";
+                        sign_up: "sign_up";
+                        pay: "pay";
+                        provision: "provision";
+                        operate: "operate";
+                    }>>;
+                    effective_from: z.ZodISODateTime;
+                    effective_until: z.ZodOptional<z.ZodISODateTime>;
+                    declaration_revision_digest: z.ZodString;
+                    offer_relation_proposal_id: z.ZodString;
+                    admitted_offer_revision_digest: z.ZodString;
+                    relation_contract: z.ZodLiteral<"sourcey.agent-readiness-offer-relation/v1alpha1">;
+                    relation_revision_digest: z.ZodString;
+                }, z.core.$strict>>;
+            }, z.core.$strict>;
+        };
+    };
+};
+export declare const publicDatasetEndpoints: readonly [{
+    readonly operationId: "getCompaniesDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current company records dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.companies-dataset/v1alpha1">;
+            companies: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                slug: z.ZodString;
+                revision_digest: z.ZodString;
+                name: z.ZodString;
+                website: z.ZodURL;
+                description: z.ZodString;
+                summary: z.ZodOptional<z.ZodString>;
+                category: z.ZodString;
+                slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+            assets: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                role: z.ZodEnum<{
+                    "logo-light": "logo-light";
+                    "logo-dark": "logo-dark";
+                    icon: "icon";
+                }>;
+                asset_object_digest: z.ZodString;
+                served_digest: z.ZodString;
+                served_path: z.ZodString;
+                media_type: z.ZodEnum<{
+                    "image/jpeg": "image/jpeg";
+                    "image/png": "image/png";
+                    "image/webp": "image/webp";
+                    "image/svg+xml": "image/svg+xml";
+                }>;
+                bytes: z.ZodNumber;
+                width: z.ZodNumber;
+                height: z.ZodNumber;
+                authority_basis: z.ZodEnum<{
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
+                    "editorial-review": "editorial-review";
+                    "licensed-source": "licensed-source";
+                }>;
+                authority_claim_id: z.ZodOptional<z.ZodString>;
+                approval_receipt_digest: z.ZodString;
+                source_basis: z.ZodString;
+                license_basis: z.ZodString;
+                effective_from: z.ZodISODateTime;
+                effective_until: z.ZodOptional<z.ZodISODateTime>;
+                binding_event_id: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current startup credits dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.startup-credits-dataset/v1alpha1">;
+            root_set_digest: z.ZodString;
+            signer_registry_digest: z.ZodString;
+            policy_as_of: z.ZodISODateTime;
+            policy_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+            policies: z.ZodArray<z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+            companies: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                slug: z.ZodString;
+                slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                name: z.ZodString;
+                summary: z.ZodOptional<z.ZodString>;
+                description: z.ZodString;
+                website: z.ZodURL;
+                category: z.ZodString;
+                revision_digest: z.ZodString;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    coverage_policy_digest: z.ZodString;
+                    freshness_policy_digest: z.ZodString;
+                    basis_event_ids: z.ZodArray<z.ZodString>;
+                    fields: z.ZodArray<z.ZodObject<{
+                        path: z.ZodString;
+                        supporting_event_ids: z.ZodArray<z.ZodString>;
+                        contradicting_event_ids: z.ZodArray<z.ZodString>;
+                        accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                            observed: "observed";
+                            derived: "derived";
+                            editorial: "editorial";
+                            attested: "attested";
+                        }>>;
+                        evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                            observed: "observed";
+                            derived: "derived";
+                            editorial: "editorial";
+                            attested: "attested";
+                        }>>;
+                        latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                    }, z.core.$strict>>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
+                programs: z.ZodArray<z.ZodObject<{
+                    program_id: z.ZodString;
+                    slug: z.ZodString;
+                    title: z.ZodString;
+                    summary: z.ZodOptional<z.ZodString>;
+                    revision_digest: z.ZodString;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        coverage_policy_digest: z.ZodString;
+                        freshness_policy_digest: z.ZodString;
+                        basis_event_ids: z.ZodArray<z.ZodString>;
+                        fields: z.ZodArray<z.ZodObject<{
+                            path: z.ZodString;
+                            supporting_event_ids: z.ZodArray<z.ZodString>;
+                            contradicting_event_ids: z.ZodArray<z.ZodString>;
+                            accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                        }, z.core.$strict>>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+                offers: z.ZodArray<z.ZodObject<{
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    slug: z.ZodString;
+                    title: z.ZodString;
+                    summary: z.ZodString;
+                    description: z.ZodOptional<z.ZodString>;
+                    economics: z.ZodObject<{
+                        consideration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"fixed">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"variable">;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"unknown">;
+                            description: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                        benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodString;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"other">;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>;
+                    eligibility: z.ZodObject<{
+                        rule: z.ZodType<import("../../revisions/src/index.js").EligibilityRule, unknown, z.core.$ZodTypeInternals<import("../../revisions/src/index.js").EligibilityRule, unknown>>;
+                    }, z.core.$strict>;
+                    roles: z.ZodObject<{
+                        terms_authority_entity_id: z.ZodString;
+                        access_operator_entity_id: z.ZodString;
+                    }, z.core.$strict>;
+                    access: z.ZodObject<{
+                        availability: z.ZodEnum<{
+                            public: "public";
+                            other: "other";
+                            referral: "referral";
+                            membership: "membership";
+                            invite: "invite";
+                            automatic: "automatic";
+                        }>;
+                        method: z.ZodEnum<{
+                            code: "code";
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        url: z.ZodOptional<z.ZodURL>;
+                        public_code: z.ZodOptional<z.ZodString>;
+                        instructions: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    terms_url: z.ZodOptional<z.ZodURL>;
+                    lifecycle: z.ZodEnum<{
+                        active: "active";
+                        ended: "ended";
+                        withdrawn: "withdrawn";
+                    }>;
+                    effective_from: z.ZodISODateTime;
+                    effective_until: z.ZodOptional<z.ZodISODateTime>;
+                    revision_digest: z.ZodString;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        coverage_policy_digest: z.ZodString;
+                        freshness_policy_digest: z.ZodString;
+                        basis_event_ids: z.ZodArray<z.ZodString>;
+                        fields: z.ZodArray<z.ZodObject<{
+                            path: z.ZodString;
+                            supporting_event_ids: z.ZodArray<z.ZodString>;
+                            contradicting_event_ids: z.ZodArray<z.ZodString>;
+                            accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                        }, z.core.$strict>>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getAgentReadinessDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current Agent Readiness dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.agent-readiness-dataset/v1alpha1">;
+            profiles: z.ZodArray<z.ZodObject<{
+                policy_digest: z.ZodString;
+                entity_id: z.ZodString;
+                effective_from: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                agent_readiness_profile_id: z.ZodString;
+                scope: z.ZodObject<{
+                    product: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                    funnel: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                coverage: z.ZodObject<{
+                    status: z.ZodEnum<{
+                        incomplete: "incomplete";
+                        complete: "complete";
+                    }>;
+                    required_signals: z.ZodNumber;
+                    covered_signals: z.ZodNumber;
+                    ratio: z.ZodNumber;
+                    barrier_signals: z.ZodNumber;
+                    verified_barrier_signals: z.ZodNumber;
+                    barrier_ratio: z.ZodNumber;
+                }, z.core.$strict>;
+                lifecycle: z.ZodEnum<{
+                    active: "active";
+                    ended: "ended";
+                    withdrawn: "withdrawn";
+                }>;
+                freshness: z.ZodEnum<{
+                    unknown: "unknown";
+                    fresh: "fresh";
+                    stale: "stale";
+                }>;
+                policy_as_of: z.ZodISODateTime;
+                projection_digest: z.ZodString;
+                declaration_revision_digest: z.ZodString;
+                policy_version: z.ZodString;
+                grade_derivation: z.ZodObject<{
+                    label: z.ZodString;
+                    explanation: z.ZodString;
+                    coverage_rule: z.ZodString;
+                    outcome_rule: z.ZodString;
+                }, z.core.$strict>;
+                public_state: z.ZodEnum<{
+                    unknown: "unknown";
+                    not_applicable: "not_applicable";
+                    ready: "ready";
+                    limited: "limited";
+                    blocked: "blocked";
+                }>;
+                primary_finding: z.ZodOptional<z.ZodObject<{
+                    stage: z.ZodEnum<{
+                        evaluate: "evaluate";
+                        sign_up: "sign_up";
+                        pay: "pay";
+                        provision: "provision";
+                        operate: "operate";
+                    }>;
+                    stage_label: z.ZodString;
+                    public_state: z.ZodEnum<{
+                        limited: "limited";
+                        blocked: "blocked";
+                    }>;
+                    finding: z.ZodObject<{
+                        signal_code: z.ZodString;
+                        condition: z.ZodString;
+                        finding: z.ZodString;
+                        context: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    blocker: z.ZodOptional<z.ZodObject<{
+                        signal_code: z.ZodString;
+                        code: z.ZodString;
+                        explanation: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+                state_label: z.ZodString;
+                overall_outcome: z.ZodEnum<{
+                    unknown: "unknown";
+                    not_applicable: "not_applicable";
+                    pass: "pass";
+                    constrained: "constrained";
+                    fail: "fail";
+                }>;
+                grade: z.ZodEnum<{
+                    "A+": "A+";
+                    A: "A";
+                    "B+": "B+";
+                    B: "B";
+                    "C+": "C+";
+                    C: "C";
+                    D: "D";
+                    F: "F";
+                    unrated: "unrated";
+                }>;
+                last_tested_at: z.ZodISODateTime;
+                publication: z.ZodObject<{
+                    visibility: z.ZodEnum<{
+                        discoverable: "discoverable";
+                        resolvable_only: "resolvable_only";
+                        private: "private";
+                    }>;
+                    reasons: z.ZodArray<z.ZodEnum<{
+                        unrated: "unrated";
+                        lifecycle_not_active: "lifecycle_not_active";
+                        coverage_incomplete: "coverage_incomplete";
+                        required_evidence_not_supported: "required_evidence_not_supported";
+                        freshness_not_fresh: "freshness_not_fresh";
+                        no_useful_finding: "no_useful_finding";
+                        open_dispute: "open_dispute";
+                    }>>;
+                }, z.core.$strict>;
+                canonical_url: z.ZodURL;
+                stages: z.ZodArray<z.ZodObject<{
+                    outcome: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        pass: "pass";
+                        constrained: "constrained";
+                        fail: "fail";
+                    }>;
+                    stage: z.ZodEnum<{
+                        evaluate: "evaluate";
+                        sign_up: "sign_up";
+                        pay: "pay";
+                        provision: "provision";
+                        operate: "operate";
+                    }>;
+                    public_state: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        ready: "ready";
+                        limited: "limited";
+                        blocked: "blocked";
+                    }>;
+                    primary_finding: z.ZodObject<{
+                        signal_code: z.ZodString;
+                        condition: z.ZodString;
+                        finding: z.ZodString;
+                        context: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    stage_label: z.ZodString;
+                    state_label: z.ZodString;
+                }, z.core.$strict>>;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+            offer_relations: z.ZodArray<z.ZodObject<{
+                relation_id: z.ZodString;
+                agent_readiness_profile_id: z.ZodString;
+                offer_id: z.ZodString;
+                purpose: z.ZodEnum<{
+                    application_path: "application_path";
+                    redemption_path: "redemption_path";
+                    operating_path: "operating_path";
+                }>;
+                applicable_stages: z.ZodArray<z.ZodEnum<{
+                    evaluate: "evaluate";
+                    sign_up: "sign_up";
+                    pay: "pay";
+                    provision: "provision";
+                    operate: "operate";
+                }>>;
+                effective_from: z.ZodISODateTime;
+                effective_until: z.ZodOptional<z.ZodISODateTime>;
+                declaration_revision_digest: z.ZodString;
+                offer_relation_proposal_id: z.ZodString;
+                admitted_offer_revision_digest: z.ZodString;
+                relation_contract: z.ZodLiteral<"sourcey.agent-readiness-offer-relation/v1alpha1">;
+                relation_revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
+}];
 export declare const agentReadinessProfileListQuerySchema: z.ZodObject<{
     q: z.ZodDefault<z.ZodString>;
     entity_id: z.ZodOptional<z.ZodString>;
@@ -13074,6 +15121,10 @@ export declare const agentReadinessProfileListQuerySchema: z.ZodObject<{
         ready: "ready";
         limited: "limited";
         blocked: "blocked";
+    }>>;
+    visibility: z.ZodOptional<z.ZodEnum<{
+        discoverable: "discoverable";
+        resolvable_only: "resolvable_only";
     }>>;
     lifecycle: z.ZodOptional<z.ZodEnum<{
         active: "active";
@@ -13163,6 +15214,10 @@ export declare const catalogSubmissionRequestSchema: z.ZodObject<{
         }, z.core.$strict>;
         expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
     }, z.core.$strict>>>;
+    expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        entity_id: z.ZodString;
+        snapshot_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>>>;
     authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"authenticated_form">;
     }, z.core.$strict>, z.ZodObject<{
@@ -13187,6 +15242,11 @@ export declare const catalogSubmissionOperatorAdmissionCoreSchema: z.ZodObject<{
     payload_digest: z.ZodString;
     live_parent_release_id: z.ZodString;
     prior_work_item_digest: z.ZodString;
+    reviewed_authoring_files: z.ZodArray<z.ZodObject<{
+        path: z.ZodString;
+        content: z.ZodString;
+    }, z.core.$strict>>;
+    reviewed_payload_digest: z.ZodString;
     admission_artifact_digests: z.ZodArray<z.ZodString>;
     operator_id: z.ZodString;
     publication_authorization_digest: z.ZodString;
@@ -13198,6 +15258,11 @@ export declare const catalogSubmissionOperatorAdmissionSchema: z.ZodObject<{
     payload_digest: z.ZodString;
     live_parent_release_id: z.ZodString;
     prior_work_item_digest: z.ZodString;
+    reviewed_authoring_files: z.ZodArray<z.ZodObject<{
+        path: z.ZodString;
+        content: z.ZodString;
+    }, z.core.$strict>>;
+    reviewed_payload_digest: z.ZodString;
     admission_artifact_digests: z.ZodArray<z.ZodString>;
     operator_id: z.ZodString;
     publication_authorization_digest: z.ZodString;
@@ -13258,6 +15323,10 @@ export declare const catalogSubmissionWorkItemCoreSchema: z.ZodObject<{
             }, z.core.$strict>;
             expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
         }, z.core.$strict>>>;
+        expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            entity_id: z.ZodString;
+            snapshot_digest: z.ZodNullable<z.ZodString>;
+        }, z.core.$strict>>>;
         authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"authenticated_form">;
         }, z.core.$strict>, z.ZodObject<{
@@ -13286,6 +15355,11 @@ export declare const catalogSubmissionWorkItemCoreSchema: z.ZodObject<{
         payload_digest: z.ZodString;
         live_parent_release_id: z.ZodString;
         prior_work_item_digest: z.ZodString;
+        reviewed_authoring_files: z.ZodArray<z.ZodObject<{
+            path: z.ZodString;
+            content: z.ZodString;
+        }, z.core.$strict>>;
+        reviewed_payload_digest: z.ZodString;
         admission_artifact_digests: z.ZodArray<z.ZodString>;
         operator_id: z.ZodString;
         publication_authorization_digest: z.ZodString;
@@ -13341,6 +15415,10 @@ export declare const catalogSubmissionWorkItemSchema: z.ZodObject<{
             }, z.core.$strict>;
             expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
         }, z.core.$strict>>>;
+        expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            entity_id: z.ZodString;
+            snapshot_digest: z.ZodNullable<z.ZodString>;
+        }, z.core.$strict>>>;
         authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"authenticated_form">;
         }, z.core.$strict>, z.ZodObject<{
@@ -13369,6 +15447,11 @@ export declare const catalogSubmissionWorkItemSchema: z.ZodObject<{
         payload_digest: z.ZodString;
         live_parent_release_id: z.ZodString;
         prior_work_item_digest: z.ZodString;
+        reviewed_authoring_files: z.ZodArray<z.ZodObject<{
+            path: z.ZodString;
+            content: z.ZodString;
+        }, z.core.$strict>>;
+        reviewed_payload_digest: z.ZodString;
         admission_artifact_digests: z.ZodArray<z.ZodString>;
         operator_id: z.ZodString;
         publication_authorization_digest: z.ZodString;
@@ -13376,6 +15459,409 @@ export declare const catalogSubmissionWorkItemSchema: z.ZodObject<{
         operator_admission_digest: z.ZodString;
     }, z.core.$strict>>>;
     work_item_digest: z.ZodString;
+}, z.core.$strict>;
+/** Mutable execution progress never rewrites the protected submission identity. */
+export declare const catalogSubmissionExecutionSchema: z.ZodObject<{
+    work_item: z.ZodObject<{
+        submission_id: z.ZodString;
+        idempotency_key: z.ZodString;
+        request: z.ZodObject<{
+            authoring_files: z.ZodDefault<z.ZodArray<z.ZodObject<{
+                path: z.ZodString;
+                content: z.ZodString;
+            }, z.core.$strict>>>;
+            remove_entity_ids: z.ZodDefault<z.ZodArray<z.ZodString>>;
+            asset_submissions: z.ZodDefault<z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                role: z.ZodLiteral<"icon">;
+                source: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"upload">;
+                    upload_receipt_digest: z.ZodString;
+                    original_digest: z.ZodString;
+                    bytes: z.ZodNumber;
+                    media_type: z.ZodEnum<{
+                        "image/jpeg": "image/jpeg";
+                        "image/png": "image/png";
+                        "image/webp": "image/webp";
+                        "image/svg+xml": "image/svg+xml";
+                    }>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"official_url">;
+                    url: z.ZodURL;
+                }, z.core.$strict>], "kind">;
+                redistribution: z.ZodObject<{
+                    basis: z.ZodEnum<{
+                        "vendor-approved": "vendor-approved";
+                        "redistributable-license": "redistributable-license";
+                        "nominative-use": "nominative-use";
+                        "sourcey-owned": "sourcey-owned";
+                    }>;
+                    license: z.ZodString;
+                    notice: z.ZodString;
+                    trademark_owner: z.ZodString;
+                    fallback_reason: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>;
+                submitter_context: z.ZodObject<{
+                    relationship: z.ZodEnum<{
+                        "vendor-representative": "vendor-representative";
+                        "community-contributor": "community-contributor";
+                    }>;
+                    authority_asserted: z.ZodBoolean;
+                }, z.core.$strict>;
+                expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
+            }, z.core.$strict>>>;
+            expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                snapshot_digest: z.ZodNullable<z.ZodString>;
+            }, z.core.$strict>>>;
+            authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"authenticated_form">;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"paid_agent">;
+                request_id: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"governed_ops">;
+                command_digest: z.ZodString;
+                grant_digest: z.ZodString;
+                approval_digest: z.ZodNullable<z.ZodString>;
+                run_receipt_digest: z.ZodString;
+                admission_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
+            }, z.core.$strict>], "kind">;
+        }, z.core.$strict>;
+        payload_digest: z.ZodString;
+        authentication_digest: z.ZodString;
+        authorization_digest: z.ZodString;
+        authorization_policy: z.ZodEnum<{
+            publication: "publication";
+            proposal: "proposal";
+        }>;
+        live_parent_release_id: z.ZodString;
+        operator_admission: z.ZodDefault<z.ZodNullable<z.ZodObject<{
+            admission_contract: z.ZodLiteral<"sourcey.catalog-submission-operator-admission/v1alpha1">;
+            submission_id: z.ZodString;
+            payload_digest: z.ZodString;
+            live_parent_release_id: z.ZodString;
+            prior_work_item_digest: z.ZodString;
+            reviewed_authoring_files: z.ZodArray<z.ZodObject<{
+                path: z.ZodString;
+                content: z.ZodString;
+            }, z.core.$strict>>;
+            reviewed_payload_digest: z.ZodString;
+            admission_artifact_digests: z.ZodArray<z.ZodString>;
+            operator_id: z.ZodString;
+            publication_authorization_digest: z.ZodString;
+            attached_at: z.ZodISODateTime;
+            operator_admission_digest: z.ZodString;
+        }, z.core.$strict>>>;
+        work_item_digest: z.ZodString;
+    }, z.core.$strict>;
+    publication_base: z.ZodObject<{
+        state_contract: z.ZodLiteral<"sourcey.catalog-publication-state/v1alpha1">;
+        live_parent_release_id: z.ZodString;
+        target_entity_ids: z.ZodArray<z.ZodString>;
+        current_entities: z.ZodArray<z.ZodObject<{
+            schema_version: z.ZodLiteral<"sourcey.entity-authoring/v1alpha1">;
+            programs: z.ZodArray<z.ZodObject<{
+                program_id: z.ZodString;
+                program_slug: z.ZodString;
+                program_slug_aliases: z.ZodDefault<z.ZodArray<z.ZodString>>;
+                title: z.ZodString;
+                summary: z.ZodOptional<z.ZodString>;
+                source_ids: z.ZodArray<z.ZodString>;
+            }, z.core.$strict>>;
+            entity: z.ZodObject<{
+                entity_id: z.ZodString;
+                slug: z.ZodString;
+                slug_aliases: z.ZodDefault<z.ZodArray<z.ZodString>>;
+                name: z.ZodString;
+                domains: z.ZodArray<z.ZodObject<{
+                    value: z.ZodString;
+                    role: z.ZodEnum<{
+                        primary: "primary";
+                        alias: "alias";
+                    }>;
+                    valid_from: z.ZodISODateTime;
+                    valid_until: z.ZodOptional<z.ZodISODateTime>;
+                }, z.core.$strict>>;
+                category: z.ZodString;
+            }, z.core.$strict>;
+            profile: z.ZodObject<{
+                summary: z.ZodOptional<z.ZodString>;
+                description: z.ZodString;
+                links: z.ZodObject<{
+                    site: z.ZodURL;
+                    pricing: z.ZodOptional<z.ZodURL>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            sources: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                url: z.ZodURL;
+            }, z.core.$strict>>;
+            offers: z.ZodArray<z.ZodObject<{
+                offer_id: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_slug: z.ZodString;
+                offer_slug_aliases: z.ZodDefault<z.ZodArray<z.ZodString>>;
+                title: z.ZodString;
+                summary: z.ZodString;
+                description: z.ZodOptional<z.ZodString>;
+                lifecycle: z.ZodObject<{
+                    status: z.ZodEnum<{
+                        active: "active";
+                        ended: "ended";
+                        withdrawn: "withdrawn";
+                    }>;
+                    effective_from: z.ZodISODateTime;
+                    effective_until: z.ZodOptional<z.ZodISODateTime>;
+                }, z.core.$strict>;
+                economics: z.ZodObject<{
+                    consideration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"fixed">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"variable">;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"unknown">;
+                        description: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                    benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"credit">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"discount">;
+                        percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                        applies_to: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"cashback">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"money">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"percentage">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"waiver">;
+                        waived_item: z.ZodString;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"free-service">;
+                        service: z.ZodString;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"other">;
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>;
+                eligibility: z.ZodObject<{
+                    rule: z.ZodType<import("../../revisions/src/index.js").EligibilityRule, unknown, z.core.$ZodTypeInternals<import("../../revisions/src/index.js").EligibilityRule, unknown>>;
+                }, z.core.$strict>;
+                roles: z.ZodObject<{
+                    terms_authority_entity_id: z.ZodString;
+                    access_operator_entity_id: z.ZodString;
+                }, z.core.$strict>;
+                source_ids: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                declared: z.ZodOptional<z.ZodLiteral<true>>;
+                access: z.ZodObject<{
+                    availability: z.ZodEnum<{
+                        public: "public";
+                        other: "other";
+                        referral: "referral";
+                        membership: "membership";
+                        invite: "invite";
+                        automatic: "automatic";
+                    }>;
+                    method: z.ZodEnum<{
+                        code: "code";
+                        other: "other";
+                        automatic: "automatic";
+                        form: "form";
+                        contact: "contact";
+                    }>;
+                    public_code: z.ZodOptional<z.ZodString>;
+                    url: z.ZodOptional<z.ZodURL>;
+                    instructions: z.ZodOptional<z.ZodString>;
+                }, z.core.$strict>;
+                terms_url: z.ZodOptional<z.ZodURL>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>>;
+        current_asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
+            entity_id: z.ZodString;
+            role: z.ZodEnum<{
+                "logo-light": "logo-light";
+                "logo-dark": "logo-dark";
+                icon: "icon";
+            }>;
+            asset_object_digest: z.ZodString;
+            served_digest: z.ZodString;
+            served_path: z.ZodString;
+            media_type: z.ZodEnum<{
+                "image/jpeg": "image/jpeg";
+                "image/png": "image/png";
+                "image/webp": "image/webp";
+                "image/svg+xml": "image/svg+xml";
+            }>;
+            bytes: z.ZodNumber;
+            width: z.ZodNumber;
+            height: z.ZodNumber;
+            authority_basis: z.ZodEnum<{
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
+                "editorial-review": "editorial-review";
+                "licensed-source": "licensed-source";
+            }>;
+            authority_claim_id: z.ZodOptional<z.ZodString>;
+            approval_receipt_digest: z.ZodString;
+            source_basis: z.ZodString;
+            license_basis: z.ZodString;
+            effective_from: z.ZodISODateTime;
+            effective_until: z.ZodOptional<z.ZodISODateTime>;
+            binding_event_id: z.ZodString;
+        }, z.core.$strict>>>;
+        git_cursor: z.ZodNullable<z.ZodObject<{
+            repository_id: z.ZodString;
+            head_commit: z.ZodString;
+            head_tree: z.ZodString;
+        }, z.core.$strict>>;
+        state_digest: z.ZodString;
+    }, z.core.$strict>;
 }, z.core.$strict>;
 export declare const catalogSubmissionHeadersSchema: z.ZodObject<{
     "idempotency-key": z.ZodString;
@@ -13433,11 +15919,11 @@ export declare const catalogSubmissionStateSchema: z.ZodEnum<{
     rejected: "rejected";
     active: "active";
     queued: "queued";
+    awaiting_admission: "awaiting_admission";
+    published: "published";
     invalidated: "invalidated";
     awaiting_review: "awaiting_review";
-    awaiting_admission: "awaiting_admission";
     awaiting_authorization: "awaiting_authorization";
-    published: "published";
 }>;
 export declare const catalogSubmissionTelemetrySchema: z.ZodObject<{
     queued_ms: z.ZodNumber;
@@ -13460,7 +15946,10 @@ export declare const catalogSubmissionTelemetrySchema: z.ZodObject<{
     }, z.core.$strict>;
 }, z.core.$strict>;
 export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    state: z.ZodLiteral<"awaiting_review">;
+    state: z.ZodEnum<{
+        invalidated: "invalidated";
+        awaiting_review: "awaiting_review";
+    }>;
     proposal_digest: z.ZodNull;
     change_set_digest: z.ZodNull;
     live_parent_release_id: z.ZodString;
@@ -13522,8 +16011,8 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
     state: z.ZodEnum<{
         rejected: "rejected";
         awaiting_admission: "awaiting_admission";
-        awaiting_authorization: "awaiting_authorization";
         published: "published";
+        awaiting_authorization: "awaiting_authorization";
     }>;
     proposal_digest: z.ZodString;
     change_set_digest: z.ZodString;
@@ -13589,11 +16078,11 @@ export declare const catalogSubmissionStatusSchema: z.ZodObject<{
         rejected: "rejected";
         active: "active";
         queued: "queued";
+        awaiting_admission: "awaiting_admission";
+        published: "published";
         invalidated: "invalidated";
         awaiting_review: "awaiting_review";
-        awaiting_admission: "awaiting_admission";
         awaiting_authorization: "awaiting_authorization";
-        published: "published";
     }>;
     ingress: z.ZodEnum<{
         authenticated_form: "authenticated_form";
@@ -13673,11 +16162,11 @@ export declare const catalogSubmissionResponseSchema: z.ZodObject<{
             rejected: "rejected";
             active: "active";
             queued: "queued";
+            awaiting_admission: "awaiting_admission";
+            published: "published";
             invalidated: "invalidated";
             awaiting_review: "awaiting_review";
-            awaiting_admission: "awaiting_admission";
             awaiting_authorization: "awaiting_authorization";
-            published: "published";
         }>;
         ingress: z.ZodEnum<{
             authenticated_form: "authenticated_form";
@@ -13968,6 +16457,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -13999,6 +16489,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -14100,11 +16591,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -14141,9 +16627,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -14151,11 +16652,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -14192,8 +16688,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -14416,11 +16917,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -14457,9 +16953,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
@@ -14513,11 +17024,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -14554,9 +17060,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -14564,11 +17085,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -14605,8 +17121,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -14829,11 +17350,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -14870,9 +17386,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             next_cursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -14883,8 +17414,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 program_count: z.ZodNumber;
                 offer_count: z.ZodNumber;
                 active_offer_count: z.ZodNumber;
-                signed_entity_count: z.ZodNumber;
+                vendor_confirmed_entity_count: z.ZodNumber;
                 verified_entity_count: z.ZodNumber;
+                terms_checked_offer_count: z.ZodNumber;
                 latest_observation_at: z.ZodNullable<z.ZodISODateTime>;
                 categories: z.ZodArray<z.ZodObject<{
                     category: z.ZodString;
@@ -14937,6 +17469,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -14961,14 +17494,96 @@ export declare const publicCatalogV1Endpoints: readonly [{
         }, z.core.$strict>;
     };
 }, {
-    readonly operationId: "getEntity";
+    readonly operationId: "listPolicies";
     readonly method: "GET";
-    readonly path: "/v1/entities/{entity}";
-    readonly summary: "Read an entity by immutable ID.";
+    readonly path: "/v1/policies";
+    readonly summary: "List current Sourcey policy records, with their exact text and revision digests.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly query: z.ZodObject<{
+            cursor: z.ZodOptional<z.ZodString>;
+            limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            data: z.ZodArray<z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+            next_cursor: z.ZodNonOptional<z.ZodOptional<z.ZodNullable<z.ZodString>>>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getPolicy";
+    readonly method: "GET";
+    readonly path: "/v1/policies/{slug}";
+    readonly summary: "Read one current Sourcey policy record by slug.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly path: z.ZodObject<{
-            entity: z.ZodString;
+            slug: z.ZodString;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -14981,6 +17596,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -15012,6 +17628,119 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 200: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            data: z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getEntity";
+    readonly method: "GET";
+    readonly path: "/v1/entities/{entity}";
+    readonly summary: "Read an entity by immutable ID.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly path: z.ZodObject<{
+            entity: z.ZodString;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -15049,11 +17778,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -15090,9 +17814,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -15100,11 +17839,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -15141,8 +17875,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -15365,11 +18104,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -15406,9 +18140,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -15490,6 +18239,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -15521,6 +18271,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -15558,11 +18309,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -15599,9 +18345,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -15609,11 +18370,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -15650,8 +18406,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -15874,11 +18635,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -15915,9 +18671,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -16041,6 +18812,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -16085,6 +18857,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -16116,6 +18889,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -16742,11 +19516,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -16783,8 +19552,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -16815,6 +19589,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -16846,6 +19621,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -17472,11 +20248,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -17513,8 +20284,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -17552,6 +20328,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -17583,6 +20360,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -17621,11 +20399,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -17662,9 +20435,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -17672,11 +20460,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -17713,8 +20496,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -17937,11 +20725,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -17978,9 +20761,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -17990,11 +20788,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -18031,8 +20824,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -18070,6 +20868,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -18101,6 +20900,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -18139,11 +20939,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -18180,9 +20975,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -18190,11 +21000,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -18231,8 +21036,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -18455,11 +21265,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -18496,9 +21301,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -18508,11 +21328,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -18549,8 +21364,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -18587,6 +21407,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -18618,6 +21439,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -18656,11 +21478,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -18697,9 +21514,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -18707,11 +21539,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -18748,8 +21575,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -18972,11 +21804,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -19013,9 +21840,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -19025,11 +21867,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -19066,8 +21903,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offer: z.ZodObject<{
@@ -19290,11 +22132,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -19331,9 +22168,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"offer_tombstone">;
@@ -19370,6 +22222,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -19401,6 +22254,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -19439,11 +22293,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -19480,9 +22329,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -19490,11 +22354,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -19531,8 +22390,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -19755,11 +22619,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -19796,9 +22655,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -19808,11 +22682,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -19849,8 +22718,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offer: z.ZodObject<{
@@ -20073,11 +22947,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -20114,9 +22983,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"offer_tombstone">;
@@ -20139,9 +23023,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
-            q: z.ZodDefault<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+            q: z.ZodDefault<z.ZodString>;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -20160,11 +23044,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -20201,9 +23080,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -20211,11 +23105,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -20252,8 +23141,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -20476,11 +23370,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -20517,9 +23406,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -20534,6 +23438,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -20565,9 +23470,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
-            q: z.ZodDefault<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+            q: z.ZodDefault<z.ZodString>;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -20580,6 +23485,16 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 entity_slug: z.ZodString;
                 entity_name: z.ZodString;
                 category: z.ZodString;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 offer: z.ZodObject<{
                     program_id: z.ZodOptional<z.ZodString>;
                     offer_id: z.ZodString;
@@ -20800,11 +23715,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -20841,9 +23751,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 program_id: z.ZodString;
@@ -20854,6 +23779,16 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 entity_slug: z.ZodString;
                 entity_name: z.ZodString;
                 category: z.ZodString;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 offer: z.ZodObject<{
                     program_id: z.ZodOptional<z.ZodString>;
                     offer_id: z.ZodString;
@@ -21074,11 +24009,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -21115,9 +24045,24 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
             }, z.core.$strict>]>>;
@@ -21133,6 +24078,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21198,6 +24144,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21229,6 +24176,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21293,6 +24241,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21324,6 +24273,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21381,6 +24331,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21412,6 +24363,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21469,6 +24421,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21500,6 +24453,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -21953,6 +24907,16 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
                 entity_id: z.ZodString;
                 declaration: z.ZodObject<{
+                    scope: z.ZodObject<{
+                        product: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                        funnel: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
                     resources: z.ZodArray<z.ZodObject<{
                         resource_id: z.ZodString;
                         uri: z.ZodURL;
@@ -22014,16 +24978,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     declaration_id: z.ZodString;
-                    scope: z.ZodObject<{
-                        product: z.ZodObject<{
-                            key: z.ZodString;
-                            name: z.ZodString;
-                        }, z.core.$strict>;
-                        funnel: z.ZodObject<{
-                            key: z.ZodString;
-                            name: z.ZodString;
-                        }, z.core.$strict>;
-                    }, z.core.$strict>;
                     declared_at: z.ZodISODateTime;
                     assessment_targets: z.ZodArray<z.ZodObject<{
                         target_id: z.ZodString;
@@ -22164,12 +25118,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
     readonly operationId: "listEvents";
     readonly method: "GET";
     readonly path: "/v1/events";
-    readonly summary: "Find catalog events by exact operation identity.";
+    readonly summary: "Find catalog events by exact operation, company or revision identity.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
             operation_id: z.ZodOptional<z.ZodString>;
             entity_id: z.ZodOptional<z.ZodString>;
+            revision_digest: z.ZodOptional<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
         }, z.core.$strict>;
@@ -22207,23 +25162,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -22306,9 +25277,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -22612,23 +25589,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -22711,9 +25704,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -23017,23 +26016,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -23116,9 +26131,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -23406,6 +26427,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -23450,6 +26472,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -23481,6 +26504,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -23535,23 +26559,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -23634,9 +26674,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -23940,23 +26986,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -24039,9 +27101,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -24345,23 +27413,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -24444,9 +27528,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -24853,6 +27943,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -24897,6 +27988,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -24928,6 +28020,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -25076,6 +28169,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -25107,6 +28201,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -25144,9 +28239,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 outcome: z.ZodEnum<{
                     error: "error";
-                    unreachable: "unreachable";
                     "supports-candidate": "supports-candidate";
                     "contradicts-candidate": "contradicts-candidate";
+                    unreachable: "unreachable";
                 }>;
                 capture: z.ZodOptional<z.ZodObject<{
                     digest: z.ZodString;
@@ -25516,23 +28611,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -25615,9 +28726,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -25921,23 +29038,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -26020,9 +29153,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -26326,23 +29465,39 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -26425,9 +29580,15 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -26715,9 +29876,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     }, z.core.$strict>;
                     outcome: z.ZodEnum<{
                         error: "error";
-                        unreachable: "unreachable";
                         "supports-candidate": "supports-candidate";
                         "contradicts-candidate": "contradicts-candidate";
+                        unreachable: "unreachable";
                     }>;
                     capture: z.ZodOptional<z.ZodObject<{
                         digest: z.ZodString;
@@ -26873,6 +30034,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -26951,6 +30113,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -27005,6 +30168,10 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 limited: "limited";
                 blocked: "blocked";
             }>>;
+            visibility: z.ZodOptional<z.ZodEnum<{
+                discoverable: "discoverable";
+                resolvable_only: "resolvable_only";
+            }>>;
             lifecycle: z.ZodOptional<z.ZodEnum<{
                 active: "active";
                 ended: "ended";
@@ -27030,18 +30197,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 effective_from: z.ZodISODateTime;
                 revision_digest: z.ZodString;
                 agent_readiness_profile_id: z.ZodString;
-                lifecycle: z.ZodEnum<{
-                    active: "active";
-                    ended: "ended";
-                    withdrawn: "withdrawn";
-                }>;
-                freshness: z.ZodEnum<{
-                    unknown: "unknown";
-                    fresh: "fresh";
-                    stale: "stale";
-                }>;
-                policy_as_of: z.ZodISODateTime;
-                projection_digest: z.ZodString;
                 scope: z.ZodObject<{
                     product: z.ZodObject<{
                         key: z.ZodString;
@@ -27052,7 +30207,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         name: z.ZodString;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
-                declaration_revision_digest: z.ZodString;
                 coverage: z.ZodObject<{
                     status: z.ZodEnum<{
                         incomplete: "incomplete";
@@ -27065,6 +30219,19 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     verified_barrier_signals: z.ZodNumber;
                     barrier_ratio: z.ZodNumber;
                 }, z.core.$strict>;
+                lifecycle: z.ZodEnum<{
+                    active: "active";
+                    ended: "ended";
+                    withdrawn: "withdrawn";
+                }>;
+                freshness: z.ZodEnum<{
+                    unknown: "unknown";
+                    fresh: "fresh";
+                    stale: "stale";
+                }>;
+                policy_as_of: z.ZodISODateTime;
+                projection_digest: z.ZodString;
+                declaration_revision_digest: z.ZodString;
                 policy_version: z.ZodString;
                 grade_derivation: z.ZodObject<{
                     label: z.ZodString;
@@ -27178,16 +30345,18 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         fresh: "fresh";
                         stale: "stale";
                     }>;
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     dispute: z.ZodEnum<{
                         none: "none";
                         open: "open";
                         resolved: "resolved";
                     }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -27202,6 +30371,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -27246,6 +30416,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -27277,6 +30448,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -27903,11 +31075,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -27944,8 +31111,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -28016,6 +31188,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28060,6 +31233,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28091,6 +31265,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28164,6 +31339,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28195,6 +31371,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28846,11 +32023,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         stale: "stale";
                     }>;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -28887,8 +32059,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                     canonical_url: z.ZodURL;
                     projection_digest: z.ZodString;
@@ -28952,6 +32129,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -28983,6 +32161,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29014,6 +32193,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29045,6 +32225,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29124,6 +32305,10 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
             }, z.core.$strict>>>;
+            expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                snapshot_digest: z.ZodNullable<z.ZodString>;
+            }, z.core.$strict>>>;
             authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"authenticated_form">;
             }, z.core.$strict>, z.ZodObject<{
@@ -29150,11 +32335,11 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     rejected: "rejected";
                     active: "active";
                     queued: "queued";
+                    awaiting_admission: "awaiting_admission";
+                    published: "published";
                     invalidated: "invalidated";
                     awaiting_review: "awaiting_review";
-                    awaiting_admission: "awaiting_admission";
                     awaiting_authorization: "awaiting_authorization";
-                    published: "published";
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
@@ -29234,6 +32419,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29265,6 +32451,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29296,6 +32483,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29327,6 +32515,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29373,11 +32562,11 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     rejected: "rejected";
                     active: "active";
                     queued: "queued";
+                    awaiting_admission: "awaiting_admission";
+                    published: "published";
                     invalidated: "invalidated";
                     awaiting_review: "awaiting_review";
-                    awaiting_admission: "awaiting_admission";
                     awaiting_authorization: "awaiting_authorization";
-                    published: "published";
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
@@ -29457,6 +32646,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29488,6 +32678,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29519,6 +32710,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29550,6 +32742,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29927,6 +33120,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29958,6 +33152,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -29989,6 +33184,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30056,6 +33252,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     "agent-readiness": "agent-readiness";
                 }>;
                 candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+                candidateReference: z.ZodString;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>;
     };
@@ -30101,6 +33298,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                             "agent-readiness": "agent-readiness";
                         }>;
                         candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+                        candidateReference: z.ZodString;
                     }, z.core.$strict>], "kind">;
                 }, z.core.$strict>;
                 response: z.ZodObject<{
@@ -30123,6 +33321,10 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                             repository: z.ZodString;
                             liveSourceCommit: z.ZodString;
                             targetCommit: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"pending_submission">;
+                            candidateReference: z.ZodString;
+                            candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
                         }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                     response_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
@@ -30189,6 +33391,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30220,6 +33423,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30251,6 +33455,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30282,6 +33487,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30313,6 +33519,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30339,317 +33546,83 @@ export declare const catalogVerifierV1Endpoints: readonly [{
 }];
 /** One product-semantic commercial operation; payment never changes Catalog authority. */
 export declare const startupCreditsReviewV1Endpoints: readonly [{
-    readonly operationId: "getStartupCreditsReviewPaymentRequirements";
-    readonly method: "GET";
-    readonly path: "/v1/startup-credits/reviews";
-    readonly summary: "Read effect-free x402 payment requirements for a Sourcey Startup Review.";
-    readonly tags: readonly ["Catalog"];
-    readonly responses: {};
-    readonly x402Discovery: {
-        descriptor_contract: "sourcey.payable-product-descriptor/v1alpha1";
-        product_code: string;
-        price_lookup_key: string;
-        operation_id: string;
-        method: "POST";
-        path: string;
-        success_status: 202;
-        service_name: string;
-        description: string;
-        tags: [string, string, string, string, string];
-        floor_price: {
-            currency: "usd";
-            minor_units: 2500;
-        };
-        service_policy_url: string;
-        refund_policy_url: string;
-        input_example: {
-            request_id: string;
-            draft: {
-                standing_result: {
-                    result_contract: "sourcey.standing-result/v1alpha1";
-                    policy_digest: string;
-                    evidence_digest: string;
-                    registrable_domain: string;
-                    official_source_url: string;
-                    route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "claim_or_fund";
-                    reasons: string[];
-                    evaluated_at: string;
-                    expires_at: string;
-                    result_digest: string;
-                };
-                company: {
-                    name: string;
-                    domain: string;
-                    category: string;
-                    summary: string;
-                    site_url: string;
-                };
-                offer: {
-                    title: string;
-                    summary: string;
-                    benefit: string;
-                    eligibility: string;
-                    access_method: "other" | "automatic" | "form" | "contact";
-                    access_url?: string | undefined;
-                };
-                program?: {
-                    title: string;
-                    summary: string;
-                } | undefined;
-            };
-        };
-        output_example: {
-            data: {
-                request_id: string;
-                submission_id: string;
-                order: {
-                    order: {
-                        order_contract: "sourcey.commercial-order/v1alpha1";
-                        order_id: string;
-                        actor_ref: string;
-                        product_code: string;
-                        purchase_kind: "one_off";
-                        product_definition_digest: string;
-                        funded_work_intent_id: string;
-                        funded_work_intent_digest: string;
-                        owner_work_ref: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        payment_state: "payment_pending" | "refund_pending" | "refunded" | "paid" | "cancelled";
-                        payment_attempt_id: string;
-                        work_state: "failed" | "blocked" | "cancelled" | "queued" | "in_review" | "fulfilled";
-                        paid_at: string | null;
-                        sla_due_at: string | null;
-                        refund_reason: "scope_superseded" | "service_level_missed" | "sourcey_error" | "duplicate_charge" | null;
-                        refund_requested_at: string | null;
-                        refunded_at: string | null;
-                        fulfilment_receipt_digest: string | null;
-                        failure_receipt_digest: string | null;
-                        created_at: string;
-                        updated_at: string;
-                    };
-                    payment_attempt: {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "stripe";
-                        checkout_session_id: string | null;
-                        checkout_url: string | null;
-                        payment_intent_id: string | null;
-                        refund_id: string | null;
-                    } | {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "x402";
-                        resource: string;
-                        challenge_digest: string;
-                        payment_payload_digest: string;
-                        payment_requirements_digest: string;
-                        payment_ref: string | null;
-                        verification_ref: string | null;
-                        settlement_ref: string | null;
-                        payer_ref: string | null;
-                        refund_ref: string | null;
-                    };
-                };
-                status_url: string;
-            };
-        };
-    };
-}, {
-    readonly operationId: "createStartupCreditsReview";
+    readonly operationId: "prepareStartupCreditsExistingRecordReview";
     readonly method: "POST";
-    readonly path: "/v1/startup-credits/reviews";
-    readonly summary: "Create one evidence-backed human review of a startup credit or startup program.";
+    readonly path: "/v1/startup-credits/review-preparations";
+    readonly summary: "Prepare current Human verification terms and exact assurance work for one published startup Offer.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
-        readonly headers: z.ZodObject<{
-            "payment-signature": z.ZodOptional<z.ZodString>;
-        }, z.core.$loose>;
         readonly body: z.ZodObject<{
-            request_id: z.ZodString;
-            draft: z.ZodObject<{
-                standing_result: z.ZodObject<{
-                    result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-                    policy_digest: z.ZodString;
-                    evidence_digest: z.ZodString;
-                    registrable_domain: z.ZodString;
-                    official_source_url: z.ZodURL;
-                    route: z.ZodEnum<{
-                        correction_required: "correction_required";
-                        repair_required: "repair_required";
-                        temporarily_unavailable: "temporarily_unavailable";
-                        free_machine_review: "free_machine_review";
-                        claim_or_fund: "claim_or_fund";
-                    }>;
-                    reasons: z.ZodArray<z.ZodString>;
-                    evaluated_at: z.ZodISODateTime;
-                    expires_at: z.ZodISODateTime;
-                    result_digest: z.ZodString;
-                }, z.core.$strict>;
-                company: z.ZodObject<{
-                    name: z.ZodString;
-                    domain: z.ZodString;
-                    category: z.ZodString;
-                    summary: z.ZodString;
-                    site_url: z.ZodURL;
-                }, z.core.$strict>;
-                program: z.ZodOptional<z.ZodObject<{
-                    title: z.ZodString;
-                    summary: z.ZodString;
-                }, z.core.$strict>>;
-                offer: z.ZodObject<{
-                    title: z.ZodString;
-                    summary: z.ZodString;
-                    benefit: z.ZodString;
-                    eligibility: z.ZodString;
-                    access_method: z.ZodEnum<{
-                        other: "other";
-                        automatic: "automatic";
-                        form: "form";
-                        contact: "contact";
-                    }>;
-                    access_url: z.ZodOptional<z.ZodURL>;
-                }, z.core.$strict>;
+            target: z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>;
     };
     readonly responses: {
-        readonly 202: z.ZodObject<{
+        readonly 200: z.ZodObject<{
             data: z.ZodObject<{
-                request_id: z.ZodString;
-                submission_id: z.ZodString;
-                order: z.ZodObject<{
-                    order: z.ZodObject<{
-                        order_contract: z.ZodLiteral<"sourcey.commercial-order/v1alpha1">;
-                        order_id: z.ZodString;
-                        actor_ref: z.ZodString;
-                        product_code: z.ZodString;
-                        purchase_kind: z.ZodLiteral<"one_off">;
-                        product_definition_digest: z.ZodString;
-                        funded_work_intent_id: z.ZodString;
-                        funded_work_intent_digest: z.ZodString;
-                        owner_work_ref: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        payment_state: z.ZodEnum<{
-                            payment_pending: "payment_pending";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                            paid: "paid";
-                            cancelled: "cancelled";
-                        }>;
-                        payment_attempt_id: z.ZodString;
-                        work_state: z.ZodEnum<{
-                            failed: "failed";
-                            blocked: "blocked";
-                            cancelled: "cancelled";
-                            queued: "queued";
-                            in_review: "in_review";
-                            fulfilled: "fulfilled";
-                        }>;
-                        paid_at: z.ZodNullable<z.ZodISODateTime>;
-                        sla_due_at: z.ZodNullable<z.ZodISODateTime>;
-                        refund_reason: z.ZodNullable<z.ZodEnum<{
-                            scope_superseded: "scope_superseded";
-                            service_level_missed: "service_level_missed";
-                            sourcey_error: "sourcey_error";
-                            duplicate_charge: "duplicate_charge";
-                        }>>;
-                        refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
-                        refunded_at: z.ZodNullable<z.ZodISODateTime>;
-                        fulfilment_receipt_digest: z.ZodNullable<z.ZodString>;
-                        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                    }, z.core.$strict>;
-                    payment_attempt: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"stripe">;
-                        checkout_session_id: z.ZodNullable<z.ZodString>;
-                        checkout_url: z.ZodNullable<z.ZodURL>;
-                        payment_intent_id: z.ZodNullable<z.ZodString>;
-                        refund_id: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>, z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"x402">;
-                        resource: z.ZodURL;
-                        challenge_digest: z.ZodString;
-                        payment_payload_digest: z.ZodString;
-                        payment_requirements_digest: z.ZodString;
-                        payment_ref: z.ZodNullable<z.ZodString>;
-                        verification_ref: z.ZodNullable<z.ZodString>;
-                        settlement_ref: z.ZodNullable<z.ZodString>;
-                        payer_ref: z.ZodNullable<z.ZodString>;
-                        refund_ref: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>], "rail">;
+                target: z.ZodObject<{
+                    kind: z.ZodLiteral<"existing_record">;
+                    entity_id: z.ZodString;
+                    entity_revision_digest: z.ZodString;
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    offer_revision_digest: z.ZodString;
+                    expected_purchase_preview_digest: z.ZodString;
                 }, z.core.$strict>;
-                status_url: z.ZodURL;
+                purchase_preview: z.ZodObject<{
+                    preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
+                    product_code: z.ZodLiteral<"startup-offer-human-verification">;
+                    purchase_kind: z.ZodLiteral<"one_off">;
+                    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+                    price: z.ZodObject<{
+                        currency: z.ZodLiteral<"usd">;
+                        minor_units: z.ZodLiteral<4900>;
+                    }, z.core.$strict>;
+                    work_scope: z.ZodLiteral<"one-entity-one-offer">;
+                    passing_results: z.ZodObject<{
+                        entity_identity: z.ZodObject<{
+                            status: z.ZodLiteral<"verified">;
+                            binding: z.ZodLiteral<"identity-epoch">;
+                        }, z.core.$strict>;
+                        offer_terms: z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            binding: z.ZodLiteral<"exact-offer-revision">;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    service_level: z.ZodObject<{
+                        starts_after: z.ZodLiteral<"settled-payment">;
+                        business_days: z.ZodLiteral<3>;
+                        time_zone: z.ZodLiteral<"Australia/Sydney">;
+                    }, z.core.$strict>;
+                    refunds: z.ZodObject<{
+                        material_misrepresentation_refundable: z.ZodLiteral<false>;
+                        service_level_missed_refundable: z.ZodLiteral<true>;
+                        sourcey_error_refundable: z.ZodLiteral<true>;
+                    }, z.core.$strict>;
+                    disclosure: z.ZodLiteral<"Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+                    policy_bindings: z.ZodObject<{
+                        assurance_method: z.ZodString;
+                        purchase_disclosure: z.ZodString;
+                        service: z.ZodString;
+                    }, z.core.$strict>;
+                    preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                assurance_requirements: z.ZodObject<{
+                    entity_identity: z.ZodEnum<{
+                        required: "required";
+                        already_verified: "already_verified";
+                    }>;
+                    offer_terms: z.ZodEnum<{
+                        required: "required";
+                        already_checked: "already_checked";
+                    }>;
+                }, z.core.$strict>;
             }, z.core.$strict>;
         }, z.core.$strict>;
         readonly 400: z.ZodObject<{
@@ -30661,6 +33634,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30692,6 +33666,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30723,6 +33698,550 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsReviewPaymentRequirements";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/reviews";
+    readonly summary: "Read effect-free x402 payment requirements for Sourcey Human Verification.";
+    readonly tags: readonly ["Catalog"];
+    readonly responses: {};
+    readonly x402Discovery: {
+        descriptor_contract: "sourcey.payable-product-descriptor/v1alpha1";
+        product_code: string;
+        price_lookup_key: string;
+        operation_id: string;
+        method: "POST";
+        path: string;
+        success_status: 202;
+        service_name: string;
+        description: string;
+        tags: [string, string, string, string, string];
+        floor_price: {
+            currency: "usd";
+            minor_units: 4900;
+        };
+        service_policy_url: string;
+        refund_policy_url: string;
+        input_example: {
+            request_id: string;
+            payment_rail: "x402";
+            target: {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
+                };
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            } | {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            };
+        } | {
+            request_id: string;
+            payment_rail: "stripe";
+            target: {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            } | {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
+                };
+                expected_draft: {
+                    base_release_id: string;
+                    content_digest: string;
+                    purchase_preview_digest: string;
+                };
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            };
+            replaces_intent?: {
+                intent_id: string;
+                intent_digest: string;
+            } | undefined;
+        };
+        output_example: {
+            data: {
+                request_id: string;
+                verification: {
+                    verification_case_id: string;
+                    state: "awaiting_payment" | "verifying" | "input_needed" | "publishing" | "live" | "refused";
+                    required_input: {
+                        code: "domain_control" | "official_offer_page" | "company_identity" | "offer_existence" | "current_terms" | "pricing_or_consideration" | "access_instructions" | "conflicting_identity" | "unsupported_material_claim";
+                        path: string;
+                        message: string;
+                    }[];
+                    decision_ref: string | null;
+                    publication_release_id: string | null;
+                    public_record_url: string | null;
+                    updated_at: string;
+                };
+                order_id: string;
+                status_url: string;
+                checkout_url: string | null;
+            };
+        };
+    };
+}, {
+    readonly operationId: "createStartupCreditsReview";
+    readonly method: "POST";
+    readonly path: "/v1/startup-credits/reviews";
+    readonly summary: "Start Human verification for one startup credit or startup program.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly headers: z.ZodObject<{
+            "payment-signature": z.ZodOptional<z.ZodString>;
+        }, z.core.$loose>;
+        readonly body: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            request_id: z.ZodString;
+            payment_rail: z.ZodLiteral<"x402">;
+            target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"new_listing">;
+                draft: z.ZodObject<{
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    existing_entity: z.ZodOptional<z.ZodObject<{
+                        entity_id: z.ZodString;
+                        entity_revision_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    company: z.ZodObject<{
+                        name: z.ZodString;
+                        domain: z.ZodString;
+                        category: z.ZodString;
+                        summary: z.ZodString;
+                        site_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    program: z.ZodOptional<z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                    }, z.core.$strict>>;
+                    offer: z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                        benefit: z.ZodString;
+                        eligibility: z.ZodString;
+                        access_method: z.ZodEnum<{
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        access_url: z.ZodOptional<z.ZodURL>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                entity_icon: z.ZodOptional<z.ZodObject<{
+                    source: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"upload">;
+                        upload_receipt_digest: z.ZodString;
+                        original_digest: z.ZodString;
+                        bytes: z.ZodNumber;
+                        media_type: z.ZodEnum<{
+                            "image/jpeg": "image/jpeg";
+                            "image/png": "image/png";
+                            "image/webp": "image/webp";
+                            "image/svg+xml": "image/svg+xml";
+                        }>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"official_url">;
+                        url: z.ZodURL;
+                    }, z.core.$strict>], "kind">;
+                    trademark_owner: z.ZodString;
+                    relationship: z.ZodEnum<{
+                        "vendor-representative": "vendor-representative";
+                        "community-contributor": "community-contributor";
+                    }>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>], "kind">;
+        }, z.core.$strict>, z.ZodObject<{
+            request_id: z.ZodString;
+            payment_rail: z.ZodLiteral<"stripe">;
+            target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"new_listing">;
+                draft: z.ZodObject<{
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    existing_entity: z.ZodOptional<z.ZodObject<{
+                        entity_id: z.ZodString;
+                        entity_revision_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    company: z.ZodObject<{
+                        name: z.ZodString;
+                        domain: z.ZodString;
+                        category: z.ZodString;
+                        summary: z.ZodString;
+                        site_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    program: z.ZodOptional<z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                    }, z.core.$strict>>;
+                    offer: z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                        benefit: z.ZodString;
+                        eligibility: z.ZodString;
+                        access_method: z.ZodEnum<{
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        access_url: z.ZodOptional<z.ZodURL>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                entity_icon: z.ZodOptional<z.ZodObject<{
+                    source: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"upload">;
+                        upload_receipt_digest: z.ZodString;
+                        original_digest: z.ZodString;
+                        bytes: z.ZodNumber;
+                        media_type: z.ZodEnum<{
+                            "image/jpeg": "image/jpeg";
+                            "image/png": "image/png";
+                            "image/webp": "image/webp";
+                            "image/svg+xml": "image/svg+xml";
+                        }>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"official_url">;
+                        url: z.ZodURL;
+                    }, z.core.$strict>], "kind">;
+                    trademark_owner: z.ZodString;
+                    relationship: z.ZodEnum<{
+                        "vendor-representative": "vendor-representative";
+                        "community-contributor": "community-contributor";
+                    }>;
+                }, z.core.$strict>>;
+                expected_draft: z.ZodObject<{
+                    base_release_id: z.ZodString;
+                    content_digest: z.ZodString;
+                    purchase_preview_digest: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>], "kind">;
+            replaces_intent: z.ZodOptional<z.ZodObject<{
+                intent_id: z.ZodString;
+                intent_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>], "payment_rail">;
+    };
+    readonly responses: {
+        readonly 202: z.ZodObject<{
+            data: z.ZodObject<{
+                request_id: z.ZodString;
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
+                        }>;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
+                }, z.core.$strict>;
+                order_id: z.ZodString;
+                status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 409: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -30759,122 +34278,169 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
         tags: [string, string, string, string, string];
         floor_price: {
             currency: "usd";
-            minor_units: 2500;
+            minor_units: 4900;
         };
         service_policy_url: string;
         refund_policy_url: string;
         input_example: {
             request_id: string;
-            draft: {
-                standing_result: {
-                    result_contract: "sourcey.standing-result/v1alpha1";
-                    policy_digest: string;
-                    evidence_digest: string;
-                    registrable_domain: string;
-                    official_source_url: string;
-                    route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "claim_or_fund";
-                    reasons: string[];
-                    evaluated_at: string;
-                    expires_at: string;
-                    result_digest: string;
+            payment_rail: "x402";
+            target: {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
                 };
-                company: {
-                    name: string;
-                    domain: string;
-                    category: string;
-                    summary: string;
-                    site_url: string;
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            } | {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            };
+        } | {
+            request_id: string;
+            payment_rail: "stripe";
+            target: {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            } | {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
                 };
-                offer: {
-                    title: string;
-                    summary: string;
-                    benefit: string;
-                    eligibility: string;
-                    access_method: "other" | "automatic" | "form" | "contact";
-                    access_url?: string | undefined;
+                expected_draft: {
+                    base_release_id: string;
+                    content_digest: string;
+                    purchase_preview_digest: string;
                 };
-                program?: {
-                    title: string;
-                    summary: string;
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
                 } | undefined;
             };
+            replaces_intent?: {
+                intent_id: string;
+                intent_digest: string;
+            } | undefined;
         };
         output_example: {
             data: {
                 request_id: string;
-                submission_id: string;
-                order: {
-                    order: {
-                        order_contract: "sourcey.commercial-order/v1alpha1";
-                        order_id: string;
-                        actor_ref: string;
-                        product_code: string;
-                        purchase_kind: "one_off";
-                        product_definition_digest: string;
-                        funded_work_intent_id: string;
-                        funded_work_intent_digest: string;
-                        owner_work_ref: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        payment_state: "payment_pending" | "refund_pending" | "refunded" | "paid" | "cancelled";
-                        payment_attempt_id: string;
-                        work_state: "failed" | "blocked" | "cancelled" | "queued" | "in_review" | "fulfilled";
-                        paid_at: string | null;
-                        sla_due_at: string | null;
-                        refund_reason: "scope_superseded" | "service_level_missed" | "sourcey_error" | "duplicate_charge" | null;
-                        refund_requested_at: string | null;
-                        refunded_at: string | null;
-                        fulfilment_receipt_digest: string | null;
-                        failure_receipt_digest: string | null;
-                        created_at: string;
-                        updated_at: string;
-                    };
-                    payment_attempt: {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "stripe";
-                        checkout_session_id: string | null;
-                        checkout_url: string | null;
-                        payment_intent_id: string | null;
-                        refund_id: string | null;
-                    } | {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "x402";
-                        resource: string;
-                        challenge_digest: string;
-                        payment_payload_digest: string;
-                        payment_requirements_digest: string;
-                        payment_ref: string | null;
-                        verification_ref: string | null;
-                        settlement_ref: string | null;
-                        payer_ref: string | null;
-                        refund_ref: string | null;
-                    };
+                verification: {
+                    verification_case_id: string;
+                    state: "awaiting_payment" | "verifying" | "input_needed" | "publishing" | "live" | "refused";
+                    required_input: {
+                        code: "domain_control" | "official_offer_page" | "company_identity" | "offer_existence" | "current_terms" | "pricing_or_consideration" | "access_instructions" | "conflicting_identity" | "unsupported_material_claim";
+                        path: string;
+                        message: string;
+                    }[];
+                    decision_ref: string | null;
+                    publication_release_id: string | null;
+                    public_record_url: string | null;
+                    updated_at: string;
                 };
+                order_id: string;
                 status_url: string;
+                checkout_url: string | null;
             };
         };
     };
@@ -30882,131 +34448,53 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
     readonly operationId: "getStartupCreditsReview";
     readonly method: "GET";
     readonly path: "/v1/startup-credits/reviews/{request_id}";
-    readonly summary: "Read the durable status of one exact paid Startup Review request.";
+    readonly summary: "Read the durable status of one exact Human verification request.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly path: z.ZodObject<{
             request_id: z.ZodString;
         }, z.core.$strict>;
         readonly headers: z.ZodObject<{
-            "payment-signature": z.ZodString;
+            "payment-signature": z.ZodOptional<z.ZodString>;
         }, z.core.$loose>;
     };
     readonly responses: {
         readonly 200: z.ZodObject<{
             data: z.ZodObject<{
                 request_id: z.ZodString;
-                submission_id: z.ZodString;
-                order: z.ZodObject<{
-                    order: z.ZodObject<{
-                        order_contract: z.ZodLiteral<"sourcey.commercial-order/v1alpha1">;
-                        order_id: z.ZodString;
-                        actor_ref: z.ZodString;
-                        product_code: z.ZodString;
-                        purchase_kind: z.ZodLiteral<"one_off">;
-                        product_definition_digest: z.ZodString;
-                        funded_work_intent_id: z.ZodString;
-                        funded_work_intent_digest: z.ZodString;
-                        owner_work_ref: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        payment_state: z.ZodEnum<{
-                            payment_pending: "payment_pending";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                            paid: "paid";
-                            cancelled: "cancelled";
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
                         }>;
-                        payment_attempt_id: z.ZodString;
-                        work_state: z.ZodEnum<{
-                            failed: "failed";
-                            blocked: "blocked";
-                            cancelled: "cancelled";
-                            queued: "queued";
-                            in_review: "in_review";
-                            fulfilled: "fulfilled";
-                        }>;
-                        paid_at: z.ZodNullable<z.ZodISODateTime>;
-                        sla_due_at: z.ZodNullable<z.ZodISODateTime>;
-                        refund_reason: z.ZodNullable<z.ZodEnum<{
-                            scope_superseded: "scope_superseded";
-                            service_level_missed: "service_level_missed";
-                            sourcey_error: "sourcey_error";
-                            duplicate_charge: "duplicate_charge";
-                        }>>;
-                        refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
-                        refunded_at: z.ZodNullable<z.ZodISODateTime>;
-                        fulfilment_receipt_digest: z.ZodNullable<z.ZodString>;
-                        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                    }, z.core.$strict>;
-                    payment_attempt: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"stripe">;
-                        checkout_session_id: z.ZodNullable<z.ZodString>;
-                        checkout_url: z.ZodNullable<z.ZodURL>;
-                        payment_intent_id: z.ZodNullable<z.ZodString>;
-                        refund_id: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>, z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"x402">;
-                        resource: z.ZodURL;
-                        challenge_digest: z.ZodString;
-                        payment_payload_digest: z.ZodString;
-                        payment_requirements_digest: z.ZodString;
-                        payment_ref: z.ZodNullable<z.ZodString>;
-                        verification_ref: z.ZodNullable<z.ZodString>;
-                        settlement_ref: z.ZodNullable<z.ZodString>;
-                        payer_ref: z.ZodNullable<z.ZodString>;
-                        refund_ref: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>], "rail">;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
                 }, z.core.$strict>;
+                order_id: z.ZodString;
                 status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
             }, z.core.$strict>;
         }, z.core.$strict>;
         readonly 400: z.ZodObject<{
@@ -31018,6 +34506,39 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -31049,6 +34570,154 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsReviewByOrder";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/reviews/orders/{order_id}";
+    readonly summary: "Recover one Human verification from its Stripe order.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly path: z.ZodObject<{
+            order_id: z.ZodString;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                request_id: z.ZodString;
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
+                        }>;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
+                }, z.core.$strict>;
+                order_id: z.ZodString;
+                status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -31162,6 +34831,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -31193,6 +34863,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -31294,11 +34965,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -31335,9 +35001,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -31345,11 +35026,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -31386,8 +35062,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -31610,11 +35291,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -31651,9 +35327,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
@@ -31707,11 +35398,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -31748,9 +35434,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -31758,11 +35459,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -31799,8 +35495,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -32023,11 +35724,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -32064,9 +35760,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             next_cursor: z.ZodOptional<z.ZodNullable<z.ZodString>>;
@@ -32077,8 +35788,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 program_count: z.ZodNumber;
                 offer_count: z.ZodNumber;
                 active_offer_count: z.ZodNumber;
-                signed_entity_count: z.ZodNumber;
+                vendor_confirmed_entity_count: z.ZodNumber;
                 verified_entity_count: z.ZodNumber;
+                terms_checked_offer_count: z.ZodNumber;
                 latest_observation_at: z.ZodNullable<z.ZodISODateTime>;
                 categories: z.ZodArray<z.ZodObject<{
                     category: z.ZodString;
@@ -32131,6 +35843,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -32155,14 +35868,96 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
         }, z.core.$strict>;
     };
 }, {
-    readonly operationId: "getEntity";
+    readonly operationId: "listPolicies";
     readonly method: "GET";
-    readonly path: "/v1/entities/{entity}";
-    readonly summary: "Read an entity by immutable ID.";
+    readonly path: "/v1/policies";
+    readonly summary: "List current Sourcey policy records, with their exact text and revision digests.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly query: z.ZodObject<{
+            cursor: z.ZodOptional<z.ZodString>;
+            limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            data: z.ZodArray<z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+            next_cursor: z.ZodNonOptional<z.ZodOptional<z.ZodNullable<z.ZodString>>>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getPolicy";
+    readonly method: "GET";
+    readonly path: "/v1/policies/{slug}";
+    readonly summary: "Read one current Sourcey policy record by slug.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly path: z.ZodObject<{
-            entity: z.ZodString;
+            slug: z.ZodString;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -32175,6 +35970,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -32206,6 +36002,119 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 200: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            data: z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getEntity";
+    readonly method: "GET";
+    readonly path: "/v1/entities/{entity}";
+    readonly summary: "Read an entity by immutable ID.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly path: z.ZodObject<{
+            entity: z.ZodString;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -32243,11 +36152,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -32284,9 +36188,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -32294,11 +36213,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -32335,8 +36249,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -32559,11 +36478,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -32600,9 +36514,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -32684,6 +36613,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -32715,6 +36645,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -32752,11 +36683,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -32793,9 +36719,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -32803,11 +36744,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -32844,8 +36780,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -33068,11 +37009,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -33109,9 +37045,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -33235,6 +37186,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -33279,6 +37231,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -33310,6 +37263,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -33936,11 +37890,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -33977,8 +37926,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -34009,6 +37963,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -34040,6 +37995,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -34666,11 +38622,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -34707,8 +38658,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -34746,6 +38702,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -34777,6 +38734,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -34815,11 +38773,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -34856,9 +38809,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -34866,11 +38834,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -34907,8 +38870,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -35131,11 +39099,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -35172,9 +39135,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -35184,11 +39162,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -35225,8 +39198,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -35264,6 +39242,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -35295,6 +39274,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -35333,11 +39313,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -35374,9 +39349,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -35384,11 +39374,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -35425,8 +39410,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -35649,11 +39639,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -35690,9 +39675,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -35702,11 +39702,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -35743,8 +39738,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -35781,6 +39781,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -35812,6 +39813,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -35850,11 +39852,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -35891,9 +39888,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -35901,11 +39913,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -35942,8 +39949,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -36166,11 +40178,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -36207,9 +40214,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -36219,11 +40241,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -36260,8 +40277,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offer: z.ZodObject<{
@@ -36484,11 +40506,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -36525,9 +40542,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"offer_tombstone">;
@@ -36564,6 +40596,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -36595,6 +40628,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -36633,11 +40667,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     category: z.ZodString;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -36674,9 +40703,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    identity_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"verified">;
+                        assurance_id: z.ZodString;
+                        verified_at: z.ZodISODateTime;
+                        identity_epoch_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                     programs: z.ZodArray<z.ZodObject<{
                         program_id: z.ZodString;
                         slug: z.ZodString;
@@ -36684,11 +40728,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         summary: z.ZodOptional<z.ZodString>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -36725,8 +40764,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     offers: z.ZodArray<z.ZodObject<{
@@ -36949,11 +40993,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         effective_until: z.ZodOptional<z.ZodISODateTime>;
                         revision_digest: z.ZodString;
                         provenance: z.ZodObject<{
-                            tier: z.ZodEnum<{
-                                observed: "observed";
-                                signed: "signed";
-                                verified: "verified";
-                            }>;
                             freshness: z.ZodEnum<{
                                 unknown: "unknown";
                                 fresh: "fresh";
@@ -36990,9 +41029,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     stale: "stale";
                                 }>;
                             }, z.core.$strict>>;
-                            attestation_event_id: z.ZodOptional<z.ZodString>;
-                            verification_event_id: z.ZodOptional<z.ZodString>;
+                            vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                status: z.ZodLiteral<"none">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                status: z.ZodLiteral<"current">;
+                                event_id: z.ZodString;
+                                attested_at: z.ZodISODateTime;
+                            }, z.core.$strict>], "status">;
                         }, z.core.$strict>;
+                        terms_assurance: z.ZodOptional<z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            assurance_id: z.ZodString;
+                            checked_at: z.ZodISODateTime;
+                            revision_digest: z.ZodString;
+                            method_policy_digest: z.ZodString;
+                            coverage_policy_digest: z.ZodString;
+                            event_id: z.ZodString;
+                            receipt_digest: z.ZodString;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -37002,11 +41056,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -37043,8 +41092,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offer: z.ZodObject<{
@@ -37267,11 +41321,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -37308,9 +41357,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"offer_tombstone">;
@@ -37333,9 +41397,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
-            q: z.ZodDefault<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+            q: z.ZodDefault<z.ZodString>;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -37354,11 +41418,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 category: z.ZodString;
                 revision_digest: z.ZodString;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -37395,9 +41454,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 programs: z.ZodArray<z.ZodObject<{
                     program_id: z.ZodString;
                     slug: z.ZodString;
@@ -37405,11 +41479,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     summary: z.ZodOptional<z.ZodString>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -37446,8 +41515,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                 }, z.core.$strict>>;
                 offers: z.ZodArray<z.ZodObject<{
@@ -37670,11 +41744,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -37711,9 +41780,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -37728,6 +41812,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -37759,9 +41844,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
-            q: z.ZodDefault<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
+            q: z.ZodDefault<z.ZodString>;
         }, z.core.$strict>;
     };
     readonly responses: {
@@ -37774,6 +41859,16 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 entity_slug: z.ZodString;
                 entity_name: z.ZodString;
                 category: z.ZodString;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 offer: z.ZodObject<{
                     program_id: z.ZodOptional<z.ZodString>;
                     offer_id: z.ZodString;
@@ -37994,11 +42089,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -38035,9 +42125,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 program_id: z.ZodString;
@@ -38048,6 +42153,16 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 entity_slug: z.ZodString;
                 entity_name: z.ZodString;
                 category: z.ZodString;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
                 offer: z.ZodObject<{
                     program_id: z.ZodOptional<z.ZodString>;
                     offer_id: z.ZodString;
@@ -38268,11 +42383,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     effective_until: z.ZodOptional<z.ZodISODateTime>;
                     revision_digest: z.ZodString;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -38309,9 +42419,24 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
             }, z.core.$strict>]>>;
@@ -38327,6 +42452,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38392,6 +42518,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38423,6 +42550,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38487,6 +42615,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38518,6 +42647,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38575,6 +42705,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38606,6 +42737,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38663,6 +42795,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -38694,6 +42827,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -39147,6 +43281,16 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
                 entity_id: z.ZodString;
                 declaration: z.ZodObject<{
+                    scope: z.ZodObject<{
+                        product: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                        funnel: z.ZodObject<{
+                            key: z.ZodString;
+                            name: z.ZodString;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
                     resources: z.ZodArray<z.ZodObject<{
                         resource_id: z.ZodString;
                         uri: z.ZodURL;
@@ -39208,16 +43352,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                     declaration_id: z.ZodString;
-                    scope: z.ZodObject<{
-                        product: z.ZodObject<{
-                            key: z.ZodString;
-                            name: z.ZodString;
-                        }, z.core.$strict>;
-                        funnel: z.ZodObject<{
-                            key: z.ZodString;
-                            name: z.ZodString;
-                        }, z.core.$strict>;
-                    }, z.core.$strict>;
                     declared_at: z.ZodISODateTime;
                     assessment_targets: z.ZodArray<z.ZodObject<{
                         target_id: z.ZodString;
@@ -39358,12 +43492,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
     readonly operationId: "listEvents";
     readonly method: "GET";
     readonly path: "/v1/events";
-    readonly summary: "Find catalog events by exact operation identity.";
+    readonly summary: "Find catalog events by exact operation, company or revision identity.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
             operation_id: z.ZodOptional<z.ZodString>;
             entity_id: z.ZodOptional<z.ZodString>;
+            revision_digest: z.ZodOptional<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
         }, z.core.$strict>;
@@ -39401,23 +43536,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -39500,9 +43651,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -39806,23 +43963,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -39905,9 +44078,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -40211,23 +44390,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -40310,9 +44505,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -40600,6 +44801,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -40644,6 +44846,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -40675,6 +44878,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -40729,23 +44933,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -40828,9 +45048,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -41134,23 +45360,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -41233,9 +45475,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -41539,23 +45787,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>], "subject_type">;
                 occurred_at: z.ZodISODateTime;
                 payload: z.ZodObject<{
-                    verification_id: z.ZodString;
-                    verifier_id: z.ZodString;
-                    method_version: z.ZodString;
-                    scope: z.ZodEnum<{
-                        "whole-revision": "whole-revision";
-                        paths: "paths";
-                    }>;
-                    verified_paths: z.ZodArray<z.ZodString>;
-                    result: z.ZodEnum<{
-                        pass: "pass";
-                        fail: "fail";
-                        inconclusive: "inconclusive";
-                    }>;
+                    identity_epoch_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
                     receipt_digest: z.ZodString;
                     checked_at: z.ZodISODateTime;
-                    coverage_policy_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
+                    coverage_policy_digest: z.ZodString;
+                    coverage_paths: z.ZodArray<z.ZodString>;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    checked_at: z.ZodISODateTime;
+                }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"entity_identity">;
+                    identity_epoch_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    assurance_kind: z.ZodLiteral<"offer_terms">;
+                    revision_digest: z.ZodString;
+                    assurance_id: z.ZodString;
+                    reviewer_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                    revoked_at: z.ZodISODateTime;
+                    reason_code: z.ZodString;
+                }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                     observation_id: z.ZodString;
                     capture_receipt_digest: z.ZodOptional<z.ZodString>;
                     normalized_object_digest: z.ZodString;
@@ -41638,9 +45902,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     revoked_at: z.ZodISODateTime;
                     reason_code: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
-                    target_event_id: z.ZodString;
-                    revoked_at: z.ZodISODateTime;
-                    reason_code: z.ZodString;
+                    verification_id: z.ZodString;
+                    verifier_id: z.ZodString;
+                    method_version: z.ZodString;
+                    scope: z.ZodLiteral<"whole-revision">;
+                    result: z.ZodLiteral<"pass">;
+                    checked_at: z.ZodISODateTime;
+                    verified_paths: z.ZodArray<z.ZodString>;
+                    coverage_policy_digest: z.ZodString;
+                    receipt_digest: z.ZodString;
                 }, z.core.$strict> | z.ZodObject<{
                     paths: z.ZodArray<z.ZodString>;
                     valid_until: z.ZodISODateTime;
@@ -42047,6 +46317,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -42091,6 +46362,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -42122,6 +46394,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -42270,6 +46543,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -42301,6 +46575,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -42338,9 +46613,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 outcome: z.ZodEnum<{
                     error: "error";
-                    unreachable: "unreachable";
                     "supports-candidate": "supports-candidate";
                     "contradicts-candidate": "contradicts-candidate";
+                    unreachable: "unreachable";
                 }>;
                 capture: z.ZodOptional<z.ZodObject<{
                     digest: z.ZodString;
@@ -42710,23 +46985,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -42809,9 +47100,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -43115,23 +47412,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -43214,9 +47527,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -43520,23 +47839,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>], "subject_type">;
                     occurred_at: z.ZodISODateTime;
                     payload: z.ZodObject<{
-                        verification_id: z.ZodString;
-                        verifier_id: z.ZodString;
-                        method_version: z.ZodString;
-                        scope: z.ZodEnum<{
-                            "whole-revision": "whole-revision";
-                            paths: "paths";
-                        }>;
-                        verified_paths: z.ZodArray<z.ZodString>;
-                        result: z.ZodEnum<{
-                            pass: "pass";
-                            fail: "fail";
-                            inconclusive: "inconclusive";
-                        }>;
+                        identity_epoch_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
                         receipt_digest: z.ZodString;
                         checked_at: z.ZodISODateTime;
-                        coverage_policy_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
+                        coverage_policy_digest: z.ZodString;
+                        coverage_paths: z.ZodArray<z.ZodString>;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                    }, z.core.$strict> | z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"entity_identity">;
+                        identity_epoch_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        assurance_kind: z.ZodLiteral<"offer_terms">;
+                        revision_digest: z.ZodString;
+                        assurance_id: z.ZodString;
+                        reviewer_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                        revoked_at: z.ZodISODateTime;
+                        reason_code: z.ZodString;
+                    }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
                         observation_id: z.ZodString;
                         capture_receipt_digest: z.ZodOptional<z.ZodString>;
                         normalized_object_digest: z.ZodString;
@@ -43619,9 +47954,15 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         revoked_at: z.ZodISODateTime;
                         reason_code: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
-                        target_event_id: z.ZodString;
-                        revoked_at: z.ZodISODateTime;
-                        reason_code: z.ZodString;
+                        verification_id: z.ZodString;
+                        verifier_id: z.ZodString;
+                        method_version: z.ZodString;
+                        scope: z.ZodLiteral<"whole-revision">;
+                        result: z.ZodLiteral<"pass">;
+                        checked_at: z.ZodISODateTime;
+                        verified_paths: z.ZodArray<z.ZodString>;
+                        coverage_policy_digest: z.ZodString;
+                        receipt_digest: z.ZodString;
                     }, z.core.$strict> | z.ZodObject<{
                         paths: z.ZodArray<z.ZodString>;
                         valid_until: z.ZodISODateTime;
@@ -43909,9 +48250,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>;
                     outcome: z.ZodEnum<{
                         error: "error";
-                        unreachable: "unreachable";
                         "supports-candidate": "supports-candidate";
                         "contradicts-candidate": "contradicts-candidate";
+                        unreachable: "unreachable";
                     }>;
                     capture: z.ZodOptional<z.ZodObject<{
                         digest: z.ZodString;
@@ -44067,6 +48408,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -44145,6 +48487,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -44199,6 +48542,10 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 limited: "limited";
                 blocked: "blocked";
             }>>;
+            visibility: z.ZodOptional<z.ZodEnum<{
+                discoverable: "discoverable";
+                resolvable_only: "resolvable_only";
+            }>>;
             lifecycle: z.ZodOptional<z.ZodEnum<{
                 active: "active";
                 ended: "ended";
@@ -44224,18 +48571,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 effective_from: z.ZodISODateTime;
                 revision_digest: z.ZodString;
                 agent_readiness_profile_id: z.ZodString;
-                lifecycle: z.ZodEnum<{
-                    active: "active";
-                    ended: "ended";
-                    withdrawn: "withdrawn";
-                }>;
-                freshness: z.ZodEnum<{
-                    unknown: "unknown";
-                    fresh: "fresh";
-                    stale: "stale";
-                }>;
-                policy_as_of: z.ZodISODateTime;
-                projection_digest: z.ZodString;
                 scope: z.ZodObject<{
                     product: z.ZodObject<{
                         key: z.ZodString;
@@ -44246,7 +48581,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         name: z.ZodString;
                     }, z.core.$strict>;
                 }, z.core.$strict>;
-                declaration_revision_digest: z.ZodString;
                 coverage: z.ZodObject<{
                     status: z.ZodEnum<{
                         incomplete: "incomplete";
@@ -44259,6 +48593,19 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     verified_barrier_signals: z.ZodNumber;
                     barrier_ratio: z.ZodNumber;
                 }, z.core.$strict>;
+                lifecycle: z.ZodEnum<{
+                    active: "active";
+                    ended: "ended";
+                    withdrawn: "withdrawn";
+                }>;
+                freshness: z.ZodEnum<{
+                    unknown: "unknown";
+                    fresh: "fresh";
+                    stale: "stale";
+                }>;
+                policy_as_of: z.ZodISODateTime;
+                projection_digest: z.ZodString;
+                declaration_revision_digest: z.ZodString;
                 policy_version: z.ZodString;
                 grade_derivation: z.ZodObject<{
                     label: z.ZodString;
@@ -44372,16 +48719,18 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         fresh: "fresh";
                         stale: "stale";
                     }>;
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     dispute: z.ZodEnum<{
                         none: "none";
                         open: "open";
                         resolved: "resolved";
                     }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -44396,6 +48745,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -44440,6 +48790,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -44471,6 +48822,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -45097,11 +49449,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     stale: "stale";
                 }>;
                 provenance: z.ZodObject<{
-                    tier: z.ZodEnum<{
-                        observed: "observed";
-                        signed: "signed";
-                        verified: "verified";
-                    }>;
                     freshness: z.ZodEnum<{
                         unknown: "unknown";
                         fresh: "fresh";
@@ -45138,8 +49485,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             stale: "stale";
                         }>;
                     }, z.core.$strict>>;
-                    attestation_event_id: z.ZodOptional<z.ZodString>;
-                    verification_event_id: z.ZodOptional<z.ZodString>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 projection_digest: z.ZodString;
@@ -45210,6 +49562,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -45254,6 +49607,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -45285,6 +49639,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -45358,6 +49713,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -45389,6 +49745,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46040,11 +50397,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         stale: "stale";
                     }>;
                     provenance: z.ZodObject<{
-                        tier: z.ZodEnum<{
-                            observed: "observed";
-                            signed: "signed";
-                            verified: "verified";
-                        }>;
                         freshness: z.ZodEnum<{
                             unknown: "unknown";
                             fresh: "fresh";
@@ -46081,8 +50433,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 stale: "stale";
                             }>;
                         }, z.core.$strict>>;
-                        attestation_event_id: z.ZodOptional<z.ZodString>;
-                        verification_event_id: z.ZodOptional<z.ZodString>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
                     }, z.core.$strict>;
                     canonical_url: z.ZodURL;
                     projection_digest: z.ZodString;
@@ -46144,6 +50501,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46175,6 +50533,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46206,6 +50565,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46237,6 +50597,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46316,6 +50677,10 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 expected_current_binding_event_id: z.ZodNullable<z.ZodString>;
             }, z.core.$strict>>>;
+            expected_current_entities: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                snapshot_digest: z.ZodNullable<z.ZodString>;
+            }, z.core.$strict>>>;
             authority: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"authenticated_form">;
             }, z.core.$strict>, z.ZodObject<{
@@ -46342,11 +50707,11 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     rejected: "rejected";
                     active: "active";
                     queued: "queued";
+                    awaiting_admission: "awaiting_admission";
+                    published: "published";
                     invalidated: "invalidated";
                     awaiting_review: "awaiting_review";
-                    awaiting_admission: "awaiting_admission";
                     awaiting_authorization: "awaiting_authorization";
-                    published: "published";
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
@@ -46426,6 +50791,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46457,6 +50823,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46488,6 +50855,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46519,6 +50887,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46565,11 +50934,11 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     rejected: "rejected";
                     active: "active";
                     queued: "queued";
+                    awaiting_admission: "awaiting_admission";
+                    published: "published";
                     invalidated: "invalidated";
                     awaiting_review: "awaiting_review";
-                    awaiting_admission: "awaiting_admission";
                     awaiting_authorization: "awaiting_authorization";
-                    published: "published";
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
@@ -46649,6 +51018,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46680,6 +51050,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46711,6 +51082,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -46742,6 +51114,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47117,6 +51490,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47148,6 +51522,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47179,6 +51554,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47244,6 +51620,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     "agent-readiness": "agent-readiness";
                 }>;
                 candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+                candidateReference: z.ZodString;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>;
     };
@@ -47289,6 +51666,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             "agent-readiness": "agent-readiness";
                         }>;
                         candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
+                        candidateReference: z.ZodString;
                     }, z.core.$strict>], "kind">;
                 }, z.core.$strict>;
                 response: z.ZodObject<{
@@ -47311,6 +51689,10 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             repository: z.ZodString;
                             liveSourceCommit: z.ZodString;
                             targetCommit: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"pending_submission">;
+                            candidateReference: z.ZodString;
+                            candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
                         }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                     response_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
@@ -47377,6 +51759,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47408,6 +51791,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47439,6 +51823,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47470,6 +51855,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47501,6 +51887,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47525,317 +51912,83 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
         }, z.core.$strict>;
     };
 }, {
-    readonly operationId: "getStartupCreditsReviewPaymentRequirements";
-    readonly method: "GET";
-    readonly path: "/v1/startup-credits/reviews";
-    readonly summary: "Read effect-free x402 payment requirements for a Sourcey Startup Review.";
-    readonly tags: readonly ["Catalog"];
-    readonly responses: {};
-    readonly x402Discovery: {
-        descriptor_contract: "sourcey.payable-product-descriptor/v1alpha1";
-        product_code: string;
-        price_lookup_key: string;
-        operation_id: string;
-        method: "POST";
-        path: string;
-        success_status: 202;
-        service_name: string;
-        description: string;
-        tags: [string, string, string, string, string];
-        floor_price: {
-            currency: "usd";
-            minor_units: 2500;
-        };
-        service_policy_url: string;
-        refund_policy_url: string;
-        input_example: {
-            request_id: string;
-            draft: {
-                standing_result: {
-                    result_contract: "sourcey.standing-result/v1alpha1";
-                    policy_digest: string;
-                    evidence_digest: string;
-                    registrable_domain: string;
-                    official_source_url: string;
-                    route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "claim_or_fund";
-                    reasons: string[];
-                    evaluated_at: string;
-                    expires_at: string;
-                    result_digest: string;
-                };
-                company: {
-                    name: string;
-                    domain: string;
-                    category: string;
-                    summary: string;
-                    site_url: string;
-                };
-                offer: {
-                    title: string;
-                    summary: string;
-                    benefit: string;
-                    eligibility: string;
-                    access_method: "other" | "automatic" | "form" | "contact";
-                    access_url?: string | undefined;
-                };
-                program?: {
-                    title: string;
-                    summary: string;
-                } | undefined;
-            };
-        };
-        output_example: {
-            data: {
-                request_id: string;
-                submission_id: string;
-                order: {
-                    order: {
-                        order_contract: "sourcey.commercial-order/v1alpha1";
-                        order_id: string;
-                        actor_ref: string;
-                        product_code: string;
-                        purchase_kind: "one_off";
-                        product_definition_digest: string;
-                        funded_work_intent_id: string;
-                        funded_work_intent_digest: string;
-                        owner_work_ref: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        payment_state: "payment_pending" | "refund_pending" | "refunded" | "paid" | "cancelled";
-                        payment_attempt_id: string;
-                        work_state: "failed" | "blocked" | "cancelled" | "queued" | "in_review" | "fulfilled";
-                        paid_at: string | null;
-                        sla_due_at: string | null;
-                        refund_reason: "scope_superseded" | "service_level_missed" | "sourcey_error" | "duplicate_charge" | null;
-                        refund_requested_at: string | null;
-                        refunded_at: string | null;
-                        fulfilment_receipt_digest: string | null;
-                        failure_receipt_digest: string | null;
-                        created_at: string;
-                        updated_at: string;
-                    };
-                    payment_attempt: {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "stripe";
-                        checkout_session_id: string | null;
-                        checkout_url: string | null;
-                        payment_intent_id: string | null;
-                        refund_id: string | null;
-                    } | {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "x402";
-                        resource: string;
-                        challenge_digest: string;
-                        payment_payload_digest: string;
-                        payment_requirements_digest: string;
-                        payment_ref: string | null;
-                        verification_ref: string | null;
-                        settlement_ref: string | null;
-                        payer_ref: string | null;
-                        refund_ref: string | null;
-                    };
-                };
-                status_url: string;
-            };
-        };
-    };
-}, {
-    readonly operationId: "createStartupCreditsReview";
+    readonly operationId: "prepareStartupCreditsExistingRecordReview";
     readonly method: "POST";
-    readonly path: "/v1/startup-credits/reviews";
-    readonly summary: "Create one evidence-backed human review of a startup credit or startup program.";
+    readonly path: "/v1/startup-credits/review-preparations";
+    readonly summary: "Prepare current Human verification terms and exact assurance work for one published startup Offer.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
-        readonly headers: z.ZodObject<{
-            "payment-signature": z.ZodOptional<z.ZodString>;
-        }, z.core.$loose>;
         readonly body: z.ZodObject<{
-            request_id: z.ZodString;
-            draft: z.ZodObject<{
-                standing_result: z.ZodObject<{
-                    result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-                    policy_digest: z.ZodString;
-                    evidence_digest: z.ZodString;
-                    registrable_domain: z.ZodString;
-                    official_source_url: z.ZodURL;
-                    route: z.ZodEnum<{
-                        correction_required: "correction_required";
-                        repair_required: "repair_required";
-                        temporarily_unavailable: "temporarily_unavailable";
-                        free_machine_review: "free_machine_review";
-                        claim_or_fund: "claim_or_fund";
-                    }>;
-                    reasons: z.ZodArray<z.ZodString>;
-                    evaluated_at: z.ZodISODateTime;
-                    expires_at: z.ZodISODateTime;
-                    result_digest: z.ZodString;
-                }, z.core.$strict>;
-                company: z.ZodObject<{
-                    name: z.ZodString;
-                    domain: z.ZodString;
-                    category: z.ZodString;
-                    summary: z.ZodString;
-                    site_url: z.ZodURL;
-                }, z.core.$strict>;
-                program: z.ZodOptional<z.ZodObject<{
-                    title: z.ZodString;
-                    summary: z.ZodString;
-                }, z.core.$strict>>;
-                offer: z.ZodObject<{
-                    title: z.ZodString;
-                    summary: z.ZodString;
-                    benefit: z.ZodString;
-                    eligibility: z.ZodString;
-                    access_method: z.ZodEnum<{
-                        other: "other";
-                        automatic: "automatic";
-                        form: "form";
-                        contact: "contact";
-                    }>;
-                    access_url: z.ZodOptional<z.ZodURL>;
-                }, z.core.$strict>;
+            target: z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>;
     };
     readonly responses: {
-        readonly 202: z.ZodObject<{
+        readonly 200: z.ZodObject<{
             data: z.ZodObject<{
-                request_id: z.ZodString;
-                submission_id: z.ZodString;
-                order: z.ZodObject<{
-                    order: z.ZodObject<{
-                        order_contract: z.ZodLiteral<"sourcey.commercial-order/v1alpha1">;
-                        order_id: z.ZodString;
-                        actor_ref: z.ZodString;
-                        product_code: z.ZodString;
-                        purchase_kind: z.ZodLiteral<"one_off">;
-                        product_definition_digest: z.ZodString;
-                        funded_work_intent_id: z.ZodString;
-                        funded_work_intent_digest: z.ZodString;
-                        owner_work_ref: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        payment_state: z.ZodEnum<{
-                            payment_pending: "payment_pending";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                            paid: "paid";
-                            cancelled: "cancelled";
-                        }>;
-                        payment_attempt_id: z.ZodString;
-                        work_state: z.ZodEnum<{
-                            failed: "failed";
-                            blocked: "blocked";
-                            cancelled: "cancelled";
-                            queued: "queued";
-                            in_review: "in_review";
-                            fulfilled: "fulfilled";
-                        }>;
-                        paid_at: z.ZodNullable<z.ZodISODateTime>;
-                        sla_due_at: z.ZodNullable<z.ZodISODateTime>;
-                        refund_reason: z.ZodNullable<z.ZodEnum<{
-                            scope_superseded: "scope_superseded";
-                            service_level_missed: "service_level_missed";
-                            sourcey_error: "sourcey_error";
-                            duplicate_charge: "duplicate_charge";
-                        }>>;
-                        refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
-                        refunded_at: z.ZodNullable<z.ZodISODateTime>;
-                        fulfilment_receipt_digest: z.ZodNullable<z.ZodString>;
-                        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                    }, z.core.$strict>;
-                    payment_attempt: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"stripe">;
-                        checkout_session_id: z.ZodNullable<z.ZodString>;
-                        checkout_url: z.ZodNullable<z.ZodURL>;
-                        payment_intent_id: z.ZodNullable<z.ZodString>;
-                        refund_id: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>, z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"x402">;
-                        resource: z.ZodURL;
-                        challenge_digest: z.ZodString;
-                        payment_payload_digest: z.ZodString;
-                        payment_requirements_digest: z.ZodString;
-                        payment_ref: z.ZodNullable<z.ZodString>;
-                        verification_ref: z.ZodNullable<z.ZodString>;
-                        settlement_ref: z.ZodNullable<z.ZodString>;
-                        payer_ref: z.ZodNullable<z.ZodString>;
-                        refund_ref: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>], "rail">;
+                target: z.ZodObject<{
+                    kind: z.ZodLiteral<"existing_record">;
+                    entity_id: z.ZodString;
+                    entity_revision_digest: z.ZodString;
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    offer_revision_digest: z.ZodString;
+                    expected_purchase_preview_digest: z.ZodString;
                 }, z.core.$strict>;
-                status_url: z.ZodURL;
+                purchase_preview: z.ZodObject<{
+                    preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
+                    product_code: z.ZodLiteral<"startup-offer-human-verification">;
+                    purchase_kind: z.ZodLiteral<"one_off">;
+                    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+                    price: z.ZodObject<{
+                        currency: z.ZodLiteral<"usd">;
+                        minor_units: z.ZodLiteral<4900>;
+                    }, z.core.$strict>;
+                    work_scope: z.ZodLiteral<"one-entity-one-offer">;
+                    passing_results: z.ZodObject<{
+                        entity_identity: z.ZodObject<{
+                            status: z.ZodLiteral<"verified">;
+                            binding: z.ZodLiteral<"identity-epoch">;
+                        }, z.core.$strict>;
+                        offer_terms: z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            binding: z.ZodLiteral<"exact-offer-revision">;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    service_level: z.ZodObject<{
+                        starts_after: z.ZodLiteral<"settled-payment">;
+                        business_days: z.ZodLiteral<3>;
+                        time_zone: z.ZodLiteral<"Australia/Sydney">;
+                    }, z.core.$strict>;
+                    refunds: z.ZodObject<{
+                        material_misrepresentation_refundable: z.ZodLiteral<false>;
+                        service_level_missed_refundable: z.ZodLiteral<true>;
+                        sourcey_error_refundable: z.ZodLiteral<true>;
+                    }, z.core.$strict>;
+                    disclosure: z.ZodLiteral<"Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+                    policy_bindings: z.ZodObject<{
+                        assurance_method: z.ZodString;
+                        purchase_disclosure: z.ZodString;
+                        service: z.ZodString;
+                    }, z.core.$strict>;
+                    preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                assurance_requirements: z.ZodObject<{
+                    entity_identity: z.ZodEnum<{
+                        required: "required";
+                        already_verified: "already_verified";
+                    }>;
+                    offer_terms: z.ZodEnum<{
+                        required: "required";
+                        already_checked: "already_checked";
+                    }>;
+                }, z.core.$strict>;
             }, z.core.$strict>;
         }, z.core.$strict>;
         readonly 400: z.ZodObject<{
@@ -47847,6 +52000,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47878,6 +52032,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47909,6 +52064,550 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsReviewPaymentRequirements";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/reviews";
+    readonly summary: "Read effect-free x402 payment requirements for Sourcey Human Verification.";
+    readonly tags: readonly ["Catalog"];
+    readonly responses: {};
+    readonly x402Discovery: {
+        descriptor_contract: "sourcey.payable-product-descriptor/v1alpha1";
+        product_code: string;
+        price_lookup_key: string;
+        operation_id: string;
+        method: "POST";
+        path: string;
+        success_status: 202;
+        service_name: string;
+        description: string;
+        tags: [string, string, string, string, string];
+        floor_price: {
+            currency: "usd";
+            minor_units: 4900;
+        };
+        service_policy_url: string;
+        refund_policy_url: string;
+        input_example: {
+            request_id: string;
+            payment_rail: "x402";
+            target: {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
+                };
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            } | {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            };
+        } | {
+            request_id: string;
+            payment_rail: "stripe";
+            target: {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            } | {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
+                };
+                expected_draft: {
+                    base_release_id: string;
+                    content_digest: string;
+                    purchase_preview_digest: string;
+                };
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            };
+            replaces_intent?: {
+                intent_id: string;
+                intent_digest: string;
+            } | undefined;
+        };
+        output_example: {
+            data: {
+                request_id: string;
+                verification: {
+                    verification_case_id: string;
+                    state: "awaiting_payment" | "verifying" | "input_needed" | "publishing" | "live" | "refused";
+                    required_input: {
+                        code: "domain_control" | "official_offer_page" | "company_identity" | "offer_existence" | "current_terms" | "pricing_or_consideration" | "access_instructions" | "conflicting_identity" | "unsupported_material_claim";
+                        path: string;
+                        message: string;
+                    }[];
+                    decision_ref: string | null;
+                    publication_release_id: string | null;
+                    public_record_url: string | null;
+                    updated_at: string;
+                };
+                order_id: string;
+                status_url: string;
+                checkout_url: string | null;
+            };
+        };
+    };
+}, {
+    readonly operationId: "createStartupCreditsReview";
+    readonly method: "POST";
+    readonly path: "/v1/startup-credits/reviews";
+    readonly summary: "Start Human verification for one startup credit or startup program.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly headers: z.ZodObject<{
+            "payment-signature": z.ZodOptional<z.ZodString>;
+        }, z.core.$loose>;
+        readonly body: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            request_id: z.ZodString;
+            payment_rail: z.ZodLiteral<"x402">;
+            target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"new_listing">;
+                draft: z.ZodObject<{
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    existing_entity: z.ZodOptional<z.ZodObject<{
+                        entity_id: z.ZodString;
+                        entity_revision_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    company: z.ZodObject<{
+                        name: z.ZodString;
+                        domain: z.ZodString;
+                        category: z.ZodString;
+                        summary: z.ZodString;
+                        site_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    program: z.ZodOptional<z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                    }, z.core.$strict>>;
+                    offer: z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                        benefit: z.ZodString;
+                        eligibility: z.ZodString;
+                        access_method: z.ZodEnum<{
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        access_url: z.ZodOptional<z.ZodURL>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                entity_icon: z.ZodOptional<z.ZodObject<{
+                    source: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"upload">;
+                        upload_receipt_digest: z.ZodString;
+                        original_digest: z.ZodString;
+                        bytes: z.ZodNumber;
+                        media_type: z.ZodEnum<{
+                            "image/jpeg": "image/jpeg";
+                            "image/png": "image/png";
+                            "image/webp": "image/webp";
+                            "image/svg+xml": "image/svg+xml";
+                        }>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"official_url">;
+                        url: z.ZodURL;
+                    }, z.core.$strict>], "kind">;
+                    trademark_owner: z.ZodString;
+                    relationship: z.ZodEnum<{
+                        "vendor-representative": "vendor-representative";
+                        "community-contributor": "community-contributor";
+                    }>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>], "kind">;
+        }, z.core.$strict>, z.ZodObject<{
+            request_id: z.ZodString;
+            payment_rail: z.ZodLiteral<"stripe">;
+            target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"new_listing">;
+                draft: z.ZodObject<{
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    existing_entity: z.ZodOptional<z.ZodObject<{
+                        entity_id: z.ZodString;
+                        entity_revision_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    company: z.ZodObject<{
+                        name: z.ZodString;
+                        domain: z.ZodString;
+                        category: z.ZodString;
+                        summary: z.ZodString;
+                        site_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    program: z.ZodOptional<z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                    }, z.core.$strict>>;
+                    offer: z.ZodObject<{
+                        title: z.ZodString;
+                        summary: z.ZodString;
+                        benefit: z.ZodString;
+                        eligibility: z.ZodString;
+                        access_method: z.ZodEnum<{
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        access_url: z.ZodOptional<z.ZodURL>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                entity_icon: z.ZodOptional<z.ZodObject<{
+                    source: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"upload">;
+                        upload_receipt_digest: z.ZodString;
+                        original_digest: z.ZodString;
+                        bytes: z.ZodNumber;
+                        media_type: z.ZodEnum<{
+                            "image/jpeg": "image/jpeg";
+                            "image/png": "image/png";
+                            "image/webp": "image/webp";
+                            "image/svg+xml": "image/svg+xml";
+                        }>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"official_url">;
+                        url: z.ZodURL;
+                    }, z.core.$strict>], "kind">;
+                    trademark_owner: z.ZodString;
+                    relationship: z.ZodEnum<{
+                        "vendor-representative": "vendor-representative";
+                        "community-contributor": "community-contributor";
+                    }>;
+                }, z.core.$strict>>;
+                expected_draft: z.ZodObject<{
+                    base_release_id: z.ZodString;
+                    content_digest: z.ZodString;
+                    purchase_preview_digest: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"existing_record">;
+                entity_id: z.ZodString;
+                entity_revision_digest: z.ZodString;
+                program_id: z.ZodOptional<z.ZodString>;
+                offer_id: z.ZodString;
+                offer_revision_digest: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>], "kind">;
+            replaces_intent: z.ZodOptional<z.ZodObject<{
+                intent_id: z.ZodString;
+                intent_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>], "payment_rail">;
+    };
+    readonly responses: {
+        readonly 202: z.ZodObject<{
+            data: z.ZodObject<{
+                request_id: z.ZodString;
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
+                        }>;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
+                }, z.core.$strict>;
+                order_id: z.ZodString;
+                status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 409: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -47945,122 +52644,169 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
         tags: [string, string, string, string, string];
         floor_price: {
             currency: "usd";
-            minor_units: 2500;
+            minor_units: 4900;
         };
         service_policy_url: string;
         refund_policy_url: string;
         input_example: {
             request_id: string;
-            draft: {
-                standing_result: {
-                    result_contract: "sourcey.standing-result/v1alpha1";
-                    policy_digest: string;
-                    evidence_digest: string;
-                    registrable_domain: string;
-                    official_source_url: string;
-                    route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "claim_or_fund";
-                    reasons: string[];
-                    evaluated_at: string;
-                    expires_at: string;
-                    result_digest: string;
+            payment_rail: "x402";
+            target: {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
                 };
-                company: {
-                    name: string;
-                    domain: string;
-                    category: string;
-                    summary: string;
-                    site_url: string;
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
+                } | undefined;
+            } | {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            };
+        } | {
+            request_id: string;
+            payment_rail: "stripe";
+            target: {
+                kind: "existing_record";
+                entity_id: string;
+                entity_revision_digest: string;
+                offer_id: string;
+                offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+                program_id?: string | undefined;
+            } | {
+                kind: "new_listing";
+                draft: {
+                    standing_result: {
+                        result_contract: "sourcey.standing-result/v1alpha1";
+                        policy_digest: string;
+                        evidence_digest: string;
+                        registrable_domain: string;
+                        official_source_url: string;
+                        route: "correction_required" | "repair_required" | "temporarily_unavailable" | "free_machine_review" | "human_verification_required";
+                        reasons: string[];
+                        evaluated_at: string;
+                        expires_at: string;
+                        result_digest: string;
+                    };
+                    company: {
+                        name: string;
+                        domain: string;
+                        category: string;
+                        summary: string;
+                        site_url: string;
+                    };
+                    offer: {
+                        title: string;
+                        summary: string;
+                        benefit: string;
+                        eligibility: string;
+                        access_method: "other" | "automatic" | "form" | "contact";
+                        access_url?: string | undefined;
+                    };
+                    existing_entity?: {
+                        entity_id: string;
+                        entity_revision_digest: string;
+                    } | undefined;
+                    program?: {
+                        title: string;
+                        summary: string;
+                    } | undefined;
                 };
-                offer: {
-                    title: string;
-                    summary: string;
-                    benefit: string;
-                    eligibility: string;
-                    access_method: "other" | "automatic" | "form" | "contact";
-                    access_url?: string | undefined;
+                expected_draft: {
+                    base_release_id: string;
+                    content_digest: string;
+                    purchase_preview_digest: string;
                 };
-                program?: {
-                    title: string;
-                    summary: string;
+                entity_icon?: {
+                    source: {
+                        kind: "upload";
+                        upload_receipt_digest: string;
+                        original_digest: string;
+                        bytes: number;
+                        media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                    } | {
+                        kind: "official_url";
+                        url: string;
+                    };
+                    trademark_owner: string;
+                    relationship: "vendor-representative" | "community-contributor";
                 } | undefined;
             };
+            replaces_intent?: {
+                intent_id: string;
+                intent_digest: string;
+            } | undefined;
         };
         output_example: {
             data: {
                 request_id: string;
-                submission_id: string;
-                order: {
-                    order: {
-                        order_contract: "sourcey.commercial-order/v1alpha1";
-                        order_id: string;
-                        actor_ref: string;
-                        product_code: string;
-                        purchase_kind: "one_off";
-                        product_definition_digest: string;
-                        funded_work_intent_id: string;
-                        funded_work_intent_digest: string;
-                        owner_work_ref: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        payment_state: "payment_pending" | "refund_pending" | "refunded" | "paid" | "cancelled";
-                        payment_attempt_id: string;
-                        work_state: "failed" | "blocked" | "cancelled" | "queued" | "in_review" | "fulfilled";
-                        paid_at: string | null;
-                        sla_due_at: string | null;
-                        refund_reason: "scope_superseded" | "service_level_missed" | "sourcey_error" | "duplicate_charge" | null;
-                        refund_requested_at: string | null;
-                        refunded_at: string | null;
-                        fulfilment_receipt_digest: string | null;
-                        failure_receipt_digest: string | null;
-                        created_at: string;
-                        updated_at: string;
-                    };
-                    payment_attempt: {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "stripe";
-                        checkout_session_id: string | null;
-                        checkout_url: string | null;
-                        payment_intent_id: string | null;
-                        refund_id: string | null;
-                    } | {
-                        attempt_contract: "sourcey.payment-attempt/v1alpha1";
-                        attempt_id: string;
-                        order_id: string;
-                        request_binding_digest: string;
-                        amount: {
-                            currency: string;
-                            minor_units: number;
-                        };
-                        state: "verified" | "failed" | "prepared" | "payment_pending" | "settlement_pending" | "settled" | "expired" | "refund_pending" | "refunded";
-                        expires_at: string;
-                        created_at: string;
-                        updated_at: string;
-                        rail: "x402";
-                        resource: string;
-                        challenge_digest: string;
-                        payment_payload_digest: string;
-                        payment_requirements_digest: string;
-                        payment_ref: string | null;
-                        verification_ref: string | null;
-                        settlement_ref: string | null;
-                        payer_ref: string | null;
-                        refund_ref: string | null;
-                    };
+                verification: {
+                    verification_case_id: string;
+                    state: "awaiting_payment" | "verifying" | "input_needed" | "publishing" | "live" | "refused";
+                    required_input: {
+                        code: "domain_control" | "official_offer_page" | "company_identity" | "offer_existence" | "current_terms" | "pricing_or_consideration" | "access_instructions" | "conflicting_identity" | "unsupported_material_claim";
+                        path: string;
+                        message: string;
+                    }[];
+                    decision_ref: string | null;
+                    publication_release_id: string | null;
+                    public_record_url: string | null;
+                    updated_at: string;
                 };
+                order_id: string;
                 status_url: string;
+                checkout_url: string | null;
             };
         };
     };
@@ -48068,131 +52814,53 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
     readonly operationId: "getStartupCreditsReview";
     readonly method: "GET";
     readonly path: "/v1/startup-credits/reviews/{request_id}";
-    readonly summary: "Read the durable status of one exact paid Startup Review request.";
+    readonly summary: "Read the durable status of one exact Human verification request.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly path: z.ZodObject<{
             request_id: z.ZodString;
         }, z.core.$strict>;
         readonly headers: z.ZodObject<{
-            "payment-signature": z.ZodString;
+            "payment-signature": z.ZodOptional<z.ZodString>;
         }, z.core.$loose>;
     };
     readonly responses: {
         readonly 200: z.ZodObject<{
             data: z.ZodObject<{
                 request_id: z.ZodString;
-                submission_id: z.ZodString;
-                order: z.ZodObject<{
-                    order: z.ZodObject<{
-                        order_contract: z.ZodLiteral<"sourcey.commercial-order/v1alpha1">;
-                        order_id: z.ZodString;
-                        actor_ref: z.ZodString;
-                        product_code: z.ZodString;
-                        purchase_kind: z.ZodLiteral<"one_off">;
-                        product_definition_digest: z.ZodString;
-                        funded_work_intent_id: z.ZodString;
-                        funded_work_intent_digest: z.ZodString;
-                        owner_work_ref: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        payment_state: z.ZodEnum<{
-                            payment_pending: "payment_pending";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                            paid: "paid";
-                            cancelled: "cancelled";
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
                         }>;
-                        payment_attempt_id: z.ZodString;
-                        work_state: z.ZodEnum<{
-                            failed: "failed";
-                            blocked: "blocked";
-                            cancelled: "cancelled";
-                            queued: "queued";
-                            in_review: "in_review";
-                            fulfilled: "fulfilled";
-                        }>;
-                        paid_at: z.ZodNullable<z.ZodISODateTime>;
-                        sla_due_at: z.ZodNullable<z.ZodISODateTime>;
-                        refund_reason: z.ZodNullable<z.ZodEnum<{
-                            scope_superseded: "scope_superseded";
-                            service_level_missed: "service_level_missed";
-                            sourcey_error: "sourcey_error";
-                            duplicate_charge: "duplicate_charge";
-                        }>>;
-                        refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
-                        refunded_at: z.ZodNullable<z.ZodISODateTime>;
-                        fulfilment_receipt_digest: z.ZodNullable<z.ZodString>;
-                        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                    }, z.core.$strict>;
-                    payment_attempt: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"stripe">;
-                        checkout_session_id: z.ZodNullable<z.ZodString>;
-                        checkout_url: z.ZodNullable<z.ZodURL>;
-                        payment_intent_id: z.ZodNullable<z.ZodString>;
-                        refund_id: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>, z.ZodObject<{
-                        attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-                        attempt_id: z.ZodString;
-                        order_id: z.ZodString;
-                        request_binding_digest: z.ZodString;
-                        amount: z.ZodObject<{
-                            currency: z.ZodString;
-                            minor_units: z.ZodNumber;
-                        }, z.core.$strict>;
-                        state: z.ZodEnum<{
-                            verified: "verified";
-                            failed: "failed";
-                            prepared: "prepared";
-                            payment_pending: "payment_pending";
-                            settlement_pending: "settlement_pending";
-                            settled: "settled";
-                            expired: "expired";
-                            refund_pending: "refund_pending";
-                            refunded: "refunded";
-                        }>;
-                        expires_at: z.ZodISODateTime;
-                        created_at: z.ZodISODateTime;
-                        updated_at: z.ZodISODateTime;
-                        rail: z.ZodLiteral<"x402">;
-                        resource: z.ZodURL;
-                        challenge_digest: z.ZodString;
-                        payment_payload_digest: z.ZodString;
-                        payment_requirements_digest: z.ZodString;
-                        payment_ref: z.ZodNullable<z.ZodString>;
-                        verification_ref: z.ZodNullable<z.ZodString>;
-                        settlement_ref: z.ZodNullable<z.ZodString>;
-                        payer_ref: z.ZodNullable<z.ZodString>;
-                        refund_ref: z.ZodNullable<z.ZodString>;
-                    }, z.core.$strict>], "rail">;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
                 }, z.core.$strict>;
+                order_id: z.ZodString;
                 status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
             }, z.core.$strict>;
         }, z.core.$strict>;
         readonly 400: z.ZodObject<{
@@ -48204,6 +52872,39 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -48235,6 +52936,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     authentication_required: "authentication_required";
                     payment_pending: "payment_pending";
                     not_found: "not_found";
+                    already_verified: "already_verified";
                     capacity_unavailable: "capacity_unavailable";
                     capability_unavailable: "capability_unavailable";
                     draft_changed: "draft_changed";
@@ -48258,6 +52960,884 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             }, z.core.$strict>;
         }, z.core.$strict>;
     };
+}, {
+    readonly operationId: "getStartupCreditsReviewByOrder";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/reviews/orders/{order_id}";
+    readonly summary: "Recover one Human verification from its Stripe order.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly path: z.ZodObject<{
+            order_id: z.ZodString;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                request_id: z.ZodString;
+                verification: z.ZodObject<{
+                    verification_case_id: z.ZodString;
+                    state: z.ZodEnum<{
+                        awaiting_payment: "awaiting_payment";
+                        verifying: "verifying";
+                        input_needed: "input_needed";
+                        publishing: "publishing";
+                        live: "live";
+                        refused: "refused";
+                    }>;
+                    required_input: z.ZodArray<z.ZodObject<{
+                        code: z.ZodEnum<{
+                            domain_control: "domain_control";
+                            official_offer_page: "official_offer_page";
+                            company_identity: "company_identity";
+                            offer_existence: "offer_existence";
+                            current_terms: "current_terms";
+                            pricing_or_consideration: "pricing_or_consideration";
+                            access_instructions: "access_instructions";
+                            conflicting_identity: "conflicting_identity";
+                            unsupported_material_claim: "unsupported_material_claim";
+                        }>;
+                        path: z.ZodString;
+                        message: z.ZodString;
+                    }, z.core.$strict>>;
+                    decision_ref: z.ZodNullable<z.ZodString>;
+                    publication_release_id: z.ZodNullable<z.ZodString>;
+                    public_record_url: z.ZodNullable<z.ZodURL>;
+                    updated_at: z.ZodISODateTime;
+                }, z.core.$strict>;
+                order_id: z.ZodString;
+                status_url: z.ZodURL;
+                checkout_url: z.ZodNullable<z.ZodURL>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 401: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    authentication_required: "authentication_required";
+                    payment_pending: "payment_pending";
+                    not_found: "not_found";
+                    already_verified: "already_verified";
+                    capacity_unavailable: "capacity_unavailable";
+                    capability_unavailable: "capability_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_request: "invalid_request";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    method_not_allowed: "method_not_allowed";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getCompaniesDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current company records dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.companies-dataset/v1alpha1">;
+            companies: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                slug: z.ZodString;
+                revision_digest: z.ZodString;
+                name: z.ZodString;
+                website: z.ZodURL;
+                description: z.ZodString;
+                summary: z.ZodOptional<z.ZodString>;
+                category: z.ZodString;
+                slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+            assets: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                role: z.ZodEnum<{
+                    "logo-light": "logo-light";
+                    "logo-dark": "logo-dark";
+                    icon: "icon";
+                }>;
+                asset_object_digest: z.ZodString;
+                served_digest: z.ZodString;
+                served_path: z.ZodString;
+                media_type: z.ZodEnum<{
+                    "image/jpeg": "image/jpeg";
+                    "image/png": "image/png";
+                    "image/webp": "image/webp";
+                    "image/svg+xml": "image/svg+xml";
+                }>;
+                bytes: z.ZodNumber;
+                width: z.ZodNumber;
+                height: z.ZodNumber;
+                authority_basis: z.ZodEnum<{
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
+                    "editorial-review": "editorial-review";
+                    "licensed-source": "licensed-source";
+                }>;
+                authority_claim_id: z.ZodOptional<z.ZodString>;
+                approval_receipt_digest: z.ZodString;
+                source_basis: z.ZodString;
+                license_basis: z.ZodString;
+                effective_from: z.ZodISODateTime;
+                effective_until: z.ZodOptional<z.ZodISODateTime>;
+                binding_event_id: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current startup credits dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.startup-credits-dataset/v1alpha1">;
+            root_set_digest: z.ZodString;
+            signer_registry_digest: z.ZodString;
+            policy_as_of: z.ZodISODateTime;
+            policy_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+            policies: z.ZodArray<z.ZodObject<{
+                schema_version: z.ZodLiteral<"sourcey.policy/v1alpha1">;
+                slug: z.ZodString;
+                title: z.ZodString;
+                summary: z.ZodString;
+                sections: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"prose">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    paragraphs: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"clauses">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    clauses: z.ZodArray<z.ZodObject<{
+                        title: z.ZodString;
+                        body: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"definitions">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    definitions: z.ZodArray<z.ZodObject<{
+                        term: z.ZodString;
+                        detail: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"steps">;
+                    heading: z.ZodOptional<z.ZodString>;
+                    steps: z.ZodArray<z.ZodString>;
+                }, z.core.$strict>], "kind">>;
+                revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+            companies: z.ZodArray<z.ZodObject<{
+                entity_id: z.ZodString;
+                slug: z.ZodString;
+                slug_aliases: z.ZodOptional<z.ZodArray<z.ZodString>>;
+                name: z.ZodString;
+                summary: z.ZodOptional<z.ZodString>;
+                description: z.ZodString;
+                website: z.ZodURL;
+                category: z.ZodString;
+                revision_digest: z.ZodString;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    coverage_policy_digest: z.ZodString;
+                    freshness_policy_digest: z.ZodString;
+                    basis_event_ids: z.ZodArray<z.ZodString>;
+                    fields: z.ZodArray<z.ZodObject<{
+                        path: z.ZodString;
+                        supporting_event_ids: z.ZodArray<z.ZodString>;
+                        contradicting_event_ids: z.ZodArray<z.ZodString>;
+                        accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                            observed: "observed";
+                            derived: "derived";
+                            editorial: "editorial";
+                            attested: "attested";
+                        }>>;
+                        evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                            observed: "observed";
+                            derived: "derived";
+                            editorial: "editorial";
+                            attested: "attested";
+                        }>>;
+                        latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                    }, z.core.$strict>>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+                identity_assurance: z.ZodOptional<z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    assurance_id: z.ZodString;
+                    verified_at: z.ZodISODateTime;
+                    identity_epoch_digest: z.ZodString;
+                    method_policy_digest: z.ZodString;
+                    coverage_policy_digest: z.ZodString;
+                    event_id: z.ZodString;
+                    receipt_digest: z.ZodString;
+                }, z.core.$strict>>;
+                programs: z.ZodArray<z.ZodObject<{
+                    program_id: z.ZodString;
+                    slug: z.ZodString;
+                    title: z.ZodString;
+                    summary: z.ZodOptional<z.ZodString>;
+                    revision_digest: z.ZodString;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        coverage_policy_digest: z.ZodString;
+                        freshness_policy_digest: z.ZodString;
+                        basis_event_ids: z.ZodArray<z.ZodString>;
+                        fields: z.ZodArray<z.ZodObject<{
+                            path: z.ZodString;
+                            supporting_event_ids: z.ZodArray<z.ZodString>;
+                            contradicting_event_ids: z.ZodArray<z.ZodString>;
+                            accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                        }, z.core.$strict>>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+                offers: z.ZodArray<z.ZodObject<{
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    slug: z.ZodString;
+                    title: z.ZodString;
+                    summary: z.ZodString;
+                    description: z.ZodOptional<z.ZodString>;
+                    economics: z.ZodObject<{
+                        consideration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"fixed">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"variable">;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"unknown">;
+                            description: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                        benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodString;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"other">;
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>;
+                    eligibility: z.ZodObject<{
+                        rule: z.ZodType<import("../../revisions/src/index.js").EligibilityRule, unknown, z.core.$ZodTypeInternals<import("../../revisions/src/index.js").EligibilityRule, unknown>>;
+                    }, z.core.$strict>;
+                    roles: z.ZodObject<{
+                        terms_authority_entity_id: z.ZodString;
+                        access_operator_entity_id: z.ZodString;
+                    }, z.core.$strict>;
+                    access: z.ZodObject<{
+                        availability: z.ZodEnum<{
+                            public: "public";
+                            other: "other";
+                            referral: "referral";
+                            membership: "membership";
+                            invite: "invite";
+                            automatic: "automatic";
+                        }>;
+                        method: z.ZodEnum<{
+                            code: "code";
+                            other: "other";
+                            automatic: "automatic";
+                            form: "form";
+                            contact: "contact";
+                        }>;
+                        url: z.ZodOptional<z.ZodURL>;
+                        public_code: z.ZodOptional<z.ZodString>;
+                        instructions: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    terms_url: z.ZodOptional<z.ZodURL>;
+                    lifecycle: z.ZodEnum<{
+                        active: "active";
+                        ended: "ended";
+                        withdrawn: "withdrawn";
+                    }>;
+                    effective_from: z.ZodISODateTime;
+                    effective_until: z.ZodOptional<z.ZodISODateTime>;
+                    revision_digest: z.ZodString;
+                    provenance: z.ZodObject<{
+                        freshness: z.ZodEnum<{
+                            unknown: "unknown";
+                            fresh: "fresh";
+                            stale: "stale";
+                        }>;
+                        dispute: z.ZodEnum<{
+                            none: "none";
+                            open: "open";
+                            resolved: "resolved";
+                        }>;
+                        coverage_policy_digest: z.ZodString;
+                        freshness_policy_digest: z.ZodString;
+                        basis_event_ids: z.ZodArray<z.ZodString>;
+                        fields: z.ZodArray<z.ZodObject<{
+                            path: z.ZodString;
+                            supporting_event_ids: z.ZodArray<z.ZodString>;
+                            contradicting_event_ids: z.ZodArray<z.ZodString>;
+                            accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
+                                observed: "observed";
+                                derived: "derived";
+                                editorial: "editorial";
+                                attested: "attested";
+                            }>>;
+                            latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
+                            freshness: z.ZodEnum<{
+                                unknown: "unknown";
+                                fresh: "fresh";
+                                stale: "stale";
+                            }>;
+                        }, z.core.$strict>>;
+                        vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            status: z.ZodLiteral<"none">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            status: z.ZodLiteral<"current">;
+                            event_id: z.ZodString;
+                            attested_at: z.ZodISODateTime;
+                        }, z.core.$strict>], "status">;
+                    }, z.core.$strict>;
+                    terms_assurance: z.ZodOptional<z.ZodObject<{
+                        status: z.ZodLiteral<"checked">;
+                        assurance_id: z.ZodString;
+                        checked_at: z.ZodISODateTime;
+                        revision_digest: z.ZodString;
+                        method_policy_digest: z.ZodString;
+                        coverage_policy_digest: z.ZodString;
+                        event_id: z.ZodString;
+                        receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getAgentReadinessDataset";
+    readonly method: "GET";
+    readonly path: string;
+    readonly summary: "Download the current Agent Readiness dataset.";
+    readonly tags: readonly ["Datasets"];
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            dataset_contract: z.ZodLiteral<"sourcey.agent-readiness-dataset/v1alpha1">;
+            profiles: z.ZodArray<z.ZodObject<{
+                policy_digest: z.ZodString;
+                entity_id: z.ZodString;
+                effective_from: z.ZodISODateTime;
+                revision_digest: z.ZodString;
+                agent_readiness_profile_id: z.ZodString;
+                scope: z.ZodObject<{
+                    product: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                    funnel: z.ZodObject<{
+                        key: z.ZodString;
+                        name: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                coverage: z.ZodObject<{
+                    status: z.ZodEnum<{
+                        incomplete: "incomplete";
+                        complete: "complete";
+                    }>;
+                    required_signals: z.ZodNumber;
+                    covered_signals: z.ZodNumber;
+                    ratio: z.ZodNumber;
+                    barrier_signals: z.ZodNumber;
+                    verified_barrier_signals: z.ZodNumber;
+                    barrier_ratio: z.ZodNumber;
+                }, z.core.$strict>;
+                lifecycle: z.ZodEnum<{
+                    active: "active";
+                    ended: "ended";
+                    withdrawn: "withdrawn";
+                }>;
+                freshness: z.ZodEnum<{
+                    unknown: "unknown";
+                    fresh: "fresh";
+                    stale: "stale";
+                }>;
+                policy_as_of: z.ZodISODateTime;
+                projection_digest: z.ZodString;
+                declaration_revision_digest: z.ZodString;
+                policy_version: z.ZodString;
+                grade_derivation: z.ZodObject<{
+                    label: z.ZodString;
+                    explanation: z.ZodString;
+                    coverage_rule: z.ZodString;
+                    outcome_rule: z.ZodString;
+                }, z.core.$strict>;
+                public_state: z.ZodEnum<{
+                    unknown: "unknown";
+                    not_applicable: "not_applicable";
+                    ready: "ready";
+                    limited: "limited";
+                    blocked: "blocked";
+                }>;
+                primary_finding: z.ZodOptional<z.ZodObject<{
+                    stage: z.ZodEnum<{
+                        evaluate: "evaluate";
+                        sign_up: "sign_up";
+                        pay: "pay";
+                        provision: "provision";
+                        operate: "operate";
+                    }>;
+                    stage_label: z.ZodString;
+                    public_state: z.ZodEnum<{
+                        limited: "limited";
+                        blocked: "blocked";
+                    }>;
+                    finding: z.ZodObject<{
+                        signal_code: z.ZodString;
+                        condition: z.ZodString;
+                        finding: z.ZodString;
+                        context: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    blocker: z.ZodOptional<z.ZodObject<{
+                        signal_code: z.ZodString;
+                        code: z.ZodString;
+                        explanation: z.ZodString;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+                state_label: z.ZodString;
+                overall_outcome: z.ZodEnum<{
+                    unknown: "unknown";
+                    not_applicable: "not_applicable";
+                    pass: "pass";
+                    constrained: "constrained";
+                    fail: "fail";
+                }>;
+                grade: z.ZodEnum<{
+                    "A+": "A+";
+                    A: "A";
+                    "B+": "B+";
+                    B: "B";
+                    "C+": "C+";
+                    C: "C";
+                    D: "D";
+                    F: "F";
+                    unrated: "unrated";
+                }>;
+                last_tested_at: z.ZodISODateTime;
+                publication: z.ZodObject<{
+                    visibility: z.ZodEnum<{
+                        discoverable: "discoverable";
+                        resolvable_only: "resolvable_only";
+                        private: "private";
+                    }>;
+                    reasons: z.ZodArray<z.ZodEnum<{
+                        unrated: "unrated";
+                        lifecycle_not_active: "lifecycle_not_active";
+                        coverage_incomplete: "coverage_incomplete";
+                        required_evidence_not_supported: "required_evidence_not_supported";
+                        freshness_not_fresh: "freshness_not_fresh";
+                        no_useful_finding: "no_useful_finding";
+                        open_dispute: "open_dispute";
+                    }>>;
+                }, z.core.$strict>;
+                canonical_url: z.ZodURL;
+                stages: z.ZodArray<z.ZodObject<{
+                    outcome: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        pass: "pass";
+                        constrained: "constrained";
+                        fail: "fail";
+                    }>;
+                    stage: z.ZodEnum<{
+                        evaluate: "evaluate";
+                        sign_up: "sign_up";
+                        pay: "pay";
+                        provision: "provision";
+                        operate: "operate";
+                    }>;
+                    public_state: z.ZodEnum<{
+                        unknown: "unknown";
+                        not_applicable: "not_applicable";
+                        ready: "ready";
+                        limited: "limited";
+                        blocked: "blocked";
+                    }>;
+                    primary_finding: z.ZodObject<{
+                        signal_code: z.ZodString;
+                        condition: z.ZodString;
+                        finding: z.ZodString;
+                        context: z.ZodOptional<z.ZodString>;
+                    }, z.core.$strict>;
+                    stage_label: z.ZodString;
+                    state_label: z.ZodString;
+                }, z.core.$strict>>;
+                provenance: z.ZodObject<{
+                    freshness: z.ZodEnum<{
+                        unknown: "unknown";
+                        fresh: "fresh";
+                        stale: "stale";
+                    }>;
+                    dispute: z.ZodEnum<{
+                        none: "none";
+                        open: "open";
+                        resolved: "resolved";
+                    }>;
+                    vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        status: z.ZodLiteral<"none">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        status: z.ZodLiteral<"current">;
+                        event_id: z.ZodString;
+                        attested_at: z.ZodISODateTime;
+                    }, z.core.$strict>], "status">;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+            offer_relations: z.ZodArray<z.ZodObject<{
+                relation_id: z.ZodString;
+                agent_readiness_profile_id: z.ZodString;
+                offer_id: z.ZodString;
+                purpose: z.ZodEnum<{
+                    application_path: "application_path";
+                    redemption_path: "redemption_path";
+                    operating_path: "operating_path";
+                }>;
+                applicable_stages: z.ZodArray<z.ZodEnum<{
+                    evaluate: "evaluate";
+                    sign_up: "sign_up";
+                    pay: "pay";
+                    provision: "provision";
+                    operate: "operate";
+                }>>;
+                effective_from: z.ZodISODateTime;
+                effective_until: z.ZodOptional<z.ZodISODateTime>;
+                declaration_revision_digest: z.ZodString;
+                offer_relation_proposal_id: z.ZodString;
+                admitted_offer_revision_digest: z.ZodString;
+                relation_contract: z.ZodLiteral<"sourcey.agent-readiness-offer-relation/v1alpha1">;
+                relation_revision_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+    };
 }];
 export declare const publicCatalogV1BoundaryErrors: {
     readonly 401: z.ZodObject<{
@@ -48269,6 +53849,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48300,6 +53881,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48331,6 +53913,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48362,6 +53945,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48393,6 +53977,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48424,6 +54009,7 @@ export declare const publicCatalogV1BoundaryErrors: {
                 authentication_required: "authentication_required";
                 payment_pending: "payment_pending";
                 not_found: "not_found";
+                already_verified: "already_verified";
                 capacity_unavailable: "capacity_unavailable";
                 capability_unavailable: "capability_unavailable";
                 draft_changed: "draft_changed";
@@ -48450,12 +54036,15 @@ export declare const publicCatalogV1BoundaryErrors: {
 export type CatalogSubmissionRequest = z.input<typeof catalogSubmissionRequestSchema>;
 export type CatalogSubmissionAuthorizationPolicy = z.infer<typeof catalogSubmissionAuthorizationPolicySchema>;
 export type CatalogSubmissionWorkItem = z.infer<typeof catalogSubmissionWorkItemSchema>;
+export type CatalogSubmissionExecution = z.infer<typeof catalogSubmissionExecutionSchema>;
+export type CatalogSubmissionAuthoringFile = z.infer<typeof catalogSubmissionAuthoringFileSchema>;
 export type CatalogSubmissionOperatorAdmission = z.infer<typeof catalogSubmissionOperatorAdmissionSchema>;
 export type CatalogSubmissionProcessingResult = z.infer<typeof catalogSubmissionProcessingResultSchema>;
 export type CatalogSubmissionStatus = z.infer<typeof catalogSubmissionStatusSchema>;
 export type CatalogSubmissionOperationId = (typeof catalogSubmissionV1Endpoints)[number]["operationId"];
 export type AgentReadinessDeclarationDraftOperationId = (typeof agentReadinessDeclarationDraftV1Endpoints)[number]["operationId"];
 export type CatalogApiEndpoint = (typeof publicCatalogV1Endpoints)[number];
+export type DatasetApiEndpoint = (typeof publicDatasetEndpoints)[number];
 export type CatalogApiErrorResponse = z.infer<typeof catalogApiErrorResponseSchema>;
 export type AgentReadinessProfileListQuery = z.input<typeof agentReadinessProfileListQuerySchema>;
 export type AgentReadinessOfferRelationListQuery = z.input<typeof agentReadinessOfferRelationListQuerySchema>;

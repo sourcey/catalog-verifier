@@ -6,6 +6,10 @@ export declare const evidenceCaptureMethodSchema: z.ZodEnum<{
     archive: "archive";
     manual: "manual";
 }>;
+export declare const evidenceCaptureAvailabilitySchema: z.ZodEnum<{
+    public: "public";
+    "private-receipt": "private-receipt";
+}>;
 export declare const evidencePublicReadRequestSchema: z.ZodObject<{
     method: z.ZodLiteral<"GET">;
     target_url: z.ZodOptional<z.ZodURL>;

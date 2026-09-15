@@ -6,6 +6,15 @@ import { PARSE5_VERSION } from "./dependency-versions.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 const encoder = new TextEncoder();
+/** The document normalized to nothing: no metadata, no structured data, no content. */
+export class EmptyEvidenceDocumentError extends Error {
+    documentKind;
+    constructor(documentKind) {
+        super(`Evidence ${documentKind === "html" ? "HTML" : "text"} is empty after normalization.`);
+        this.documentKind = documentKind;
+        this.name = "EmptyEvidenceDocumentError";
+    }
+}
 export const EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN = {
     algorithm: "sourcey.deterministic-content-normalizer/v1",
     html_metadata: ["meta", "structured-data", "canonical-link"],
@@ -187,7 +196,7 @@ function normalizeHtml(html, options) {
         .map(([name, lines]) => `[${name}]\n${lines.join("\n")}`)
         .join("\n\n");
     if (!rendered)
-        throw new Error("Evidence HTML is empty after normalization.");
+        throw new EmptyEvidenceDocumentError("html");
     return `${rendered}\n`;
 }
 function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks) {
@@ -300,7 +309,7 @@ function normalizeText(text) {
         .join("\n")
         .trim();
     if (!normalized)
-        throw new Error("Evidence text is empty after normalization.");
+        throw new EmptyEvidenceDocumentError("text");
     return `${normalized}\n`;
 }
 function normalizeInline(text) {

@@ -6,6 +6,7 @@ export declare const agentReadinessCaptureRungSchema: z.ZodEnum<{
     archive: "archive";
     manual: "manual";
 }>;
+export type AgentReadinessCaptureRung = z.infer<typeof agentReadinessCaptureRungSchema>;
 export declare const agentReadinessMethodCapabilitySchema: z.ZodObject<{
     stage: z.ZodEnum<{
         evaluate: "evaluate";

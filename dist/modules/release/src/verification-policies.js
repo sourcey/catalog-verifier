@@ -1,6 +1,7 @@
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
 import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
 import { validateAgentReadinessPolicy } from "../../agent-readiness-policy/src/index.js";
+import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
 import { digest } from "../../primitives/src/index.js";
 export function verifyCatalogDeltaPolicies(bundle, delta, files) {
     const coverageExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.coveragePolicy);
@@ -11,12 +12,16 @@ export function verifyCatalogDeltaPolicies(bundle, delta, files) {
     const { policy_digest: freshnessDigest, ...freshnessCore } = freshness;
     const agentReadinessExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy);
     const agentReadiness = validateAgentReadinessPolicy(parseJson(files, releasePolicyObjectPath(agentReadinessExpected)));
+    const assuranceMethodExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.assuranceMethodPolicy);
+    const assuranceMethod = validateAssuranceMethodPolicy(parseJson(files, releasePolicyObjectPath(assuranceMethodExpected)));
     if (digest(coveragePolicyCoreSchema.parse(coverageCore)) !== coverageDigest ||
         digest(freshnessPolicyCoreSchema.parse(freshnessCore)) !== freshnessDigest ||
         coverageExpected !== coverageDigest ||
         freshnessExpected !== freshnessDigest ||
         agentReadinessExpected !== agentReadiness.policy_digest ||
+        assuranceMethodExpected !== assuranceMethod.policy_digest ||
         releaseResourceDigest(delta.artifact_core.policy_digests, RELEASE_RESOURCES.agentReadinessPolicy) !== agentReadiness.policy_digest ||
+        releaseResourceDigest(delta.artifact_core.policy_digests, RELEASE_RESOURCES.assuranceMethodPolicy) !== assuranceMethod.policy_digest ||
         releaseResourceDigest(delta.artifact_core.policy_digests, RELEASE_RESOURCES.coveragePolicy) !==
             coverageDigest ||
         releaseResourceDigest(delta.artifact_core.policy_digests, RELEASE_RESOURCES.freshnessPolicy) !==
@@ -27,6 +32,7 @@ export function verifyCatalogDeltaPolicies(bundle, delta, files) {
         coveragePolicy: coverage,
         freshnessPolicy: freshness,
         agentReadinessPolicy: agentReadiness,
+        assuranceMethodPolicy: assuranceMethod,
     };
 }
 function parseJson(files, path) {

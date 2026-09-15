@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { entityIdentityAssuranceSchema, offerTermsAssuranceSchema, } from "../../assurance/src/index.js";
 import { evidenceProofKindSchema } from "../../evidence/src/index.js";
 import { accessSchema, catalogUrlSchema, economicsSchema, eligibilitySchema, lifecycleStatusSchema, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
@@ -23,15 +24,22 @@ export const fieldCoverageSchema = z
     .strict();
 export const provenanceSchema = z
     .object({
-    tier: z.enum(["observed", "signed", "verified"]),
     freshness: z.enum(["fresh", "stale", "unknown"]),
     dispute: z.enum(["none", "open", "resolved"]),
     coverage_policy_digest: digest,
     freshness_policy_digest: digest,
-    basis_event_ids: z.array(digest).min(1),
+    basis_event_ids: z.array(digest),
     fields: z.array(fieldCoverageSchema).min(1),
-    attestation_event_id: digest.optional(),
-    verification_event_id: digest.optional(),
+    vendor_attestation: z.discriminatedUnion("status", [
+        z.object({ status: z.literal("none") }).strict(),
+        z
+            .object({
+            status: z.literal("current"),
+            event_id: digest,
+            attested_at: instant,
+        })
+            .strict(),
+    ]),
 })
     .strict();
 export const compiledOfferSchema = z
@@ -52,6 +60,7 @@ export const compiledOfferSchema = z
     effective_until: instant.optional(),
     revision_digest: digest,
     provenance: provenanceSchema,
+    terms_assurance: offerTermsAssuranceSchema.optional(),
 })
     .strict();
 export const compiledProgramSchema = z
@@ -76,6 +85,7 @@ export const compiledEntitySchema = z
     category: slug,
     revision_digest: digest,
     provenance: provenanceSchema,
+    identity_assurance: entityIdentityAssuranceSchema.optional(),
     programs: z.array(compiledProgramSchema),
     offers: z.array(compiledOfferSchema),
 })
@@ -171,6 +181,7 @@ export const releaseChangeKindKnownValues = [
     "agent-readiness.added",
     "agent-readiness.updated",
     "agent-readiness.regraded",
+    "agent-readiness.relocated",
     "agent-readiness.ended",
     "agent-readiness.withdrawn",
     "asset.bound",

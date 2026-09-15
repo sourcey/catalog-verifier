@@ -291,15 +291,9 @@ function evidenceAlternatives(metric, value) {
 export function buildCurrentAgentReadinessPolicy() {
     const methods = [
         buildMethod({
-            name: "public-http-semantic-assessment",
-            version: "2026-08-20",
-            rungs: ["http"],
-            maxActions: 0,
-        }),
-        buildMethod({
-            name: "bounded-headless-semantic-assessment",
-            version: "2026-08-20",
-            rungs: ["headless"],
+            name: "public-semantic-assessment",
+            version: "2026-09-06",
+            rungs: ["http", "headless"],
             maxActions: 20,
         }),
         buildMethod({
@@ -313,7 +307,7 @@ export function buildCurrentAgentReadinessPolicy() {
     const methodDigests = methods.map((method) => method.method_digest);
     const core = agentReadinessPolicyCoreSchema.parse({
         policy_contract: "sourcey.agent-readiness-policy/v1alpha1",
-        policy_version: "service-use-2026-08-20-public-evidence-r9",
+        policy_version: "service-use-2026-09-07-blocking-barriers-r12",
         assessment_basis: {
             principal: "authorized_human_or_organization",
             initial_state: {
@@ -394,8 +388,10 @@ export function buildCurrentAgentReadinessPolicy() {
                 })),
                 priority: index,
                 ...(metric.role !== "informational"
+                    ? { blocker: { code: `${metric.stage}.${metric.code}`, explanation: metric.blocked } }
+                    : {}),
+                ...(metric.role !== "informational"
                     ? {
-                        blocker: { code: `${metric.stage}.${metric.code}`, explanation: metric.blocked },
                         remediation: {
                             code: `improve.${metric.stage}.${metric.code}`,
                             instruction: metric.remediation,
@@ -452,15 +448,14 @@ export function buildCurrentAgentReadinessPolicy() {
                 provision: "F",
                 operate: "F",
             },
-            unverified_barrier_grade_cap: "B+",
             not_applicable_signals: "excluded",
             unrated_when: { coverage: "not-complete", freshness: "not-fresh" },
         },
         grade_derivation: {
             label: "Five-stage Agent Readiness report card",
-            explanation: "A through C grades count Limited stages; D and F reflect actual Blocked stages by lifecycle severity.",
-            coverage_rule: "Every core graded metric must have supported, fresh, non-conflicting evidence. Barrier checks constrain the report when verified and cap an otherwise higher grade at B+ while unverified.",
-            outcome_rule: "Each stage takes its worst core metric or verified barrier, and the overall grade is derived from the five stage states plus the explicit unverified-barrier cap.",
+            explanation: "A through C grades count Limited stages; D and F reflect Blocked stages by lifecycle severity.",
+            coverage_rule: "Coverage is complete only when every graded signal has supported, fresh, non-conflicting evidence. Barrier and informational signals do not change coverage; only fresh, supported barrier values that passed their admission evidence rule participate in stage outcomes.",
+            outcome_rule: "Each stage takes its worst graded signal or verified barrier. A fresh, supported mandatory barrier that passed its admission evidence rule can block that stage; incomplete or stale barrier evidence remains context only. The overall grade is derived from the five stage states.",
         },
     });
     return agentReadinessPolicySchema.parse({ ...core, policy_digest: digest(core) });

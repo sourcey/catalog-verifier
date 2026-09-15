@@ -12,6 +12,7 @@ const instant = z.iso.datetime({ offset: true });
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
 export const EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT = 16;
 export const evidenceCaptureMethodSchema = z.enum(["http", "headless", "archive", "manual"]);
+export const evidenceCaptureAvailabilitySchema = z.enum(["public", "private-receipt"]);
 const PUBLIC_READ_FORBIDDEN_HEADER = /(?:^|[-_])(?:auth(?:orization)?|cookie|credential|idempotency|key|method-override|proxy|secret|token)(?:$|[-_])/u;
 export const evidencePublicReadRequestSchema = z
     .object({

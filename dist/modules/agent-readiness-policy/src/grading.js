@@ -35,6 +35,6 @@ export function isAgentReadinessGradingSignal(signal) {
     return signal.evaluation_role === "graded";
 }
 function isAgentReadinessStageSignal(signal) {
-    return signal.evaluation_role === "graded" || isAgentReadinessResolvedBarrierSignal(signal);
+    return signal.evaluation_role === "graded" || isAgentReadinessVerifiedBarrierSignal(signal);
 }
 //# sourceMappingURL=grading.js.map

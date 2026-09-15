@@ -487,6 +487,16 @@ export declare const agentReadinessDeclarationSchema: z.ZodObject<{
     declared_at: z.ZodISODateTime;
 }, z.core.$strict>;
 export declare const agentReadinessDeclarationGraphSchema: z.ZodObject<{
+    scope: z.ZodObject<{
+        product: z.ZodObject<{
+            key: z.ZodString;
+            name: z.ZodString;
+        }, z.core.$strict>;
+        funnel: z.ZodObject<{
+            key: z.ZodString;
+            name: z.ZodString;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
     resources: z.ZodArray<z.ZodObject<{
         resource_id: z.ZodString;
         uri: z.ZodURL;
@@ -548,16 +558,6 @@ export declare const agentReadinessDeclarationGraphSchema: z.ZodObject<{
         }, z.core.$strict>;
     }, z.core.$strict>>;
     declaration_id: z.ZodString;
-    scope: z.ZodObject<{
-        product: z.ZodObject<{
-            key: z.ZodString;
-            name: z.ZodString;
-        }, z.core.$strict>;
-        funnel: z.ZodObject<{
-            key: z.ZodString;
-            name: z.ZodString;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
     declared_at: z.ZodISODateTime;
     assessment_targets: z.ZodArray<z.ZodObject<{
         target_id: z.ZodString;
@@ -690,6 +690,16 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
     revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
     entity_id: z.ZodString;
     declaration: z.ZodObject<{
+        scope: z.ZodObject<{
+            product: z.ZodObject<{
+                key: z.ZodString;
+                name: z.ZodString;
+            }, z.core.$strict>;
+            funnel: z.ZodObject<{
+                key: z.ZodString;
+                name: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
         resources: z.ZodArray<z.ZodObject<{
             resource_id: z.ZodString;
             uri: z.ZodURL;
@@ -751,16 +761,6 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
             }, z.core.$strict>;
         }, z.core.$strict>>;
         declaration_id: z.ZodString;
-        scope: z.ZodObject<{
-            product: z.ZodObject<{
-                key: z.ZodString;
-                name: z.ZodString;
-            }, z.core.$strict>;
-            funnel: z.ZodObject<{
-                key: z.ZodString;
-                name: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
         declared_at: z.ZodISODateTime;
         assessment_targets: z.ZodArray<z.ZodObject<{
             target_id: z.ZodString;
@@ -898,6 +898,16 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
     revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
     entity_id: z.ZodString;
     declaration: z.ZodObject<{
+        scope: z.ZodObject<{
+            product: z.ZodObject<{
+                key: z.ZodString;
+                name: z.ZodString;
+            }, z.core.$strict>;
+            funnel: z.ZodObject<{
+                key: z.ZodString;
+                name: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
         resources: z.ZodArray<z.ZodObject<{
             resource_id: z.ZodString;
             uri: z.ZodURL;
@@ -959,16 +969,6 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
             }, z.core.$strict>;
         }, z.core.$strict>>;
         declaration_id: z.ZodString;
-        scope: z.ZodObject<{
-            product: z.ZodObject<{
-                key: z.ZodString;
-                name: z.ZodString;
-            }, z.core.$strict>;
-            funnel: z.ZodObject<{
-                key: z.ZodString;
-                name: z.ZodString;
-            }, z.core.$strict>;
-        }, z.core.$strict>;
         declared_at: z.ZodISODateTime;
         assessment_targets: z.ZodArray<z.ZodObject<{
             target_id: z.ZodString;

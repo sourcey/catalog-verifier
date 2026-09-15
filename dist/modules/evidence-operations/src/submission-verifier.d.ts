@@ -3,6 +3,7 @@ import type { AgentReadinessRevision } from "../../../contracts/agent-readiness/
 import { type EvidenceAssertion, type EvidenceDerivationRule, type EvidenceProofKind, type EvidenceSourceStanding } from "../../../contracts/evidence/src/index.js";
 import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
+import type { RetainedEvidenceBearingRevision } from "./retained-revision.js";
 export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
 export declare const EVIDENCE_SUBMISSION_LIMITS: {
     readonly captureBytes: number;
@@ -288,7 +289,7 @@ export declare function verifyEvidenceCaptureObjects(input: {
 export declare function verifyEvidenceAssertions(input: {
     readonly assertions: readonly EvidenceAssertion[];
     readonly normalizedBytes: Uint8Array;
-    readonly revision: Revision;
+    readonly revision: RetainedEvidenceBearingRevision;
 }): readonly VerifiedEvidenceAssertion[];
 export declare function prepareEvidenceReviewProposal(input: {
     readonly operationId: Digest;
@@ -313,6 +314,8 @@ export declare function verifyEvidenceReviewProposal(input: {
     readonly authorityProgramRevision: ProgramRevision | null;
     readonly expectedBaseReleaseId?: Digest;
 }): EvidenceReviewProposal;
-export declare function deriveSourceStanding(capture: EvidenceSubmission["capture"], authorityEntityRevision: EntityRevision): EvidenceSourceStanding;
+export declare function deriveSourceStanding(capture: Pick<EvidenceSubmission["capture"], "subject_source_url" | "final_url" | "retrieved_at" | "method">, authorityEntityRevision: {
+    readonly content: Pick<EntityRevision["content"], "domains">;
+}): EvidenceSourceStanding;
 export declare function validateEvidenceCaptureDeclaration(capture: EvidenceSubmission["capture"]): EvidenceSubmission["capture"];
 //# sourceMappingURL=submission-verifier.d.ts.map

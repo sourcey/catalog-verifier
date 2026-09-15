@@ -274,5 +274,27 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
         };
         policy_digest: string;
     };
+    assuranceMethodPolicy: {
+        policy_contract: "sourcey.assurance-method-policy/v1alpha1";
+        method_id: string;
+        title: string;
+        summary: string;
+        decision_authority: "authorized-human-review";
+        accepted_observation_methods: string[];
+        accepted_capture_availability: ("public" | "private-receipt")[];
+        accepted_source_standings: ("live-first-party" | "archived-first-party" | "live-third-party" | "archived-third-party" | "manual-first-party" | "manual-third-party")[];
+        accepted_proof_kinds: ("observed" | "derived" | "editorial" | "attested")[];
+        outcomes: {
+            entity_identity: {
+                scope: "identity-epoch";
+                coverage_paths: ["/domains", "/links", "/name"];
+            };
+            offer_terms: {
+                scope: "exact-revision";
+                coverage: "applicable-offer-coverage-policy";
+            };
+        };
+        policy_digest: string;
+    };
 };
 //# sourceMappingURL=verification-policies.d.ts.map

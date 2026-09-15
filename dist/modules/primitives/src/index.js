@@ -102,6 +102,15 @@ export function compareCanonicalStrings(left, right) {
     const normalizedRight = right.normalize("NFC");
     return normalizedLeft < normalizedRight ? -1 : normalizedLeft > normalizedRight ? 1 : 0;
 }
+/** Chronological ordering for ISO-8601 instants, independent of offset spelling. */
+export function compareInstants(left, right) {
+    const leftTime = Date.parse(left);
+    const rightTime = Date.parse(right);
+    if (!Number.isFinite(leftTime) || !Number.isFinite(rightTime)) {
+        throw new TypeError("Instant comparison requires valid ISO-8601 values.");
+    }
+    return leftTime - rightTime;
+}
 export function sha256Bytes(bytes) {
     return `sha256:${createHash("sha256").update(bytes).digest("hex")}`;
 }
@@ -142,13 +151,22 @@ export async function mapLimit(values, concurrency, operation) {
     }
     const results = new Array(values.length);
     let cursor = 0;
+    let failure;
     await Promise.all(Array.from({ length: Math.min(concurrency, values.length) }, async () => {
-        while (cursor < values.length) {
+        while (!failure && cursor < values.length) {
             const index = cursor;
             cursor += 1;
-            results[index] = await operation(values[index]);
+            try {
+                results[index] = await operation(values[index]);
+            }
+            catch (cause) {
+                failure ??= { cause };
+            }
         }
     }));
+    // Callers may close stores after settlement. Stop scheduling and drain every active effect first.
+    if (failure)
+        throw failure.cause;
     return results;
 }
 //# sourceMappingURL=index.js.map

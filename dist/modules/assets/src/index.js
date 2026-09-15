@@ -149,10 +149,7 @@ export function projectAssets(input) {
     if (!Number.isFinite(asOf))
         throw new Error("Asset projection policy time is invalid.");
     const objects = new Map(manifest.objects.map((object) => [object.asset_object_digest, object]));
-    const terminations = new Set(input.events.flatMap((event) => ["asset.withdrawn", "asset.takedown-ordered"].includes(event.kind) &&
-        Date.parse(stringValue(record(event.payload).effective_at)) <= asOf
-        ? [stringValue(record(event.payload).target_binding_event_id)]
-        : []));
+    const terminations = new Set(input.events.flatMap((event) => terminatedAssetBinding(event, asOf)));
     const bindings = input.events
         .filter((event) => event.kind === "asset.bound")
         .flatMap((event) => {
@@ -214,6 +211,18 @@ export function projectAssets(input) {
         notices_digest: digest(notices),
     });
     return { index, notices };
+}
+function terminatedAssetBinding(event, asOf) {
+    const payload = record(event.payload);
+    if (["asset.withdrawn", "asset.takedown-ordered"].includes(event.kind)) {
+        return Date.parse(stringValue(payload.effective_at)) <= asOf
+            ? [stringValue(payload.target_binding_event_id)]
+            : [];
+    }
+    if (event.kind !== "asset.bound")
+        return [];
+    const superseded = optionalString(payload.superseded_binding_event_id);
+    return superseded && Date.parse(stringValue(payload.effective_from)) <= asOf ? [superseded] : [];
 }
 function record(value) {
     return typeof value === "object" && value !== null && !Array.isArray(value)

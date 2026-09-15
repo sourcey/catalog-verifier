@@ -1394,4 +1394,34 @@ export type AssetBindingProjection = z.infer<typeof assetBindingProjectionSchema
 export type AssetDeltaChange = z.infer<typeof assetDeltaChangeSchema>;
 export type AssetDelta = z.infer<typeof assetDeltaSchema>;
 export type AssetAuthorityBundleManifest = z.infer<typeof assetAuthorityBundleManifestSchema>;
+export declare const reviewedEntityAssetSubmissionCoreSchema: z.ZodObject<{
+    review_contract: z.ZodLiteral<"sourcey.reviewed-entity-asset-submission/v1alpha1">;
+    work_item_digest: z.ZodString;
+    base_release_id: z.ZodString;
+    reviewer_id: z.ZodString;
+    decided_at: z.ZodISODateTime;
+    rationale: z.ZodString;
+    proposal_digests: z.ZodArray<z.ZodString>;
+    review_artifact_digests: z.ZodArray<z.ZodString>;
+    objects: z.ZodRecord<z.ZodString, z.ZodObject<{
+        sha256: z.ZodString;
+        bytes: z.ZodNumber;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+export declare const reviewedEntityAssetSubmissionSchema: z.ZodObject<{
+    review_contract: z.ZodLiteral<"sourcey.reviewed-entity-asset-submission/v1alpha1">;
+    work_item_digest: z.ZodString;
+    base_release_id: z.ZodString;
+    reviewer_id: z.ZodString;
+    decided_at: z.ZodISODateTime;
+    rationale: z.ZodString;
+    proposal_digests: z.ZodArray<z.ZodString>;
+    review_artifact_digests: z.ZodArray<z.ZodString>;
+    objects: z.ZodRecord<z.ZodString, z.ZodObject<{
+        sha256: z.ZodString;
+        bytes: z.ZodNumber;
+    }, z.core.$strict>>;
+    submission_review_digest: z.ZodString;
+}, z.core.$strict>;
+export type ReviewedEntityAssetSubmission = z.infer<typeof reviewedEntityAssetSubmissionSchema>;
 //# sourceMappingURL=index.d.ts.map

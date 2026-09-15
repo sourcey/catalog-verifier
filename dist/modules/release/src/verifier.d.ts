@@ -1,17 +1,18 @@
 import { type AgentReadinessDeltaObject, type AgentReadinessOfferRelationDeltaObject, type AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
-import type { CompiledEntity } from "../../../contracts/artifact/src/index.js";
-import { releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
+import type { CompiledEntity, releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
 import type { AssetDelta } from "../../../contracts/assets/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { RootSet, SignerRegistry } from "../../../contracts/authority/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
 import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
 import { type Observation } from "../../../contracts/observations/src/index.js";
-import type { CatalogPublicationChangeSet, CatalogPublicationProposal, PublicationIngressReceipt } from "../../../contracts/publication/src/index.js";
+import type { CatalogPublicationChangeSet, CatalogPublicationIngress, CatalogPublicationProposal, PublicationIngressReceipt } from "../../../contracts/publication/src/index.js";
 import { type CatalogDelta, type CatalogReleaseBundle } from "../../../contracts/release/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
+import { type CatalogPublicationParentGuard } from "./publication-parent-guard.js";
 import { type ReleaseRevision } from "./release-revision-parser.js";
 export interface VerifiedCatalogDelta {
+    readonly parentGuard: CatalogPublicationParentGuard;
     readonly bundle: CatalogReleaseBundle;
     readonly delta: CatalogDelta;
     readonly entities: ReadonlyMap<string, CompiledEntity>;
@@ -30,6 +31,7 @@ export interface VerifiedCatalogDelta {
     readonly publicationProposal: CatalogPublicationProposal;
     readonly publicationChangeSet: CatalogPublicationChangeSet;
     readonly ingressReceipts: readonly PublicationIngressReceipt[];
+    readonly publicationIngresses: readonly CatalogPublicationIngress[];
     readonly rootSet: RootSet;
     readonly registry: SignerRegistry;
     readonly files: ReadonlyMap<string, Buffer>;

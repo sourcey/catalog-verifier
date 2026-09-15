@@ -4,11 +4,12 @@ import { assetIndexSchema, assetNoticesSchema } from "../../../contracts/assets/
 import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { RootSet, SignerRegistry } from "../../../contracts/authority/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
-import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
 import { type Observation } from "../../../contracts/observations/src/index.js";
 import { type CatalogReleaseBundle } from "../../../contracts/release/src/index.js";
 import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
 import { routeIndexSchema } from "../../../contracts/routes/src/index.js";
+import { type RetainedCaptureReceipt } from "../../authority/src/index.js";
+import { type RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
 import { type Digest } from "../../primitives/src/index.js";
 export interface VerifiedCatalogRelease {
     readonly bundle: CatalogReleaseBundle;
@@ -27,10 +28,14 @@ export interface VerifiedCatalogRelease {
     readonly registry: SignerRegistry;
     readonly events: CatalogEvent[];
     readonly observations: Observation[];
-    readonly captureReceipts: CaptureReceipt[];
-    readonly revisions: Map<Digest, EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision | AgentReadinessDeclarationRevision>;
+    readonly captureReceipts: RetainedCaptureReceipt[];
+    /** Current strict revisions used by authoring and product operations. */
+    readonly revisions: Map<Digest, CurrentCatalogRevision>;
+    /** Exact current and historical revision bytes used by audit replay. */
+    readonly retainedRevisions: Map<Digest, RetainedCatalogRevision>;
     readonly files: Map<string, Buffer>;
 }
+type CurrentCatalogRevision = EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision | AgentReadinessDeclarationRevision;
 export declare function verifyCatalogReleaseDirectory(directory: string, trust?: {
     readonly rootSetDigest: Digest;
 }): Promise<VerifiedCatalogRelease>;
@@ -43,4 +48,5 @@ export declare function verifyCatalogReleaseDirectory(directory: string, trust?:
 export declare function loadAdmittedCatalogReleaseDirectory(directory: string, trust?: {
     readonly rootSetDigest: Digest;
 }): Promise<VerifiedCatalogRelease>;
+export {};
 //# sourceMappingURL=index.d.ts.map

@@ -3,7 +3,7 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
 import { assertAgentReadinessDeclarationPolicyClosure } from "../../agent-readiness-policy/src/index.js";
-import { catalogPullRequestComparisonBase } from "../../catalog-admission/src/index.js";
+import { gitComparisonBase } from "../../git-input/src/index.js";
 import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
@@ -13,7 +13,7 @@ const executeFile = promisify(execFile);
  */
 export async function inspectAgentReadinessRepositoryChangePacket(input) {
     const repositoryRoot = resolve(input.repositoryRoot);
-    const comparisonBase = await catalogPullRequestComparisonBase(input);
+    const comparisonBase = await gitComparisonBase(input);
     const changed = await changedRepositoryPaths(repositoryRoot, comparisonBase, input.headRevision);
     const entityPaths = changed.filter(({ path }) => path.startsWith("entities/"));
     const otherPaths = changed.filter(({ path }) => !path.startsWith("entities/"));

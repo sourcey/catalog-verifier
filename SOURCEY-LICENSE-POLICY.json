@@ -1,5 +1,23 @@
 {
   "code_distribution_license_policy_contract": "sourcey.code-distribution-license-policy/v1",
   "package_license": "MIT",
-  "allowed_dependency_licenses": ["Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MIT"]
+  "allowed_dependency_licenses": ["Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MIT"],
+  "reviewed_license_texts": [
+    {
+      "package": "data-uri-to-buffer",
+      "version": "4.0.1",
+      "license": "MIT",
+      "path": "README.md",
+      "sha256": "sha256:a7cc4332acfa1f9b6530e01aac77fefe74f2efa32579215fddaa473013f9a25c",
+      "reason": "Upstream ships the full MIT license text inside README.md under its License heading and no separate license file; pulled by @google/genai through google-auth-library, gaxios and node-fetch."
+    },
+    {
+      "package": "@nodable/entities",
+      "version": "3.0.0",
+      "license": "MIT",
+      "path": "README.md",
+      "sha256": "sha256:7e3484a07c208b5c5813290a993244c6841efc3d4241c29a07ef948e8129a758",
+      "reason": "Upstream ships its MIT license notice in README.md and no separate license file; pulled by fast-xml-parser for safe submitted SVG inspection."
+    }
+  ]
 }

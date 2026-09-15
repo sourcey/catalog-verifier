@@ -1,13 +1,15 @@
 import { releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
 import { offerCanonicalPath, programCanonicalPath, } from "../../../contracts/routes/src/index.js";
+import { isAgentReadinessRouteOnlySuccession } from "../../agent-readiness-policy/src/index.js";
 import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
 export function buildChanges(input) {
     const { parent, current, identities, parentRoutes } = input;
     const candidates = [];
     const priorEntities = new Map(parent?.entities.map((entity) => [entity.entity_id, entity]) ?? []);
     for (const entity of current.entities) {
         const prior = priorEntities.get(entity.entity_id);
-        const projectionDigest = entityProjectionDigest(entity);
+        const projectionDigest = catalogEntityProjectionDigest(entity);
         if (!prior) {
             candidates.push({
                 kind: "entity.added",
@@ -18,14 +20,14 @@ export function buildChanges(input) {
                 basis_event_ids: [...entity.provenance.basis_event_ids],
             });
         }
-        else if (entityProjectionDigest(prior) !== projectionDigest) {
+        else if (catalogEntityProjectionDigest(prior) !== projectionDigest) {
             candidates.push({
                 kind: "entity.updated",
                 subject_type: "entity",
                 subject_id: entity.entity_id,
                 previous_revision_digest: prior.revision_digest,
                 revision_digest: entity.revision_digest,
-                previous_projection_digest: entityProjectionDigest(prior),
+                previous_projection_digest: catalogEntityProjectionDigest(prior),
                 projection_digest: projectionDigest,
                 basis_event_ids: [...entity.provenance.basis_event_ids],
             });
@@ -41,7 +43,7 @@ export function buildChanges(input) {
             subject_type: "entity",
             subject_id: entity.entity_id,
             previous_revision_digest: entity.revision_digest,
-            previous_projection_digest: entityProjectionDigest(entity),
+            previous_projection_digest: catalogEntityProjectionDigest(entity),
             basis_event_ids: [],
             tombstone: {
                 reason: "retired",
@@ -55,7 +57,7 @@ export function buildChanges(input) {
     for (const entity of current.entities) {
         for (const program of entity.programs) {
             const prior = priorPrograms.get(program.program_id);
-            const projectionDigest = programProjectionDigest(program);
+            const projectionDigest = catalogProgramProjectionDigest(program);
             const reparent = prior && prior.entity.entity_id !== entity.entity_id
                 ? identities.program_reparents?.[program.program_id]
                 : undefined;
@@ -69,7 +71,7 @@ export function buildChanges(input) {
                     basis_event_ids: [...program.provenance.basis_event_ids],
                 });
             }
-            else if (programProjectionDigest(prior.program) !== projectionDigest ||
+            else if (catalogProgramProjectionDigest(prior.program) !== projectionDigest ||
                 prior.entity.entity_id !== entity.entity_id) {
                 if (prior.entity.entity_id !== entity.entity_id &&
                     (!reparent ||
@@ -84,7 +86,7 @@ export function buildChanges(input) {
                     subject_id: program.program_id,
                     previous_revision_digest: prior.program.revision_digest,
                     revision_digest: program.revision_digest,
-                    previous_projection_digest: programProjectionDigest(prior.program),
+                    previous_projection_digest: catalogProgramProjectionDigest(prior.program),
                     projection_digest: projectionDigest,
                     basis_event_ids: [
                         ...new Set([
@@ -106,7 +108,7 @@ export function buildChanges(input) {
             subject_type: "program",
             subject_id: program.program_id,
             previous_revision_digest: program.revision_digest,
-            previous_projection_digest: programProjectionDigest(program),
+            previous_projection_digest: catalogProgramProjectionDigest(program),
             basis_event_ids: [],
             tombstone: {
                 reason: "retired",
@@ -119,7 +121,7 @@ export function buildChanges(input) {
     for (const entity of current.entities) {
         for (const offer of entity.offers) {
             const prior = priorOffers.get(offer.offer_id);
-            const projectionDigest = digest(offer);
+            const projectionDigest = catalogOfferProjectionDigest(offer);
             const reparent = prior && prior.entity.entity_id !== entity.entity_id
                 ? identities.offer_reparents?.[offer.offer_id]
                 : undefined;
@@ -133,7 +135,7 @@ export function buildChanges(input) {
                     basis_event_ids: [...offer.provenance.basis_event_ids],
                 });
             }
-            else if (digest(prior.offer) !== projectionDigest ||
+            else if (catalogOfferProjectionDigest(prior.offer) !== projectionDigest ||
                 prior.entity.entity_id !== entity.entity_id) {
                 if (prior.entity.entity_id !== entity.entity_id &&
                     (!reparent ||
@@ -153,7 +155,7 @@ export function buildChanges(input) {
                     subject_id: offer.offer_id,
                     previous_revision_digest: prior.offer.revision_digest,
                     revision_digest: offer.revision_digest,
-                    previous_projection_digest: digest(prior.offer),
+                    previous_projection_digest: catalogOfferProjectionDigest(prior.offer),
                     projection_digest: projectionDigest,
                     basis_event_ids: [
                         ...new Set([
@@ -186,7 +188,7 @@ export function buildChanges(input) {
             subject_type: "offer",
             subject_id: offer.offer_id,
             previous_revision_digest: offer.revision_digest,
-            previous_projection_digest: digest(offer),
+            previous_projection_digest: catalogOfferProjectionDigest(offer),
             basis_event_ids: [],
             tombstone: {
                 reason: "retired",
@@ -327,16 +329,17 @@ function agentReadinessChangeCandidates(input) {
             const policyProjectionRefresh = prior.revision_digest === profile.revision_digest &&
                 (prior.policy_digest !== profile.policy_digest ||
                     prior.policy_as_of !== profile.policy_as_of ||
-                    prior.provenance.freshness_policy_digest !== profile.provenance.freshness_policy_digest ||
-                    prior.canonical_url !== profile.canonical_url);
+                    prior.provenance.freshness_policy_digest !== profile.provenance.freshness_policy_digest);
             const kind = lifecycleChanged && profile.lifecycle === "ended"
                 ? "agent-readiness.ended"
                 : lifecycleChanged && profile.lifecycle === "withdrawn"
                     ? "agent-readiness.withdrawn"
-                    : input.regradedProfileIds?.has(profile.agent_readiness_profile_id) === true ||
-                        policyProjectionRefresh
-                        ? "agent-readiness.regraded"
-                        : "agent-readiness.updated";
+                    : isAgentReadinessRouteOnlySuccession(prior, profile)
+                        ? "agent-readiness.relocated"
+                        : input.regradedProfileIds?.has(profile.agent_readiness_profile_id) === true ||
+                            policyProjectionRefresh
+                            ? "agent-readiness.regraded"
+                            : "agent-readiness.updated";
             candidates.push({
                 kind,
                 subject_type: "agent_readiness_profile",
@@ -370,13 +373,6 @@ function agentReadinessChangeCandidates(input) {
         });
     }
     return candidates;
-}
-function entityProjectionDigest(entity) {
-    const { programs: _, offers: __, ...projection } = entity;
-    return digest(projection);
-}
-function programProjectionDigest(program) {
-    return digest(program);
 }
 function canonicalRoute(routes, entityId, programId, offerId) {
     if (!routes)

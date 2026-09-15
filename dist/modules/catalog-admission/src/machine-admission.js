@@ -126,6 +126,7 @@ const conflictSchema = z
         "semantic_offer",
         "open_pull_request",
         "pending_git_lineage",
+        "pending_submission",
     ]),
     strength: z.enum(["exact", "ambiguous"]),
     key_digest: digestSchema,
@@ -182,23 +183,69 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
     })
         .strict()
         .superRefine((value, context) => {
-        const complete = [
+        const commonComplete = [
+            value.candidate_digest,
+            value.capture_digest,
+            value.served_digest,
+            value.transform_profile_digest,
+        ].every((candidate) => candidate !== null);
+        const sourceyComplete = commonComplete && value.fallback_reason_digest !== null;
+        const vendorComplete = commonComplete && value.fallback_reason_digest === null;
+        const complete = value.status === "supported" &&
+            (value.kind === "sourcey_monogram" ? sourceyComplete : vendorComplete);
+        const empty = [
             value.candidate_digest,
             value.capture_digest,
             value.served_digest,
             value.transform_profile_digest,
             value.fallback_reason_digest,
-        ].every((candidate) => candidate !== null);
-        if ((value.kind === "sourcey_monogram" && value.status === "supported") !== complete) {
+        ].every((candidate) => candidate === null);
+        if (!complete && !empty) {
             context.addIssue({
                 code: "custom",
-                message: "Exactly a supported Sourcey monogram requires the complete pre-decision candidate closure.",
+                message: "A supported asset requires its exact candidate, capture, served and transform closure; only a Sourcey monogram binds a fallback reason.",
+            });
+        }
+        if (value.status === "supported" && !complete) {
+            context.addIssue({
+                code: "custom",
+                message: "A supported asset requires a complete authority candidate.",
+            });
+        }
+        if (value.status !== "supported" && !empty) {
+            context.addIssue({
+                code: "custom",
+                message: "An unresolved or unsupported asset cannot claim candidate authority.",
             });
         }
     }),
 })
     .strict();
 export const startupCreditsMachineAdmissionInputSchema = startupCreditsMachineAdmissionInputCoreSchema.extend({ input_digest: digestSchema }).strict();
+const startupCreditsAdmissionCandidateFieldsSchema = startupCreditsMachineAdmissionInputCoreSchema
+    .pick({
+    live_parent_release_id: true,
+    policy: true,
+    coverage_policy: true,
+    evaluator_id: true,
+    evaluator_digest: true,
+    changed_files: true,
+    changed_subjects: true,
+    candidate_revisions: true,
+    claim_evaluations: true,
+    sources: true,
+    conflicts: true,
+    asset: true,
+})
+    .strict();
+export const startupCreditsAdmissionCandidateInputCoreSchema = startupCreditsAdmissionCandidateFieldsSchema
+    .extend({
+    candidate_contract: z.literal("sourcey.startup-credits-admission-candidate-input/v1alpha1"),
+})
+    .strict();
+export const startupCreditsAdmissionCandidateInputSchema = startupCreditsAdmissionCandidateInputCoreSchema
+    .extend({ candidate_digest: digestSchema })
+    .strict();
 export const startupCreditsMachineAdmissionOutcomeSchema = z.enum([
     "auto_admissible",
     "needs_revision",
@@ -211,6 +258,7 @@ export const startupCreditsMachineAdmissionReasonSchema = z.enum([
     "scope_requires_one_new_entity",
     "scope_requires_zero_or_one_new_program",
     "scope_requires_one_new_offer",
+    "scope_unsupported_change_shape",
     "declared_offer_not_machine_admissible",
     "entity_summary_required",
     "program_summary_required",
@@ -242,6 +290,32 @@ export const startupCreditsMachineAdmissionResultCoreSchema = z
 })
     .strict();
 export const startupCreditsMachineAdmissionResultSchema = startupCreditsMachineAdmissionResultCoreSchema.extend({ result_digest: digestSchema }).strict();
+export const startupCreditsAdmissionCandidateResultCoreSchema = z
+    .object({
+    result_contract: z.literal("sourcey.startup-credits-admission-candidate-result/v1alpha1"),
+    candidate_digest: digestSchema,
+    outcome: startupCreditsMachineAdmissionOutcomeSchema,
+    reason_codes: z.array(startupCreditsMachineAdmissionReasonSchema),
+    retryable: z.boolean(),
+    claim_plan_digests: z.array(digestSchema).min(1).max(3),
+    claim_result_digests: z.array(digestSchema).min(1).max(4096),
+})
+    .strict();
+export const startupCreditsAdmissionCandidateResultSchema = startupCreditsAdmissionCandidateResultCoreSchema.extend({ result_digest: digestSchema }).strict();
+export const startupCreditsAdmissionCandidateReceiptCoreSchema = z
+    .object({
+    receipt_contract: z.literal("sourcey.startup-credits-admission-candidate-receipt/v1alpha1"),
+    candidate_digest: digestSchema,
+    result_digest: digestSchema,
+    policy_id: identifierSchema,
+    policy_digest: digestSchema,
+    evaluator_id: identifierSchema,
+    evaluator_digest: digestSchema,
+})
+    .strict();
+export const startupCreditsAdmissionCandidateReceiptSchema = startupCreditsAdmissionCandidateReceiptCoreSchema
+    .extend({ receipt_digest: digestSchema })
+    .strict();
 export const startupCreditsMachineAdmissionReceiptCoreSchema = z
     .object({
     receipt_contract: z.literal("sourcey.startup-credits-machine-admission-receipt/v1alpha1"),
@@ -258,6 +332,18 @@ export function createStartupCreditsMachineAdmissionInput(input) {
     const core = startupCreditsMachineAdmissionInputCoreSchema.parse(input);
     return startupCreditsMachineAdmissionInputSchema.parse({ ...core, input_digest: digest(core) });
 }
+/**
+ * Bind one admission candidate independently of Git, browser, API or paid-work
+ * transport. Transport adapters add their own immutable authority coordinates;
+ * they never change this candidate's evidence, conflicts, policy or outcome.
+ */
+export function createStartupCreditsAdmissionCandidateInput(input) {
+    const core = startupCreditsAdmissionCandidateInputCoreSchema.parse(input);
+    return startupCreditsAdmissionCandidateInputSchema.parse({
+        ...core,
+        candidate_digest: digest(core),
+    });
+}
 export function createStartupCreditsMachineAdmissionPolicy(input) {
     const core = startupCreditsMachineAdmissionPolicyCoreSchema.parse(input);
     return startupCreditsMachineAdmissionPolicySchema.parse({
@@ -272,11 +358,7 @@ export function evaluateStartupCreditsMachineAdmission(input) {
     if (digest(startupCreditsMachineAdmissionInputCoreSchema.parse(inputCore)) !== inputDigest) {
         throw new Error("Startup Credits machine-admission input digest does not match its content.");
     }
-    verifyMachineAdmissionPolicies(parsed);
-    const evaluations = parsed.claim_evaluations.map((evaluation) => verifyMaterialClaimEvaluation(evaluation));
-    assertClosedEvaluationInput(parsed, evaluations);
-    const reasons = evaluateReasons(parsed, evaluations);
-    const outcome = outcomeForReasons(reasons);
+    const { evaluations, reasons, outcome } = evaluateAdmissionCandidatePolicy(parsed);
     const resultCore = startupCreditsMachineAdmissionResultCoreSchema.parse({
         result_contract: "sourcey.startup-credits-machine-admission-result/v1alpha1",
         input_digest: inputDigest,
@@ -321,6 +403,69 @@ export function evaluateStartupCreditsMachineAdmission(input) {
             execution_receipt_digest: receipt.receipt_digest,
         },
     };
+}
+/**
+ * The shared deterministic admission verdict used by transport-specific
+ * applications. This emits no publication, payment, Git or reviewer authority.
+ */
+export function evaluateStartupCreditsAdmissionCandidate(input) {
+    const parsed = startupCreditsAdmissionCandidateInputSchema.parse(input);
+    const { candidate_digest: candidateDigest, ...inputCore } = parsed;
+    if (digest(startupCreditsAdmissionCandidateInputCoreSchema.parse(inputCore)) !== candidateDigest) {
+        throw new Error("Startup Credits admission candidate digest does not match its content.");
+    }
+    const { evaluations, reasons, outcome } = evaluateAdmissionCandidatePolicy(parsed);
+    const resultCore = startupCreditsAdmissionCandidateResultCoreSchema.parse({
+        result_contract: "sourcey.startup-credits-admission-candidate-result/v1alpha1",
+        candidate_digest: candidateDigest,
+        outcome,
+        reason_codes: reasons,
+        retryable: outcome === "temporarily_unavailable",
+        claim_plan_digests: evaluations
+            .map(({ plan }) => plan.plan_digest)
+            .sort(compareCanonicalStrings),
+        claim_result_digests: evaluations
+            .flatMap(({ results }) => results.map(({ result_digest: resultDigest }) => resultDigest))
+            .sort(compareCanonicalStrings),
+    });
+    const result = startupCreditsAdmissionCandidateResultSchema.parse({
+        ...resultCore,
+        result_digest: digest(resultCore),
+    });
+    const receiptCore = startupCreditsAdmissionCandidateReceiptCoreSchema.parse({
+        receipt_contract: "sourcey.startup-credits-admission-candidate-receipt/v1alpha1",
+        candidate_digest: candidateDigest,
+        result_digest: result.result_digest,
+        policy_id: parsed.policy.policy_id,
+        policy_digest: parsed.policy.policy_digest,
+        evaluator_id: parsed.evaluator_id,
+        evaluator_digest: parsed.evaluator_digest,
+    });
+    const receipt = startupCreditsAdmissionCandidateReceiptSchema.parse({
+        ...receiptCore,
+        receipt_digest: digest(receiptCore),
+    });
+    return {
+        input: parsed,
+        result,
+        receipt,
+        decisionBasis: {
+            kind: "policy",
+            policy_id: parsed.policy.policy_id,
+            policy_digest: parsed.policy.policy_digest,
+            evaluator_id: parsed.evaluator_id,
+            evaluator_digest: parsed.evaluator_digest,
+            input_digest: parsed.candidate_digest,
+            execution_receipt_digest: receipt.receipt_digest,
+        },
+    };
+}
+function evaluateAdmissionCandidatePolicy(input) {
+    verifyAdmissionPolicies(input);
+    const evaluations = input.claim_evaluations.map((evaluation) => verifyMaterialClaimEvaluation(evaluation));
+    assertClosedEvaluationInput(input, evaluations);
+    const reasons = evaluateReasons(input, evaluations);
+    return { evaluations, reasons, outcome: outcomeForReasons(reasons) };
 }
 function assertClosedEvaluationInput(input, evaluations) {
     const sources = new Map(input.sources.map((source) => [sourceKey(source), source]));
@@ -375,7 +520,7 @@ function assertClosedEvaluationInput(input, evaluations) {
         }
     }
 }
-function verifyMachineAdmissionPolicies(input) {
+function verifyAdmissionPolicies(input) {
     const { policy_digest: policyDigest, ...policyCore } = input.policy;
     if (digest(startupCreditsMachineAdmissionPolicyCoreSchema.parse(policyCore)) !== policyDigest) {
         throw new Error("Machine-admission policy is not content-addressed correctly.");
@@ -459,7 +604,7 @@ function evaluateReasons(input, evaluations) {
     for (const conflict of input.conflicts) {
         reasons.add(conflict.strength === "exact" ? "exact_conflict" : "ambiguous_conflict");
     }
-    if (input.asset.kind === "vendor_asset") {
+    if (input.asset.kind === "vendor_asset" && input.asset.status !== "supported") {
         reasons.add("vendor_asset_requires_authority_review");
     }
     else if (input.asset.status !== "supported" || input.asset.candidate_digest === null) {
@@ -474,7 +619,6 @@ function outcomeForReasons(reasons) {
         "source_http_status_not_success",
         "source_not_public",
         "supported_claim_uses_inert_source",
-        "claim_contradicted",
         "exact_conflict",
     ].includes(reason))) {
         return "rejected";

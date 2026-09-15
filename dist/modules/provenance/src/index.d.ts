@@ -27,15 +27,19 @@ export declare function evidenceStatusFor(field: {
     readonly contradicting_event_ids: readonly string[];
 } | undefined): EvidenceStanding;
 export interface DerivedProvenance {
-    readonly tier: Provenance["tier"];
     readonly freshness: Provenance["freshness"];
     readonly dispute: Provenance["dispute"];
     readonly coverage_policy_digest: Digest;
     readonly freshness_policy_digest: Digest;
     readonly basis_event_ids: Digest[];
     readonly fields: FieldCoverage[];
-    readonly attestation_event_id?: Digest;
-    readonly verification_event_id?: Digest;
+    readonly vendor_attestation: {
+        readonly status: "none";
+    } | {
+        readonly status: "current";
+        readonly event_id: Digest;
+        readonly attested_at: string;
+    };
 }
 export type ProvenanceEvent = Omit<CatalogEvent, "protected">;
 export interface EvidenceStandingGraph {

@@ -47,6 +47,7 @@ export declare class CatalogVerifierApplication {
             kind: "detached";
             repositoryKind: "startup-credits" | "agent-readiness";
             candidateDigest: `sha256:${string}`;
+            candidateReference: string;
         };
     }>;
     validateCandidate(input: CatalogVerifierCandidateInput & {
@@ -75,6 +76,7 @@ export declare class CatalogVerifierApplication {
             kind: "detached";
             repositoryKind: "startup-credits" | "agent-readiness";
             candidateDigest: `sha256:${string}`;
+            candidateReference: string;
         };
     };
     verifyRelease(input: {

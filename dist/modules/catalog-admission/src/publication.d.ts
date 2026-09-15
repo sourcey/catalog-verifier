@@ -1,8 +1,8 @@
 import type { AssetBindingProjection, EntityAssetProposal } from "../../../contracts/assets/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
-import { type CatalogPublicationChangeSet, type CatalogPublicationCurrentState, type CatalogPublicationProposal, type PublicationIngressReceipt, type PublicationIngressReceiptCore } from "../../../contracts/publication/src/index.js";
+import { type CatalogPublicationChangeSet, type CatalogPublicationProposal, type PublicationIngressReceipt, type PublicationIngressReceiptCore } from "../../../contracts/publication/src/index.js";
 import { type Digest } from "../../primitives/src/index.js";
-import { CatalogPublicationImpactIndex } from "./publication-dependencies.js";
+import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 export * from "./publication-dependencies.js";
 export * from "./publication-entities.js";
 export * from "./publication-recomposition.js";
@@ -22,12 +22,9 @@ export interface CatalogPublicationPlanningInput {
     readonly targetPolicies: readonly CatalogPublicationPolicyReference[];
     readonly currentContractAuthorityDigest: Digest;
     readonly targetContractAuthorityDigest: Digest;
-    readonly impactIndex?: CatalogPublicationImpactIndex;
+    readonly impactIndex?: CatalogPublicationImpactQuery;
 }
-export interface CatalogPublicationAuthorityProposal {
-    readonly purpose: CatalogPublicationChangeSet["required_authorities"][number];
-    readonly proposal_digest: string;
-}
+export type CatalogPublicationAuthorityProposal = CatalogPublicationProposal["authority_proposals"][number];
 export interface PlannedCatalogPublication {
     readonly proposal: CatalogPublicationProposal;
     readonly changeSet: CatalogPublicationChangeSet;
@@ -35,7 +32,7 @@ export interface PlannedCatalogPublication {
 export interface PlannedCatalogPublicationIngress extends PlannedCatalogPublication {
     readonly ingressReceipt: PublicationIngressReceipt;
 }
-export declare function verifyCatalogPublicationCurrentState(input: unknown): CatalogPublicationCurrentState;
+export { verifyCatalogPublicationCurrentState } from "./publication-state.js";
 export interface CatalogCandidateChanges {
     readonly revisionChanges: CatalogPublicationChangeSet["revision_changes"];
     readonly sourceChanges: CatalogPublicationChangeSet["source_changes"];
@@ -54,8 +51,12 @@ export declare function deriveCatalogPublicationChangeSet(input: {
     readonly currentAssetBindings?: readonly AssetBindingProjection[];
     readonly currentPolicies: readonly CatalogPublicationPolicyReference[];
     readonly currentContractAuthorityDigest: Digest;
-    readonly impactIndex?: CatalogPublicationImpactIndex;
+    readonly impactIndex?: CatalogPublicationImpactQuery;
 }): CatalogPublicationChangeSet;
+/** Resolve impact after a bounded batch's exact authored changes are known.
+ * Proposal, ingress authority and change analysis remain unchanged. This is the
+ * same impact derivation as the ordinary planner, not a second diff or score. */
+export declare function resolveCatalogPublicationImpact(analysis: CatalogPublicationChangeSet, impactIndex: CatalogPublicationImpactQuery): CatalogPublicationChangeSet;
 export declare function verifyCatalogPublicationChangeSet(input: unknown): CatalogPublicationChangeSet;
 /**
  * The sole semantic diff over targeted Catalog Entity snapshots. Git review,
@@ -69,24 +70,25 @@ export declare function analyzeCatalogCandidateChanges(input: {
 export declare function publicationSemanticInputDigest(proposal: CatalogPublicationProposal): Digest;
 export declare function buildPublicationIngressReceipt(proposal: CatalogPublicationProposal, input: IngressReceiptDetails<PublicationIngressReceiptCore["kind"]>): PublicationIngressReceipt;
 export declare function verifyPublicationIngressReceipt(input: unknown): PublicationIngressReceipt;
-export declare function verifyCatalogPublicationInputClosure(input: {
-    readonly proposal: CatalogPublicationProposal;
-    readonly changeSet: CatalogPublicationChangeSet;
-    readonly ingressReceipts: readonly PublicationIngressReceipt[];
-}): {
-    readonly proposal: CatalogPublicationProposal;
-    readonly changeSet: CatalogPublicationChangeSet;
-    readonly ingressReceipts: readonly PublicationIngressReceipt[];
-};
-export declare function catalogPublicationAdmittedInputDigests(input: {
-    readonly proposal: CatalogPublicationProposal;
-    readonly changeSet: CatalogPublicationChangeSet;
-    readonly ingressReceipts: readonly PublicationIngressReceipt[];
-}): Digest[];
 export declare function planAuthenticatedFormCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"authenticated_form">): PlannedCatalogPublicationIngress;
 export declare function planPaidAgentCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"paid_agent">): PlannedCatalogPublicationIngress;
 export declare function planGovernedOpsCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"governed_ops">): PlannedCatalogPublicationIngress;
 export declare function planScannerCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"scanner">): PlannedCatalogPublicationIngress;
-export declare function planOperatorJobCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"operator_job">): PlannedCatalogPublicationIngress;
+export declare function planOperatorJobCatalogPublication(input: CatalogPublicationPlanningInput & {
+    /** Operator jobs plan against an exact retained state, including assets. */
+    readonly currentAssetBindings: readonly AssetBindingProjection[];
+}, receipt: IngressReceiptDetails<"operator_job">): PlannedCatalogPublicationIngress;
 export declare function planPolicyTransitionCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"policy_transition">): PlannedCatalogPublicationIngress;
+export declare function catalogPublicationPolicyChanges(current: readonly {
+    readonly key: string;
+    readonly digest: string;
+}[], target: readonly {
+    readonly key: string;
+    readonly digest: string;
+}[]): {
+    kind: "policy";
+    key: string;
+    current_digest: string | null;
+    target_digest: string | null;
+}[];
 //# sourceMappingURL=publication.d.ts.map

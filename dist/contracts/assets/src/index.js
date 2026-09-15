@@ -557,4 +557,20 @@ export const assetInputsSchema = z
     safe_variant_digests: z.array(digest),
 })
     .strict();
+export const reviewedEntityAssetSubmissionCoreSchema = z
+    .object({
+    review_contract: z.literal("sourcey.reviewed-entity-asset-submission/v1alpha1"),
+    work_item_digest: digest,
+    base_release_id: digest,
+    reviewer_id: z.string().regex(/^[a-z][a-z0-9-]*$/),
+    decided_at: instant,
+    rationale: z.string().trim().min(1),
+    proposal_digests: z.array(digest).min(1),
+    review_artifact_digests: z.array(digest).min(1),
+    objects: z.record(z.string(), fileDeclaration),
+})
+    .strict();
+export const reviewedEntityAssetSubmissionSchema = reviewedEntityAssetSubmissionCoreSchema
+    .extend({ submission_review_digest: digest })
+    .strict();
 //# sourceMappingURL=index.js.map

@@ -15,31 +15,52 @@ export * from "./evidence.js";
 export * from "./interaction.js";
 export * from "./method-pack.js";
 export * from "./shared.js";
-const unresolvedPublicClaimPatterns = [
+/**
+ * Runtime residue that proves a document failed to render: serialized
+ * JavaScript values, replacement characters, and a sentence whose interpolated
+ * value is missing. These disqualify a captured segment as evidence for a
+ * known finding and can never appear in a public claim.
+ */
+const unresolvedRenderingPatterns = [
     /\bundefined\b/iu,
     /\[object Object\]/u,
     /\bNaN\b/u,
-    /\{\{[^}]*\}\}/u,
-    /\$\{[^}]*\}/u,
-    /<%[^%]*%>/u,
     /\uFFFD/u,
     /\b(?:amount|cost|currency|date|duration|fee|limit|number|percentage|period|price|quantity|rate|time|total|value)\s+(?:at|by|for|from|is|of|to|with)\s*[.,;:!?](?:\s|$)/iu,
 ];
+/**
+ * Template syntax that must not reach a public claim, but is ordinary literal
+ * content in the documentation Sourcey assesses: vendors write
+ * `PINECONE_API_KEY="{{YOUR_API_KEY}}"` and `${{ secrets.GITHUB_TOKEN }}` as
+ * reader placeholders, and `${API_KEY}` is shell interpolation in every curl
+ * sample. A quote may carry them; a note may not. GitHub Actions expressions
+ * are excluded from the Mustache form because they are not template output.
+ */
+const unresolvedTemplatePatterns = [/(?<!\$)\{\{[^}]*\}\}/u, /<%[^%]*%>/u];
+/** Rendering residue in a captured segment: the surface did not render. */
+export function agentReadinessRenderingResidue(value) {
+    const text = value.trim();
+    return unresolvedRenderingPatterns.some((pattern) => pattern.test(text))
+        ? "Captured evidence carries unresolved rendered content."
+        : null;
+}
 /**
  * Finds deterministic evidence of unresolved runtime or interpolation residue
  * in text that would otherwise become a public factual claim.
  */
 export function agentReadinessPublicClaimResidue(value) {
     const text = value.trim();
-    return unresolvedPublicClaimPatterns.some((pattern) => pattern.test(text))
+    return [...unresolvedRenderingPatterns, ...unresolvedTemplatePatterns].some((pattern) => pattern.test(text))
         ? "Public Agent Readiness claims cannot contain unresolved rendered content."
         : null;
 }
+/** The one bound on public claim text: observation notes, the fact response schema and its prompt share it. */
+export const AGENT_READINESS_PUBLIC_CLAIM_TEXT_MAXIMUM_CHARACTERS = 500;
 export const agentReadinessPublicClaimTextSchema = z
     .string()
     .trim()
     .min(1)
-    .max(500)
+    .max(AGENT_READINESS_PUBLIC_CLAIM_TEXT_MAXIMUM_CHARACTERS)
     .superRefine((value, context) => {
     const issue = agentReadinessPublicClaimResidue(value);
     if (issue)
@@ -986,9 +1007,9 @@ export const agentReadinessStageSummarySchema = agentReadinessStageProjectionSch
     .strict();
 export const agentReadinessProvenanceSummarySchema = provenanceSchema
     .pick({
-    tier: true,
     freshness: true,
     dispute: true,
+    vendor_attestation: true,
 })
     .strict();
 export const agentReadinessProfileSummarySchema = agentReadinessProjectionSchema
@@ -1053,9 +1074,9 @@ export function summarizeAgentReadinessProfile(profile) {
         last_tested_at: profile.last_tested_at,
         freshness: profile.freshness,
         provenance: {
-            tier: profile.provenance.tier,
             freshness: profile.provenance.freshness,
             dispute: profile.provenance.dispute,
+            vendor_attestation: profile.provenance.vendor_attestation,
         },
         canonical_url: profile.canonical_url,
         projection_digest: profile.projection_digest,

@@ -12,9 +12,9 @@ export declare const observationCoreSchema: z.ZodObject<{
     }, z.core.$strict>;
     outcome: z.ZodEnum<{
         error: "error";
-        unreachable: "unreachable";
         "supports-candidate": "supports-candidate";
         "contradicts-candidate": "contradicts-candidate";
+        unreachable: "unreachable";
     }>;
     capture: z.ZodOptional<z.ZodObject<{
         digest: z.ZodString;
@@ -70,9 +70,9 @@ export declare const observationSchema: z.ZodObject<{
     }, z.core.$strict>;
     outcome: z.ZodEnum<{
         error: "error";
-        unreachable: "unreachable";
         "supports-candidate": "supports-candidate";
         "contradicts-candidate": "contradicts-candidate";
+        unreachable: "unreachable";
     }>;
     capture: z.ZodOptional<z.ZodObject<{
         digest: z.ZodString;

@@ -1,5 +1,6 @@
 import type { z } from "zod";
 export * from "./current-policy.js";
+export * from "./current-policy-validation.js";
 export * from "./grading.js";
 export * from "./impact.js";
 export * from "./offer-relations.js";
@@ -794,6 +795,8 @@ export declare function reprojectAgentReadinessCanonicalRoute(input: {
     readonly priorProjection: AgentReadinessProjection;
     readonly entitySlug: string;
 }): AgentReadinessProjection;
+/** A relocation changes the locator, never the immutable assessment facts. */
+export declare function isAgentReadinessRouteOnlySuccession(prior: AgentReadinessProjectionLineage, current: AgentReadinessProjection): boolean;
 export declare function deriveAgentReadinessReprojection(input: {
     readonly currentProjection: AgentReadinessProjection;
     readonly revision: AgentReadinessRevision;

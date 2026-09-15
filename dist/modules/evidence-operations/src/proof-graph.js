@@ -1,3 +1,4 @@
+import { entityRevisionSchema } from "../../../contracts/revisions/src/index.js";
 import { canonicalJson, digest, sha256Bytes } from "../../primitives/src/index.js";
 import { deriveSourceStanding, evidenceNormalizerForToolchainDigest, normalizeEvidenceCapture, verifyEvidenceAssertions, } from "./submission-verifier.js";
 /**
@@ -142,16 +143,14 @@ export function verifyEvidenceObjectGraph(input) {
         }
         const sourceStanding = deriveSourceStanding({
             subject_source_url: observation.source_uri,
-            requested_url: observation.capture.requested_uri,
             final_url: observation.capture.final_uri,
-            redirect_chain: observation.capture.redirect_chain,
             retrieved_at: observation.retrieved_at,
             method: method,
-            response_status_code: captureReceipt.capture.response_status_code,
-            media_type: observation.capture.media_type,
-            digest: observation.capture.digest,
-            availability: observation.capture.availability === "public" ? "public" : "restricted",
-        }, authorityEntityRevision);
+        }, {
+            content: {
+                domains: entityRevisionSchema.shape.content.shape.domains.parse(authorityEntityRevision.content?.domains),
+            },
+        });
         if (sourceStanding !== observation.capture.source_standing) {
             throw new Error(`Evidence event ${event.event_id} has incorrect source standing.`);
         }

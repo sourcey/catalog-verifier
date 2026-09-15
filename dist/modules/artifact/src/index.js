@@ -1,21 +1,24 @@
-import { readdir, readFile } from "node:fs/promises";
-import { basename, join, relative, sep } from "node:path";
+import { readFile } from "node:fs/promises";
+import { basename, join } from "node:path";
 import { agentReadinessDeclarationRevisionSchema, agentReadinessIndexSchema, agentReadinessInputsSchema, agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputsSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { canonicalArtifactSchema, compiledPolicySchema, identityIndexSchema, provenanceIndexSchema, releaseChangeSchema, releaseDiffSchema, searchIndexSchema, } from "../../../contracts/artifact/src/index.js";
 import { assetIndexSchema, assetInputsSchema, assetNoticesSchema, } from "../../../contracts/assets/src/index.js";
 import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema, rootSetTransitionSchema } from "../../../contracts/authority/src/index.js";
-import { captureReceiptSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
-import { catalogReleaseBundleCoreSchema, catalogReleaseBundleSchema, RELEASE_RESOURCES, releaseDescriptorSchema, releaseObjectManifestSchema, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
+import { RELEASE_RESOURCES, releaseDescriptorSchema, releaseObjectManifestSchema, releaseResourceDigest, verifyCatalogReleaseBundle, } from "../../../contracts/release/src/index.js";
 import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { routeIndexSchema } from "../../../contracts/routes/src/index.js";
-import { validateProtectedCaptureReceipt, validateProtectedEvent, validateRootSetTransition, validateSignerRegistry, } from "../../authority/src/index.js";
+import { validateProtectedEvent, validateProtectedRetainedCaptureReceipt, validateRootSetTransition, validateSignerRegistry, } from "../../authority/src/index.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
+import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
 import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
+import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogPolicyRevisionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
 import { assertReleasedAgentReadinessClosure, assertReleasedAgentReadinessOfferRelationClosure, } from "./agent-readiness-closure.js";
 import { assertReleasedAssetClosure } from "./asset-closure.js";
 import { verifyReleasedAuthoringClosure } from "./authoring-closure.js";
+import { assertReleasedPolicyClosure } from "./policy-closure.js";
+import { verifiedReleaseFiles } from "./release-directory-files.js";
 import { validateTrustHistory } from "./trust-history.js";
 export async function verifyCatalogReleaseDirectory(directory, trust) {
     return inspectCatalogReleaseDirectory(directory, trust, true);
@@ -30,31 +33,8 @@ export async function loadAdmittedCatalogReleaseDirectory(directory, trust) {
     return inspectCatalogReleaseDirectory(directory, trust, false);
 }
 async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceObjects) {
-    const bundle = catalogReleaseBundleSchema.parse(JSON.parse(await readFile(join(directory, "bundle.json"), "utf8")));
-    const { bundle_digest: bundleDigest, ...bundleCoreInput } = bundle;
-    const bundleCore = catalogReleaseBundleCoreSchema.parse(bundleCoreInput);
-    if (digest(bundleCore) !== bundleDigest) {
-        throw new Error("Release bundle digest does not match its canonical core.");
-    }
-    const actualPaths = (await filesUnder(directory))
-        .map((file) => relative(directory, file).split(sep).join("/"))
-        .filter((path) => path !== "bundle.json")
-        .sort();
-    const declaredPaths = Object.keys(bundle.files).sort();
-    if (JSON.stringify(actualPaths) !== JSON.stringify(declaredPaths)) {
-        throw new Error("Release file set does not match its immutable declaration.");
-    }
-    const files = new Map();
-    for (const path of declaredPaths) {
-        const bytes = await readFile(join(directory, path));
-        const declaration = bundle.files[path];
-        if (!declaration)
-            throw new Error(`Missing bundle declaration for ${path}.`);
-        if (bytes.byteLength !== declaration.bytes || sha256Bytes(bytes) !== declaration.sha256) {
-            throw new Error(`Release file ${path} does not match its byte declaration.`);
-        }
-        files.set(path, bytes);
-    }
+    const bundle = verifyCatalogReleaseBundle(JSON.parse(await readFile(join(directory, "bundle.json"), "utf8")));
+    const files = await verifiedReleaseFiles(directory, bundle);
     const artifact = canonicalArtifactSchema.parse(parseJson(files, "catalog.json"));
     const routes = routeIndexSchema.parse(parseJson(files, "routes.json"));
     const identities = identityIndexSchema.parse(parseJson(files, "identities.json"));
@@ -165,12 +145,13 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             assetInputs.manifest_digest) {
         throw new Error("Release input declarations disagree with the closed input set.");
     }
-    const agentReadinessPolicyPath = `policies/${releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy).replace(":", "-")}.json`;
-    if (!files.has(agentReadinessPolicyPath)) {
-        throw new Error("Release is missing its addressed agent readiness policy.");
-    }
+    assertReleasedPolicyClosure({
+        files,
+        bundle,
+        artifactPolicyDigests: artifact.policy_digests,
+        snapshotResourceDigests: snapshot.resource_digests,
+    });
     assertDigest("observation inputs", digest(parseJson(files, "inputs/observations.json")), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.observationInputs));
-    assertDigest("policy inputs", digest(parseJson(files, "inputs/policies.json")), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.policyInputs));
     const inputSet = parseJson(files, "inputs/input-set.json");
     assertDigest("input set", digest(inputSet), snapshot.input_set_digest);
     const declaredEnvironment = typeof inputSet === "object" && inputSet !== null
@@ -220,6 +201,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
     }
     const trustedRegistries = validateTrustHistory(files, rootSet, registry);
     const revisions = new Map();
+    const retainedRevisions = new Map();
     const authoring = new Map();
     const hasCurrentAuthoring = [...files.keys()].some((path) => path.startsWith("authoring/entities/"));
     const events = [];
@@ -235,22 +217,17 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             authoring.set(address, value);
         }
         else if (path.startsWith("revisions/")) {
-            const input = JSON.parse(bytes.toString("utf8"));
-            const revision = input.revision_contract === "sourcey.entity-revision/v1alpha1"
-                ? entityRevisionSchema.parse(input)
-                : input.revision_contract === "sourcey.program-revision/v1alpha1"
-                    ? programRevisionSchema.parse(input)
-                    : input.revision_contract === "sourcey.offer-revision/v1alpha1"
-                        ? offerRevisionSchema.parse(input)
-                        : input.revision_contract === "sourcey.agent-readiness-revision/v1alpha1"
-                            ? agentReadinessRevisionSchema.parse(input)
-                            : agentReadinessDeclarationRevisionSchema.parse(input);
+            const raw = JSON.parse(bytes.toString("utf8"));
+            const revision = parseRetainedCatalogRevision(raw);
             const address = addressFromJsonPath(path);
             const { revision_digest: revisionDigest, ...core } = revision;
             if (address !== revisionDigest || digest(core) !== revisionDigest) {
                 throw new Error(`Revision object ${path} is not content-addressed correctly.`);
             }
-            revisions.set(revisionDigest, revision);
+            retainedRevisions.set(revisionDigest, revision);
+            const currentRevision = parseCurrentCatalogRevision(raw);
+            if (currentRevision)
+                revisions.set(revisionDigest, currentRevision);
         }
         else if (path.startsWith("events/")) {
             const input = JSON.parse(bytes.toString("utf8"));
@@ -280,7 +257,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             observations.push(observation);
         }
         else if (path.startsWith("capture-receipts/")) {
-            const input = captureReceiptSchema.parse(JSON.parse(bytes.toString("utf8")));
+            const input = JSON.parse(bytes.toString("utf8"));
             const address = addressFromJsonPath(path);
             if (input.receipt_digest !== address) {
                 throw new Error(`Capture receipt object ${path} is misaddressed.`);
@@ -293,7 +270,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             if (!receiptRegistry) {
                 throw new Error(`Capture receipt ${address} names a registry outside the trusted history.`);
             }
-            const receipt = validateProtectedCaptureReceipt(input, receiptRegistry, inclusion.first_inclusion_sequence);
+            const receipt = validateProtectedRetainedCaptureReceipt(input, receiptRegistry, inclusion.first_inclusion_sequence);
             if (digest(receipt) !== inclusion.receipt_object_digest) {
                 throw new Error(`Capture receipt ${address} differs from its witnessed object digest.`);
             }
@@ -346,7 +323,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
         inputs: agentReadinessOfferRelationInputs,
         files,
     });
-    assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
+    assertArtifactClosure(artifact, revisions, retainedRevisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
     return {
         bundle,
         descriptor,
@@ -366,10 +343,11 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
         observations: observations.sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id)),
         captureReceipts: captureReceipts.sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest)),
         revisions,
+        retainedRevisions,
         files,
     };
 }
-function assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
+function assertArtifactClosure(artifact, revisions, retainedRevisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
     const eventIds = new Set(events.map((event) => event.event_id));
     const observationIds = new Set(observations.map((observation) => observation.observation_id));
     for (const entity of artifact.entities) {
@@ -446,7 +424,7 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
     }
     if (replayEvidenceObjects) {
         verifyEvidenceObjectGraph({
-            revisions: [...revisions.values()],
+            revisions: [...retainedRevisions.values()],
             events,
             observations,
             captureReceipts,
@@ -461,8 +439,8 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
         if (!bytes)
             throw new Error(`Policy ${policy.revision_digest} lacks its addressed object.`);
         const parsed = compiledPolicySchema.parse(JSON.parse(bytes.toString("utf8")));
-        const { revision_digest: revisionDigest, ...core } = parsed;
-        if (revisionDigest !== policy.revision_digest || digest(core) !== revisionDigest) {
+        if (parsed.revision_digest !== policy.revision_digest ||
+            catalogPolicyRevisionDigest(parsed) !== parsed.revision_digest) {
             throw new Error(`Policy ${policy.revision_digest} is not content-addressed correctly.`);
         }
     }
@@ -478,9 +456,8 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
             if (!entity || entity.revision_digest !== change.revision_digest) {
                 throw new Error(`Entity change ${change.change_id} does not target the current entity.`);
             }
-            const { programs: _, offers: __, ...projection } = entity;
             if (change.projection_digest !== undefined &&
-                change.projection_digest !== digest(projection)) {
+                change.projection_digest !== catalogEntityProjectionDigest(entity)) {
                 throw new Error(`Entity change ${change.change_id} has the wrong projection digest.`);
             }
         }
@@ -489,7 +466,8 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
             if (!program || program.revision_digest !== change.revision_digest) {
                 throw new Error(`Program change ${change.change_id} does not target the current program.`);
             }
-            if (change.projection_digest !== undefined && change.projection_digest !== digest(program)) {
+            if (change.projection_digest !== undefined &&
+                change.projection_digest !== catalogProgramProjectionDigest(program)) {
                 throw new Error(`Program change ${change.change_id} has the wrong projection digest.`);
             }
         }
@@ -498,7 +476,8 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
             if (!offer || offer.revision_digest !== change.revision_digest) {
                 throw new Error(`Offer change ${change.change_id} does not target the current offer.`);
             }
-            if (change.projection_digest !== undefined && change.projection_digest !== digest(offer)) {
+            if (change.projection_digest !== undefined &&
+                change.projection_digest !== catalogOfferProjectionDigest(offer)) {
                 throw new Error(`Offer change ${change.change_id} has the wrong projection digest.`);
             }
         }
@@ -529,6 +508,20 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
         }
     }
 }
+function parseCurrentCatalogRevision(value) {
+    for (const schema of [
+        entityRevisionSchema,
+        programRevisionSchema,
+        offerRevisionSchema,
+        agentReadinessRevisionSchema,
+        agentReadinessDeclarationRevisionSchema,
+    ]) {
+        const parsed = schema.safeParse(value);
+        if (parsed.success)
+            return parsed.data;
+    }
+    return null;
+}
 function parseJson(files, path) {
     return JSON.parse(requiredFile(files, path).toString("utf8"));
 }
@@ -551,13 +544,5 @@ function addressFromJsonPath(path) {
 function assertDigest(label, actual, expected) {
     if (actual !== expected)
         throw new Error(`${label} digest mismatch.`);
-}
-async function filesUnder(directory) {
-    const entries = await readdir(directory, { withFileTypes: true });
-    const nested = await Promise.all(entries.map((entry) => {
-        const path = join(directory, entry.name);
-        return entry.isDirectory() ? filesUnder(path) : [path];
-    }));
-    return nested.flat();
 }
 //# sourceMappingURL=index.js.map
