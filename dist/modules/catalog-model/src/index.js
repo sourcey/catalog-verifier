@@ -1,18 +1,10 @@
+import { canonicalEntityDomains, } from "../../../contracts/authoring/src/index.js";
 import { entityRevisionCoreSchema, entityRevisionSchema, offerRevisionCoreSchema, offerRevisionSchema, programRevisionCoreSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 function withDigest(core) {
     return { ...core, revision_digest: digest(core) };
 }
-/**
- * The one canonical order of an Entity's domains. Authoring order carries no
- * meaning (the primary is marked by role), so every compiled revision and every
- * identity comparison sorts by value, then role, then validity start.
- */
-export function canonicalEntityDomains(domains) {
-    return [...domains].sort((left, right) => compareCanonicalStrings(left.value, right.value) ||
-        compareCanonicalStrings(left.role, right.role) ||
-        compareCanonicalStrings(left.valid_from, right.valid_from));
-}
+export { canonicalEntityDomains } from "../../../contracts/authoring/src/index.js";
 export function compileEntity(authoring) {
     const entity = authoring.entity;
     const profile = authoring.profile;

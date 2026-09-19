@@ -463,6 +463,11 @@ export declare function evaluateCatalogAdmissionConflicts(input: {
     readonly liveParentReleaseId: Digest;
     readonly candidate: CatalogAdmissionCandidate;
 }): readonly CatalogAdmissionConflict[];
-/** Exact identity-envelope digest shared by admission projection and verifier context. */
+/**
+ * Exact identity-envelope digest shared by admission projection and verifier
+ * context. Retained Catalog documents and authoring files order aliases and
+ * domains differently, so the digest reads the canonical envelope: one
+ * identity has one digest wherever it was written.
+ */
 export declare function catalogEntityIdentityDigest(identity: unknown): Digest;
 //# sourceMappingURL=admission-conflicts.d.ts.map

@@ -1,4 +1,4 @@
-import { entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
+import { canonicalEntityIdentity, entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
 import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { validateCatalogVerifierIdentityContext, validateSignerRegistry, } from "../../authority/src/index.js";
@@ -370,9 +370,14 @@ export function evaluateCatalogAdmissionConflicts(input) {
         .sort((left, right) => compareCanonicalStrings(left.kind, right.kind) ||
         compareCanonicalStrings(left.keyDigest, right.keyDigest));
 }
-/** Exact identity-envelope digest shared by admission projection and verifier context. */
+/**
+ * Exact identity-envelope digest shared by admission projection and verifier
+ * context. Retained Catalog documents and authoring files order aliases and
+ * domains differently, so the digest reads the canonical envelope: one
+ * identity has one digest wherever it was written.
+ */
 export function catalogEntityIdentityDigest(identity) {
-    return digest(entityIdentityAuthoringSchema.parse(identity));
+    return digest(canonicalEntityIdentity(identity));
 }
 function conflictSourceReference(match) {
     if (match.source.kind === "current_catalog") {

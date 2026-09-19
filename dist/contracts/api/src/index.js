@@ -28,7 +28,7 @@ const slug = z.string().regex(SLUG_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
-export const SOURCEY_PUBLIC_API_VERSION = "1.1.0";
+export const SOURCEY_PUBLIC_API_VERSION = "1.1.2";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402

@@ -4,6 +4,8 @@ export declare const agentReadinessEntityIdSchema: z.ZodString;
 export declare const agentReadinessOfferIdSchema: z.ZodString;
 export declare const agentReadinessProfileIdSchema: z.ZodString;
 export declare const agentReadinessIdentifierSchema: z.ZodString;
+/** A reviewer identity, in the same form the authority contract's human actor id takes. */
+export declare const agentReadinessReviewerIdSchema: z.ZodString;
 export declare const agentReadinessInstantSchema: z.ZodISODateTime;
 export declare const agentReadinessSignalCodeSchema: z.ZodString;
 export declare const agentReadinessScopeKeySchema: z.ZodString;

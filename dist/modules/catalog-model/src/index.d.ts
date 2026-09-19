@@ -1,4 +1,4 @@
-import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
+import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
 export interface CompiledOfferFacts {
     readonly revision: OfferRevision;
@@ -22,15 +22,6 @@ export interface CompiledEntityFacts {
     readonly programs: readonly CompiledProgramFacts[];
     readonly offers: readonly CompiledOfferFacts[];
 }
-/**
- * The one canonical order of an Entity's domains. Authoring order carries no
- * meaning (the primary is marked by role), so every compiled revision and every
- * identity comparison sorts by value, then role, then validity start.
- */
-export declare function canonicalEntityDomains<Domain extends {
-    readonly value: string;
-    readonly role: string;
-    readonly valid_from: string;
-}>(domains: readonly Domain[]): Domain[];
+export { canonicalEntityDomains } from "../../../contracts/authoring/src/index.js";
 export declare function compileEntity(authoring: EntityAuthoring): CompiledEntityFacts;
 //# sourceMappingURL=index.d.ts.map

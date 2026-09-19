@@ -1081,4 +1081,22 @@ export declare function parseEntityAuthoring(input: unknown): EntityAuthoring;
 export type EntityIdentityAuthoring = z.infer<typeof entityIdentityAuthoringSchema>;
 export type AuthoringProgram = z.infer<typeof authoringProgramSchema>;
 export type AuthoringOffer = z.infer<typeof authoringOfferSchema>;
+/**
+ * The one canonical order of an Entity's domains. Authoring order carries no
+ * meaning (the primary is marked by role), so every compiled revision and every
+ * identity comparison sorts by value, then role, then validity start.
+ */
+export declare function canonicalEntityDomains<Domain extends {
+    readonly value: string;
+    readonly role: string;
+    readonly valid_from: string;
+}>(domains: readonly Domain[]): Domain[];
+/**
+ * The one shared Entity identity envelope in its canonical order. Authoring
+ * files, retained Catalog documents and declaration repositories may each
+ * list the same aliases and domains differently; identity digests and
+ * identity comparisons read this form so order never separates one identity
+ * into two.
+ */
+export declare function canonicalEntityIdentity(identity: unknown): EntityIdentityAuthoring;
 //# sourceMappingURL=index.d.ts.map

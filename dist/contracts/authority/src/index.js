@@ -1,7 +1,8 @@
 import { z } from "zod";
-import { DIGEST_PATTERN, IDENTIFIER_PATTERN } from "../../../modules/primitives/src/index.js";
+import { ACTOR_IDENTIFIER_PATTERN, DIGEST_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
+const actorIdentifier = z.string().regex(ACTOR_IDENTIFIER_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const rootSignatureSchema = z
     .object({
@@ -32,7 +33,7 @@ export const decisionBasisSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("human"),
-        actor_id: identifier,
+        actor_id: actorIdentifier,
     })
         .strict(),
     z

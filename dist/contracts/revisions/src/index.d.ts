@@ -92,6 +92,56 @@ export declare const durationValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"at-least">;
     value: z.ZodString;
 }, z.core.$strict>], "kind">;
+/** A benefit's named scope: the plan a discount applies to, the item waived, the free service. */
+export declare const benefitTextSchema: z.ZodString;
+export declare const cashbackValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    kind: z.ZodLiteral<"money">;
+    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        kind: z.ZodLiteral<"exact">;
+        amount: z.ZodObject<{
+            currency: z.ZodString;
+            minor_units: z.ZodNumber;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"up-to">;
+        amount: z.ZodObject<{
+            currency: z.ZodString;
+            minor_units: z.ZodNumber;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"at-least">;
+        amount: z.ZodObject<{
+            currency: z.ZodString;
+            minor_units: z.ZodNumber;
+        }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum: z.ZodObject<{
+            currency: z.ZodString;
+            minor_units: z.ZodNumber;
+        }, z.core.$strict>;
+        maximum: z.ZodObject<{
+            currency: z.ZodString;
+            minor_units: z.ZodNumber;
+        }, z.core.$strict>;
+    }, z.core.$strict>], "kind">;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"percentage">;
+    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        kind: z.ZodLiteral<"exact">;
+        basis_points: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"up-to">;
+        basis_points: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"at-least">;
+        basis_points: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum_basis_points: z.ZodNumber;
+        maximum_basis_points: z.ZodNumber;
+    }, z.core.$strict>], "kind">;
+}, z.core.$strict>], "kind">;
 export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"credit">;
     value: z.ZodDiscriminatedUnion<[z.ZodObject<{

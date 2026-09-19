@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, visitStrings, } from "../../../modules/primitives/src/index.js";
+import { compareCanonicalStrings, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, visitStrings, } from "../../../modules/primitives/src/index.js";
 import { accessSchema, catalogAccessUrlSchema, catalogAuthoringUrlSchema, catalogUrlSchema, domainSchema, economicsSchema, eligibilitySchema, entityOfficialSiteProblem, entityRevisionContentSchema, entitySynopsisInvariant, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
@@ -199,6 +199,31 @@ export const contributionEntityAuthoringSchema = entityAuthoringSchema.superRefi
 });
 export function parseEntityAuthoring(input) {
     return entityAuthoringSchema.parse(input);
+}
+/**
+ * The one canonical order of an Entity's domains. Authoring order carries no
+ * meaning (the primary is marked by role), so every compiled revision and every
+ * identity comparison sorts by value, then role, then validity start.
+ */
+export function canonicalEntityDomains(domains) {
+    return [...domains].sort((left, right) => compareCanonicalStrings(left.value, right.value) ||
+        compareCanonicalStrings(left.role, right.role) ||
+        compareCanonicalStrings(left.valid_from, right.valid_from));
+}
+/**
+ * The one shared Entity identity envelope in its canonical order. Authoring
+ * files, retained Catalog documents and declaration repositories may each
+ * list the same aliases and domains differently; identity digests and
+ * identity comparisons read this form so order never separates one identity
+ * into two.
+ */
+export function canonicalEntityIdentity(identity) {
+    const parsed = entityIdentityAuthoringSchema.parse(identity);
+    return entityIdentityAuthoringSchema.parse({
+        ...parsed,
+        slug_aliases: [...parsed.slug_aliases].sort(compareCanonicalStrings),
+        domains: canonicalEntityDomains(parsed.domains),
+    });
 }
 function assertUnique(seen, value, context, path, message) {
     if (seen.has(value))

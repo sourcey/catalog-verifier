@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 export const DIGEST_PATTERN = /^sha256:[a-f0-9]{64}$/;
 export const IDENTIFIER_PATTERN = /^[a-z0-9][a-z0-9_-]*$/;
+/**
+ * A human actor: an identifier, or identifiers joined by dots when a provider
+ * namespace qualifies a login (`github.<login>`). Every plain identifier is a
+ * valid actor identifier.
+ */
+export const ACTOR_IDENTIFIER_PATTERN = /^[a-z0-9][a-z0-9_-]*(?:\.[a-z0-9][a-z0-9_-]*)*$/;
 export const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 export const ENTITY_ID_PATTERN = /^ent_[0-9a-hjkmnp-tv-z]{26}$/;
 export const PROGRAM_ID_PATTERN = /^prg_[0-9a-hjkmnp-tv-z]{26}$/;

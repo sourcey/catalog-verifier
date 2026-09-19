@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type PayableProductDescriptor } from "../../commercial-work/src/index.js";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.1.0";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.1.2";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -758,6 +758,159 @@ export declare const catalogResponseSchema: z.ZodObject<{
                     event_id: z.ZodString;
                     receipt_digest: z.ZodString;
                 }, z.core.$strict>>;
+                headline: z.ZodOptional<z.ZodObject<{
+                    rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                    benefit_id: z.ZodString;
+                    basis: z.ZodEnum<{
+                        typed: "typed";
+                        described: "described";
+                    }>;
+                    figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"credit">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"discount">;
+                        percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                        applies_to: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"cashback">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"money">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"percentage">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"free-service">;
+                        service: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"waiver">;
+                        waived_item: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>;
@@ -769,6 +922,7 @@ export declare const catalogTaxonomyResponseSchema: z.ZodObject<{
     data: z.ZodObject<{
         schema_version: z.ZodLiteral<"sourcey.taxonomy/v1alpha1">;
         categories: z.ZodArray<z.ZodString>;
+        labels: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
     }, z.core.$strict>;
 }, z.core.$strict>;
 export declare const catalogEntityListSummarySchema: z.ZodObject<{
@@ -1183,6 +1337,159 @@ export declare const entityListResponseSchema: z.ZodObject<{
                 coverage_policy_digest: z.ZodString;
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
             }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
@@ -1691,6 +1998,159 @@ export declare const entityResponseSchema: z.ZodObject<{
                 coverage_policy_digest: z.ZodString;
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
             }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2258,6 +2718,159 @@ export declare const programResponseSchema: z.ZodObject<{
                     event_id: z.ZodString;
                     receipt_digest: z.ZodString;
                 }, z.core.$strict>>;
+                headline: z.ZodOptional<z.ZodObject<{
+                    rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                    benefit_id: z.ZodString;
+                    basis: z.ZodEnum<{
+                        typed: "typed";
+                        described: "described";
+                    }>;
+                    figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"credit">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"discount">;
+                        percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                        applies_to: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"cashback">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"money">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"percentage">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"free-service">;
+                        service: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"waiver">;
+                        waived_item: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         program: z.ZodObject<{
@@ -2720,6 +3333,159 @@ export declare const offerResponseSchema: z.ZodObject<{
                     event_id: z.ZodString;
                     receipt_digest: z.ZodString;
                 }, z.core.$strict>>;
+                headline: z.ZodOptional<z.ZodObject<{
+                    rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                    benefit_id: z.ZodString;
+                    basis: z.ZodEnum<{
+                        typed: "typed";
+                        described: "described";
+                    }>;
+                    figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"credit">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"discount">;
+                        percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                        applies_to: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"cashback">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"money">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"percentage">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>], "kind">;
+                        duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"free-service">;
+                        service: z.ZodOptional<z.ZodString>;
+                        duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            value: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            value: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"waiver">;
+                        waived_item: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         program: z.ZodOptional<z.ZodObject<{
@@ -3048,6 +3814,159 @@ export declare const offerResponseSchema: z.ZodObject<{
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
             }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
     }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"offer_tombstone">;
@@ -3350,6 +4269,159 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
             event_id: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>>;
+        headline: z.ZodOptional<z.ZodObject<{
+            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+            benefit_id: z.ZodString;
+            basis: z.ZodEnum<{
+                typed: "typed";
+                described: "described";
+            }>;
+            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"credit">;
+                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                    maximum: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>], "kind">;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"discount">;
+                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum_basis_points: z.ZodNumber;
+                    maximum_basis_points: z.ZodNumber;
+                }, z.core.$strict>], "kind">;
+                applies_to: z.ZodOptional<z.ZodString>;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"cashback">;
+                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"money">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"percentage">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>], "kind">;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"free-service">;
+                service: z.ZodOptional<z.ZodString>;
+                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"waiver">;
+                waived_item: z.ZodString;
+            }, z.core.$strict>], "kind">;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
     program_id: z.ZodString;
@@ -3643,6 +4715,159 @@ export declare const offerSearchResultSchema: z.ZodUnion<readonly [z.ZodObject<{
             coverage_policy_digest: z.ZodString;
             event_id: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict>>;
+        headline: z.ZodOptional<z.ZodObject<{
+            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+            benefit_id: z.ZodString;
+            basis: z.ZodEnum<{
+                typed: "typed";
+                described: "described";
+            }>;
+            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"credit">;
+                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    amount: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                    maximum: z.ZodObject<{
+                        currency: z.ZodString;
+                        minor_units: z.ZodNumber;
+                    }, z.core.$strict>;
+                }, z.core.$strict>], "kind">;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"discount">;
+                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    basis_points: z.ZodNumber;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum_basis_points: z.ZodNumber;
+                    maximum_basis_points: z.ZodNumber;
+                }, z.core.$strict>], "kind">;
+                applies_to: z.ZodOptional<z.ZodString>;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"cashback">;
+                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"money">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"percentage">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>], "kind">;
+                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"free-service">;
+                service: z.ZodOptional<z.ZodString>;
+                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"exact">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"up-to">;
+                    value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"at-least">;
+                    value: z.ZodString;
+                }, z.core.$strict>], "kind">;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"waiver">;
+                waived_item: z.ZodString;
+            }, z.core.$strict>], "kind">;
         }, z.core.$strict>>;
     }, z.core.$strict>;
     canonical_url: z.ZodURL;
@@ -4042,6 +5267,159 @@ export declare const searchEntitiesResponseSchema: z.ZodObject<{
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
             }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
     query: z.ZodString;
@@ -4340,6 +5718,159 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
             }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         program_id: z.ZodString;
@@ -4633,6 +6164,159 @@ export declare const searchOffersResponseSchema: z.ZodObject<{
                 coverage_policy_digest: z.ZodString;
                 event_id: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict>>;
+            headline: z.ZodOptional<z.ZodObject<{
+                rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                benefit_id: z.ZodString;
+                basis: z.ZodEnum<{
+                    typed: "typed";
+                    described: "described";
+                }>;
+                figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    kind: z.ZodLiteral<"credit">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        amount: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                        maximum: z.ZodObject<{
+                            currency: z.ZodString;
+                            minor_units: z.ZodNumber;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"discount">;
+                    percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        basis_points: z.ZodNumber;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum_basis_points: z.ZodNumber;
+                        maximum_basis_points: z.ZodNumber;
+                    }, z.core.$strict>], "kind">;
+                    applies_to: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"cashback">;
+                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"money">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            amount: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                            maximum: z.ZodObject<{
+                                currency: z.ZodString;
+                                minor_units: z.ZodNumber;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"percentage">;
+                        value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"exact">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"up-to">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"at-least">;
+                            basis_points: z.ZodNumber;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"range">;
+                            minimum_basis_points: z.ZodNumber;
+                            maximum_basis_points: z.ZodNumber;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>], "kind">;
+                    duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"free-service">;
+                    service: z.ZodOptional<z.ZodString>;
+                    duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        kind: z.ZodLiteral<"exact">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"up-to">;
+                        value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"at-least">;
+                        value: z.ZodString;
+                    }, z.core.$strict>], "kind">;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"waiver">;
+                    waived_item: z.ZodString;
+                }, z.core.$strict>], "kind">;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
@@ -14154,6 +15838,159 @@ export declare const publicDatasetEndpointByDataset: {
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
@@ -14887,6 +16724,159 @@ export declare const publicDatasetEndpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
@@ -16971,6 +18961,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
@@ -16990,6 +19133,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             data: z.ZodObject<{
                 schema_version: z.ZodLiteral<"sourcey.taxonomy/v1alpha1">;
                 categories: z.ZodArray<z.ZodString>;
+                labels: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
             }, z.core.$strict>;
         }, z.core.$strict>;
     };
@@ -17403,6 +19547,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
@@ -18158,6 +20455,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -18688,6 +21138,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -20779,6 +23382,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -21319,6 +24075,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -21858,6 +24767,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -22185,6 +25247,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -22673,6 +25888,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -23000,6 +26368,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -23424,6 +26945,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -23769,6 +27443,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 program_id: z.ZodString;
@@ -24062,6 +27889,159 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
@@ -35345,6 +39325,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
@@ -35364,6 +39497,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             data: z.ZodObject<{
                 schema_version: z.ZodLiteral<"sourcey.taxonomy/v1alpha1">;
                 categories: z.ZodArray<z.ZodString>;
+                labels: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
             }, z.core.$strict>;
         }, z.core.$strict>;
     };
@@ -35777,6 +39911,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
@@ -36532,6 +40819,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"entity_tombstone">;
@@ -37062,6 +41502,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -39153,6 +43746,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -39693,6 +44439,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodObject<{
@@ -40232,6 +45131,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -40559,6 +45611,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -41047,6 +46252,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             event_id: z.ZodString;
                             receipt_digest: z.ZodString;
                         }, z.core.$strict>>;
+                        headline: z.ZodOptional<z.ZodObject<{
+                            rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                            benefit_id: z.ZodString;
+                            basis: z.ZodEnum<{
+                                typed: "typed";
+                                described: "described";
+                            }>;
+                            figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"credit">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"discount">;
+                                percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                                applies_to: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"cashback">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"money">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        amount: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                        maximum: z.ZodObject<{
+                                            currency: z.ZodString;
+                                            minor_units: z.ZodNumber;
+                                        }, z.core.$strict>;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"percentage">;
+                                    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                        kind: z.ZodLiteral<"exact">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"up-to">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"at-least">;
+                                        basis_points: z.ZodNumber;
+                                    }, z.core.$strict>, z.ZodObject<{
+                                        kind: z.ZodLiteral<"range">;
+                                        minimum_basis_points: z.ZodNumber;
+                                        maximum_basis_points: z.ZodNumber;
+                                    }, z.core.$strict>], "kind">;
+                                }, z.core.$strict>], "kind">;
+                                duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"free-service">;
+                                service: z.ZodOptional<z.ZodString>;
+                                duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    value: z.ZodString;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"waiver">;
+                                waived_item: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 program: z.ZodOptional<z.ZodObject<{
@@ -41374,6 +46732,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
             }, z.core.$strict>, z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -41798,6 +47309,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
             query: z.ZodString;
@@ -42143,6 +47807,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
                     }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
                 program_id: z.ZodString;
@@ -42436,6 +48253,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>;
                 canonical_url: z.ZodURL;
@@ -53628,6 +59598,159 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         coverage_policy_digest: z.ZodString;
                         event_id: z.ZodString;
                         receipt_digest: z.ZodString;
+                    }, z.core.$strict>>;
+                    headline: z.ZodOptional<z.ZodObject<{
+                        rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
+                        benefit_id: z.ZodString;
+                        basis: z.ZodEnum<{
+                            typed: "typed";
+                            described: "described";
+                        }>;
+                        figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            kind: z.ZodLiteral<"credit">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                amount: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                                maximum: z.ZodObject<{
+                                    currency: z.ZodString;
+                                    minor_units: z.ZodNumber;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"discount">;
+                            percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                basis_points: z.ZodNumber;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"range">;
+                                minimum_basis_points: z.ZodNumber;
+                                maximum_basis_points: z.ZodNumber;
+                            }, z.core.$strict>], "kind">;
+                            applies_to: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"cashback">;
+                            value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"money">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    amount: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                    maximum: z.ZodObject<{
+                                        currency: z.ZodString;
+                                        minor_units: z.ZodNumber;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"percentage">;
+                                value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                    kind: z.ZodLiteral<"exact">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"up-to">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"at-least">;
+                                    basis_points: z.ZodNumber;
+                                }, z.core.$strict>, z.ZodObject<{
+                                    kind: z.ZodLiteral<"range">;
+                                    minimum_basis_points: z.ZodNumber;
+                                    maximum_basis_points: z.ZodNumber;
+                                }, z.core.$strict>], "kind">;
+                            }, z.core.$strict>], "kind">;
+                            duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"free-service">;
+                            service: z.ZodOptional<z.ZodString>;
+                            duration: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                                kind: z.ZodLiteral<"exact">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"up-to">;
+                                value: z.ZodString;
+                            }, z.core.$strict>, z.ZodObject<{
+                                kind: z.ZodLiteral<"at-least">;
+                                value: z.ZodString;
+                            }, z.core.$strict>], "kind">;
+                        }, z.core.$strict>, z.ZodObject<{
+                            kind: z.ZodLiteral<"waiver">;
+                            waived_item: z.ZodString;
+                        }, z.core.$strict>], "kind">;
                     }, z.core.$strict>>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;

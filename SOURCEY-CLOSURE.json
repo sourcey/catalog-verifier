@@ -116,31 +116,31 @@
     },
     {
       "path": "dist/contracts/agent-readiness/src/shared.d.ts",
-      "sha256": "sha256:5c5a416880924d66691ecba78512782a5d21526adc955e690c3011da9503d0c5"
+      "sha256": "sha256:3897ea2088b7bc5a64ae713aa71fd1c82774f2260265ea678c6fdd9ac5895efb"
     },
     {
       "path": "dist/contracts/agent-readiness/src/shared.d.ts.map",
-      "sha256": "sha256:c409624839ae565c9ead4bf325de62150e499b246f72c3b7d4ac8493c8e35f45"
+      "sha256": "sha256:4b612639fa58101d6ca420bd898bd28466a808e1f5dd4df2f0d29b660d886ac7"
     },
     {
       "path": "dist/contracts/agent-readiness/src/shared.js",
-      "sha256": "sha256:a6dcf6f31fc8b3497870c974269b282b8c42e3361ddb2840e356648874775fe0"
+      "sha256": "sha256:2184fb7f77302e3bc6429cb45ab33b2a5ba784b81345218f103c14b4a3c33419"
     },
     {
       "path": "dist/contracts/agent-readiness/src/shared.js.map",
-      "sha256": "sha256:d0fb4554a012f2a765a6d34d9375c7199481b87b9c77427600da5e6182d266fd"
+      "sha256": "sha256:b8d1cf88b260f838096095913824a370b66b47f8bcad1e11b343d3498e4d5d8a"
     },
     {
       "path": "dist/contracts/api/src/index.d.ts",
-      "sha256": "sha256:e763a05feaf58bcb041726ebacf583a3a92440dc1e77afc2109a1f602e7511aa"
+      "sha256": "sha256:8a4ba23208a0ce4785a96cb2f99fc2542214538a3d94ace876cb2931fde6c674"
     },
     {
       "path": "dist/contracts/api/src/index.d.ts.map",
-      "sha256": "sha256:4e062f0a65878313c3b7518ae4a3f336d4219bc355d444a35c8c6689ff5f0ebf"
+      "sha256": "sha256:7f5216aaa186657fb744f6167dc4deedde5f07a6d7240cf9869218614f54c2bc"
     },
     {
       "path": "dist/contracts/api/src/index.js",
-      "sha256": "sha256:8c2e43d0330ef866a7060dc9e6c27f74e08b19eb7b5cee93893cc1689101fd13"
+      "sha256": "sha256:06db0ef6470af4d9c3b8812bbe4d6db1f6185de58c21d12bfb340b95b41f5791"
     },
     {
       "path": "dist/contracts/api/src/index.js.map",
@@ -148,19 +148,19 @@
     },
     {
       "path": "dist/contracts/artifact/src/index.d.ts",
-      "sha256": "sha256:66e036e9e3d1f63bb22dbe00aae10680dd2b2d0b9a9887a6648572e6be91cd4a"
+      "sha256": "sha256:3bc62c5e72f0acfd252ea96f27ba4437bc1e9d5cab30448f33753a1f2e31e3cb"
     },
     {
       "path": "dist/contracts/artifact/src/index.d.ts.map",
-      "sha256": "sha256:f0add4d5bb30585ea2d509501a0cc415a7a8a250c60d8392413cd6517f93696d"
+      "sha256": "sha256:b32803668aec16aae85f1301b2d61d460f77b79b88140fa55c137f2786e31ff1"
     },
     {
       "path": "dist/contracts/artifact/src/index.js",
-      "sha256": "sha256:c348174fb4ed340a7845c9bdb883afddc1deeaaa0c643e2c3b1f45688d886aa5"
+      "sha256": "sha256:16e0b87c40e5f1196c9c42cceda14b22e0b9cc9c766614758ce216f3e1bf9272"
     },
     {
       "path": "dist/contracts/artifact/src/index.js.map",
-      "sha256": "sha256:2ee5db161fb8b6ad41ac4f5b5b5f83eea4fb91e77f1c993814ac47581ca1d0c4"
+      "sha256": "sha256:983c813f3e9fb33ca5cd3865522b48a1538228e505b58524b43e6878ebf56694"
     },
     {
       "path": "dist/contracts/assets/src/index.d.ts",
@@ -196,19 +196,19 @@
     },
     {
       "path": "dist/contracts/authoring/src/index.d.ts",
-      "sha256": "sha256:2dd19e276d638a6506e3142ee767818bfe77ec0c8c1ded3dc0bd37799b15bd8d"
+      "sha256": "sha256:78015438f4096e66f03dc79f1b6c0e9ef24ac40ae3c9719a8e87885bdc17de1f"
     },
     {
       "path": "dist/contracts/authoring/src/index.d.ts.map",
-      "sha256": "sha256:e928edecd80caa8cf02a23e16bd080d09e4ba91981fa87be283bedf87bb42b89"
+      "sha256": "sha256:2cb5c94681434e7165f90e9314f496117873c1ab81ae9b4862111fecd7e6ffc3"
     },
     {
       "path": "dist/contracts/authoring/src/index.js",
-      "sha256": "sha256:c48c765728e8f70517ac98e60d4e28c127175a51ca56e16328ee504a1d58360e"
+      "sha256": "sha256:a1b75d245fae895985cbb8175cb50784854d856145cdc13699b4d2c9d8f7013c"
     },
     {
       "path": "dist/contracts/authoring/src/index.js.map",
-      "sha256": "sha256:e62f833586ee78acbdbdc03c3263e7e9e1b4604b39d9108877053599b5c55e4f"
+      "sha256": "sha256:fa13b77a8d07a0efc2fe6b36dd17e533c63cf107bd18cbb2fef86bea6d8180fb"
     },
     {
       "path": "dist/contracts/authority/src/index.d.ts",
@@ -216,15 +216,15 @@
     },
     {
       "path": "dist/contracts/authority/src/index.d.ts.map",
-      "sha256": "sha256:1ea04aebd0fe11915fb3d3084570f407b075711a540ec6b676aa584fb920f84f"
+      "sha256": "sha256:5e9e5ced88c8b803f8754db4a89a1e5fbf75274a5c4dd439aec9de5a8ad4bae4"
     },
     {
       "path": "dist/contracts/authority/src/index.js",
-      "sha256": "sha256:31913aaa67090a66fea13c6e9deab5a5d7f8f0338b898a8aff5593b07dcb1f5a"
+      "sha256": "sha256:d454986220ed82867f3a728a60a514084921a5cb9ebb75037f0fa450d37d80af"
     },
     {
       "path": "dist/contracts/authority/src/index.js.map",
-      "sha256": "sha256:7e7986a8bcd9981ce5f5f21f4843407ca357ee8ddd3887e63c87228da9987987"
+      "sha256": "sha256:250ddeafe22eaa74cbade121caf8f930185b2c2f62b19eee8187e5a0e300218f"
     },
     {
       "path": "dist/contracts/billing/src/index.d.ts",
@@ -244,11 +244,11 @@
     },
     {
       "path": "dist/contracts/catalog-verifier/src/index.d.ts",
-      "sha256": "sha256:b7e97468cd6039dd509fb8058c9d17dbac67e5e8de2c30f19beff168774d68f1"
+      "sha256": "sha256:17131382c8d5e713e339e967ca2da8bf80a3cc0467856a90cb30b874cef57dad"
     },
     {
       "path": "dist/contracts/catalog-verifier/src/index.d.ts.map",
-      "sha256": "sha256:5d192bfc663a24091f83b2a1f1777ee5da1f1420af1e7b4c864979c459e2f0a6"
+      "sha256": "sha256:da768dedd8e1594359213f235be04f9886ee6bb89131eb42ca9243d7b7ce97ab"
     },
     {
       "path": "dist/contracts/catalog-verifier/src/index.js",
@@ -276,11 +276,11 @@
     },
     {
       "path": "dist/contracts/datasets/src/index.d.ts",
-      "sha256": "sha256:64b03c8464653214027280e3b34d40a5747bf8722525bdc7ab1e19bbe34e5340"
+      "sha256": "sha256:259deec42a19a77ecbf22d5b610d07aeded4ddaf6e3072677bee775e1d5fb933"
     },
     {
       "path": "dist/contracts/datasets/src/index.d.ts.map",
-      "sha256": "sha256:11adbdaed1a5211f1374c4baf58bec11f56390b1dacf65031d2ef4ad2c9f296c"
+      "sha256": "sha256:aba640bc25cd308e90eb3a980851a6664c42343eb6992ca59cf2688e83d59f64"
     },
     {
       "path": "dist/contracts/datasets/src/index.js",
@@ -392,23 +392,23 @@
     },
     {
       "path": "dist/contracts/publication/src/index.d.ts.map",
-      "sha256": "sha256:8bbd2648e7492b902f13b16f048e63076b079150666dc8a3424ab780a803bfed"
+      "sha256": "sha256:6ad5439a330e4d1f5860d1319538bc1937c5289ddb5245727b955c2b15622d33"
     },
     {
       "path": "dist/contracts/publication/src/index.js",
-      "sha256": "sha256:793bdb2b931e638adc8e4c4949ebb73f1d32361e65f983f8d723595bea5d760a"
+      "sha256": "sha256:60da53816925d7701832ffcac257dadd0dde407a97f80cd311a7743e340093f8"
     },
     {
       "path": "dist/contracts/publication/src/index.js.map",
-      "sha256": "sha256:dd2b50d2e5b0c3d678dc6bf2bfa6a79a25c41327c3bda9f0fef5ed08e085a0eb"
+      "sha256": "sha256:c46ee4513111be4788b21a6d8806ed4bd00a88b5a373143ba3a8c5c7990aba99"
     },
     {
       "path": "dist/contracts/release/src/index.d.ts",
-      "sha256": "sha256:73d61316d5fdae98c80586ea13a257d68efdd1a0638c483cd5686fbe451a5ad1"
+      "sha256": "sha256:21eb6ad28f821f0b53f04ed1d80e8a64aa5ba596223e98a711c2d57af62f7d01"
     },
     {
       "path": "dist/contracts/release/src/index.d.ts.map",
-      "sha256": "sha256:bad3405b0baa35a95278da9d17504cd55a9a4f74063e35c1f4699201aaf090bd"
+      "sha256": "sha256:59d89030e5d24f7bcfdc10384bef03ab5948a604ef8e3d21d35c3407a8f7d8ba"
     },
     {
       "path": "dist/contracts/release/src/index.js",
@@ -420,19 +420,19 @@
     },
     {
       "path": "dist/contracts/revisions/src/index.d.ts",
-      "sha256": "sha256:7d547a374ccba54a92ea9cb65aabaf165d5d053ed2cd267e67b62e9586bba5dc"
+      "sha256": "sha256:9e0e5fe3c42b743c3ecd907740707e78a4cb46848040095ade5472fe5fc9f9f5"
     },
     {
       "path": "dist/contracts/revisions/src/index.d.ts.map",
-      "sha256": "sha256:a387e0905903d8ab5b7ecc74cab68a3f9376e72deb351b065ab947cb26fbe0ca"
+      "sha256": "sha256:50656a3a3ba3d9a129ef952345b1036d122057d9657e090e681073e97d438dc4"
     },
     {
       "path": "dist/contracts/revisions/src/index.js",
-      "sha256": "sha256:b4520654776f68be7accb388b4fc87c45bb412e80513d0060a02b83e93ea2c67"
+      "sha256": "sha256:9fbe6663fe60b20d3e91338b07d247d406bad28d55c872b5d2aade890f0bf526"
     },
     {
       "path": "dist/contracts/revisions/src/index.js.map",
-      "sha256": "sha256:2e75f48580109d2113e12d42aa3fa27502c43236003a0a2c983785938dad1fba"
+      "sha256": "sha256:71c502a58bae430f35537a859107f6af6d849cea7d61c661803e79631ba4cef4"
     },
     {
       "path": "dist/contracts/routes/src/index.d.ts",
@@ -484,19 +484,19 @@
     },
     {
       "path": "dist/contracts/taxonomy/src/index.d.ts",
-      "sha256": "sha256:346b5b1bd7a55628ec8b2f2cc70198bf812ff6cdf80656e504083aa1c76cba06"
+      "sha256": "sha256:494b9d37a8b7662be58b47045106027b50b5f5893858b9a687cbb23a530e1d81"
     },
     {
       "path": "dist/contracts/taxonomy/src/index.d.ts.map",
-      "sha256": "sha256:940c9b4ffdd10a44e6b3bb03ebba8d2b80becc73bf189cf8de9003b4a610ad95"
+      "sha256": "sha256:0d353bcaecc716235929ac1a0e5604e228ee09e02cfae4bdb2ccf35b73c37ace"
     },
     {
       "path": "dist/contracts/taxonomy/src/index.js",
-      "sha256": "sha256:4ef1bc7c2d63125e6c83cf74830f3d38e8270d1df07802f413b4959a55e8721d"
+      "sha256": "sha256:001c42ddf56f3d0a4b0fcd30ef0c2ffb49e3c44c2e89a06de5db1760145eac98"
     },
     {
       "path": "dist/contracts/taxonomy/src/index.js.map",
-      "sha256": "sha256:82aa7fa282fea4effc9a5d4974b6ef8bd4df2b291e063b2cb249400ee8f7ef70"
+      "sha256": "sha256:7bb2e8b48798ae1c3dc6a8d23a57209544363a4360ff7a7219c6108bcf4a3d9d"
     },
     {
       "path": "dist/modules/agent-readiness-policy/src/current-policy-metrics.d.ts",
@@ -696,15 +696,15 @@
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/admission.d.ts.map",
-      "sha256": "sha256:5562798d1000843189462873dbd09f3daae15c26dd836efa44133156de62860b"
+      "sha256": "sha256:7ff6a1f77eae916b5be6fa51731324cbbc6dfa06ece64845cc8a35bab64d29cf"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/admission.js",
-      "sha256": "sha256:808ad8c8764df780180cc543f95d853f083dd5447cd05c9fbae95a56f3dc7ba1"
+      "sha256": "sha256:3581cf5a526c1b39193630a051a817b17dc8fc405f7a80cab2cd1bc855f939af"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/admission.js.map",
-      "sha256": "sha256:f91c25809ba3b1e908feadb25c296212d83cdda67f515a5ea7d5c4ce3b4cdafe"
+      "sha256": "sha256:4701071ed67e15ac4d5822e46fa56fd57fb89ffe6b1f9d8646136452024940c1"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/change.d.ts",
@@ -1012,19 +1012,19 @@
     },
     {
       "path": "dist/modules/catalog-admission/src/admission-conflicts.d.ts",
-      "sha256": "sha256:19f7c6a12fe6a5f151cd58328be52c2cbce2cc286bfb10b600a6b8bee4d55bbc"
+      "sha256": "sha256:02289e2cfc4d08192f45fb45e985f24e17be6d72bf6c2e5f7f17c5be3e7ce275"
     },
     {
       "path": "dist/modules/catalog-admission/src/admission-conflicts.d.ts.map",
-      "sha256": "sha256:fafc6a5058e44ca829783704c5b83239b9c109e25efb8a03f040ffaad0cc9737"
+      "sha256": "sha256:310c6e707b26a9e5549a7a924ea9e5a61bfafcb34b1a81de59865fc2182b8b2c"
     },
     {
       "path": "dist/modules/catalog-admission/src/admission-conflicts.js",
-      "sha256": "sha256:39ed56be2143ee951642e41c5ebc186384ec93a58865312e510f961ce7bad2cf"
+      "sha256": "sha256:c187048cd7e5a37586a67d84f3b1371e491cd7b8a3f4f4904fa44ca3637f4c76"
     },
     {
       "path": "dist/modules/catalog-admission/src/admission-conflicts.js.map",
-      "sha256": "sha256:acd046261d43f93cfecd08f9e5f92654b8e8a374f2e4cb4b2c027576dab7b380"
+      "sha256": "sha256:81736300b14ab0e93cc7c132aba4ddac0382dbe1a8c26ea52816b3cfdc359de1"
     },
     {
       "path": "dist/modules/catalog-admission/src/change-analysis.d.ts",
@@ -1268,19 +1268,19 @@
     },
     {
       "path": "dist/modules/catalog-model/src/index.d.ts",
-      "sha256": "sha256:75aaa7e1fa1757b9de1778ab54736a67af21a0c9c396a333d632b65f74cba1d3"
+      "sha256": "sha256:244e99b832d4dc50ba8fe052252823fd34013f11c6204fe921f0020652b3fed6"
     },
     {
       "path": "dist/modules/catalog-model/src/index.d.ts.map",
-      "sha256": "sha256:cabf5db92ee8ddd2ee35c9b4b931b83314e1529becd2d4b855350a31a6e36cde"
+      "sha256": "sha256:82d5a6ba9001c763bbbc6d1185f383a364861f7eb57bbe3d0bf8071d75bbd90c"
     },
     {
       "path": "dist/modules/catalog-model/src/index.js",
-      "sha256": "sha256:ec9d4549f0c44c164d1217a0178bdfb71f5c9b182df1a7b4fb2d08e2930c7f68"
+      "sha256": "sha256:669f8b6f927b651a2e65cbfa09de70935b773b4a26b65b4849ab9abae3fc6f9b"
     },
     {
       "path": "dist/modules/catalog-model/src/index.js.map",
-      "sha256": "sha256:fe9089c1194f7d6317fc06739fb97c5aaf027c6a24fa003f12d3f3c292f2751b"
+      "sha256": "sha256:de8bfb653b29a09d875a395bf00527ed42421691c8c43f4f5f3f2f783418f80f"
     },
     {
       "path": "dist/modules/catalog-query/src/contracts.d.ts",
@@ -1540,19 +1540,19 @@
     },
     {
       "path": "dist/modules/primitives/src/index.d.ts",
-      "sha256": "sha256:b837748d60ee1118f08c5fb31c9c933e0c0561b5260831fc009029442d29769f"
+      "sha256": "sha256:8733ba01a298b788b3a3b2291a8a08928a8795f512427a60f5423dc0f0eeb13c"
     },
     {
       "path": "dist/modules/primitives/src/index.d.ts.map",
-      "sha256": "sha256:45c7a80e850693742fffbc48047adf28e246fdfb408baf6ddd2f8c8d0c7d539b"
+      "sha256": "sha256:978c08e2911ecee083d5abec402e9caa72e6933ec5fdbfcd784ac559e767e8b2"
     },
     {
       "path": "dist/modules/primitives/src/index.js",
-      "sha256": "sha256:86bb72250ecdc09727e49cae5f647945f8819232a9c23af2117510b09558e1c4"
+      "sha256": "sha256:b7241b0cbc3bf771ee016a39d6b99572796f735489f68a0a516025a85d917ac3"
     },
     {
       "path": "dist/modules/primitives/src/index.js.map",
-      "sha256": "sha256:66ef123dae7d6630cfe1e8a584c04ee38b5987e64f181c0554ae7e87568220f4"
+      "sha256": "sha256:d416d51c1b1afedd336bcd03301ae0cea5e410f310d14cf0f40fbedadeece0f7"
     },
     {
       "path": "dist/modules/projection-identity/src/index.d.ts",
@@ -2035,5 +2035,5 @@
       "sha256": "sha256:becb0573b21a18ebfea17fd8c00943e3fae1acbbe3de70a1c191f0a0fd23a39b"
     }
   ],
-  "closure_digest": "sha256:600367c2502f4e0f9e95ad5cb25b22fe36610a796e60e37a73e591931c338d18"
+  "closure_digest": "sha256:81e52ece9f99497556f74ae7634d132a00061bc540d97c5c1ffae28d618a31a4"
 }

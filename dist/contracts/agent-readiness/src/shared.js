@@ -1,10 +1,12 @@
 import { z } from "zod";
-import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { ACTOR_IDENTIFIER_PATTERN, AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
 export const agentReadinessDigestSchema = z.string().regex(DIGEST_PATTERN);
 export const agentReadinessEntityIdSchema = z.string().regex(ENTITY_ID_PATTERN);
 export const agentReadinessOfferIdSchema = z.string().regex(OFFER_ID_PATTERN);
 export const agentReadinessProfileIdSchema = z.string().regex(AGENT_READINESS_PROFILE_ID_PATTERN);
 export const agentReadinessIdentifierSchema = z.string().regex(IDENTIFIER_PATTERN);
+/** A reviewer identity, in the same form the authority contract's human actor id takes. */
+export const agentReadinessReviewerIdSchema = z.string().regex(ACTOR_IDENTIFIER_PATTERN);
 export const agentReadinessInstantSchema = z.iso.datetime({ offset: true });
 export const agentReadinessSignalCodeSchema = z.string().regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/);
 export const agentReadinessScopeKeySchema = z.string().regex(SLUG_PATTERN);

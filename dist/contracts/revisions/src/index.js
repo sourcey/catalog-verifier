@@ -186,6 +186,12 @@ const benefitBase = {
     benefit_id: identifier,
     description: z.string().min(1).max(500),
 };
+/** A benefit's named scope: the plan a discount applies to, the item waived, the free service. */
+export const benefitTextSchema = z.string().min(1).max(240);
+export const cashbackValueSchema = z.discriminatedUnion("kind", [
+    z.object({ kind: z.literal("money"), value: moneyValueSchema }).strict(),
+    z.object({ kind: z.literal("percentage"), value: percentageValueSchema }).strict(),
+]);
 export const benefitSchema = z.discriminatedUnion("kind", [
     z
         .object({
@@ -200,7 +206,7 @@ export const benefitSchema = z.discriminatedUnion("kind", [
         ...benefitBase,
         kind: z.literal("discount"),
         percentage: percentageValueSchema,
-        applies_to: z.string().min(1).max(240).optional(),
+        applies_to: benefitTextSchema.optional(),
         duration: durationValueSchema.optional(),
     })
         .strict(),
@@ -208,10 +214,7 @@ export const benefitSchema = z.discriminatedUnion("kind", [
         .object({
         ...benefitBase,
         kind: z.literal("cashback"),
-        value: z.discriminatedUnion("kind", [
-            z.object({ kind: z.literal("money"), value: moneyValueSchema }).strict(),
-            z.object({ kind: z.literal("percentage"), value: percentageValueSchema }).strict(),
-        ]),
+        value: cashbackValueSchema,
         duration: durationValueSchema.optional(),
     })
         .strict(),
@@ -219,14 +222,14 @@ export const benefitSchema = z.discriminatedUnion("kind", [
         .object({
         ...benefitBase,
         kind: z.literal("waiver"),
-        waived_item: z.string().min(1).max(240),
+        waived_item: benefitTextSchema,
     })
         .strict(),
     z
         .object({
         ...benefitBase,
         kind: z.literal("free-service"),
-        service: z.string().min(1).max(240),
+        service: benefitTextSchema,
         duration: durationValueSchema.optional(),
     })
         .strict(),

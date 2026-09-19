@@ -25,5 +25,31 @@
     "payments-fintech",
     "productivity",
     "support"
-  ]
+  ],
+  "labels": {
+    "ai-ml": "AI and ML",
+    "apis-integration": "APIs and integration",
+    "auth-security": "Auth and security",
+    "banking": "Banking",
+    "ci-cd": "CI/CD",
+    "commerce": "Commerce",
+    "communication": "Communication",
+    "crm-sales": "CRM and sales",
+    "data-analytics": "Data and analytics",
+    "databases": "Databases",
+    "design": "Design",
+    "devtools-other": "Developer tools",
+    "finance-accounting": "Finance and accounting",
+    "hosting-infra": "Hosting and infrastructure",
+    "hr-people": "HR and people",
+    "insurance": "Insurance",
+    "legal-compliance": "Legal and compliance",
+    "marketing": "Marketing",
+    "no-code": "No-code",
+    "observability": "Observability",
+    "other": "Other",
+    "payments-fintech": "Payments and fintech",
+    "productivity": "Productivity",
+    "support": "Customer support"
+  }
 }

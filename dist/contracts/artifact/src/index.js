@@ -2,7 +2,7 @@ import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
 import { entityIdentityAssuranceSchema, offerTermsAssuranceSchema, } from "../../assurance/src/index.js";
 import { evidenceProofKindSchema } from "../../evidence/src/index.js";
-import { accessSchema, catalogUrlSchema, economicsSchema, eligibilitySchema, lifecycleStatusSchema, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
+import { accessSchema, benefitTextSchema, cashbackValueSchema, catalogUrlSchema, durationValueSchema, economicsSchema, eligibilitySchema, lifecycleStatusSchema, moneyValueSchema, offerRevisionContentSchema, offerRolesSchema, percentageValueSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
@@ -42,6 +42,55 @@ export const provenanceSchema = z
     ]),
 })
     .strict();
+export const OFFER_HEADLINE_RULE = "sourcey.offer-headline/v1";
+/**
+ * The one figure an offer leads with, projected at release time from its
+ * accepted benefits and never part of the revision digest. `typed` names the
+ * benefit the author typed; `described` is the exact deterministic reading of
+ * an accepted benefit description under the named rule, so every clause binds
+ * an already accepted claim. An offer whose benefits state no figure carries
+ * no headline.
+ */
+export const offerHeadlineFigureSchema = z.discriminatedUnion("kind", [
+    z
+        .object({
+        kind: z.literal("credit"),
+        value: moneyValueSchema,
+        duration: durationValueSchema.optional(),
+    })
+        .strict(),
+    z
+        .object({
+        kind: z.literal("discount"),
+        percentage: percentageValueSchema,
+        applies_to: benefitTextSchema.optional(),
+        duration: durationValueSchema.optional(),
+    })
+        .strict(),
+    z
+        .object({
+        kind: z.literal("cashback"),
+        value: cashbackValueSchema,
+        duration: durationValueSchema.optional(),
+    })
+        .strict(),
+    z
+        .object({
+        kind: z.literal("free-service"),
+        service: benefitTextSchema.optional(),
+        duration: durationValueSchema,
+    })
+        .strict(),
+    z.object({ kind: z.literal("waiver"), waived_item: benefitTextSchema }).strict(),
+]);
+export const offerHeadlineSchema = z
+    .object({
+    rule: z.literal(OFFER_HEADLINE_RULE),
+    benefit_id: identifier,
+    basis: z.enum(["typed", "described"]),
+    figure: offerHeadlineFigureSchema,
+})
+    .strict();
 export const compiledOfferSchema = z
     .object({
     program_id: programId.optional(),
@@ -61,6 +110,7 @@ export const compiledOfferSchema = z
     revision_digest: digest,
     provenance: provenanceSchema,
     terms_assurance: offerTermsAssuranceSchema.optional(),
+    headline: offerHeadlineSchema.optional(),
 })
     .strict();
 export const compiledProgramSchema = z

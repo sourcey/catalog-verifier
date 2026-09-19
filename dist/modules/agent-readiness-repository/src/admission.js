@@ -1,12 +1,12 @@
 import { z } from "zod";
-import { AGENT_READINESS_REPOSITORY, agentReadinessIdentifierSchema, agentReadinessProfileIdSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { AGENT_READINESS_REPOSITORY, agentReadinessIdentifierSchema, agentReadinessProfileIdSchema, agentReadinessReviewerIdSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { canonicalJson, digest } from "../../primitives/src/index.js";
 const admissionCoreSchema = z
     .object({
     admission_contract: z.literal("sourcey.agent-readiness-repository-merge-admission/v1alpha1"),
     repository: z.literal(AGENT_READINESS_REPOSITORY),
     head_revision: z.string().regex(/^[a-f0-9]{40}$/u),
-    reviewer_id: agentReadinessIdentifierSchema,
+    reviewer_id: agentReadinessReviewerIdSchema,
     admitted_at: z.iso.datetime({ offset: true }),
     rationale: z.string().trim().min(1).max(2_000),
     profile_allocations: z.array(z

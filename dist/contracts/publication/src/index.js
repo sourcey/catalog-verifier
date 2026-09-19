@@ -280,12 +280,15 @@ export const publicationIngressReceiptSchema = z.discriminatedUnion("kind", [
  * release adopts, and it is committed to the repository so the activation is
  * auditable alongside the configuration change it authorizes. The planner
  * refuses an intent whose pins differ in any way from the configured target.
+ * The pins may be empty only when the contract authority itself moves: a new
+ * builder and verifier re-project the same admitted facts, and that release is
+ * authorized the same way, by a committed intent naming the live parent.
  */
 const policyTransitionIntentObject = z
     .object({
     intent_contract: z.literal("sourcey.policy-transition-intent/v1alpha1"),
     live_parent_release_id: digestSchema,
-    target_policies: z.array(publicationPolicyReferenceSchema).min(1),
+    target_policies: z.array(publicationPolicyReferenceSchema),
     reason: z.string().trim().min(1),
     approved_by: z.string().trim().min(1),
     approved_at: z.iso.datetime({ offset: true }),

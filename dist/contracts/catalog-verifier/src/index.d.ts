@@ -264,6 +264,7 @@ export declare const catalogVerifierCandidateInputSchema: z.ZodObject<{
     taxonomy: z.ZodOptional<z.ZodObject<{
         schema_version: z.ZodLiteral<"sourcey.taxonomy/v1alpha1">;
         categories: z.ZodArray<z.ZodString>;
+        labels: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodString>>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
 export type CatalogVerifierCandidateInput = z.infer<typeof catalogVerifierCandidateInputSchema>;

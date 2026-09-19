@@ -1,5 +1,11 @@
 export declare const DIGEST_PATTERN: RegExp;
 export declare const IDENTIFIER_PATTERN: RegExp;
+/**
+ * A human actor: an identifier, or identifiers joined by dots when a provider
+ * namespace qualifies a login (`github.<login>`). Every plain identifier is a
+ * valid actor identifier.
+ */
+export declare const ACTOR_IDENTIFIER_PATTERN: RegExp;
 export declare const SLUG_PATTERN: RegExp;
 export declare const ENTITY_ID_PATTERN: RegExp;
 export declare const PROGRAM_ID_PATTERN: RegExp;
