@@ -42,7 +42,8 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
                 ? null
                 : readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, headRevision, file),
         ]);
-        assertAgentReadinessBlobPolicy(base, input.policy);
+        // The base is historical authoring. A stricter current policy must not
+        // prevent a contributor from bringing its head into compliance.
         assertAgentReadinessBlobPolicy(head, input.policy);
         return pathDelta(status, path, base, head);
     }));

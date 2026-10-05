@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type PayableProductDescriptor } from "../../startup-credits-commercial/src/index.js";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.1";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.2";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
