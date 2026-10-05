@@ -1,19 +1,15 @@
+import { agentReadinessInterfaceModalitySchema, } from "../../../contracts/agent-readiness/src/declaration.js";
+import { MCP_REQUIREMENTS, OPENAPI_REQUIREMENTS } from "./current-policy-standards.js";
 const resource = (...roles) => ({ kind: "resource_role", roles });
 const endpoint = (...roles) => ({ kind: "endpoint_role", roles });
+const standard = (requirement) => ({ kind: "standard_requirement", requirement });
 const target = (membership) => ({
     kind: "assessment_target_membership",
     membership,
 });
 const interfaceSignature = (functions) => ({
     kind: "interface_signature",
-    modalities: [
-        "web_application",
-        "network_api",
-        "command_line",
-        "software_library",
-        "tool_server",
-        "agent_service",
-    ],
+    modalities: agentReadinessInterfaceModalitySchema.options,
     functions,
 });
 export const METRICS = [
@@ -38,55 +34,6 @@ export const METRICS = [
         limited: "Discovery works but is incomplete, context-dependent, split, or unstable.",
         blocked: "Bounded successful discovery found no stable public route to the exact service.",
         remediation: "Publish and link one stable canonical service and access entrypoint.",
-    },
-    {
-        stage: "evaluate",
-        code: "terms_access",
-        role: "informational",
-        selectorAlternatives: [[resource("terms")]],
-        evidence: "availability",
-        evidenceTerms: [
-            "terms",
-            "conditions",
-            "agreement",
-            "acceptable use",
-            "subscription",
-            "service use",
-        ],
-        condition: "Can an agent retrieve and understand the applicable commitment terms?",
-        ready: "Applicable terms are stable, readable, retrievable, and materially complete.",
-        limited: "Terms are readable but materially incomplete, ambiguous, contextual, or unstable.",
-        blocked: "Policy-complete inspection could not retrieve terms required for this service.",
-        remediation: "Publish complete applicable terms at a stable public URL.",
-    },
-    {
-        stage: "evaluate",
-        code: "eligibility_decidability",
-        role: "informational",
-        allowNotApplicable: true,
-        selectorAlternatives: [[resource("eligibility")], [resource("terms")]],
-        evidence: "quality",
-        evidenceTerms: [
-            "eligibility",
-            "eligible",
-            "requirements",
-            "required",
-            "available",
-            "account",
-            "country",
-            "region",
-            "organization",
-            "authority",
-            "represent",
-            "warrant",
-            "age",
-            "capacity",
-        ],
-        condition: "Can an agent decide every material eligibility condition before commitment?",
-        ready: "Eligibility conditions and required inputs are explicit and decidable.",
-        limited: "Only some material eligibility conditions are decidable before commitment.",
-        blocked: "Access depends on unavailable information or opaque vendor discretion.",
-        remediation: "State every material eligibility condition and required input explicitly.",
     },
     {
         stage: "evaluate",
@@ -183,7 +130,11 @@ export const METRICS = [
         code: "access_control_operability",
         role: "barrier",
         allowNotApplicable: true,
-        selectorAlternatives: [[endpoint("registration")], [resource("access", "authentication")]],
+        // First-party access and authentication documentation can establish the
+        // exact control and handoff contract without performing account creation.
+        // A live registration endpoint remains the fallback when no such resource
+        // is declared.
+        selectorAlternatives: [[resource("access", "authentication")], [endpoint("registration")]],
         evidence: "quality",
         evidenceTerms: [
             "form",
@@ -241,9 +192,9 @@ export const METRICS = [
         role: "graded",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("authentication"), target("reachable")],
-            [endpoint("authorization", "token", "registration"), target("reachable")],
-            [interfaceSignature(["authentication"]), target("reachable")],
+            [resource("authentication"), target("selected_path")],
+            [endpoint("authorization", "token", "registration"), target("selected_path")],
+            [interfaceSignature(["authentication"]), target("selected_path")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -381,8 +332,8 @@ export const METRICS = [
         role: "graded",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("provisioning"), target("reachable")],
-            [endpoint("service", "registration"), target("reachable")],
+            [resource("provisioning"), target("selected_path")],
+            [endpoint("service", "registration"), target("selected_path")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -407,8 +358,8 @@ export const METRICS = [
         role: "graded",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("authentication"), target("reachable")],
-            [endpoint("token", "protected_resource"), target("reachable")],
+            [resource("authentication"), target("selected_path")],
+            [endpoint("token", "protected_resource"), target("selected_path")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -431,12 +382,12 @@ export const METRICS = [
     {
         stage: "provision",
         code: "provisioning_completion",
-        role: "graded",
+        role: "barrier",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("provisioning"), resource("status"), target("reachable")],
-            [resource("provisioning"), resource("authentication"), target("reachable")],
-            [endpoint("status", "webhook"), target("reachable")],
+            [resource("provisioning"), resource("status"), target("selected_path")],
+            [resource("provisioning"), resource("authentication"), target("selected_path")],
+            [endpoint("status", "webhook"), target("selected_path")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -475,7 +426,7 @@ export const METRICS = [
         coverage: "all_matches",
         evidence: "availability",
         evidenceTerms: ["api", "cli", "sdk", "endpoint", "request", "operation", "tool", "interface"],
-        condition: "Can an agent perform every essential assessment target through a usable interface?",
+        condition: "Does every essential assessment target have a documented agent-usable interface?",
         ready: "Every essential target has a stable documented agent-usable interface alternative.",
         limited: "Interfaces cover only part of an essential target or require a constrained bridge.",
         blocked: "An essential service target has no machine-operable interface.",
@@ -487,9 +438,9 @@ export const METRICS = [
         role: "graded",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("authentication"), target("reachable")],
-            [target("reachable"), endpoint("authorization", "token", "protected_resource")],
-            [target("reachable"), interfaceSignature(["authentication"])],
+            [resource("authentication"), target("selected_path")],
+            [target("selected_path"), endpoint("authorization", "token", "protected_resource")],
+            [target("selected_path"), interfaceSignature(["authentication"])],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -535,10 +486,20 @@ export const METRICS = [
     {
         stage: "operate",
         code: "failure_contract",
-        role: "graded",
+        role: "barrier",
         selectorAlternatives: [
-            [resource("recovery"), target("reachable")],
-            [target("reachable"), endpoint("recovery")],
+            [
+                target("selected_path"),
+                interfaceSignature(["service_operation"]),
+                standard(MCP_REQUIREMENTS.errorResponse),
+            ],
+            [
+                target("selected_path"),
+                interfaceSignature(["service_operation"]),
+                standard(OPENAPI_REQUIREMENTS.errorResponses),
+            ],
+            [resource("recovery"), target("selected_path")],
+            [target("selected_path"), endpoint("recovery")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -561,12 +522,12 @@ export const METRICS = [
     {
         stage: "operate",
         code: "credential_lifecycle",
-        role: "graded",
+        role: "barrier",
         allowNotApplicable: true,
         selectorAlternatives: [
-            [resource("authentication"), target("reachable")],
-            [endpoint("token"), endpoint("recovery"), target("reachable")],
-            [interfaceSignature(["authentication", "recovery"]), target("reachable")],
+            [resource("authentication"), target("selected_path")],
+            [endpoint("token"), endpoint("recovery"), target("selected_path")],
+            [interfaceSignature(["authentication", "recovery"]), target("selected_path")],
         ],
         evidence: "quality",
         evidenceTerms: [
@@ -594,11 +555,11 @@ export const METRICS = [
         selectorAlternatives: [[target("reachable"), interfaceSignature(["service_operation"])]],
         evidence: "quality",
         evidenceTerms: ["mcp", "a2a", "agent", "openapi", "protocol", "tool", "capability", "manifest"],
-        condition: "Is an agent-native protocol interface verified against the essential targets?",
-        ready: "A verified agent-native interface covers the declared assessment targets.",
-        limited: "An agent-native interface exists but covers only part of the declared targets.",
-        blocked: "No verified agent-native interface was established for the declared targets.",
-        remediation: "Optionally publish a verified agent-native interface bound to actual service targets.",
+        condition: "Does a declared service interface respond through a verified agent-native protocol?",
+        ready: "A declared service interface responds through the exact verified protocol version.",
+        limited: "An agent-native interface is declared but its protocol verification is incomplete.",
+        blocked: "No declared service interface completed exact agent-native protocol verification.",
+        remediation: "Optionally publish a protocol endpoint that completes exact version discovery.",
     },
 ];
 //# sourceMappingURL=current-policy-metrics.js.map

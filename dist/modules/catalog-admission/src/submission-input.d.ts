@@ -1,7 +1,7 @@
+import { type Digest } from "provenry/primitives";
 import { type CatalogSubmissionAuthoringFile, type CatalogSubmissionOperatorAdmission, type CatalogSubmissionRequest, type CatalogSubmissionWorkItem } from "../../../contracts/api/src/index.js";
 import type { EntityAssetSubmission } from "../../../contracts/assets/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare function reviewedAssetWorkItemDigest(workItem: {
     readonly work_item_digest: string;
     readonly operator_admission: {

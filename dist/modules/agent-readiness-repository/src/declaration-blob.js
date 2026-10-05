@@ -1,9 +1,22 @@
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
+import { compareCanonicalStrings, digest, sha256Bytes } from "provenry/primitives";
 import { parse as parseYaml } from "yaml";
 import { AGENT_READINESS_REPOSITORY, agentReadinessAuthoringSchema, agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, } from "../../../contracts/agent-readiness/src/declaration.js";
-import { compareCanonicalStrings, digest, sha256Bytes, } from "../../primitives/src/index.js";
 const executeFile = promisify(execFile);
+/** Compile hosted authoring bytes; the path follows the Entity slug and the digest the bytes. */
+export function compileAgentReadinessHostedDeclarationBlob(input) {
+    const authoring = agentReadinessAuthoringSchema.parse(parseYaml(input.content));
+    const file = `${authoring.entity.slug.slice(0, 2)}/${authoring.entity.slug}.yaml`;
+    return {
+        provenance: {
+            source: "sourcey",
+            path: `entities/${file}`,
+            blob_digest: sha256Bytes(input.content),
+        },
+        ...compileAgentReadinessDeclarationSource({ source: file, content: input.content }),
+    };
+}
 /** Parse explicit non-Git authoring bytes without manufacturing Git identity. */
 export function compileAgentReadinessDeclarationSource(input) {
     const authoring = agentReadinessAuthoringSchema.parse(parseYaml(input.content));
@@ -42,11 +55,13 @@ export async function readAgentReadinessDeclarationBlobAtRevision(repositoryRoot
         throw new Error(`Agent Readiness declaration ${path} has an invalid Git blob identity.`);
     }
     return {
-        repository: AGENT_READINESS_REPOSITORY,
-        commit: headRevision,
-        path,
-        gitBlobOid,
-        blobDigest: sha256Bytes(bytes),
+        provenance: {
+            repository: AGENT_READINESS_REPOSITORY,
+            commit: headRevision,
+            path,
+            git_blob_oid: gitBlobOid,
+            blob_digest: sha256Bytes(bytes),
+        },
         authoring: compiled.authoring,
         declarationRevisions: compiled.declarationRevisions,
     };

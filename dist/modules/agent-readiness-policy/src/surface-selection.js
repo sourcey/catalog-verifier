@@ -1,4 +1,4 @@
-import { canonicalJson, compareCanonicalStrings } from "../../primitives/src/index.js";
+import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
 export function surfaceKey(value) {
     return `${value.node_kind}:${value.node_id}`;
 }
@@ -32,18 +32,21 @@ export function assertSignalSurfaceClosure(revision, declarationRevision) {
     }
 }
 export function assertAgentReadinessSignalSelectorCoverage(signal, group, catalog, allowNotApplicable) {
-    const selected = selectAgentReadinessTestedSurfaces({
-        group,
-        catalog,
-        allowNotApplicable,
-    });
-    const selectedKeys = new Set(selected.map(surfaceKey));
+    // Alternative order controls planning preference, not historical validity.
+    // A later policy may prefer a better surface without invalidating an
+    // already admitted signal whose tested surface still satisfies another
+    // declared alternative in the same selector group.
+    const eligible = [
+        ...matchingAgentReadinessSurfaces(group, catalog),
+        ...(allowNotApplicable ? matchingAgentReadinessSurfaceExclusions(group, catalog) : []),
+    ].sort((left, right) => compareCanonicalStrings(surfaceKey(left), surfaceKey(right)));
+    const eligibleKeys = new Set(eligible.map(surfaceKey));
     const tested = [...signal.tested_surfaces].sort((left, right) => compareCanonicalStrings(surfaceKey(left), surfaceKey(right)));
-    if (selected.length === 0 ||
+    if (eligible.length === 0 ||
         tested.length === 0 ||
         canonicalJson(tested) !== canonicalJson(signal.tested_surfaces) ||
-        tested.some((surface) => !selectedKeys.has(surfaceKey(surface))) ||
-        (group.coverage === "all_matches" && canonicalJson(selected) !== canonicalJson(tested))) {
+        tested.some((surface) => !eligibleKeys.has(surfaceKey(surface))) ||
+        (group.coverage === "all_matches" && canonicalJson(eligible) !== canonicalJson(tested))) {
         throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} does not close selector group ${group.selector_group_id}.`);
     }
 }
@@ -86,6 +89,39 @@ export function matchingAgentReadinessSurfaces(group, catalog) {
         .filter((surface) => group.alternatives.some((alternative) => alternative.selectors.every((selector) => selectorMatchesSurface(selector, surface, catalog))))
         .map(({ node_kind, node_id }) => ({ node_kind, node_id }));
 }
+export function agentReadinessSelectorGroupUsesAssessmentTargets(group) {
+    // A group is target-scoped only when every way to satisfy it depends on a
+    // target. Historical policies contain mixed groups whose unscoped
+    // alternative deliberately makes the finding service-wide. Treating those
+    // groups as target-scoped would retroactively change their semantics.
+    return group.alternatives.every((alternative) => alternative.selectors.some((selector) => selector.kind === "assessment_target_membership" || selector.kind === "target_relation"));
+}
+/**
+ * Resolve the exact workload targets for which one selected semantic surface
+ * satisfies a target-scoped selector group. The policy's existing selector
+ * semantics remain the single authority: evaluating against one target at a
+ * time prevents the union of several targets from being mistaken for closure
+ * of every target.
+ */
+export function agentReadinessAssessmentTargetIdsForSurface(input) {
+    if (!agentReadinessSelectorGroupUsesAssessmentTargets(input.group))
+        return [];
+    if (input.surface.node_kind === "surface_exclusion") {
+        return input.catalog.assessment_targets
+            .map((target) => target.target_id)
+            .sort(compareCanonicalStrings);
+    }
+    const declaredSurface = allDeclaredSurfaces(input.catalog).find((surface) => surfaceKey(surface) === surfaceKey(input.surface));
+    if (!declaredSurface)
+        return [];
+    return input.catalog.assessment_targets
+        .filter((target) => input.group.alternatives.some((alternative) => alternative.selectors.every((selector) => selectorMatchesSurface(selector, declaredSurface, {
+        ...input.catalog,
+        assessment_targets: [target],
+    }))))
+        .map((target) => target.target_id)
+        .sort(compareCanonicalStrings);
+}
 export function agentReadinessDeclarationPolicyGaps(input) {
     const catalog = surfaceCatalogFromDeclarationGraph(input.declaration);
     const surfaces = allDeclaredSurfaces(catalog);
@@ -110,10 +146,22 @@ export function agentReadinessDeclarationPolicyGaps(input) {
     return gaps;
 }
 export function assertAgentReadinessDeclarationPolicyClosure(input) {
+    const scopeIssue = agentReadinessDeclarationPolicyScopeIssue(input);
+    if (scopeIssue)
+        throw new Error(scopeIssue);
     const gap = agentReadinessDeclarationPolicyGaps(input)[0];
     if (gap) {
         throw new Error(`Declaration ${input.declaration.declaration_id} cannot plan ${gap.stage}:${gap.signalCode} through any selector group (${gap.selectorGroupIds.join(", ")}).`);
     }
+}
+export function agentReadinessDeclarationPolicyScopeIssue(input) {
+    if (input.policy.assessment_basis.success.interface_coverage !== "one_selected_interface_per_target") {
+        return null;
+    }
+    const ambiguous = input.declaration.assessment_targets.find((target) => target.interface_ids.length !== 1);
+    return ambiguous
+        ? `Declaration ${input.declaration.declaration_id} target ${ambiguous.target_id} must select one assessed interface; alternative interfaces require a separate assessment.`
+        : null;
 }
 function allDeclaredSurfaces(catalog) {
     return [
@@ -153,7 +201,7 @@ function selectorMatchesSurface(selector, surface, catalog) {
             return (surface.node_kind === "interface" &&
                 catalog.assessment_targets.some((target) => target.interface_ids.includes(surface.interface_id)));
         }
-        return targetReachableSurfaceKeys(catalog).has(surfaceKey(surface));
+        return targetReachableSurfaceKeys(catalog, selector.membership === "reachable").has(surfaceKey(surface));
     }
     if (selector.kind === "target_relation") {
         const targetInterfaces = new Set(catalog.assessment_targets.flatMap((target) => target.interface_ids));
@@ -170,7 +218,7 @@ function selectorMatchesSurface(selector, surface, catalog) {
     return surface.standard_bindings.some((binding) => binding.namespace === selector.requirement.namespace &&
         binding.version === selector.requirement.version);
 }
-function targetReachableSurfaceKeys(catalog) {
+function targetReachableSurfaceKeys(catalog, includeAlternatives) {
     const reachable = new Set(catalog.assessment_targets.flatMap((target) => target.interface_ids.map((interfaceId) => `interface:${interfaceId}`)));
     let changed = true;
     while (changed) {
@@ -188,7 +236,7 @@ function targetReachableSurfaceKeys(catalog) {
         for (const relation of catalog.relations) {
             const from = surfaceKey(relation.from);
             const to = surfaceKey(relation.to);
-            if (relation.kind === "alternative_to") {
+            if (relation.kind === "alternative_to" && includeAlternatives) {
                 if (reachable.has(from))
                     changed = addToSet(reachable, to) || changed;
                 if (reachable.has(to))

@@ -146,10 +146,12 @@ export const agentReadinessDeclarationDraftResultSchema = z.discriminatedUnion("
             content_digest: agentReadinessDigestSchema,
         })
             .strict(),
+        /** Where the exact command is submitted: the one submission transport. */
         submission: z
             .object({
-            repository: z.literal("sourcey/agent-ready-services"),
-            authority: z.literal("pull_request_merge"),
+            method: z.literal("POST"),
+            path: z.literal("/v1/submissions"),
+            product: z.literal("agent_readiness"),
         })
             .strict(),
         diagnostics: z.array(agentReadinessDraftDiagnosticSchema).length(0),

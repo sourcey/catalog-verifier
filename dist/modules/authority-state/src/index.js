@@ -1,5 +1,5 @@
+import { compareCanonicalStrings } from "provenry/primitives";
 import { currentEntityPrimaryDomainValue, hostnameIsWithinDomain, } from "../../../contracts/revisions/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
 /**
  * The canonical domain used when opening a new authority claim. A claim is
  * bound to the Entity revision, so this comes from its domain contract rather

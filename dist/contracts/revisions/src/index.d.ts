@@ -1,5 +1,14 @@
 import { z } from "zod";
 /**
+ * Canonical discriminants for the three core Catalog revision documents.
+ * Consumers import these values instead of reproducing wire-contract strings.
+ */
+export declare const catalogRevisionContracts: {
+    readonly entity: "sourcey.entity-revision/v1alpha1";
+    readonly program: "sourcey.program-revision/v1alpha1";
+    readonly offer: "sourcey.offer-revision/v1alpha1";
+};
+/**
  * The compact public synopsis used by catalog listings, metadata, and page
  * ledes. Longer explanatory copy belongs in the adjacent description field;
  * structured economics, eligibility, and access remain authoritative.
@@ -13,8 +22,8 @@ export declare const catalogAccessUrlSchema: z.ZodURL;
 export declare const domainSchema: z.ZodObject<{
     value: z.ZodString;
     role: z.ZodEnum<{
-        primary: "primary";
         alias: "alias";
+        primary: "primary";
     }>;
     valid_from: z.ZodISODateTime;
     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -143,6 +152,8 @@ export declare const cashbackValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>], "kind">;
 }, z.core.$strict>], "kind">;
 export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    benefit_id: z.ZodString;
+    description: z.ZodString;
     kind: z.ZodLiteral<"credit">;
     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"exact">;
@@ -183,9 +194,9 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
     }, z.core.$strict>], "kind">>;
+}, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
     description: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"discount">;
     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"exact">;
@@ -212,9 +223,9 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
     }, z.core.$strict>], "kind">>;
+}, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
     description: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"cashback">;
     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"money">;
@@ -274,14 +285,14 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
     }, z.core.$strict>], "kind">>;
+}, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
     description: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"waiver">;
     waived_item: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
     description: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"free-service">;
     service: z.ZodString;
     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -294,12 +305,10 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
     }, z.core.$strict>], "kind">>;
-    benefit_id: z.ZodString;
-    description: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
-    kind: z.ZodLiteral<"other">;
     benefit_id: z.ZodString;
     description: z.ZodString;
+    kind: z.ZodLiteral<"other">;
 }, z.core.$strict>], "kind">;
 export declare const considerationSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"none">;
@@ -333,6 +342,8 @@ export declare const economicsSchema: z.ZodObject<{
         description: z.ZodString;
     }, z.core.$strict>], "kind">;
     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        benefit_id: z.ZodString;
+        description: z.ZodString;
         kind: z.ZodLiteral<"credit">;
         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"exact">;
@@ -373,9 +384,9 @@ export declare const economicsSchema: z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
         }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
         description: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"discount">;
         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"exact">;
@@ -402,9 +413,9 @@ export declare const economicsSchema: z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
         }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
         description: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"cashback">;
         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"money">;
@@ -464,14 +475,14 @@ export declare const economicsSchema: z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
         }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
         description: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"waiver">;
         waived_item: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
         description: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"free-service">;
         service: z.ZodString;
         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -484,12 +495,10 @@ export declare const economicsSchema: z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
         }, z.core.$strict>], "kind">>;
-        benefit_id: z.ZodString;
-        description: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
-        kind: z.ZodLiteral<"other">;
         benefit_id: z.ZodString;
         description: z.ZodString;
+        kind: z.ZodLiteral<"other">;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>;
 export declare const eligibilityFactValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -534,21 +543,19 @@ export declare const eligibilityFactsSchema: z.ZodRecord<z.ZodString, z.ZodDiscr
     type: z.ZodLiteral<"number-set">;
     values: z.ZodArray<z.ZodNumber>;
 }, z.core.$strict>], "type">>;
-declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
+/** A fact, an operator and its value: what evidence extraction reports for a page threshold. */
+export declare const eligibilityConditionSchema: z.ZodUnion<readonly [z.ZodObject<{
     fact: z.ZodString;
     operator: z.ZodEnum<{
         absent: "absent";
         present: "present";
     }>;
-    criterion_id: z.ZodString;
-    statement: z.ZodString;
-    kind: z.ZodLiteral<"predicate">;
 }, z.core.$strict>, z.ZodObject<{
     fact: z.ZodString;
     operator: z.ZodEnum<{
+        contains: "contains";
         eq: "eq";
         neq: "neq";
-        contains: "contains";
     }>;
     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
         type: z.ZodLiteral<"string">;
@@ -563,9 +570,6 @@ declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
         type: z.ZodLiteral<"date">;
         value: z.ZodISODate;
     }, z.core.$strict>], "type">;
-    criterion_id: z.ZodString;
-    statement: z.ZodString;
-    kind: z.ZodLiteral<"predicate">;
 }, z.core.$strict>, z.ZodObject<{
     fact: z.ZodString;
     operator: z.ZodLiteral<"in">;
@@ -576,16 +580,13 @@ declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
         type: z.ZodLiteral<"number-set">;
         values: z.ZodArray<z.ZodNumber>;
     }, z.core.$strict>], "type">;
-    criterion_id: z.ZodString;
-    statement: z.ZodString;
-    kind: z.ZodLiteral<"predicate">;
 }, z.core.$strict>, z.ZodObject<{
     fact: z.ZodString;
     operator: z.ZodEnum<{
-        lt: "lt";
-        lte: "lte";
         gt: "gt";
         gte: "gte";
+        lt: "lt";
+        lte: "lte";
     }>;
     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
         type: z.ZodLiteral<"number">;
@@ -594,26 +595,88 @@ declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
         type: z.ZodLiteral<"date">;
         value: z.ZodISODate;
     }, z.core.$strict>], "type">;
+}, z.core.$strict>]>;
+/** One typed eligibility condition, with its criterion identity and statement. */
+export declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
     criterion_id: z.ZodString;
     statement: z.ZodString;
+    fact: z.ZodString;
+    operator: z.ZodEnum<{
+        absent: "absent";
+        present: "present";
+    }>;
+    kind: z.ZodLiteral<"predicate">;
+}, z.core.$strict>, z.ZodObject<{
+    criterion_id: z.ZodString;
+    statement: z.ZodString;
+    fact: z.ZodString;
+    operator: z.ZodEnum<{
+        contains: "contains";
+        eq: "eq";
+        neq: "neq";
+    }>;
+    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        type: z.ZodLiteral<"string">;
+        value: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"number">;
+        value: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"boolean">;
+        value: z.ZodBoolean;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"date">;
+        value: z.ZodISODate;
+    }, z.core.$strict>], "type">;
+    kind: z.ZodLiteral<"predicate">;
+}, z.core.$strict>, z.ZodObject<{
+    criterion_id: z.ZodString;
+    statement: z.ZodString;
+    fact: z.ZodString;
+    operator: z.ZodLiteral<"in">;
+    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        type: z.ZodLiteral<"string-set">;
+        values: z.ZodArray<z.ZodString>;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"number-set">;
+        values: z.ZodArray<z.ZodNumber>;
+    }, z.core.$strict>], "type">;
+    kind: z.ZodLiteral<"predicate">;
+}, z.core.$strict>, z.ZodObject<{
+    criterion_id: z.ZodString;
+    statement: z.ZodString;
+    fact: z.ZodString;
+    operator: z.ZodEnum<{
+        gt: "gt";
+        gte: "gte";
+        lt: "lt";
+        lte: "lte";
+    }>;
+    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        type: z.ZodLiteral<"number">;
+        value: z.ZodNumber;
+    }, z.core.$strict>, z.ZodObject<{
+        type: z.ZodLiteral<"date">;
+        value: z.ZodISODate;
+    }, z.core.$strict>], "type">;
     kind: z.ZodLiteral<"predicate">;
 }, z.core.$strict>]>;
-declare const eligibilityManualSchema: z.ZodObject<{
-    reason: z.ZodEnum<{
-        other: "other";
-        "vendor-discretion": "vendor-discretion";
-        "external-verification": "external-verification";
-        "not-machine-evaluable": "not-machine-evaluable";
-    }>;
+export declare const eligibilityManualSchema: z.ZodObject<{
     criterion_id: z.ZodString;
     statement: z.ZodString;
     kind: z.ZodLiteral<"manual">;
+    reason: z.ZodEnum<{
+        "external-verification": "external-verification";
+        "not-machine-evaluable": "not-machine-evaluable";
+        other: "other";
+        "vendor-discretion": "vendor-discretion";
+    }>;
 }, z.core.$strict>;
-declare const eligibilityConstantSchema: z.ZodObject<{
-    value: z.ZodBoolean;
+export declare const eligibilityConstantSchema: z.ZodObject<{
     criterion_id: z.ZodString;
     statement: z.ZodString;
     kind: z.ZodLiteral<"constant">;
+    value: z.ZodBoolean;
 }, z.core.$strict>;
 export type EligibilityFactValue = z.infer<typeof eligibilityFactValueSchema>;
 export type EligibilityRule = z.infer<typeof eligibilityPredicateSchema> | z.infer<typeof eligibilityManualSchema> | z.infer<typeof eligibilityConstantSchema> | {
@@ -631,8 +694,8 @@ export declare const eligibilitySchema: z.ZodObject<{
     rule: z.ZodType<EligibilityRule, unknown, z.core.$ZodTypeInternals<EligibilityRule, unknown>>;
 }, z.core.$strict>;
 export declare const eligibilityOutcomeSchema: z.ZodEnum<{
-    unknown: "unknown";
     met: "met";
+    unknown: "unknown";
     unmet: "unmet";
 }>;
 export type EligibilityOutcome = z.infer<typeof eligibilityOutcomeSchema>;
@@ -661,19 +724,19 @@ export declare const offerRolesSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const accessSchema: z.ZodObject<{
     availability: z.ZodEnum<{
-        public: "public";
-        other: "other";
-        referral: "referral";
-        membership: "membership";
-        invite: "invite";
         automatic: "automatic";
+        invite: "invite";
+        membership: "membership";
+        other: "other";
+        public: "public";
+        referral: "referral";
     }>;
     method: z.ZodEnum<{
-        code: "code";
-        other: "other";
         automatic: "automatic";
-        form: "form";
+        code: "code";
         contact: "contact";
+        form: "form";
+        other: "other";
     }>;
     url: z.ZodOptional<z.ZodURL>;
     public_code: z.ZodOptional<z.ZodString>;
@@ -695,8 +758,8 @@ export declare const entityRevisionContentSchema: z.ZodObject<{
     domains: z.ZodArray<z.ZodObject<{
         value: z.ZodString;
         role: z.ZodEnum<{
-            primary: "primary";
             alias: "alias";
+            primary: "primary";
         }>;
         valid_from: z.ZodISODateTime;
         valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -717,8 +780,8 @@ export declare const entityRevisionCoreSchema: z.ZodObject<{
         domains: z.ZodArray<z.ZodObject<{
             value: z.ZodString;
             role: z.ZodEnum<{
-                primary: "primary";
                 alias: "alias";
+                primary: "primary";
             }>;
             valid_from: z.ZodISODateTime;
             valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -740,8 +803,8 @@ export declare const entityRevisionSchema: z.ZodObject<{
         domains: z.ZodArray<z.ZodObject<{
             value: z.ZodString;
             role: z.ZodEnum<{
-                primary: "primary";
                 alias: "alias";
+                primary: "primary";
             }>;
             valid_from: z.ZodISODateTime;
             valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -812,6 +875,8 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
             description: z.ZodString;
         }, z.core.$strict>], "kind">;
         benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            benefit_id: z.ZodString;
+            description: z.ZodString;
             kind: z.ZodLiteral<"credit">;
             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"exact">;
@@ -852,9 +917,9 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"discount">;
             percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"exact">;
@@ -881,9 +946,9 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"cashback">;
             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"money">;
@@ -943,14 +1008,14 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"waiver">;
             waived_item: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"free-service">;
             service: z.ZodString;
             duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -963,12 +1028,10 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
-            benefit_id: z.ZodString;
-            description: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"other">;
             benefit_id: z.ZodString;
             description: z.ZodString;
+            kind: z.ZodLiteral<"other">;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>;
     eligibility: z.ZodObject<{
@@ -980,19 +1043,19 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
     }, z.core.$strict>;
     access: z.ZodObject<{
         availability: z.ZodEnum<{
-            public: "public";
-            other: "other";
-            referral: "referral";
-            membership: "membership";
-            invite: "invite";
             automatic: "automatic";
+            invite: "invite";
+            membership: "membership";
+            other: "other";
+            public: "public";
+            referral: "referral";
         }>;
         method: z.ZodEnum<{
-            code: "code";
-            other: "other";
             automatic: "automatic";
-            form: "form";
+            code: "code";
             contact: "contact";
+            form: "form";
+            other: "other";
         }>;
         url: z.ZodOptional<z.ZodURL>;
         public_code: z.ZodOptional<z.ZodString>;
@@ -1035,6 +1098,8 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                 description: z.ZodString;
             }, z.core.$strict>], "kind">;
             benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                benefit_id: z.ZodString;
+                description: z.ZodString;
                 kind: z.ZodLiteral<"credit">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1075,9 +1140,9 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"discount">;
                 percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1104,9 +1169,9 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"cashback">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"money">;
@@ -1166,14 +1231,14 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"waiver">;
                 waived_item: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"free-service">;
                 service: z.ZodString;
                 duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1186,12 +1251,10 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
-                benefit_id: z.ZodString;
-                description: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"other">;
                 benefit_id: z.ZodString;
                 description: z.ZodString;
+                kind: z.ZodLiteral<"other">;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>;
         eligibility: z.ZodObject<{
@@ -1203,19 +1266,19 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
         }, z.core.$strict>;
         access: z.ZodObject<{
             availability: z.ZodEnum<{
-                public: "public";
-                other: "other";
-                referral: "referral";
-                membership: "membership";
-                invite: "invite";
                 automatic: "automatic";
+                invite: "invite";
+                membership: "membership";
+                other: "other";
+                public: "public";
+                referral: "referral";
             }>;
             method: z.ZodEnum<{
-                code: "code";
-                other: "other";
                 automatic: "automatic";
-                form: "form";
+                code: "code";
                 contact: "contact";
+                form: "form";
+                other: "other";
             }>;
             url: z.ZodOptional<z.ZodURL>;
             public_code: z.ZodOptional<z.ZodString>;
@@ -1259,6 +1322,8 @@ export declare const offerRevisionSchema: z.ZodObject<{
                 description: z.ZodString;
             }, z.core.$strict>], "kind">;
             benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                benefit_id: z.ZodString;
+                description: z.ZodString;
                 kind: z.ZodLiteral<"credit">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1299,9 +1364,9 @@ export declare const offerRevisionSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"discount">;
                 percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1328,9 +1393,9 @@ export declare const offerRevisionSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"cashback">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"money">;
@@ -1390,14 +1455,14 @@ export declare const offerRevisionSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"waiver">;
                 waived_item: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"free-service">;
                 service: z.ZodString;
                 duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1410,12 +1475,10 @@ export declare const offerRevisionSchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
-                benefit_id: z.ZodString;
-                description: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"other">;
                 benefit_id: z.ZodString;
                 description: z.ZodString;
+                kind: z.ZodLiteral<"other">;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>;
         eligibility: z.ZodObject<{
@@ -1427,19 +1490,19 @@ export declare const offerRevisionSchema: z.ZodObject<{
         }, z.core.$strict>;
         access: z.ZodObject<{
             availability: z.ZodEnum<{
-                public: "public";
-                other: "other";
-                referral: "referral";
-                membership: "membership";
-                invite: "invite";
                 automatic: "automatic";
+                invite: "invite";
+                membership: "membership";
+                other: "other";
+                public: "public";
+                referral: "referral";
             }>;
             method: z.ZodEnum<{
-                code: "code";
-                other: "other";
                 automatic: "automatic";
-                form: "form";
+                code: "code";
                 contact: "contact";
+                form: "form";
+                other: "other";
             }>;
             url: z.ZodOptional<z.ZodURL>;
             public_code: z.ZodOptional<z.ZodString>;

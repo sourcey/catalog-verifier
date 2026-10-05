@@ -1,5 +1,5 @@
+import { ACTOR_IDENTIFIER_PATTERN, DIGEST_PATTERN, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { ACTOR_IDENTIFIER_PATTERN, DIGEST_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const actorIdentifier = z.string().regex(ACTOR_IDENTIFIER_PATTERN);

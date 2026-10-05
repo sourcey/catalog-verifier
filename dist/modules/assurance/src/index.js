@@ -1,6 +1,6 @@
+import { compareCanonicalStrings, compareInstants, digest } from "provenry/primitives";
 import { assuranceMethodPolicyCoreSchema, assuranceMethodPolicySchema, entityIdentityAnchorCoreSchema, entityIdentityAnchorSchema, entityIdentityCheckedPayloadSchema, offerTermsCheckedPayloadSchema, } from "../../../contracts/assurance/src/index.js";
 import { currentEntityPrimaryDomain } from "../../authority-state/src/index.js";
-import { compareCanonicalStrings, compareInstants, digest, } from "../../primitives/src/index.js";
 export function deriveEntityIdentityAnchor(revision) {
     const core = entityIdentityAnchorCoreSchema.parse({
         anchor_contract: "sourcey.entity-identity-anchor/v1alpha1",

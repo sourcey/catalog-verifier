@@ -1,6 +1,6 @@
+import { canonicalJson, digest } from "provenry/primitives";
 import { z } from "zod";
 import { AGENT_READINESS_REPOSITORY, agentReadinessIdentifierSchema, agentReadinessProfileIdSchema, agentReadinessReviewerIdSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { canonicalJson, digest } from "../../primitives/src/index.js";
 const admissionCoreSchema = z
     .object({
     admission_contract: z.literal("sourcey.agent-readiness-repository-merge-admission/v1alpha1"),

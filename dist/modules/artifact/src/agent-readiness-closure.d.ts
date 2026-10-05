@@ -1,10 +1,9 @@
-import type { AgentReadinessDeclarationRevision, AgentReadinessOfferRelationRevision, AgentReadinessProjection, AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
-import { type agentReadinessInputsSchema, type agentReadinessOfferRelationInputsSchema } from "../../../contracts/agent-readiness/src/index.js";
+import { type Digest } from "provenry/primitives";
+import { type AgentReadinessDeclarationRevision, type AgentReadinessOfferRelationRevision, type AgentReadinessProjection, type AgentReadinessRevision, type agentReadinessInputsSchema, type agentReadinessOfferRelationInputsSchema } from "../../../contracts/agent-readiness/src/index.js";
 import type { CanonicalArtifact, ProvenanceIndex } from "../../../contracts/artifact/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
 import type { Observation } from "../../../contracts/observations/src/index.js";
 import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare function assertReleasedAgentReadinessClosure(input: {
     readonly artifact: CanonicalArtifact;
     readonly revisions: ReadonlyMap<Digest, EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision | AgentReadinessDeclarationRevision>;

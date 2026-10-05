@@ -1,7 +1,7 @@
+import { type Digest } from "provenry/primitives";
 import type { AgentReadinessOfferRelationRevision, AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
 import type { CatalogPublicationChangeSet, PublicationDependencyRegistration, SurfaceDependencyReference } from "../../../contracts/publication/src/index.js";
 import { type CatalogPublicationImpactQuery } from "../../catalog-admission/src/publication-dependencies.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare function agentReadinessProfileDependencyKey(profileId: string): string;
 export declare function agentReadinessPolicyComponentDependencyKey(input: {
     readonly policyDigest: Digest;
@@ -58,7 +58,6 @@ export interface AgentReadinessDependencySubject {
     readonly profileRevisionDigest: Digest;
     readonly entityId: string;
     readonly entityRevisionDigest: Digest;
-    readonly policyDigest: Digest;
     readonly evidenceEventIds: readonly Digest[];
     readonly declarationRevisionDigest: Digest;
     readonly sourceLocatorDigests: readonly Digest[];

@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY, type AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type AgentReadinessDeclarationBlob } from "./declaration-blob.js";
 export type AgentReadinessDeclarationDelta = {
     readonly kind: "declaration_added";
@@ -23,13 +23,16 @@ export type AgentReadinessDeclarationDelta = {
     readonly revisionDigest: Digest;
     readonly changedNodeKeys: readonly [];
 };
-export interface AgentReadinessRepositoryPathDelta {
-    readonly status: "added" | "modified" | "removed";
-    readonly path: string;
+/** One Entity file's change from its base bytes to its head bytes, whatever their source. */
+export interface AgentReadinessAuthoringDelta {
     readonly base: AgentReadinessDeclarationBlob | null;
     readonly head: AgentReadinessDeclarationBlob | null;
     readonly entitySubjectChanged: boolean;
     readonly declarations: readonly AgentReadinessDeclarationDelta[];
+}
+export interface AgentReadinessRepositoryPathDelta extends AgentReadinessAuthoringDelta {
+    readonly status: "added" | "modified" | "removed";
+    readonly path: string;
 }
 export interface AgentReadinessRepositoryChangePacket {
     readonly change_contract: "sourcey.agent-readiness-repository-change/v1alpha1";
@@ -59,4 +62,14 @@ export declare function verifyAgentReadinessRepositoryChangePacket(input: {
     readonly policy: AgentReadinessPolicy;
 }): Promise<void>;
 export declare function selectedAgentReadinessDeclarationDeltas(packet: AgentReadinessRepositoryChangePacket): readonly AgentReadinessDeclarationDelta[];
+/**
+ * Compare one Entity file's base and head declarations. The Git change packet
+ * and hosted intake both select their planning targets from this delta.
+ */
+export declare function agentReadinessAuthoringDelta(input: {
+    readonly base: AgentReadinessDeclarationBlob | null;
+    readonly head: AgentReadinessDeclarationBlob | null;
+}): AgentReadinessAuthoringDelta;
+/** Every declaration in the bytes closes over the installed readiness policy. */
+export declare function assertAgentReadinessBlobPolicy(blob: AgentReadinessDeclarationBlob | null, policy: AgentReadinessPolicy): void;
 //# sourceMappingURL=change.d.ts.map

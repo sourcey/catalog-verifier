@@ -1,5 +1,5 @@
+import { digest } from "provenry/primitives";
 import { z } from "zod";
-import { digest } from "../../../modules/primitives/src/index.js";
 import { commercialPriceLookupKeySchema, commercialProductCodeSchema, fundedWorkIntentEnvelopeSchema, } from "../../funded-work/src/index.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const instantSchema = z.iso.datetime({ offset: true });
@@ -203,82 +203,6 @@ export const commercialOrderSchema = z
         context.addIssue({ code: "custom", message: "Failed work requires its exact receipt." });
     }
 });
-export const paymentEffectSchema = z
-    .object({
-    effect_contract: z.literal("sourcey.payment-effect/v1alpha1"),
-    effect_id: digestSchema,
-    order_id: commercialOrderIdSchema,
-    attempt_id: paymentAttemptIdSchema,
-    rail: paymentRailSchema,
-    kind: z.enum([
-        "attempt.prepared",
-        "payment.verified",
-        "payment.settlement_pending",
-        "payment.settled",
-        "payment.failed",
-        "refund.requested",
-        "refund.settlement_pending",
-        "refund.settled",
-        "refund.failed",
-    ]),
-    provider_effect_ref: z.string().trim().min(1).max(1_024).nullable(),
-    provider_payload_digest: digestSchema,
-    provider_readback_digest: digestSchema.nullable(),
-    money_state: z.enum(["none", "moved", "unknown"]),
-    occurred_at: instantSchema,
-})
-    .strict()
-    .superRefine((effect, context) => {
-    if (effect.kind === "payment.settled" || effect.kind === "refund.settled") {
-        if (effect.money_state !== "moved" || effect.provider_readback_digest === null) {
-            context.addIssue({
-                code: "custom",
-                message: "A settled money effect requires moved funds and independent readback.",
-            });
-        }
-    }
-    if ([
-        "attempt.prepared",
-        "payment.verified",
-        "payment.failed",
-        "refund.requested",
-        "refund.failed",
-    ].includes(effect.kind) &&
-        effect.money_state !== "none") {
-        context.addIssue({ code: "custom", message: "This effect cannot assert moved money." });
-    }
-    if ((effect.kind === "payment.settlement_pending" ||
-        effect.kind === "refund.settlement_pending") &&
-        effect.money_state !== "unknown") {
-        context.addIssue({
-            code: "custom",
-            message: "A pending settlement has unknown money state.",
-        });
-    }
-});
-export const commercialOrderEventSchema = z
-    .object({
-    event_contract: z.literal("sourcey.commercial-order-event/v1alpha1"),
-    event_id: digestSchema,
-    order_id: commercialOrderIdSchema,
-    kind: z.enum([
-        "order.created",
-        "payment.attempted",
-        "payment.settled",
-        "payment.failed",
-        "work.authorized",
-        "work.started",
-        "work.fulfilled",
-        "work.failed",
-        "order.cancelled",
-        "refund.requested",
-        "refund.settled",
-    ]),
-    payment_effect_id: digestSchema.nullable(),
-    payload_digest: digestSchema,
-    occurred_at: instantSchema,
-})
-    .strict();
 export const createCommercialOrderRequestSchema = z
     .object({
     funded_work_intent_id: fundedWorkIntentEnvelopeSchema.shape.intent_id,
@@ -370,19 +294,5 @@ export function projectCommercialOrderStatus(projection) {
         created_at: order.created_at,
         updated_at: order.updated_at,
     });
-}
-export function buildCommercialOrderEvent(order, kind, paymentEffectId, payload, occurredAt) {
-    const core = {
-        event_contract: "sourcey.commercial-order-event/v1alpha1",
-        order_id: order.order_id,
-        kind,
-        payment_effect_id: paymentEffectId,
-        payload_digest: digest(payload),
-        occurred_at: occurredAt,
-    };
-    return commercialOrderEventSchema.parse({ ...core, event_id: digest(core) });
-}
-export function buildPaymentEffect(input) {
-    return paymentEffectSchema.parse({ ...input, effect_id: digest(input) });
 }
 //# sourceMappingURL=index.js.map

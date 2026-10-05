@@ -1,6 +1,8 @@
+import { compareCanonicalStrings, digest, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
+import { capturePolicyDefinitionSchema } from "../../../contracts/capture/src/index.js";
 import { evidenceSubjectSchema } from "../../../contracts/evidence/src/index.js";
-import { compareCanonicalStrings, digest, IDENTIFIER_PATTERN } from "../../primitives/src/index.js";
+export { capturePolicyDefinitionSchema, } from "../../../contracts/capture/src/index.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 export const evidenceTargetSchema = z
     .object({
@@ -23,22 +25,6 @@ export const evidenceScheduleSchema = z
     cron: z.string().min(1),
     timezone: z.literal("UTC"),
     enabled: z.boolean(),
-})
-    .strict();
-export const capturePolicyDefinitionSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.capture-policy/v1alpha1"),
-    policy_id: z.string().min(1),
-    maximum_bytes: z.number().int().positive(),
-    timeout_ms: z.number().int().positive(),
-    redirects: z.enum(["reject", "same-origin", "allowed-hosts"]),
-    require_https: z.boolean(),
-    /**
-     * An HTML document whose normalized text is shorter than this many bytes
-     * is residue, not evidence: a client-rendered page fetched without
-     * rendering yields a title and metadata only. Zero disables the floor.
-     */
-    minimum_document_text_bytes: z.number().int().nonnegative(),
 })
     .strict();
 export const retryPolicyDefinitionSchema = z
@@ -64,7 +50,7 @@ export const extractorDefinitionSchema = z
     .object({
     extractor_contract: z.literal("sourcey.extractor-definition/v1alpha1"),
     extractor_id: z.string().min(1),
-    kind: z.enum(["deterministic-text", "structured-model"]),
+    kind: z.literal("structured-model"),
     version: z.string().min(1),
     toolchain_digest: digestSchema,
     output_contract: z.string().min(1),

@@ -1,6 +1,6 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { assetDeltaCoreSchema, assetIndexSchema } from "../../../contracts/assets/src/index.js";
 import { catalogEventPayloadSchemas } from "../../../contracts/events/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { eventDisposesAssetBinding } from "./disposition.js";
 import { verifyAssetDelta, verifyEntityAssetProposal } from "./index.js";
 export function buildAssetDelta(input) {
@@ -87,25 +87,20 @@ export function buildAssetDelta(input) {
     });
     return verifyAssetDelta({ ...core, delta_digest: digest(core) });
 }
-export function assetIndexTransitionDigest(delta) {
-    const verified = verifyAssetDelta(delta);
-    return digest({
-        transition_contract: "sourcey.projection-transition/v1alpha1",
-        projection: "asset-index",
-        parent_digest: verified.parent_asset_index_digest,
-        changes: verified.changes.map((change) => ({
-            entity_id: change.entity_id,
-            role: change.role,
-            prior_binding_event_id: change.prior_binding_event_id,
-            operation: change.operation,
-            ...(change.operation === "upsert"
-                ? { binding: change.binding }
-                : {
-                    prior_binding_digest: change.prior_binding_digest,
-                    disposition_event_id: change.disposition_event_id,
-                }),
-        })),
-    });
+/** The asset index changes a release chains onto its parent asset index. */
+export function assetIndexTransitionChanges(delta) {
+    return verifyAssetDelta(delta).changes.map((change) => ({
+        entity_id: change.entity_id,
+        role: change.role,
+        prior_binding_event_id: change.prior_binding_event_id,
+        operation: change.operation,
+        ...(change.operation === "upsert"
+            ? { binding: change.binding }
+            : {
+                prior_binding_digest: change.prior_binding_digest,
+                disposition_event_id: change.disposition_event_id,
+            }),
+    }));
 }
 export function applyAssetDelta(input) {
     const delta = verifyAssetDelta(input.delta);

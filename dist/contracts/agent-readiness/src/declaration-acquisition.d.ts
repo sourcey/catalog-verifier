@@ -14,9 +14,9 @@ export declare const agentReadinessDraftParticipantSchema: z.ZodObject<{
     roles: z.ZodArray<z.ZodEnum<{
         access_operator: "access_operator";
         identity_provider: "identity_provider";
+        operations_provider: "operations_provider";
         payment_provider: "payment_provider";
         provisioning_provider: "provisioning_provider";
-        operations_provider: "operations_provider";
     }>>;
     identity: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity_id">;
@@ -31,20 +31,20 @@ export declare const agentReadinessDraftResourceSchema: z.ZodObject<{
     resource_id: z.ZodString;
     uri: z.ZodURL;
     roles: z.ZodArray<z.ZodEnum<{
-        policy: "policy";
-        discovery: "discovery";
-        status: "status";
-        pricing: "pricing";
-        eligibility: "eligibility";
         access: "access";
-        terms: "terms";
-        checkout: "checkout";
-        provisioning: "provisioning";
-        operations: "operations";
-        recovery: "recovery";
         authentication: "authentication";
+        checkout: "checkout";
         descriptor: "descriptor";
+        discovery: "discovery";
         documentation: "documentation";
+        eligibility: "eligibility";
+        operations: "operations";
+        policy: "policy";
+        pricing: "pricing";
+        provisioning: "provisioning";
+        recovery: "recovery";
+        status: "status";
+        terms: "terms";
     }>>;
     operated_by_participant_id: z.ZodString;
     standard_bindings: z.ZodArray<z.ZodObject<{
@@ -64,19 +64,19 @@ export declare const agentReadinessDraftEndpointSchema: z.ZodObject<{
     endpoint_id: z.ZodString;
     uri: z.ZodURL;
     transport: z.ZodEnum<{
+        grpc: "grpc";
         http: "http";
         websocket: "websocket";
-        grpc: "grpc";
     }>;
     roles: z.ZodArray<z.ZodEnum<{
-        status: "status";
-        service: "service";
-        checkout: "checkout";
-        recovery: "recovery";
         authorization: "authorization";
-        token: "token";
-        registration: "registration";
+        checkout: "checkout";
         protected_resource: "protected_resource";
+        recovery: "recovery";
+        registration: "registration";
+        service: "service";
+        status: "status";
+        token: "token";
         webhook: "webhook";
     }>>;
     operated_by_participant_id: z.ZodString;
@@ -96,19 +96,19 @@ export declare const agentReadinessDraftEndpointSchema: z.ZodObject<{
 export declare const agentReadinessDraftInterfaceSchema: z.ZodObject<{
     interface_id: z.ZodString;
     modality: z.ZodEnum<{
-        web_application: "web_application";
-        network_api: "network_api";
+        agent_service: "agent_service";
         command_line: "command_line";
+        network_api: "network_api";
         software_library: "software_library";
         tool_server: "tool_server";
-        agent_service: "agent_service";
+        web_application: "web_application";
     }>;
     functions: z.ZodArray<z.ZodEnum<{
+        authentication: "authentication";
+        commerce: "commerce";
         events: "events";
         recovery: "recovery";
-        authentication: "authentication";
         service_operation: "service_operation";
-        commerce: "commerce";
     }>>;
     endpoint_ids: z.ZodArray<z.ZodString>;
     resource_ids: z.ZodArray<z.ZodString>;
@@ -134,26 +134,26 @@ export declare const agentReadinessDraftAssessmentTargetSchema: z.ZodObject<{
 export declare const agentReadinessDraftRelationSchema: z.ZodObject<{
     relation_id: z.ZodString;
     kind: z.ZodEnum<{
-        describes: "describes";
-        authenticates: "authenticates";
-        requires: "requires";
         alternative_to: "alternative_to";
+        authenticates: "authenticates";
+        describes: "describes";
         precedes: "precedes";
+        requires: "requires";
     }>;
     from: z.ZodObject<{
         node_kind: z.ZodEnum<{
-            resource: "resource";
             endpoint: "endpoint";
             interface: "interface";
+            resource: "resource";
             surface_exclusion: "surface_exclusion";
         }>;
         node_id: z.ZodString;
     }, z.core.$strict>;
     to: z.ZodObject<{
         node_kind: z.ZodEnum<{
-            resource: "resource";
             endpoint: "endpoint";
             interface: "interface";
+            resource: "resource";
             surface_exclusion: "surface_exclusion";
         }>;
         node_id: z.ZodString;
@@ -165,35 +165,35 @@ export declare const agentReadinessDraftOfferRelationSchema: z.ZodObject<{
     offer_id: z.ZodString;
     purpose: z.ZodEnum<{
         application_path: "application_path";
-        redemption_path: "redemption_path";
         operating_path: "operating_path";
+        redemption_path: "redemption_path";
     }>;
     applicable_stages: z.ZodArray<z.ZodEnum<{
         evaluate: "evaluate";
-        sign_up: "sign_up";
+        operate: "operate";
         pay: "pay";
         provision: "provision";
-        operate: "operate";
+        sign_up: "sign_up";
     }>>;
     source_uris: z.ZodArray<z.ZodURL>;
 }, z.core.$strict>;
 export declare const agentReadinessDraftSurfaceExclusionSchema: z.ZodObject<{
     exclusion_id: z.ZodString;
     role: z.ZodEnum<{
-        policy: "policy";
-        discovery: "discovery";
-        status: "status";
-        pricing: "pricing";
-        eligibility: "eligibility";
         access: "access";
-        terms: "terms";
-        checkout: "checkout";
-        provisioning: "provisioning";
-        operations: "operations";
-        recovery: "recovery";
         authentication: "authentication";
+        checkout: "checkout";
         descriptor: "descriptor";
+        discovery: "discovery";
         documentation: "documentation";
+        eligibility: "eligibility";
+        operations: "operations";
+        policy: "policy";
+        pricing: "pricing";
+        provisioning: "provisioning";
+        recovery: "recovery";
+        status: "status";
+        terms: "terms";
     }>;
     rationale: z.ZodString;
     source_uris: z.ZodArray<z.ZodURL>;
@@ -229,9 +229,9 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
     subject_roles: z.ZodDefault<z.ZodArray<z.ZodEnum<{
         access_operator: "access_operator";
         identity_provider: "identity_provider";
+        operations_provider: "operations_provider";
         payment_provider: "payment_provider";
         provisioning_provider: "provisioning_provider";
-        operations_provider: "operations_provider";
     }>>>;
     assessment_targets: z.ZodDefault<z.ZodArray<z.ZodObject<{
         target_id: z.ZodString;
@@ -244,9 +244,9 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
         roles: z.ZodArray<z.ZodEnum<{
             access_operator: "access_operator";
             identity_provider: "identity_provider";
+            operations_provider: "operations_provider";
             payment_provider: "payment_provider";
             provisioning_provider: "provisioning_provider";
-            operations_provider: "operations_provider";
         }>>;
         identity: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"entity_id">;
@@ -261,20 +261,20 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
         resource_id: z.ZodString;
         uri: z.ZodURL;
         roles: z.ZodArray<z.ZodEnum<{
-            policy: "policy";
-            discovery: "discovery";
-            status: "status";
-            pricing: "pricing";
-            eligibility: "eligibility";
             access: "access";
-            terms: "terms";
-            checkout: "checkout";
-            provisioning: "provisioning";
-            operations: "operations";
-            recovery: "recovery";
             authentication: "authentication";
+            checkout: "checkout";
             descriptor: "descriptor";
+            discovery: "discovery";
             documentation: "documentation";
+            eligibility: "eligibility";
+            operations: "operations";
+            policy: "policy";
+            pricing: "pricing";
+            provisioning: "provisioning";
+            recovery: "recovery";
+            status: "status";
+            terms: "terms";
         }>>;
         operated_by_participant_id: z.ZodString;
         standard_bindings: z.ZodArray<z.ZodObject<{
@@ -294,19 +294,19 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
         endpoint_id: z.ZodString;
         uri: z.ZodURL;
         transport: z.ZodEnum<{
+            grpc: "grpc";
             http: "http";
             websocket: "websocket";
-            grpc: "grpc";
         }>;
         roles: z.ZodArray<z.ZodEnum<{
-            status: "status";
-            service: "service";
-            checkout: "checkout";
-            recovery: "recovery";
             authorization: "authorization";
-            token: "token";
-            registration: "registration";
+            checkout: "checkout";
             protected_resource: "protected_resource";
+            recovery: "recovery";
+            registration: "registration";
+            service: "service";
+            status: "status";
+            token: "token";
             webhook: "webhook";
         }>>;
         operated_by_participant_id: z.ZodString;
@@ -326,19 +326,19 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
     interfaces: z.ZodDefault<z.ZodArray<z.ZodObject<{
         interface_id: z.ZodString;
         modality: z.ZodEnum<{
-            web_application: "web_application";
-            network_api: "network_api";
+            agent_service: "agent_service";
             command_line: "command_line";
+            network_api: "network_api";
             software_library: "software_library";
             tool_server: "tool_server";
-            agent_service: "agent_service";
+            web_application: "web_application";
         }>;
         functions: z.ZodArray<z.ZodEnum<{
+            authentication: "authentication";
+            commerce: "commerce";
             events: "events";
             recovery: "recovery";
-            authentication: "authentication";
             service_operation: "service_operation";
-            commerce: "commerce";
         }>>;
         endpoint_ids: z.ZodArray<z.ZodString>;
         resource_ids: z.ZodArray<z.ZodString>;
@@ -358,26 +358,26 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
     relations: z.ZodDefault<z.ZodArray<z.ZodObject<{
         relation_id: z.ZodString;
         kind: z.ZodEnum<{
-            describes: "describes";
-            authenticates: "authenticates";
-            requires: "requires";
             alternative_to: "alternative_to";
+            authenticates: "authenticates";
+            describes: "describes";
             precedes: "precedes";
+            requires: "requires";
         }>;
         from: z.ZodObject<{
             node_kind: z.ZodEnum<{
-                resource: "resource";
                 endpoint: "endpoint";
                 interface: "interface";
+                resource: "resource";
                 surface_exclusion: "surface_exclusion";
             }>;
             node_id: z.ZodString;
         }, z.core.$strict>;
         to: z.ZodObject<{
             node_kind: z.ZodEnum<{
-                resource: "resource";
                 endpoint: "endpoint";
                 interface: "interface";
+                resource: "resource";
                 surface_exclusion: "surface_exclusion";
             }>;
             node_id: z.ZodString;
@@ -389,42 +389,42 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
         offer_id: z.ZodString;
         purpose: z.ZodEnum<{
             application_path: "application_path";
-            redemption_path: "redemption_path";
             operating_path: "operating_path";
+            redemption_path: "redemption_path";
         }>;
         applicable_stages: z.ZodArray<z.ZodEnum<{
             evaluate: "evaluate";
-            sign_up: "sign_up";
+            operate: "operate";
             pay: "pay";
             provision: "provision";
-            operate: "operate";
+            sign_up: "sign_up";
         }>>;
         source_uris: z.ZodArray<z.ZodURL>;
     }, z.core.$strict>>>;
     surface_exclusions: z.ZodDefault<z.ZodArray<z.ZodObject<{
         exclusion_id: z.ZodString;
         role: z.ZodEnum<{
-            policy: "policy";
-            discovery: "discovery";
-            status: "status";
-            pricing: "pricing";
-            eligibility: "eligibility";
             access: "access";
-            terms: "terms";
-            checkout: "checkout";
-            provisioning: "provisioning";
-            operations: "operations";
-            recovery: "recovery";
             authentication: "authentication";
+            checkout: "checkout";
             descriptor: "descriptor";
+            discovery: "discovery";
             documentation: "documentation";
+            eligibility: "eligibility";
+            operations: "operations";
+            policy: "policy";
+            pricing: "pricing";
+            provisioning: "provisioning";
+            recovery: "recovery";
+            status: "status";
+            terms: "terms";
         }>;
         rationale: z.ZodString;
         source_uris: z.ZodArray<z.ZodURL>;
     }, z.core.$strict>>>;
     authority_intent: z.ZodOptional<z.ZodEnum<{
-        entity: "entity";
         community: "community";
+        entity: "entity";
     }>>;
     declared_at: z.ZodOptional<z.ZodISODateTime>;
     base_authoring_file: z.ZodOptional<z.ZodObject<{
@@ -435,11 +435,11 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const agentReadinessDraftDiagnosticSchema: z.ZodObject<{
     code: z.ZodEnum<{
-        required: "required";
-        invalid: "invalid";
         ambiguous_identity: "ambiguous_identity";
-        cross_entity_offer: "cross_entity_offer";
         base_authoring_mismatch: "base_authoring_mismatch";
+        cross_entity_offer: "cross_entity_offer";
+        invalid: "invalid";
+        required: "required";
     }>;
     path: z.ZodString;
     message: z.ZodString;
@@ -448,11 +448,11 @@ export declare const agentReadinessDeclarationDraftResultSchema: z.ZodDiscrimina
     status: z.ZodLiteral<"invalid">;
     diagnostics: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            required: "required";
-            invalid: "invalid";
             ambiguous_identity: "ambiguous_identity";
-            cross_entity_offer: "cross_entity_offer";
             base_authoring_mismatch: "base_authoring_mismatch";
+            cross_entity_offer: "cross_entity_offer";
+            invalid: "invalid";
+            required: "required";
         }>;
         path: z.ZodString;
         message: z.ZodString;
@@ -461,31 +461,31 @@ export declare const agentReadinessDeclarationDraftResultSchema: z.ZodDiscrimina
     status: z.ZodLiteral<"identity_allocation_required">;
     diagnostics: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            required: "required";
-            invalid: "invalid";
             ambiguous_identity: "ambiguous_identity";
-            cross_entity_offer: "cross_entity_offer";
             base_authoring_mismatch: "base_authoring_mismatch";
+            cross_entity_offer: "cross_entity_offer";
+            invalid: "invalid";
+            required: "required";
         }>;
         path: z.ZodString;
         message: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>, z.ZodObject<{
-    diagnostics: z.ZodArray<z.ZodObject<{
-        code: z.ZodEnum<{
-            required: "required";
-            invalid: "invalid";
-            ambiguous_identity: "ambiguous_identity";
-            cross_entity_offer: "cross_entity_offer";
-            base_authoring_mismatch: "base_authoring_mismatch";
-        }>;
-        path: z.ZodString;
-        message: z.ZodString;
-    }, z.core.$strict>>;
     base_release_id: z.ZodString;
     entity_id: z.ZodString;
     entity_revision_digest: z.ZodString;
     status: z.ZodLiteral<"incomplete">;
+    diagnostics: z.ZodArray<z.ZodObject<{
+        code: z.ZodEnum<{
+            ambiguous_identity: "ambiguous_identity";
+            base_authoring_mismatch: "base_authoring_mismatch";
+            cross_entity_offer: "cross_entity_offer";
+            invalid: "invalid";
+            required: "required";
+        }>;
+        path: z.ZodString;
+        message: z.ZodString;
+    }, z.core.$strict>>;
 }, z.core.$strict>, z.ZodObject<{
     status: z.ZodLiteral<"conflict">;
     base_release_id: z.ZodString;
@@ -493,16 +493,20 @@ export declare const agentReadinessDeclarationDraftResultSchema: z.ZodDiscrimina
     entity_revision_digest: z.ZodOptional<z.ZodString>;
     diagnostics: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            required: "required";
-            invalid: "invalid";
             ambiguous_identity: "ambiguous_identity";
-            cross_entity_offer: "cross_entity_offer";
             base_authoring_mismatch: "base_authoring_mismatch";
+            cross_entity_offer: "cross_entity_offer";
+            invalid: "invalid";
+            required: "required";
         }>;
         path: z.ZodString;
         message: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>, z.ZodObject<{
+    base_release_id: z.ZodString;
+    entity_id: z.ZodString;
+    entity_revision_digest: z.ZodString;
+    status: z.ZodLiteral<"materialized">;
     subject_display: z.ZodObject<{
         slug: z.ZodString;
         name: z.ZodString;
@@ -524,24 +528,21 @@ export declare const agentReadinessDeclarationDraftResultSchema: z.ZodDiscrimina
         content_digest: z.ZodString;
     }, z.core.$strict>;
     submission: z.ZodObject<{
-        repository: z.ZodLiteral<"sourcey/agent-ready-services">;
-        authority: z.ZodLiteral<"pull_request_merge">;
+        method: z.ZodLiteral<"POST">;
+        path: z.ZodLiteral<"/v1/submissions">;
+        product: z.ZodLiteral<"agent_readiness">;
     }, z.core.$strict>;
     diagnostics: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            required: "required";
-            invalid: "invalid";
             ambiguous_identity: "ambiguous_identity";
-            cross_entity_offer: "cross_entity_offer";
             base_authoring_mismatch: "base_authoring_mismatch";
+            cross_entity_offer: "cross_entity_offer";
+            invalid: "invalid";
+            required: "required";
         }>;
         path: z.ZodString;
         message: z.ZodString;
     }, z.core.$strict>>;
-    base_release_id: z.ZodString;
-    entity_id: z.ZodString;
-    entity_revision_digest: z.ZodString;
-    status: z.ZodLiteral<"materialized">;
 }, z.core.$strict>], "status">;
 export type AgentReadinessDeclarationDraftRequest = z.infer<typeof agentReadinessDeclarationDraftRequestSchema>;
 export type AgentReadinessDeclarationDraftResult = z.infer<typeof agentReadinessDeclarationDraftResultSchema>;

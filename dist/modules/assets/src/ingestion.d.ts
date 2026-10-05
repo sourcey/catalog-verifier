@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import type { AssetMediaType, AssetRedistribution, AssetTransformProfile, EntityAssetProposal, EntityAssetReviewArtifact, RetainedAssetCapture } from "../../../contracts/assets/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare const ENTITY_ICON_MAX_SOURCE_PIXELS: number;
 export declare const ENTITY_ICON_MAX_SOURCE_ASPECT_RATIO = 1.5;
 export declare const ENTITY_ICON_SIZE = 256;

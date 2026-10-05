@@ -57,9 +57,9 @@ export declare const retainedCaptureReceiptSchema: z.ZodObject<{
         }, z.core.$strict>>;
         retrieved_at: z.ZodISODateTime;
         method: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>;
         response_status_code: z.ZodOptional<z.ZodNumber>;
@@ -74,16 +74,16 @@ export declare const retainedCaptureReceiptSchema: z.ZodObject<{
     issued_at: z.ZodISODateTime;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;

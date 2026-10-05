@@ -1,5 +1,6 @@
+import { ACTOR_IDENTIFIER_PATTERN, DIGEST_PATTERN, IDENTIFIER_PATTERN, SLUG_PATTERN, } from "provenry/primitives";
 import { z } from "zod";
-import { ACTOR_IDENTIFIER_PATTERN, AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 export const agentReadinessDigestSchema = z.string().regex(DIGEST_PATTERN);
 export const agentReadinessEntityIdSchema = z.string().regex(ENTITY_ID_PATTERN);
 export const agentReadinessOfferIdSchema = z.string().regex(OFFER_ID_PATTERN);

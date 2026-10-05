@@ -43,4 +43,6 @@ export declare function inspectCatalogCandidateSources(input: {
     };
 };
 export declare function assertCatalogTaxonomy(values: readonly EntityAuthoring[], taxonomy: CatalogTaxonomy): void;
+/** Apply rules that belong to public contributions, not retained or hosted authoring. */
+export declare function assertCatalogContributionAuthoring(values: readonly EntityAuthoring[]): void;
 //# sourceMappingURL=index.d.ts.map

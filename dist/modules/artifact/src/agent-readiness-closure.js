@@ -1,6 +1,7 @@
-import { agentReadinessOfferRelationInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { canonicalJson, digest, parseJsonFile } from "provenry/primitives";
+import { agentReadinessOfferRelationInputSchema, agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { compileAgentReadinessOfferRelationRevision } from "../../agent-readiness-policy/src/index.js";
-import { canonicalJson, digest } from "../../primitives/src/index.js";
+import { CATALOG_RELEASE } from "./release-directory-files.js";
 export function assertReleasedAgentReadinessClosure(input) {
     const entityIds = new Set(input.artifact.entities.map((entity) => entity.entity_id));
     const eventById = new Map(input.events.map((event) => [event.event_id, event]));
@@ -12,11 +13,10 @@ export function assertReleasedAgentReadinessClosure(input) {
     for (const projection of input.profiles) {
         const revision = input.revisions.get(projection.revision_digest);
         const declaredInput = inputProfiles.get(projection.agent_readiness_profile_id);
-        if (revision?.revision_contract !== "sourcey.agent-readiness-revision/v1alpha1" ||
+        if (revision?.revision_contract !== agentReadinessRevisionContract ||
             revision.agent_readiness_profile_id !== projection.agent_readiness_profile_id ||
             revision.entity_id !== projection.entity_id ||
             declaredInput?.revision_digest !== projection.revision_digest ||
-            projection.policy_digest !== input.inputs.policy_digest ||
             !entityIds.has(projection.entity_id)) {
             throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} is not closed over its inputs.`);
         }
@@ -49,7 +49,7 @@ export function assertReleasedAgentReadinessOfferRelationClosure(input) {
     const offers = new Map(input.artifact.entities.flatMap((entity) => entity.offers.map((offer) => [offer.offer_id, { entityId: entity.entity_id, offer }])));
     const compiledInputs = new Map();
     for (const entry of input.inputs.relations) {
-        const relationInput = agentReadinessOfferRelationInputSchema.parse(parseJson(input.files, entry.path));
+        const relationInput = agentReadinessOfferRelationInputSchema.parse(parseJsonFile(input.files, entry.path, CATALOG_RELEASE));
         if (digest(relationInput) !== entry.input_digest) {
             throw new Error(`Agent Readiness Offer relation input ${entry.relation_id} is misaddressed.`);
         }
@@ -71,7 +71,7 @@ export function assertReleasedAgentReadinessOfferRelationClosure(input) {
     }
     for (const relation of input.relations) {
         const compiled = compiledInputs.get(relation.relation_id);
-        const released = parseJson(input.files, `agent-readiness-offer-relations/${relation.relation_id}.json`);
+        const released = parseJsonFile(input.files, `agent-readiness-offer-relations/${relation.relation_id}.json`, CATALOG_RELEASE);
         if (!compiled ||
             canonicalJson(compiled) !== canonicalJson(relation) ||
             canonicalJson(released) !== canonicalJson(relation)) {
@@ -88,11 +88,5 @@ export function assertReleasedAgentReadinessOfferRelationClosure(input) {
         actualInputPaths.some((path) => !declaredInputPaths.has(path))) {
         throw new Error("Agent Readiness Offer relation input files escape their exact input index.");
     }
-}
-function parseJson(files, path) {
-    const bytes = files.get(path);
-    if (!bytes)
-        throw new Error(`Release is missing required file ${path}.`);
-    return JSON.parse(bytes.toString("utf8"));
 }
 //# sourceMappingURL=agent-readiness-closure.js.map

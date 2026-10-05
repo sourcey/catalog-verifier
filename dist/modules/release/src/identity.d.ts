@@ -1,9 +1,9 @@
-import type { AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
+import { type Digest } from "provenry/primitives";
+import { type AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
 import { type IdentityIndex } from "../../../contracts/artifact/src/index.js";
 import type { VerifiedCatalogRelease } from "../../artifact/src/index.js";
 import type { CompiledCatalogFacts } from "../../compiler/src/index.js";
 import type { RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
-import { type Digest } from "../../primitives/src/index.js";
 import type { EventGraph } from "../../provenance/src/index.js";
 export interface RevisionHistory {
     readonly all: ReadonlyMap<Digest, RetainedCatalogRevision>;

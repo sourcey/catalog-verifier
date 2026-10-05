@@ -1,10 +1,10 @@
+import type { Digest } from "provenry/primitives";
 import type { AgentReadinessDeclarationRevision, AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { CatalogClosureRequest } from "../../../contracts/api/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
 import type { Observation } from "../../../contracts/observations/src/index.js";
 import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
 import type { RetainedCaptureReceipt } from "../../authority/src/index.js";
-import type { Digest } from "../../primitives/src/index.js";
 type CatalogRevision = EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision | AgentReadinessDeclarationRevision;
 export interface CatalogHead {
     readonly releaseId: Digest;

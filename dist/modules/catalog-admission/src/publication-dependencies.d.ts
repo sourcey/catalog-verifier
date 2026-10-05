@@ -1,6 +1,6 @@
+import { type Digest } from "provenry/primitives";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
 import type { PublicationDependencyRegistration, SurfaceDependencyReference } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare function catalogSourceLocatorDigest(url: string): Digest;
 export declare function catalogPublicationImpactProof(input: {
     readonly impact_index_digest: string;
@@ -39,12 +39,6 @@ export declare function dependencyKeysForChanges(input: {
         entity_id: string;
         target_id: string;
     }[];
-    readonly contextChanges: readonly ({
-        kind: "policy";
-        key: string;
-    } | {
-        kind: "contract_authority";
-    })[];
     readonly authorityProposals?: readonly {
         readonly dependency_keys: readonly string[];
     }[];
@@ -84,8 +78,6 @@ export declare const catalogPublicationDependencyKey: {
     readonly sourceLocator: (sourceLocatorDigest: string) => string;
     readonly parent: (kind: string, targetId: string) => string;
     readonly route: (kind: string, targetId: string) => string;
-    readonly policy: (key: string) => string;
-    readonly contractAuthority: () => string;
 };
 export declare function surfaceDependencyReferenceKey(reference: SurfaceDependencyReference): string;
 /** Structural read port across purpose-scoped distributions. Its public shape

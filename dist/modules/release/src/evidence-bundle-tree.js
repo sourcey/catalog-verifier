@@ -1,6 +1,6 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
-import { canonicalJson, compareCanonicalStrings, sha256Bytes } from "../../primitives/src/index.js";
+import { canonicalJson, compareCanonicalStrings, sha256Bytes } from "provenry/primitives";
 /**
  * Byte-exact verification of an evidence authority bundle's file tree: every
  * object present, declared, safely pathed, and matching its manifest digest.

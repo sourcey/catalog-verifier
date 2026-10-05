@@ -1,10 +1,11 @@
+import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, } from "provenry/primitives";
 import { z } from "zod";
-import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessOfferRelationInputSchema, agentReadinessProfileInputSchema, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessOfferRelationInputSchema, agentReadinessProfileInputSchema, agentReadinessRevisionContract, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { sourceyEvidenceCaptureMethodVersion } from "../../../contracts/capture/src/method-names.js";
 import { catalogEventCoreSchema, catalogEventIntentSchema, } from "../../../contracts/events/src/index.js";
 import { captureReceiptCoreSchema, evidenceReviewDecisionCoreSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationCoreSchema, observationSchema, } from "../../../contracts/observations/src/index.js";
-import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, } from "../../primitives/src/index.js";
+import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { evidenceReviewProposalSchema, verifyEvidenceReviewProposal, } from "./submission-verifier.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const instantSchema = z.iso.datetime({ offset: true });
@@ -37,7 +38,7 @@ export const evidenceCatalogProposalCoreSchema = z
 })
     .strict()
     .superRefine((value, context) => {
-    const readiness = value.subject_revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1";
+    const readiness = value.subject_revision.revision_contract === agentReadinessRevisionContract;
     if (readiness !== (value.agent_readiness_profile_input !== null)) {
         context.addIssue({
             code: "custom",
@@ -192,7 +193,7 @@ export function prepareEvidenceAuthorityIntents(input) {
             retrieved_at: review.submission.capture.retrieved_at,
             method: {
                 name: review.submission.capture.method,
-                version: "1",
+                version: sourceyEvidenceCaptureMethodVersion,
             },
             outcome: polarity === "supports" ? "supports-candidate" : "contradicts-candidate",
             capture: {
@@ -204,6 +205,12 @@ export function prepareEvidenceAuthorityIntents(input) {
                 final_uri: review.submission.capture.final_url,
                 redirect_chain: review.submission.capture.redirect_chain,
                 source_standing: review.review_projection.source_standing,
+                ...(review.submission.capture.artifact_scope === undefined
+                    ? {}
+                    : { artifact_scope: review.submission.capture.artifact_scope }),
+                ...(review.submission.capture.source_content === undefined
+                    ? {}
+                    : { source_content: review.submission.capture.source_content }),
                 normalized_object: {
                     digest: review.submission.normalization.object_digest,
                     bytes: input.normalizedBytes.byteLength,
@@ -262,8 +269,7 @@ export function finalizeEvidenceCatalogProposal(input) {
     const agentReadinessProfileInput = agentReadinessProfileInputSchema
         .nullable()
         .parse(input.agentReadinessProfileInput);
-    const readinessRevision = input.prepared.subjectRevision.revision_contract ===
-        "sourcey.agent-readiness-revision/v1alpha1";
+    const readinessRevision = input.prepared.subjectRevision.revision_contract === agentReadinessRevisionContract;
     if (readinessRevision !== (agentReadinessProfileInput !== null)) {
         throw new Error("Only an Agent Readiness revision requires its exact profile input.");
     }
@@ -315,7 +321,7 @@ export function validateEvidenceCatalogProposal(input) {
         throw new Error("Evidence catalog proposal digest mismatch.");
     }
     const review = proposal.review_proposal;
-    const expectedCoveragePolicyDigest = proposal.subject_revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1"
+    const expectedCoveragePolicyDigest = proposal.subject_revision.revision_contract === agentReadinessRevisionContract
         ? input.catalog.agentReadinessPolicyDigest
         : input.catalog.coveragePolicyDigest;
     if (review.coverage_policy_digest !== expectedCoveragePolicyDigest) {
@@ -433,11 +439,11 @@ function assertProspectiveRevisionIdentity(input) {
     if (input.revision.entity_id !== input.authorityRevision.entity_id) {
         throw new Error("Prospective subject and authority revisions name different entities.");
     }
-    if (input.revision.revision_contract === "sourcey.entity-revision/v1alpha1" &&
+    if (input.revision.revision_contract === catalogRevisionContracts.entity &&
         input.revision.revision_digest !== input.authorityRevision.revision_digest) {
         throw new Error("Entity evidence must use that exact entity revision as its authority.");
     }
-    if (input.revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+    if (input.revision.revision_contract === catalogRevisionContracts.offer) {
         if (input.revision.program_id === undefined) {
             if (input.authorityProgramRevision !== null) {
                 throw new Error("Standalone Offer evidence cannot carry a Program authority.");
@@ -472,7 +478,7 @@ function assertProspectiveRevisionIdentity(input) {
             currentAgentReadinessOwners.set(readinessHead.profileId, readinessHead.entityId);
             continue;
         }
-        if (revision.revision_contract === "sourcey.entity-revision/v1alpha1") {
+        if (revision.revision_contract === catalogRevisionContracts.entity) {
             currentEntities.set(revision.entity_id, revision);
             for (const domain of revision.content.domains) {
                 if (domain.valid_until === undefined) {
@@ -480,28 +486,28 @@ function assertProspectiveRevisionIdentity(input) {
                 }
             }
         }
-        else if (revision.revision_contract === "sourcey.program-revision/v1alpha1") {
+        else if (revision.revision_contract === catalogRevisionContracts.program) {
             currentPrograms.set(revision.program_id, revision);
             currentProgramOwners.set(revision.program_id, revision.entity_id);
         }
-        else if (revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+        else if (revision.revision_contract === catalogRevisionContracts.offer) {
             currentOfferOwners.set(revision.offer_id, revision.entity_id);
         }
-        else if (revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1") {
+        else if (revision.revision_contract === agentReadinessRevisionContract) {
             currentAgentReadinessOwners.set(revision.agent_readiness_profile_id, revision.entity_id);
         }
     }
-    if (input.revision.revision_contract === "sourcey.program-revision/v1alpha1" &&
+    if (input.revision.revision_contract === catalogRevisionContracts.program &&
         currentProgramOwners.has(input.revision.program_id) &&
         currentProgramOwners.get(input.revision.program_id) !== input.revision.entity_id) {
         throw new Error(`Program ${input.revision.program_id} is owned by another entity.`);
     }
-    if (input.revision.revision_contract === "sourcey.offer-revision/v1alpha1" &&
+    if (input.revision.revision_contract === catalogRevisionContracts.offer &&
         currentOfferOwners.has(input.revision.offer_id) &&
         currentOfferOwners.get(input.revision.offer_id) !== input.revision.entity_id) {
         throw new Error(`Offer ${input.revision.offer_id} is owned by another entity.`);
     }
-    if (input.revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1" &&
+    if (input.revision.revision_contract === agentReadinessRevisionContract &&
         currentAgentReadinessOwners.has(input.revision.agent_readiness_profile_id) &&
         currentAgentReadinessOwners.get(input.revision.agent_readiness_profile_id) !==
             input.revision.entity_id) {

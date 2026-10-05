@@ -1,4 +1,8 @@
-import { digest, sha256Bytes } from "../../primitives/src/index.js";
+import { digest } from "provenry/primitives";
+/**
+ * Served asset bytes close through their verified byte declarations: the envelope
+ * already proved each file against them.
+ */
 export function assertReleasedAssetClosure(input) {
     if (digest(input.notices) !== input.index.notices_digest) {
         throw new Error("Asset notices do not match the asset index.");
@@ -14,7 +18,7 @@ export function assertReleasedAssetClosure(input) {
         const payload = event && typeof event.payload === "object" && event.payload !== null
             ? event.payload
             : {};
-        const bytes = input.files.get(binding.served_path);
+        const served = input.declarations[binding.served_path];
         if (activeKeys.has(key) ||
             !entityIds.has(binding.entity_id) ||
             !event ||
@@ -24,9 +28,9 @@ export function assertReleasedAssetClosure(input) {
             payload.served_derivative_digest !== binding.served_digest ||
             !declaredSafeDigests.has(binding.served_digest) ||
             !noticesByObject.has(binding.asset_object_digest) ||
-            !bytes ||
-            bytes.byteLength !== binding.bytes ||
-            sha256Bytes(bytes) !== binding.served_digest) {
+            !served ||
+            served.bytes !== binding.bytes ||
+            served.sha256 !== binding.served_digest) {
             throw new Error(`Asset binding ${binding.binding_event_id} is not fully closed.`);
         }
         activeKeys.add(key);

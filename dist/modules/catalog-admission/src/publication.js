@@ -1,6 +1,6 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { catalogPublicationChangeSetCoreSchema, catalogPublicationChangeSetSchema, catalogPublicationProposalCoreSchema, catalogPublicationProposalSchema, publicationIngressReceiptCoreSchema, publicationIngressReceiptSchema, publicationPolicyReferenceSchema, } from "../../../contracts/publication/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { catalogPublicationAssetBindingKey as assetBindingKey, catalogPublicationAssetBindingMap as assetBindingMap, normalizeCatalogPublicationAssetProposals as normalizeAssetProposals, } from "./publication-assets.js";
 import { mergeCatalogPublicationAuthorityProposalLanes as mergeAuthorityProposalLanes, normalizeCatalogPublicationAuthorityProposals as normalizeAuthorityProposals, } from "./publication-authorities.js";
 import { CatalogPublicationImpactIndex, catalogPublicationImpactProof, dependencyKeysForChanges, orderedUnique, requiredAuthoritiesForChanges, } from "./publication-dependencies.js";
@@ -223,7 +223,6 @@ export function deriveCatalogPublicationChangeSet(input) {
         sourceChanges,
         assetChanges,
         routeChanges,
-        contextChanges,
         authorityProposals: proposal.authority_proposals,
     });
     const impactIndex = input.impactIndex ?? new CatalogPublicationImpactIndex();

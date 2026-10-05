@@ -1,5 +1,5 @@
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN } from "../../../modules/primitives/src/index.js";
 import { evidenceDerivationRuleSchema, evidenceProofKindSchema } from "../../evidence/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);

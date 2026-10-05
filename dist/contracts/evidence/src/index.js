@@ -1,6 +1,9 @@
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, OPERATION_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { decisionBasisSchema, protectedSignatureSchema } from "../../authority/src/index.js";
+import { sourceyEvidenceCaptureMethodNames } from "../../capture/src/method-names.js";
+import { standardObservationRequestSchema } from "../../standards/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const agentReadinessProfileId = z.string().regex(AGENT_READINESS_PROFILE_ID_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
@@ -10,8 +13,28 @@ const programId = z.string().regex(PROGRAM_ID_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
+export const evidenceArtifactScopeSchema = z.enum(["complete_document", "document_excerpt"]);
+export const evidenceSourceContentSchema = z
+    .object({
+    digest,
+    bytes: z.number().int().positive(),
+    media_type: z.string().min(1),
+    normalized_digest: digest,
+    normalized_bytes: z.number().int().positive(),
+})
+    .strict();
+export function validateEvidenceArtifactScopeClosure(value, context) {
+    const excerpt = value.artifact_scope === "document_excerpt";
+    if (excerpt !== (value.source_content !== undefined)) {
+        context.addIssue({
+            code: "custom",
+            path: ["source_content"],
+            message: "Exactly a document excerpt must identify the complete observed source content.",
+        });
+    }
+}
 export const EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT = 16;
-export const evidenceCaptureMethodSchema = z.enum(["http", "headless", "archive", "manual"]);
+export const evidenceCaptureMethodSchema = z.enum(sourceyEvidenceCaptureMethodNames);
 export const evidenceCaptureAvailabilitySchema = z.enum(["public", "private-receipt"]);
 const PUBLIC_READ_FORBIDDEN_HEADER = /(?:^|[-_])(?:auth(?:orization)?|cookie|credential|idempotency|key|method-override|proxy|secret|token)(?:$|[-_])/u;
 export const evidencePublicReadRequestSchema = z
@@ -64,6 +87,11 @@ export const evidencePublicReadRequestSchema = z
         }
     }
 });
+/** The exact physical request retained for evidence replay. */
+export const evidenceCaptureRequestSchema = z.union([
+    evidencePublicReadRequestSchema,
+    standardObservationRequestSchema,
+]);
 export const evidencePublicReadRequestSetSchema = z
     .object({
     request_set_contract: z.literal("sourcey.evidence-public-read-request-set/v1alpha1"),
@@ -107,13 +135,49 @@ export const evidenceDerivationRuleSchema = z.enum([
     "form-access-from-first-party-application",
     "first-party-access-operator",
     "public-availability-from-application",
+    "consideration-from-benefits",
+    "eligibility-composition-from-criteria",
 ]);
-export const EVIDENCE_DERIVATION_RULE_PATHS = {
-    "contact-access-from-first-party-mailto": "/access/method",
-    "form-access-from-first-party-application": "/access/method",
-    "first-party-access-operator": "/roles/access_operator_entity_id",
-    "public-availability-from-application": "/access/availability",
+/**
+ * Where each deterministic rule may assert, as the exact pointer or the one
+ * structural pointer family it applies to. Eligibility compositions nest, so
+ * that rule applies to the `kind` of the root rule or of any nested rule.
+ */
+const EVIDENCE_DERIVATION_RULE_TARGETS = {
+    "contact-access-from-first-party-mailto": { path: "/access/method" },
+    "form-access-from-first-party-application": { path: "/access/method" },
+    "first-party-access-operator": { path: "/roles/access_operator_entity_id" },
+    "public-availability-from-application": { path: "/access/availability" },
+    "consideration-from-benefits": { path: "/economics/consideration/kind" },
+    "eligibility-composition-from-criteria": { family: "eligibility-rule-kind" },
 };
+export function evidenceDerivationRuleTarget(rule) {
+    const target = EVIDENCE_DERIVATION_RULE_TARGETS[rule];
+    return "path" in target ? target.path : "/eligibility/rule/.../kind";
+}
+/** True when `path` is a pointer the rule may assert. */
+export function evidenceDerivationRuleApplies(rule, path) {
+    const target = EVIDENCE_DERIVATION_RULE_TARGETS[rule];
+    if ("path" in target)
+        return path === target.path;
+    const segments = path.split("/").slice(1);
+    if (segments[0] !== "eligibility" || segments[1] !== "rule" || segments.at(-1) !== "kind") {
+        return false;
+    }
+    const nested = segments.slice(2, -1);
+    for (let index = 0; index < nested.length;) {
+        if (nested[index] === "rule") {
+            index += 1;
+        }
+        else if (nested[index] === "rules" && /^(?:0|[1-9][0-9]*)$/u.test(nested[index + 1] ?? "")) {
+            index += 2;
+        }
+        else {
+            return false;
+        }
+    }
+    return true;
+}
 export const evidenceSourceStandingSchema = z.enum([
     "live-first-party",
     "archived-first-party",
@@ -174,11 +238,11 @@ export const evidenceAssertionSchema = z
         });
     }
     if (value.derivation_rule !== null &&
-        value.path !== EVIDENCE_DERIVATION_RULE_PATHS[value.derivation_rule]) {
+        !evidenceDerivationRuleApplies(value.derivation_rule, value.path)) {
         context.addIssue({
             code: "custom",
             path: ["path"],
-            message: `Derivation rule ${value.derivation_rule} applies only to ${EVIDENCE_DERIVATION_RULE_PATHS[value.derivation_rule]}.`,
+            message: `Derivation rule ${value.derivation_rule} applies only to ${evidenceDerivationRuleTarget(value.derivation_rule)}.`,
         });
     }
 });
@@ -247,8 +311,11 @@ export const evidenceCaptureDeclarationSchema = z
     media_type: z.string().min(1),
     digest,
     availability: z.enum(["public", "restricted"]),
+    artifact_scope: evidenceArtifactScopeSchema.optional(),
+    source_content: evidenceSourceContentSchema.optional(),
 })
-    .strict();
+    .strict()
+    .superRefine(validateEvidenceArtifactScopeClosure);
 export const captureReceiptCoreSchema = z
     .object({
     receipt_contract: z.literal("sourcey.capture-receipt/v1alpha1"),

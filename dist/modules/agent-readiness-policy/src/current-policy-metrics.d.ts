@@ -1,9 +1,11 @@
-type Stage = "evaluate" | "sign_up" | "pay" | "provision" | "operate";
+import type { z } from "zod";
+import type { agentReadinessEvaluationRoleSchema, agentReadinessStageSchema } from "../../../contracts/agent-readiness/src/shared.js";
+type Stage = z.infer<typeof agentReadinessStageSchema>;
 type EvidenceSemantics = "quality" | "availability" | "compatible_absence";
 export interface MetricDefinition {
     readonly stage: Stage;
     readonly code: string;
-    readonly role: "graded" | "barrier" | "informational";
+    readonly role: z.infer<typeof agentReadinessEvaluationRoleSchema>;
     readonly allowNotApplicable?: boolean;
     readonly selectorAlternatives: readonly (readonly Record<string, unknown>[])[];
     readonly coverage?: "at_least_one" | "all_matches";

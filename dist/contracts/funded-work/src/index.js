@@ -1,5 +1,6 @@
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 const digestSchema = z.string().regex(DIGEST_PATTERN);
 const instantSchema = z.iso.datetime({ offset: true });
 const opaqueReferenceSchema = z.string().trim().min(1).max(512);

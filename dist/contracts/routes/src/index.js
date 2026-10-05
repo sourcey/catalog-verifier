@@ -1,7 +1,7 @@
+import { DIGEST_PATTERN, SLUG_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { lifecycleStatusSchema } from "../../revisions/src/index.js";
-import { ALLOCATED_PUBLIC_ROUTE_ROOTS } from "./public-route-allocations.generated.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
@@ -168,13 +168,6 @@ export function jsonTwinPath(canonicalPath) {
     }
     return `${canonicalPath}.json`;
 }
-/**
- * Root paths owned by the site, machine surfaces, or retained public pages.
- * Catalog identities may never claim these names. Keeping this in
- * the public route contract makes collision prevention identical in the
- * compiler, site, and any future release tooling.
- */
-export { ALLOCATED_PUBLIC_ROUTE_ROOTS };
 export const routeEntrySchema = z
     .object({
     kind: z.enum(["entity", "program", "offer", "tombstone"]),

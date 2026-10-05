@@ -1,6 +1,6 @@
+import { compareCanonicalStrings, digest } from "provenry/primitives";
 import { canonicalEntityDomains, } from "../../../contracts/authoring/src/index.js";
-import { entityRevisionCoreSchema, entityRevisionSchema, offerRevisionCoreSchema, offerRevisionSchema, programRevisionCoreSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { catalogRevisionContracts, entityRevisionCoreSchema, entityRevisionSchema, offerRevisionCoreSchema, offerRevisionSchema, programRevisionCoreSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 function withDigest(core) {
     return { ...core, revision_digest: digest(core) };
 }
@@ -9,7 +9,7 @@ export function compileEntity(authoring) {
     const entity = authoring.entity;
     const profile = authoring.profile;
     const entityCore = entityRevisionCoreSchema.parse({
-        revision_contract: "sourcey.entity-revision/v1alpha1",
+        revision_contract: catalogRevisionContracts.entity,
         entity_id: entity.entity_id,
         content: {
             name: entity.name,
@@ -24,7 +24,7 @@ export function compileEntity(authoring) {
     const programs = authoring.programs
         .map((program) => {
         const programCore = programRevisionCoreSchema.parse({
-            revision_contract: "sourcey.program-revision/v1alpha1",
+            revision_contract: catalogRevisionContracts.program,
             entity_id: entity.entity_id,
             program_id: program.program_id,
             content: {
@@ -43,7 +43,7 @@ export function compileEntity(authoring) {
     const offers = authoring.offers
         .map((offer) => {
         const offerCore = offerRevisionCoreSchema.parse({
-            revision_contract: "sourcey.offer-revision/v1alpha1",
+            revision_contract: catalogRevisionContracts.offer,
             entity_id: entity.entity_id,
             ...(offer.program_id ? { program_id: offer.program_id } : {}),
             offer_id: offer.offer_id,

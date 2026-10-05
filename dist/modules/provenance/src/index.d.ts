@@ -1,11 +1,11 @@
-import type { AgentReadinessPolicy, AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
+import { type Digest } from "provenry/primitives";
+import { type AgentReadinessPolicy, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { Provenance } from "../../../contracts/artifact/src/index.js";
 import { type CatalogEvent } from "../../../contracts/events/src/index.js";
 import type { EvidenceAssertion } from "../../../contracts/evidence/src/index.js";
 import type { Observation } from "../../../contracts/observations/src/index.js";
 import type { CoveragePolicy, FreshnessPolicy } from "../../../contracts/policies/src/index.js";
-import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
+import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
 export { evidenceAssertions } from "./evidence-bindings.js";
 export { applicableEvidenceCoverageRequirements, evaluateEvidenceCoverage, evidenceAssertionSatisfiesRequirement, evidenceCoverageCandidateRequirements, evidencePathsOverlap, evidenceRequirementIsCovered, valueAtEvidencePointer, } from "./evidence-coverage.js";
 export * from "./material-claims.js";
@@ -60,6 +60,8 @@ export interface EventGraph extends EvidenceStandingGraph {
     readonly byId: ReadonlyMap<string, CatalogEvent>;
     readonly byRevisionDigest: ReadonlyMap<string, readonly CatalogEvent[]>;
 }
+/** The unique observations that the evidence events among `eventIds` bind, in canonical order. */
+export declare function boundObservationIds(eventIds: Iterable<string>, events: ReadonlyMap<string, ProvenanceEvent>): string[];
 export declare function buildEventGraph(events: readonly CatalogEvent[], observations: readonly Observation[]): EventGraph;
 export declare function deriveProvenance(input: {
     readonly revision: Revision;

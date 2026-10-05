@@ -19,39 +19,39 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
     events: z.ZodArray<z.ZodObject<{
         event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
         kind: z.ZodEnum<{
-            "program.retired": "program.retired";
-            "offer.retired": "offer.retired";
+            "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+            "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+            "agent-readiness-profile.retired": "agent-readiness-profile.retired";
             "asset.bound": "asset.bound";
+            "asset.takedown-ordered": "asset.takedown-ordered";
             "asset.withdrawn": "asset.withdrawn";
-            "evidence.bound": "evidence.bound";
-            "evidence.retracted": "evidence.retracted";
-            "discrepancy.resolved": "discrepancy.resolved";
+            "assurance.revoked": "assurance.revoked";
+            "attestation.revoked": "attestation.revoked";
             "authority.claimed": "authority.claimed";
             "authority.rechecked": "authority.rechecked";
             "authority.revoked": "authority.revoked";
             "authority.superseded": "authority.superseded";
-            "subject.attested": "subject.attested";
-            "attestation.revoked": "attestation.revoked";
-            "verification.completed": "verification.completed";
-            "entity.identity-checked": "entity.identity-checked";
-            "offer.terms-checked": "offer.terms-checked";
-            "assurance.revoked": "assurance.revoked";
-            "freshness.exception-granted": "freshness.exception-granted";
-            "freshness.exception-revoked": "freshness.exception-revoked";
+            "discrepancy.resolved": "discrepancy.resolved";
             "dispute.opened": "dispute.opened";
             "dispute.resolved": "dispute.resolved";
-            "asset.takedown-ordered": "asset.takedown-ordered";
+            "entity.identity-checked": "entity.identity-checked";
             "entity.merged": "entity.merged";
             "entity.split": "entity.split";
             "entity.succeeded": "entity.succeeded";
+            "evidence.bound": "evidence.bound";
+            "evidence.retracted": "evidence.retracted";
+            "freshness.exception-granted": "freshness.exception-granted";
+            "freshness.exception-revoked": "freshness.exception-revoked";
+            "identity.transition-superseded": "identity.transition-superseded";
             "offer.merged": "offer.merged";
+            "offer.reparented": "offer.reparented";
+            "offer.retired": "offer.retired";
+            "offer.terms-checked": "offer.terms-checked";
             "program.merged": "program.merged";
             "program.reparented": "program.reparented";
-            "offer.reparented": "offer.reparented";
-            "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-            "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-            "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-            "identity.transition-superseded": "identity.transition-superseded";
+            "program.retired": "program.retired";
+            "subject.attested": "subject.attested";
+            "verification.completed": "verification.completed";
         }>;
         issuer_id: z.ZodString;
         operation_id: z.ZodString;
@@ -81,16 +81,16 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
         event_id: z.ZodString;
         protected: z.ZodObject<{
             signature_purpose: z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>;
             signer_registry_digest: z.ZodString;
             key_id: z.ZodString;
@@ -108,9 +108,9 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
             version: z.ZodString;
         }, z.core.$strict>;
         outcome: z.ZodEnum<{
+            "contradicts-candidate": "contradicts-candidate";
             error: "error";
             "supports-candidate": "supports-candidate";
-            "contradicts-candidate": "contradicts-candidate";
             unreachable: "unreachable";
         }>;
         capture: z.ZodOptional<z.ZodObject<{
@@ -118,8 +118,8 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             media_type: z.ZodString;
             availability: z.ZodEnum<{
-                public: "public";
                 "private-receipt": "private-receipt";
+                public: "public";
             }>;
             requested_uri: z.ZodOptional<z.ZodURL>;
             final_uri: z.ZodOptional<z.ZodURL>;
@@ -129,10 +129,10 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
                 to: z.ZodURL;
             }, z.core.$strict>>>;
             source_standing: z.ZodOptional<z.ZodEnum<{
-                "live-first-party": "live-first-party";
                 "archived-first-party": "archived-first-party";
-                "live-third-party": "live-third-party";
                 "archived-third-party": "archived-third-party";
+                "live-first-party": "live-first-party";
+                "live-third-party": "live-third-party";
                 "manual-first-party": "manual-first-party";
                 "manual-third-party": "manual-third-party";
             }>>;
@@ -145,15 +145,26 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
                 version: z.ZodString;
                 toolchain_digest: z.ZodString;
             }, z.core.$strict>>;
+            artifact_scope: z.ZodOptional<z.ZodEnum<{
+                complete_document: "complete_document";
+                document_excerpt: "document_excerpt";
+            }>>;
+            source_content: z.ZodOptional<z.ZodObject<{
+                digest: z.ZodString;
+                bytes: z.ZodNumber;
+                media_type: z.ZodString;
+                normalized_digest: z.ZodString;
+                normalized_bytes: z.ZodNumber;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
         no_capture_reason: z.ZodOptional<z.ZodEnum<{
-            "dns-failure": "dns-failure";
-            "connect-timeout": "connect-timeout";
-            "tls-failure": "tls-failure";
             "access-denied": "access-denied";
-            "policy-blocked": "policy-blocked";
+            "connect-timeout": "connect-timeout";
+            "dns-failure": "dns-failure";
             "empty-response": "empty-response";
             "extractor-error": "extractor-error";
+            "policy-blocked": "policy-blocked";
+            "tls-failure": "tls-failure";
         }>>;
         observation_id: z.ZodString;
     }, z.core.$strict>>;
@@ -200,7 +211,7 @@ export declare function verifyAgentReadinessRegradeEvidence(input: {
 export declare function readAgentReadinessRegradeEvidenceFile(input: {
     readonly path: string;
     readonly bytes: Buffer;
-    readonly registry: SignerRegistry;
+    readonly registries: ReadonlyMap<string, SignerRegistry>;
     readonly releaseSequence: number;
 }): readonly [string, AgentReadinessRegradeEvidence];
 /** Every shipped evidence file must belong to exactly one policy regrade object. */

@@ -1,4 +1,4 @@
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
+import { compareCanonicalStrings } from "provenry/primitives";
 export function agentReadinessValuesSupportedByStandardRequirementResults(input) {
     const values = input.results.flatMap((requirementResult) => {
         if (requirementResult.status === "indeterminate")

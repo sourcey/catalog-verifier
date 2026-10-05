@@ -1,14 +1,18 @@
-import { AGENT_READINESS_REPOSITORY, type AgentReadinessAuthoring, type AgentReadinessDeclaration, type AgentReadinessDeclarationRevision } from "../../../contracts/agent-readiness/src/declaration.js";
-import { type Digest } from "../../primitives/src/index.js";
+import { type Digest } from "provenry/primitives";
+import { type AgentReadinessAuthoring, type AgentReadinessDeclaration, type AgentReadinessDeclarationRevision } from "../../../contracts/agent-readiness/src/declaration.js";
+import type { AgentReadinessDeclarationProvenance, AgentReadinessHostedDeclarationProvenance } from "../../../contracts/agent-readiness/src/declaration-reference.js";
+/** One Entity's exact authoring bytes, compiled, and where those bytes live. */
 export interface AgentReadinessDeclarationBlob {
-    readonly repository: typeof AGENT_READINESS_REPOSITORY;
-    readonly commit: string;
-    readonly path: string;
-    readonly gitBlobOid: string;
-    readonly blobDigest: Digest;
+    readonly provenance: AgentReadinessDeclarationProvenance;
     readonly authoring: AgentReadinessAuthoring;
     readonly declarationRevisions: Readonly<Record<string, AgentReadinessDeclarationRevision>>;
 }
+/** Compile hosted authoring bytes; the path follows the Entity slug and the digest the bytes. */
+export declare function compileAgentReadinessHostedDeclarationBlob(input: {
+    readonly content: string;
+}): AgentReadinessDeclarationBlob & {
+    readonly provenance: AgentReadinessHostedDeclarationProvenance;
+};
 /** Parse explicit non-Git authoring bytes without manufacturing Git identity. */
 export declare function compileAgentReadinessDeclarationSource(input: {
     readonly source: string;

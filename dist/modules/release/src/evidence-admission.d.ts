@@ -1,3 +1,4 @@
+import { type Digest } from "provenry/primitives";
 import { type AgentReadinessDeclarationRevision, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import { type CatalogEvent } from "../../../contracts/events/src/index.js";
 import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
@@ -6,7 +7,6 @@ import { type EntityRevision, type OfferRevision, type ProgramRevision } from ".
 import type { VerifiedCatalogRelease } from "../../artifact/src/index.js";
 import { type RetainedCaptureReceipt, type validateSignerRegistry } from "../../authority/src/index.js";
 import { type EvidenceCatalogView, evidenceCatalogProposalSchema } from "../../evidence-operations/src/evidence-authority.js";
-import { type Digest } from "../../primitives/src/index.js";
 type Revision = EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision;
 type CatalogRevision = Revision | AgentReadinessDeclarationRevision;
 type Registry = ReturnType<typeof validateSignerRegistry>;

@@ -1,9 +1,9 @@
 import { readdir, readFile } from "node:fs/promises";
 import { basename, join, relative, sep } from "node:path";
+import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, digestFromPathSegment, digestPathSegment, sha256Bytes, } from "provenry/primitives";
 import { assetAuthorityBundleCoreSchema, assetAuthorityBundleManifestSchema, entityAssetReviewArtifactCoreSchema, entityAssetReviewArtifactSchema, } from "../../../contracts/assets/src/index.js";
 import { catalogEventCoreSchema, catalogEventPayloadSchemas, catalogEventSchema, } from "../../../contracts/events/src/index.js";
 import { validateProtectedEvent } from "../../authority/src/index.js";
-import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, digestFromPathSegment, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 import { verifyEntityAssetProposal } from "./index.js";
 export function createAssetBindingEventIntent(input) {
     const proposal = verifyEntityAssetProposal(input.proposal);

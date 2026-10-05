@@ -1,5 +1,6 @@
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, OPERATION_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { assuranceRevokedPayloadSchema, entityIdentityCheckedPayloadSchema, offerTermsCheckedPayloadSchema, } from "../../assurance/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
 import { evidenceAssertionSchema } from "../../evidence/src/index.js";

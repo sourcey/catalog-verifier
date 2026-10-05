@@ -6,9 +6,9 @@ export * from "./offer-relations.js";
 export * from "./policy-validation.js";
 export * from "./revision.js";
 export * from "./standard-mapping.js";
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, agentReadinessStageLabel, agentReadinessStageSchema, methodCapabilityFor, sameAgentReadinessScopeIdentity, } from "../../../contracts/agent-readiness/src/index.js";
 import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 import { deriveProvenance, evidenceStatusFor, } from "../../provenance/src/index.js";
 import { verifyStandardEvidenceResult } from "../../standard-evidence/src/index.js";
 import { deriveAgentReadinessGrade, isAgentReadinessGradingSignal, isAgentReadinessVerifiedBarrierSignal, } from "./grading.js";
@@ -16,7 +16,7 @@ import { validateAgentReadinessPolicy } from "./policy-validation.js";
 import { priorAgentReadinessVisibility } from "./projection-lineage.js";
 import { agentReadinessValuesSupportedByStandardRequirementResults } from "./standard-mapping.js";
 import { assertAgentReadinessSignalSelectorCoverage, assertSignalSurfaceClosure, surfaceCatalogFromDeclaration, } from "./surface-selection.js";
-export { agentReadinessDeclarationPolicyGaps, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
+export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessDeclarationPolicyGaps, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
 export function agentReadinessValuesSupportedByStandardEvidence(input) {
     const policy = validateAgentReadinessPolicy(input.policy);
     const rule = policy.signal_rules.find((candidate) => candidate.stage === input.stage && candidate.signal_code === input.signalCode);
@@ -179,15 +179,21 @@ function evaluateAgentReadinessProjection(input) {
             if (fact)
                 assertAllowedAssessmentMethod(fact.signal, rule, policy, input.surfaceCatalog);
             const evidenceStatus = fact ? evidenceStatusFor(fact.field) : "missing";
-            const outcome = fact && evidenceStatus === "supported" && fact.signal.value !== "unknown"
-                ? agentReadinessSignalOutcome(rule, fact.signal.value)
-                : "unknown";
-            const value = fact && evidenceStatus === "supported" ? fact.signal.value : "unknown";
-            const descriptor = rule.public_findings[value];
-            const publicState = policy.public_states[outcome];
             const freshness = fact
                 ? assessmentFreshness(fact.signal, fact.field?.freshness ?? "unknown", policy)
                 : "unknown";
+            const currentBarrierEvidence = rule.evaluation_role !== "barrier" || freshness === "fresh";
+            const outcome = fact &&
+                evidenceStatus === "supported" &&
+                fact.signal.value !== "unknown" &&
+                currentBarrierEvidence
+                ? agentReadinessSignalOutcome(rule, fact.signal.value)
+                : "unknown";
+            const value = fact && evidenceStatus === "supported" && currentBarrierEvidence
+                ? fact.signal.value
+                : "unknown";
+            const descriptor = rule.public_findings[value];
+            const publicState = policy.public_states[outcome];
             const blocker = outcome === "fail" && rule.blocker
                 ? { signal_code: rule.signal_code, ...rule.blocker }
                 : undefined;

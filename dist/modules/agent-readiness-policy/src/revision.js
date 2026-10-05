@@ -1,5 +1,5 @@
-import { agentReadinessFactualInputSchema, agentReadinessProfileInputSchema, agentReadinessRevisionCoreSchema, agentReadinessRevisionSchema, agentReadinessStageSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { compareCanonicalStrings, digest } from "provenry/primitives";
+import { agentReadinessFactualInputSchema, agentReadinessProfileInputSchema, agentReadinessRevisionContract, agentReadinessRevisionCoreSchema, agentReadinessRevisionSchema, agentReadinessStageSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { surfaceKey } from "./surface-selection.js";
 export function compileAgentReadinessRevision(input) {
     const parsed = agentReadinessProfileInputSchema.parse(input);
@@ -20,7 +20,7 @@ export function compileAgentReadinessRevision(input) {
 export function compileAgentReadinessFactualRevision(input) {
     const parsed = agentReadinessFactualInputSchema.parse(input);
     const core = agentReadinessRevisionCoreSchema.parse({
-        revision_contract: "sourcey.agent-readiness-revision/v1alpha1",
+        revision_contract: agentReadinessRevisionContract,
         agent_readiness_profile_id: parsed.agent_readiness_profile_id,
         entity_id: parsed.entity_id,
         scope: parsed.scope,

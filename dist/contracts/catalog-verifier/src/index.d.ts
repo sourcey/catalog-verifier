@@ -1,7 +1,7 @@
 import { z } from "zod";
 export declare const verifierRepositoryKindSchema: z.ZodEnum<{
-    "startup-credits": "startup-credits";
     "agent-readiness": "agent-readiness";
+    "startup-credits": "startup-credits";
 }>;
 export type VerifierRepositoryKind = z.infer<typeof verifierRepositoryKindSchema>;
 export declare const MAXIMUM_CATALOG_ADMISSION_KEYS = 128;
@@ -9,33 +9,33 @@ export declare const MAXIMUM_CATALOG_ADMISSION_MATCHES = 512;
 export declare const MAXIMUM_PENDING_ADMISSION_KEYS = 8192;
 export declare const catalogAdmissionKeyDigestsSchema: z.ZodArray<z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>>;
 export declare const catalogAdmissionKeyKindSchema: z.ZodEnum<{
+    domain: "domain";
     entity_id: "entity_id";
     entity_name: "entity_name";
-    program_id: "program_id";
-    offer_id: "offer_id";
-    offer_slug: "offer_slug";
-    program_slug: "program_slug";
-    domain: "domain";
     entity_slug: "entity_slug";
     entity_url: "entity_url";
     evidence_url: "evidence_url";
+    offer_id: "offer_id";
+    offer_slug: "offer_slug";
     offer_url: "offer_url";
+    program_id: "program_id";
+    program_slug: "program_slug";
     semantic_offer: "semantic_offer";
 }>;
 export type CatalogAdmissionKeyKind = z.infer<typeof catalogAdmissionKeyKindSchema>;
 export declare const catalogAdmissionKeySchema: z.ZodObject<{
     kind: z.ZodEnum<{
+        domain: "domain";
         entity_id: "entity_id";
         entity_name: "entity_name";
-        program_id: "program_id";
-        offer_id: "offer_id";
-        offer_slug: "offer_slug";
-        program_slug: "program_slug";
-        domain: "domain";
         entity_slug: "entity_slug";
         entity_url: "entity_url";
         evidence_url: "evidence_url";
+        offer_id: "offer_id";
+        offer_slug: "offer_slug";
         offer_url: "offer_url";
+        program_id: "program_id";
+        program_slug: "program_slug";
         semantic_offer: "semantic_offer";
     }>;
     normalizedValue: z.ZodString;
@@ -51,8 +51,8 @@ export declare const catalogAdmissionCandidateSchema: z.ZodDiscriminatedUnion<[z
 }, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"detached">;
     repositoryKind: z.ZodEnum<{
-        "startup-credits": "startup-credits";
         "agent-readiness": "agent-readiness";
+        "startup-credits": "startup-credits";
     }>;
     candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
     candidateReference: z.ZodString;
@@ -102,17 +102,17 @@ export declare const catalogAdmissionConflictLookupRequestSchema: z.ZodObject<{
     query_contract: z.ZodLiteral<"sourcey.catalog-admission-conflict-query/v1alpha1">;
     keys: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
+            domain: "domain";
             entity_id: "entity_id";
             entity_name: "entity_name";
-            program_id: "program_id";
-            offer_id: "offer_id";
-            offer_slug: "offer_slug";
-            program_slug: "program_slug";
-            domain: "domain";
             entity_slug: "entity_slug";
             entity_url: "entity_url";
             evidence_url: "evidence_url";
+            offer_id: "offer_id";
+            offer_slug: "offer_slug";
             offer_url: "offer_url";
+            program_id: "program_id";
+            program_slug: "program_slug";
             semantic_offer: "semantic_offer";
         }>;
         normalizedValue: z.ZodString;
@@ -129,8 +129,8 @@ export declare const catalogAdmissionConflictLookupRequestSchema: z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"detached">;
         repositoryKind: z.ZodEnum<{
-            "startup-credits": "startup-credits";
             "agent-readiness": "agent-readiness";
+            "startup-credits": "startup-credits";
         }>;
         candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
         candidateReference: z.ZodString;
@@ -194,11 +194,11 @@ export declare const catalogAdmissionConflictLookupResponseSchema: z.ZodObject<{
 export declare const catalogVerifierDiagnosticSchema: z.ZodObject<{
     rule_id: z.ZodString;
     classification: z.ZodEnum<{
-        invalid_input: "invalid_input";
         contract_failure: "contract_failure";
-        identity_conflict: "identity_conflict";
-        policy_failure: "policy_failure";
         environmental_failure: "environmental_failure";
+        identity_conflict: "identity_conflict";
+        invalid_input: "invalid_input";
+        policy_failure: "policy_failure";
     }>;
     path: z.ZodNullable<z.ZodString>;
     message: z.ZodString;
@@ -207,8 +207,8 @@ export declare const catalogVerifierDiagnosticSchema: z.ZodObject<{
 export declare const catalogVerifierResultSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.catalog-verifier-result/v1alpha1">;
     operation: z.ZodEnum<{
-        "validate.startup-credits": "validate.startup-credits";
         "validate.agent-readiness": "validate.agent-readiness";
+        "validate.startup-credits": "validate.startup-credits";
         "verify-release": "verify-release";
     }>;
     status: z.ZodEnum<{
@@ -229,11 +229,11 @@ export declare const catalogVerifierResultSchema: z.ZodObject<{
     diagnostics: z.ZodArray<z.ZodObject<{
         rule_id: z.ZodString;
         classification: z.ZodEnum<{
-            invalid_input: "invalid_input";
             contract_failure: "contract_failure";
-            identity_conflict: "identity_conflict";
-            policy_failure: "policy_failure";
             environmental_failure: "environmental_failure";
+            identity_conflict: "identity_conflict";
+            invalid_input: "invalid_input";
+            policy_failure: "policy_failure";
         }>;
         path: z.ZodNullable<z.ZodString>;
         message: z.ZodString;
@@ -244,8 +244,8 @@ export type CatalogVerifierResult = z.infer<typeof catalogVerifierResultSchema>;
 export declare const catalogVerifierCriterionSchema: z.ZodObject<{
     rule_id: z.ZodString;
     repository_kind: z.ZodEnum<{
-        "startup-credits": "startup-credits";
         "agent-readiness": "agent-readiness";
+        "startup-credits": "startup-credits";
     }>;
     title: z.ZodString;
     requirement: z.ZodString;
@@ -254,8 +254,8 @@ export declare const catalogVerifierCriterionSchema: z.ZodObject<{
 export type CatalogVerifierCriterion = z.infer<typeof catalogVerifierCriterionSchema>;
 export declare const catalogVerifierCandidateInputSchema: z.ZodObject<{
     repositoryKind: z.ZodEnum<{
-        "startup-credits": "startup-credits";
         "agent-readiness": "agent-readiness";
+        "startup-credits": "startup-credits";
     }>;
     sources: z.ZodArray<z.ZodObject<{
         source: z.ZodString;
@@ -288,16 +288,16 @@ export declare const catalogVerifierIdentityContextSchema: z.ZodObject<{
     context_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;
@@ -311,17 +311,17 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
         query_contract: z.ZodLiteral<"sourcey.catalog-admission-conflict-query/v1alpha1">;
         keys: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
+                domain: "domain";
                 entity_id: "entity_id";
                 entity_name: "entity_name";
-                program_id: "program_id";
-                offer_id: "offer_id";
-                offer_slug: "offer_slug";
-                program_slug: "program_slug";
-                domain: "domain";
                 entity_slug: "entity_slug";
                 entity_url: "entity_url";
                 evidence_url: "evidence_url";
+                offer_id: "offer_id";
+                offer_slug: "offer_slug";
                 offer_url: "offer_url";
+                program_id: "program_id";
+                program_slug: "program_slug";
                 semantic_offer: "semantic_offer";
             }>;
             normalizedValue: z.ZodString;
@@ -338,8 +338,8 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"detached">;
             repositoryKind: z.ZodEnum<{
-                "startup-credits": "startup-credits";
                 "agent-readiness": "agent-readiness";
+                "startup-credits": "startup-credits";
             }>;
             candidateDigest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
             candidateReference: z.ZodString;
@@ -384,16 +384,16 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
         context_digest: z.ZodType<`sha256:${string}`, unknown, z.core.$ZodTypeInternals<`sha256:${string}`, unknown>>;
         protected: z.ZodObject<{
             signature_purpose: z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>;
             signer_registry_digest: z.ZodString;
             key_id: z.ZodString;

@@ -1,15 +1,13 @@
-import { readFile } from "node:fs/promises";
-import { join } from "node:path";
+import { assertDigest, canonicalJson, compareCanonicalStrings, digest, } from "provenry/primitives";
 import { z } from "zod";
 import { catalogVerifierCriterionSchema, catalogVerifierDiagnosticSchema, catalogVerifierResultSchema, } from "../../../contracts/catalog-verifier/src/index.js";
-import { catalogReleaseBundleSchema } from "../../../contracts/release/src/index.js";
 import { currentAgentReadinessPolicy } from "../../../modules/agent-readiness-policy/src/current-policy.js";
 import { inspectAgentReadinessCandidateSources, inspectAgentReadinessRepositoryChangePacket, } from "../../../modules/agent-readiness-repository/src/index.js";
-import { verifyCatalogReleaseDirectory } from "../../../modules/artifact/src/index.js";
-import { analyzeCatalogPrTree, catalogAdmissionCandidateSchema, createCatalogAdmissionConflictLookupRequest, evaluateCatalogAdmissionConflicts, verifyCatalogVerifierIdentityContextPacket, } from "../../../modules/catalog-admission/src/index.js";
-import { inspectCatalogCandidateSources } from "../../../modules/catalog-authoring-validation/src/index.js";
-import { assertDigest, canonicalJson, compareCanonicalStrings, digest, } from "../../../modules/primitives/src/index.js";
-import { verifyCatalogDeltaDirectory } from "../../../modules/release/src/verifier.js";
+import { verifyCatalogRelease } from "../../../modules/artifact/src/index.js";
+import { catalogAdmissionCandidateSchema, createCatalogAdmissionConflictLookupRequest, evaluateCatalogAdmissionConflicts, inspectCatalogPrTree, verifyCatalogVerifierIdentityContextPacket, } from "../../../modules/catalog-admission/src/index.js";
+import { assertCatalogContributionAuthoring, inspectCatalogCandidateSources, } from "../../../modules/catalog-authoring-validation/src/index.js";
+import { readVerifiedSourceyRelease } from "../../../modules/publication-instance/src/index.js";
+import { verifyCatalogDelta } from "../../../modules/sourcey-publication/src/verifier.js";
 const criteria = Object.freeze([
     {
         rule_id: "startup-credits.changed-closure",
@@ -105,6 +103,7 @@ export class CatalogVerifierApplication {
                     sources: input.sources,
                     taxonomy: input.taxonomy,
                 });
+                assertCatalogContributionAuthoring(inspection.entries.map(({ value }) => value));
                 const context = verifyIdentityContext({
                     identities: inspection.entries.map(({ value }) => value.entity),
                     candidate: input.candidate,
@@ -146,6 +145,7 @@ export class CatalogVerifierApplication {
                 sources: input.sources,
                 taxonomy: input.taxonomy,
             });
+            assertCatalogContributionAuthoring(inspection.entries.map(({ value }) => value));
             return createCatalogAdmissionConflictLookupRequest({
                 identities: inspection.entries.map(({ value }) => value.entity),
                 liveParentReleaseId: input.liveParentReleaseId,
@@ -166,12 +166,11 @@ export class CatalogVerifierApplication {
         const operation = "verify-release";
         try {
             assertDigest(input.trustedRootDigest, "trusted root digest");
-            const bundle = catalogReleaseBundleSchema.parse(JSON.parse(await readFile(join(input.directory, "bundle.json"), "utf8")));
-            const delta = Object.hasOwn(bundle.files, "delta.json");
+            const release = await readVerifiedSourceyRelease(input.directory);
             const trust = { rootSetDigest: input.trustedRootDigest };
-            const result = delta
-                ? await verifyCatalogDeltaDirectory(input.directory, trust)
-                : await verifyCatalogReleaseDirectory(input.directory, trust);
+            const result = release.kind === "delta"
+                ? verifyCatalogDelta(release, trust)
+                : verifyCatalogRelease(release, trust);
             return valid(operation, {
                 entities: "artifact" in result ? result.artifact.entities.length : result.entities.size,
                 release_id: result.bundle.release.release_id,
@@ -192,18 +191,18 @@ async function inspectRepositoryChange(input) {
         if (!input.taxonomy) {
             throw new CatalogVerifierInputError("Startup Credits validation requires an exact Catalog taxonomy.");
         }
-        const analysis = await analyzeCatalogPrTree({
+        const inspection = await inspectCatalogPrTree({
             repositoryRoot: input.repositoryRoot,
             baseRevision: input.baseRevision,
             headRevision: input.headRevision,
             taxonomy: input.taxonomy,
         });
         return {
-            identities: analysis.changedEntities.map(({ currentAuthoring }) => currentAuthoring.entity),
+            identities: inspection.identities,
             summary: {
-                entities: analysis.entities,
-                programs: analysis.programs,
-                offers: analysis.offers,
+                entities: inspection.entities,
+                programs: inspection.programs,
+                offers: inspection.offers,
             },
         };
     }

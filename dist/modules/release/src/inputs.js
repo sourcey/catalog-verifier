@@ -1,14 +1,16 @@
 import { readdir, readFile } from "node:fs/promises";
 import { isAbsolute, join, resolve, sep } from "node:path";
+import { compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "provenry/primitives";
 import { parse as parseYaml } from "yaml";
-import { agentReadinessIndexSchema, agentReadinessProfileReleaseInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessIndexSchema, agentReadinessProfileReleaseInputSchema, agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { policyCoreSchema } from "../../../contracts/artifact/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
 import { captureReceiptSchema, } from "../../../contracts/evidence/src/index.js";
+import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
 import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, } from "../../agent-readiness-policy/src/index.js";
 import { validateProtectedCaptureReceipt, validateProtectedEvent, } from "../../authority/src/index.js";
+import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
 import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
-import { canonicalizePublicHttpsUrl, compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 const policyInputSchema = policyCoreSchema;
 export async function loadCheckpointRevisions(directory) {
     const revisions = new Map();
@@ -420,10 +422,10 @@ export function assertEventClosure(revisions, events, observations) {
     const agentReadinessProfileIds = new Set();
     for (const revision of revisions.all.values()) {
         entityIds.add(revision.entity_id);
-        if (revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+        if (revision.revision_contract === catalogRevisionContracts.offer) {
             offerIds.add(revision.offer_id);
         }
-        else if (revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1") {
+        else if (revision.revision_contract === agentReadinessRevisionContract) {
             agentReadinessProfileIds.add(revision.agent_readiness_profile_id);
         }
     }
@@ -448,12 +450,12 @@ export function assertEventClosure(revisions, events, observations) {
                 throw new Error(`Event ${event.event_id} has a mismatched revision/entity subject.`);
             }
             if (event.subject.subject_type === "offer" &&
-                (revision.revision_contract !== "sourcey.offer-revision/v1alpha1" ||
+                (revision.revision_contract !== catalogRevisionContracts.offer ||
                     revision.offer_id !== event.subject.offer_id)) {
                 throw new Error(`Event ${event.event_id} has a mismatched offer revision subject.`);
             }
             if (event.subject.subject_type === "agent_readiness_profile" &&
-                (revision.revision_contract !== "sourcey.agent-readiness-revision/v1alpha1" ||
+                (revision.revision_contract !== agentReadinessRevisionContract ||
                     revision.agent_readiness_profile_id !== event.subject.agent_readiness_profile_id)) {
                 throw new Error(`Event ${event.event_id} has a mismatched agent readiness revision subject.`);
             }

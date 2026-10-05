@@ -1,6 +1,6 @@
+import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
 import { CATALOG_SUBMISSION_STAGES, catalogSubmissionProcessingResultSchema, } from "../../../contracts/api/src/index.js";
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
-import { canonicalJson, compareCanonicalStrings } from "../../primitives/src/index.js";
 import { buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
 import { verifyCatalogPublicationInputClosure } from "./publication-composition.js";
 import { catalogSubmissionCandidates, verifyCatalogSubmissionWorkItem, } from "./submission-input.js";

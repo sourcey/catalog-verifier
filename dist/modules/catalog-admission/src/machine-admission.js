@@ -1,8 +1,9 @@
+import { compareCanonicalStrings, DIGEST_PATTERN, digest, IDENTIFIER_PATTERN, } from "provenry/primitives";
 import { z } from "zod";
 import { evidenceCaptureMethodSchema } from "../../../contracts/evidence/src/index.js";
 import { assertCurrentCoveragePolicyClaimClosure, coveragePolicyCoreSchema, coveragePolicySchema, } from "../../../contracts/policies/src/index.js";
-import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-import { compareCanonicalStrings, DIGEST_PATTERN, digest, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../primitives/src/index.js";
+import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
+import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../catalog-primitives/src/index.js";
 import { deriveMaterialClaimPlan, materialClaimPlanSchema, materialClaimResultSchema, verifyMaterialClaimEvaluation, } from "../../provenance/src/index.js";
 const digestSchema = z.string().regex(DIGEST_PATTERN);
 const identifierSchema = z.string().regex(IDENTIFIER_PATTERN);
@@ -491,9 +492,9 @@ function assertClosedEvaluationInput(input, evaluations) {
             throw new Error("Material claim plan has no exact candidate revision.");
         const derived = deriveMaterialClaimPlan({
             revision,
-            requirements: revision.revision_contract === "sourcey.entity-revision/v1alpha1"
+            requirements: revision.revision_contract === catalogRevisionContracts.entity
                 ? input.coverage_policy.entity_requirements
-                : revision.revision_contract === "sourcey.program-revision/v1alpha1"
+                : revision.revision_contract === catalogRevisionContracts.program
                     ? input.coverage_policy.program_requirements
                     : input.coverage_policy.offer_requirements,
             coveragePolicyDigest: input.coverage_policy.policy_digest,
@@ -647,9 +648,9 @@ function subjectKeyFromChange(subject) {
     return `${subjectIdentity(subject)}\0${subject.revision_digest}`;
 }
 function subjectKeyFromRevision(revision) {
-    const subject = revision.revision_contract === "sourcey.entity-revision/v1alpha1"
+    const subject = revision.revision_contract === catalogRevisionContracts.entity
         ? { kind: "entity", entity_id: revision.entity_id }
-        : revision.revision_contract === "sourcey.program-revision/v1alpha1"
+        : revision.revision_contract === catalogRevisionContracts.program
             ? {
                 kind: "program",
                 entity_id: revision.entity_id,

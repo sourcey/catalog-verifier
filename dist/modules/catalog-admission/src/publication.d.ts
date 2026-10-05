@@ -1,7 +1,7 @@
+import { type Digest } from "provenry/primitives";
 import type { AssetBindingProjection, EntityAssetProposal } from "../../../contracts/assets/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import { type CatalogPublicationChangeSet, type CatalogPublicationProposal, type PublicationIngressReceipt, type PublicationIngressReceiptCore } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 export * from "./publication-dependencies.js";
 export * from "./publication-entities.js";

@@ -1,22 +1,69 @@
 import { z } from "zod";
 export declare const agentReadinessRetainedArtifactSchema: z.ZodEnum<{
-    redirect_chain: "redirect_chain";
-    interaction_trace: "interaction_trace";
-    raw_bytes: "raw_bytes";
-    normalized_text: "normalized_text";
-    structured_validation: "structured_validation";
-    standard_evidence_result: "standard_evidence_result";
-    utf8_locators: "utf8_locators";
-    screenshot: "screenshot";
     capture_interaction_trace: "capture_interaction_trace";
+    evidence_excerpt: "evidence_excerpt";
+    interaction_trace: "interaction_trace";
     manual_review_note: "manual_review_note";
+    screenshot: "screenshot";
+    source_observation: "source_observation";
+    standard_evidence_result: "standard_evidence_result";
 }>;
+export declare const agentReadinessManualCaptureAttestationSchema: z.ZodObject<{
+    attestation_contract: z.ZodLiteral<"sourcey.manual-capture-attestation/v1alpha1">;
+    operator_id: z.ZodString;
+    attested_at: z.ZodISODateTime;
+    observation_mode: z.ZodLiteral<"operator_visible_browser">;
+    artifact_scope: z.ZodEnum<{
+        complete_document: "complete_document";
+        document_excerpt: "document_excerpt";
+    }>;
+    rationale: z.ZodString;
+}, z.core.$strict>;
+export declare const agentReadinessSourceObservationSchema: z.ZodObject<{
+    observation_contract: z.ZodLiteral<"sourcey.agent-readiness-source-observation/v1alpha1">;
+    source_url: z.ZodURL;
+    requested_url: z.ZodURL;
+    final_url: z.ZodURL;
+    redirect_chain: z.ZodArray<z.ZodObject<{
+        status: z.ZodUnion<readonly [z.ZodLiteral<301>, z.ZodLiteral<302>, z.ZodLiteral<303>, z.ZodLiteral<307>, z.ZodLiteral<308>]>;
+        from: z.ZodURL;
+        to: z.ZodURL;
+    }, z.core.$strict>>;
+    response_status_code: z.ZodNumber;
+    capture_method: z.ZodEnum<{
+        archive: "archive";
+        headless: "headless";
+        http: "http";
+        manual: "manual";
+    }>;
+    captured_at: z.ZodISODateTime;
+    capture_policy_digest: z.ZodString;
+    normalizer_toolchain_digest: z.ZodString;
+    source_content: z.ZodObject<{
+        digest: z.ZodString;
+        bytes: z.ZodNumber;
+        media_type: z.ZodString;
+        normalized_digest: z.ZodString;
+        normalized_bytes: z.ZodNumber;
+    }, z.core.$strict>;
+    manual_capture_attestation: z.ZodNullable<z.ZodObject<{
+        attestation_contract: z.ZodLiteral<"sourcey.manual-capture-attestation/v1alpha1">;
+        operator_id: z.ZodString;
+        attested_at: z.ZodISODateTime;
+        observation_mode: z.ZodLiteral<"operator_visible_browser">;
+        artifact_scope: z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>;
+        rationale: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
 export declare const agentReadinessDeterminationBasisKindSchema: z.ZodEnum<{
-    direct_observation: "direct_observation";
     bounded_absence: "bounded_absence";
+    certification_receipt: "certification_receipt";
+    direct_observation: "direct_observation";
     explicit_first_party_declaration: "explicit_first_party_declaration";
     standard_requirement: "standard_requirement";
-    certification_receipt: "certification_receipt";
 }>;
 export declare const agentReadinessEvidenceLocatorSchema: z.ZodObject<{
     artifact_digest: z.ZodString;
@@ -25,56 +72,67 @@ export declare const agentReadinessEvidenceLocatorSchema: z.ZodObject<{
     value_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const agentReadinessDeterminationBasisSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    captures: z.ZodArray<z.ZodObject<{
+        retained_capture_digest: z.ZodString;
+        capture_rung: z.ZodEnum<{
+            archive: "archive";
+            headless: "headless";
+            http: "http";
+            manual: "manual";
+        }>;
+    }, z.core.$strict>>;
+    artifact_digests: z.ZodArray<z.ZodString>;
+    kind: z.ZodLiteral<"direct_observation">;
     locators: z.ZodArray<z.ZodObject<{
         artifact_digest: z.ZodString;
         start_byte: z.ZodNumber;
         end_byte: z.ZodNumber;
         value_digest: z.ZodString;
     }, z.core.$strict>>;
-    captures: z.ZodArray<z.ZodObject<{
-        retained_capture_digest: z.ZodString;
-        capture_rung: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
-            archive: "archive";
-            manual: "manual";
-        }>;
-    }, z.core.$strict>>;
-    artifact_digests: z.ZodArray<z.ZodString>;
-    kind: z.ZodLiteral<"direct_observation">;
 }, z.core.$strict>, z.ZodObject<{
-    coverage_scope: z.ZodEnum<{
-        exact_resource: "exact_resource";
-        tested_surfaces: "tested_surfaces";
-        exact_funnel: "exact_funnel";
-    }>;
-    covered_surfaces: z.ZodArray<z.ZodObject<{
-        node_kind: z.ZodEnum<{
-            resource: "resource";
-            endpoint: "endpoint";
-            interface: "interface";
-            surface_exclusion: "surface_exclusion";
-        }>;
-        node_id: z.ZodString;
-    }, z.core.$strict>>;
-    covered_branches: z.ZodNumber;
     captures: z.ZodArray<z.ZodObject<{
         retained_capture_digest: z.ZodString;
         capture_rung: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>;
     }, z.core.$strict>>;
     artifact_digests: z.ZodArray<z.ZodString>;
     kind: z.ZodLiteral<"bounded_absence">;
-}, z.core.$strict>, z.ZodObject<{
-    source_surface: z.ZodObject<{
+    coverage_scope: z.ZodEnum<{
+        exact_funnel: "exact_funnel";
+        exact_resource: "exact_resource";
+        tested_surfaces: "tested_surfaces";
+    }>;
+    covered_surfaces: z.ZodArray<z.ZodObject<{
         node_kind: z.ZodEnum<{
-            resource: "resource";
             endpoint: "endpoint";
             interface: "interface";
+            resource: "resource";
+            surface_exclusion: "surface_exclusion";
+        }>;
+        node_id: z.ZodString;
+    }, z.core.$strict>>;
+    covered_branches: z.ZodNumber;
+}, z.core.$strict>, z.ZodObject<{
+    captures: z.ZodArray<z.ZodObject<{
+        retained_capture_digest: z.ZodString;
+        capture_rung: z.ZodEnum<{
+            archive: "archive";
+            headless: "headless";
+            http: "http";
+            manual: "manual";
+        }>;
+    }, z.core.$strict>>;
+    artifact_digests: z.ZodArray<z.ZodString>;
+    kind: z.ZodLiteral<"explicit_first_party_declaration">;
+    source_surface: z.ZodObject<{
+        node_kind: z.ZodEnum<{
+            endpoint: "endpoint";
+            interface: "interface";
+            resource: "resource";
             surface_exclusion: "surface_exclusion";
         }>;
         node_id: z.ZodString;
@@ -85,17 +143,6 @@ export declare const agentReadinessDeterminationBasisSchema: z.ZodDiscriminatedU
         end_byte: z.ZodNumber;
         value_digest: z.ZodString;
     }, z.core.$strict>>;
-    captures: z.ZodArray<z.ZodObject<{
-        retained_capture_digest: z.ZodString;
-        capture_rung: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
-            archive: "archive";
-            manual: "manual";
-        }>;
-    }, z.core.$strict>>;
-    artifact_digests: z.ZodArray<z.ZodString>;
-    kind: z.ZodLiteral<"explicit_first_party_declaration">;
 }, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"standard_requirement">;
     adapter_digest: z.ZodString;
@@ -105,8 +152,8 @@ export declare const agentReadinessDeterminationBasisSchema: z.ZodDiscriminatedU
         version: z.ZodString;
         requirement_id: z.ZodString;
         relation: z.ZodEnum<{
-            tests: "tests";
             "informational-reference": "informational-reference";
+            tests: "tests";
         }>;
     }, z.core.$strict>;
     artifact_digests: z.ZodArray<z.ZodString>;
@@ -117,25 +164,22 @@ export declare const agentReadinessDeterminationBasisSchema: z.ZodDiscriminatedU
 export declare const agentReadinessCorroborationAlternativeSchema: z.ZodObject<{
     alternative_id: z.ZodString;
     required_basis_kinds: z.ZodArray<z.ZodEnum<{
-        direct_observation: "direct_observation";
         bounded_absence: "bounded_absence";
+        certification_receipt: "certification_receipt";
+        direct_observation: "direct_observation";
         explicit_first_party_declaration: "explicit_first_party_declaration";
         standard_requirement: "standard_requirement";
-        certification_receipt: "certification_receipt";
     }>>;
     minimum_distinct_captures: z.ZodNumber;
     require_independent_capture_rungs: z.ZodBoolean;
     required_artifacts: z.ZodArray<z.ZodEnum<{
-        redirect_chain: "redirect_chain";
-        interaction_trace: "interaction_trace";
-        raw_bytes: "raw_bytes";
-        normalized_text: "normalized_text";
-        structured_validation: "structured_validation";
-        standard_evidence_result: "standard_evidence_result";
-        utf8_locators: "utf8_locators";
-        screenshot: "screenshot";
         capture_interaction_trace: "capture_interaction_trace";
+        evidence_excerpt: "evidence_excerpt";
+        interaction_trace: "interaction_trace";
         manual_review_note: "manual_review_note";
+        screenshot: "screenshot";
+        source_observation: "source_observation";
+        standard_evidence_result: "standard_evidence_result";
     }>>;
     minimum_surfaces: z.ZodNumber;
     minimum_branches: z.ZodNumber;

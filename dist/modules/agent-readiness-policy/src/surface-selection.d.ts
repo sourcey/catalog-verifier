@@ -20,6 +20,19 @@ export declare function matchingAgentReadinessSurfaces(group: AgentReadinessPoli
     readonly node_kind: "resource" | "endpoint" | "interface";
     readonly node_id: string;
 }[];
+export declare function agentReadinessSelectorGroupUsesAssessmentTargets(group: AgentReadinessPolicy["signal_rules"][number]["selector_groups"][number]): boolean;
+/**
+ * Resolve the exact workload targets for which one selected semantic surface
+ * satisfies a target-scoped selector group. The policy's existing selector
+ * semantics remain the single authority: evaluating against one target at a
+ * time prevents the union of several targets from being mistaken for closure
+ * of every target.
+ */
+export declare function agentReadinessAssessmentTargetIdsForSurface(input: {
+    readonly group: AgentReadinessPolicy["signal_rules"][number]["selector_groups"][number];
+    readonly catalog: AgentReadinessProjection["surface_catalog"];
+    readonly surface: AgentReadinessRevision["signals"][number]["tested_surfaces"][number];
+}): readonly string[];
 export interface AgentReadinessDeclarationPolicyGap {
     readonly stage: AgentReadinessPolicy["signal_rules"][number]["stage"];
     readonly signalCode: string;
@@ -33,4 +46,8 @@ export declare function assertAgentReadinessDeclarationPolicyClosure(input: {
     readonly declaration: AgentReadinessDeclarationRevision["declaration"];
     readonly policy: AgentReadinessPolicy;
 }): void;
+export declare function agentReadinessDeclarationPolicyScopeIssue(input: {
+    readonly declaration: AgentReadinessDeclarationRevision["declaration"];
+    readonly policy: AgentReadinessPolicy;
+}): string | null;
 //# sourceMappingURL=surface-selection.d.ts.map

@@ -1,17 +1,17 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
-import { agentReadinessDeclarationRevisionSchema, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { canonicalJson, compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "provenry/primitives";
+import { agentReadinessDeclarationRevisionSchema, agentReadinessRevisionContract, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
 import { captureReceiptSchema, evidenceAuthorityBundleCoreSchema, evidenceAuthorityBundleManifestSchema, evidenceAuthoritySetCoreSchema, evidenceAuthoritySetManifestSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
 import { RELEASE_RESOURCES, releaseResourceDigest } from "../../../contracts/release/src/index.js";
-import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
+import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { compileAgentReadinessRevision } from "../../agent-readiness-policy/src/revision.js";
 import { validateProtectedCaptureReceipt, validateProtectedEvent, } from "../../authority/src/index.js";
 import { capturePolicyDefinitionSchema } from "../../evidence-operations/src/configuration.js";
 import { evidenceCatalogProposalSchema, validateEvidenceCatalogProposal, } from "../../evidence-operations/src/evidence-authority.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
-import { canonicalJson, compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 import { assertOnlyObjectPaths, assertSafeObjectPath, filesUnder, verifyBundleTree, } from "./evidence-bundle-tree.js";
 export async function loadEvidenceAuthorityProposals(input) {
     const proposals = new Map();
@@ -56,9 +56,9 @@ export function createEvidenceAdmissionBase(parent) {
                 revisionDigest: profile.revision_digest,
             },
         ])),
-        revisions: new Map([...parent.revisions.entries()].filter((entry) => entry[1].revision_contract === "sourcey.entity-revision/v1alpha1" ||
-            entry[1].revision_contract === "sourcey.program-revision/v1alpha1" ||
-            entry[1].revision_contract === "sourcey.offer-revision/v1alpha1" ||
+        revisions: new Map([...parent.revisions.entries()].filter((entry) => entry[1].revision_contract === catalogRevisionContracts.entity ||
+            entry[1].revision_contract === catalogRevisionContracts.program ||
+            entry[1].revision_contract === catalogRevisionContracts.offer ||
             entry[1].revision_contract === "sourcey.agent-readiness-declaration-revision/v1alpha1")),
         events: parent.events,
         observations: parent.observations,
@@ -207,7 +207,7 @@ async function loadBundle(input) {
     if (input.reader.address !== digestPathSegment(proposal.proposal_digest)) {
         throw new Error(`Evidence authority bundle ${bundleDigest} is stored under the wrong address.`);
     }
-    const targetCoveragePolicyDigest = proposal.subject_revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1"
+    const targetCoveragePolicyDigest = proposal.subject_revision.revision_contract === agentReadinessRevisionContract
         ? input.targetAgentReadinessPolicyDigest
         : input.targetCoveragePolicyDigest;
     if (proposal.review_proposal.coverage_policy_digest !== targetCoveragePolicyDigest) {
@@ -219,13 +219,13 @@ async function loadBundle(input) {
     const revisions = await readAddressedJsonObjects(input.reader, manifest.objects, "revisions/", (value) => {
         const revisionContract = value
             .revision_contract;
-        return revisionContract === "sourcey.entity-revision/v1alpha1"
+        return revisionContract === catalogRevisionContracts.entity
             ? entityRevisionSchema.parse(value)
-            : revisionContract === "sourcey.program-revision/v1alpha1"
+            : revisionContract === catalogRevisionContracts.program
                 ? programRevisionSchema.parse(value)
-                : revisionContract === "sourcey.offer-revision/v1alpha1"
+                : revisionContract === catalogRevisionContracts.offer
                     ? offerRevisionSchema.parse(value)
-                    : revisionContract === "sourcey.agent-readiness-revision/v1alpha1"
+                    : revisionContract === agentReadinessRevisionContract
                         ? agentReadinessRevisionSchema.parse(value)
                         : agentReadinessDeclarationRevisionSchema.parse(value);
     }, (value) => value.revision_digest, (value) => digest(withoutKey(value, "revision_digest")));

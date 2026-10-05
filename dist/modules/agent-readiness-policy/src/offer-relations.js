@@ -1,10 +1,37 @@
+import { compareCanonicalStrings, digest } from "provenry/primitives";
+import { recordReferenceRequiresRevalidation, } from "provenry/records/references";
 import { agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessStageSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { SOURCEY_PUBLICATION_INSTANCE_ID } from "../../../contracts/sourcey-publication/src/instance-id.js";
+/** Sourcey maps its signed Offer relation to an engine-owned exact record edge. */
+export function agentReadinessOfferRecordReference(relation) {
+    return {
+        target: {
+            instanceId: SOURCEY_PUBLICATION_INSTANCE_ID,
+            kind: "offer",
+            id: relation.offer_id,
+        },
+        binding: {
+            mode: "exact_revision",
+            revisionDigest: relation.admitted_offer_revision_digest,
+        },
+        required: true,
+        allowedVisibility: ["public"],
+        sameSubject: true,
+    };
+}
 /** Undefined means this Offer was not changed; null means it was removed. */
 export function agentReadinessOfferRelationRequiresWithdrawal(input) {
-    return (input.profileRetired ||
-        (input.changedOfferRevisionDigest !== undefined &&
-            input.changedOfferRevisionDigest !== input.relation.admitted_offer_revision_digest));
+    if (input.profileRetired)
+        return true;
+    if (input.changedOfferRevisionDigest === undefined)
+        return false;
+    const reference = agentReadinessOfferRecordReference(input.relation);
+    return recordReferenceRequiresRevalidation({
+        reference,
+        priorStatus: "resolved",
+        changedTarget: reference.target,
+        currentRevisionDigest: input.changedOfferRevisionDigest,
+    });
 }
 export function agentReadinessOfferRelationId(input) {
     const identityDigest = digest({

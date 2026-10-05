@@ -1,19 +1,20 @@
+import { digest, parseJsonFile } from "provenry/primitives";
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
 import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
 import { validateAgentReadinessPolicy } from "../../agent-readiness-policy/src/index.js";
+import { CATALOG_RELEASE } from "../../artifact/src/release-directory-files.js";
 import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
-import { digest } from "../../primitives/src/index.js";
 export function verifyCatalogDeltaPolicies(bundle, delta, files) {
     const coverageExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.coveragePolicy);
-    const coverage = coveragePolicySchema.parse(parseJson(files, releasePolicyObjectPath(coverageExpected)));
+    const coverage = coveragePolicySchema.parse(parseJsonFile(files, releasePolicyObjectPath(coverageExpected), CATALOG_RELEASE));
     const { policy_digest: coverageDigest, ...coverageCore } = coverage;
     const freshnessExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.freshnessPolicy);
-    const freshness = freshnessPolicySchema.parse(parseJson(files, releasePolicyObjectPath(freshnessExpected)));
+    const freshness = freshnessPolicySchema.parse(parseJsonFile(files, releasePolicyObjectPath(freshnessExpected), CATALOG_RELEASE));
     const { policy_digest: freshnessDigest, ...freshnessCore } = freshness;
     const agentReadinessExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy);
-    const agentReadiness = validateAgentReadinessPolicy(parseJson(files, releasePolicyObjectPath(agentReadinessExpected)));
+    const agentReadiness = validateAgentReadinessPolicy(parseJsonFile(files, releasePolicyObjectPath(agentReadinessExpected), CATALOG_RELEASE));
     const assuranceMethodExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.assuranceMethodPolicy);
-    const assuranceMethod = validateAssuranceMethodPolicy(parseJson(files, releasePolicyObjectPath(assuranceMethodExpected)));
+    const assuranceMethod = validateAssuranceMethodPolicy(parseJsonFile(files, releasePolicyObjectPath(assuranceMethodExpected), CATALOG_RELEASE));
     if (digest(coveragePolicyCoreSchema.parse(coverageCore)) !== coverageDigest ||
         digest(freshnessPolicyCoreSchema.parse(freshnessCore)) !== freshnessDigest ||
         coverageExpected !== coverageDigest ||
@@ -34,11 +35,5 @@ export function verifyCatalogDeltaPolicies(bundle, delta, files) {
         agentReadinessPolicy: agentReadiness,
         assuranceMethodPolicy: assuranceMethod,
     };
-}
-function parseJson(files, path) {
-    const bytes = files.get(path);
-    if (!bytes)
-        throw new Error(`Catalog delta bundle is missing ${path}.`);
-    return JSON.parse(bytes.toString("utf8"));
 }
 //# sourceMappingURL=verification-policies.js.map

@@ -8,22 +8,22 @@ export declare const assuranceMethodPolicyCoreSchema: z.ZodObject<{
     decision_authority: z.ZodLiteral<"authorized-human-review">;
     accepted_observation_methods: z.ZodArray<z.ZodString>;
     accepted_capture_availability: z.ZodArray<z.ZodEnum<{
-        public: "public";
         "private-receipt": "private-receipt";
+        public: "public";
     }>>;
     accepted_source_standings: z.ZodArray<z.ZodEnum<{
-        "live-first-party": "live-first-party";
         "archived-first-party": "archived-first-party";
-        "live-third-party": "live-third-party";
         "archived-third-party": "archived-third-party";
+        "live-first-party": "live-first-party";
+        "live-third-party": "live-third-party";
         "manual-first-party": "manual-first-party";
         "manual-third-party": "manual-third-party";
     }>>;
     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     outcomes: z.ZodObject<{
         entity_identity: z.ZodObject<{
@@ -44,22 +44,22 @@ export declare const assuranceMethodPolicySchema: z.ZodObject<{
     decision_authority: z.ZodLiteral<"authorized-human-review">;
     accepted_observation_methods: z.ZodArray<z.ZodString>;
     accepted_capture_availability: z.ZodArray<z.ZodEnum<{
-        public: "public";
         "private-receipt": "private-receipt";
+        public: "public";
     }>>;
     accepted_source_standings: z.ZodArray<z.ZodEnum<{
-        "live-first-party": "live-first-party";
         "archived-first-party": "archived-first-party";
-        "live-third-party": "live-third-party";
         "archived-third-party": "archived-third-party";
+        "live-first-party": "live-first-party";
+        "live-third-party": "live-third-party";
         "manual-first-party": "manual-first-party";
         "manual-third-party": "manual-third-party";
     }>>;
     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     outcomes: z.ZodObject<{
         entity_identity: z.ZodObject<{
@@ -87,40 +87,40 @@ export declare const entityIdentityAnchorSchema: z.ZodObject<{
     identity_epoch_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const entityIdentityCheckedPayloadSchema: z.ZodObject<{
-    identity_epoch_digest: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    coverage_paths: z.ZodArray<z.ZodString>;
     assurance_id: z.ZodString;
     reviewer_id: z.ZodString;
     method_policy_digest: z.ZodString;
     receipt_digest: z.ZodString;
     checked_at: z.ZodISODateTime;
+    identity_epoch_digest: z.ZodString;
+    coverage_policy_digest: z.ZodString;
+    coverage_paths: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 export declare const offerTermsCheckedPayloadSchema: z.ZodObject<{
-    coverage_policy_digest: z.ZodString;
-    coverage_paths: z.ZodArray<z.ZodString>;
     assurance_id: z.ZodString;
     reviewer_id: z.ZodString;
     method_policy_digest: z.ZodString;
     receipt_digest: z.ZodString;
     checked_at: z.ZodISODateTime;
+    coverage_policy_digest: z.ZodString;
+    coverage_paths: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 export declare const assuranceRevokedPayloadSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    assurance_id: z.ZodString;
+    reviewer_id: z.ZodString;
+    receipt_digest: z.ZodString;
+    revoked_at: z.ZodISODateTime;
+    reason_code: z.ZodString;
     assurance_kind: z.ZodLiteral<"entity_identity">;
     identity_epoch_digest: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     assurance_id: z.ZodString;
     reviewer_id: z.ZodString;
     receipt_digest: z.ZodString;
     revoked_at: z.ZodISODateTime;
     reason_code: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     assurance_kind: z.ZodLiteral<"offer_terms">;
     revision_digest: z.ZodString;
-    assurance_id: z.ZodString;
-    reviewer_id: z.ZodString;
-    receipt_digest: z.ZodString;
-    revoked_at: z.ZodISODateTime;
-    reason_code: z.ZodString;
 }, z.core.$strict>], "assurance_kind">;
 export declare const entityIdentityAssuranceSchema: z.ZodObject<{
     status: z.ZodLiteral<"verified">;

@@ -17,16 +17,16 @@ export declare const changeCursorSchema: z.ZodObject<{
     cursor_digest: z.ZodString;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;
@@ -39,29 +39,29 @@ export declare const searchCursorCoreSchema: z.ZodObject<{
     signer_registry_digest: z.ZodString;
     release_id: z.ZodString;
     query_digest: z.ZodString;
-    sort_contract: z.ZodLiteral<"sourcey.search-sort/relevance-id-v1">;
-    next_ordinal: z.ZodNumber;
+    sort_contract: z.ZodLiteral<"sourcey.search-sort/keyset-v1">;
+    after: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 export declare const searchCursorSchema: z.ZodObject<{
     cursor_contract: z.ZodLiteral<"sourcey.search-cursor/v1alpha1">;
     signer_registry_digest: z.ZodString;
     release_id: z.ZodString;
     query_digest: z.ZodString;
-    sort_contract: z.ZodLiteral<"sourcey.search-sort/relevance-id-v1">;
-    next_ordinal: z.ZodNumber;
+    sort_contract: z.ZodLiteral<"sourcey.search-sort/keyset-v1">;
+    after: z.ZodArray<z.ZodString>;
     cursor_digest: z.ZodString;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;
@@ -79,12 +79,12 @@ export declare const changeFeedPageSchema: z.ZodObject<{
         change_id: z.ZodString;
         kind: z.ZodString;
         subject_type: z.ZodEnum<{
-            policy: "policy";
-            entity: "entity";
-            program: "program";
-            offer: "offer";
             agent_readiness_profile: "agent_readiness_profile";
             asset_binding: "asset_binding";
+            entity: "entity";
+            offer: "offer";
+            policy: "policy";
+            program: "program";
         }>;
         subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
         revision_digest: z.ZodOptional<z.ZodString>;
@@ -95,8 +95,8 @@ export declare const changeFeedPageSchema: z.ZodObject<{
         tombstone: z.ZodOptional<z.ZodObject<{
             reason: z.ZodEnum<{
                 ended: "ended";
-                withdrawn: "withdrawn";
                 retired: "retired";
+                withdrawn: "withdrawn";
             }>;
             canonical_route: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
@@ -125,12 +125,12 @@ export declare const catalogJsonFeedSchema: z.ZodObject<{
                 change_id: z.ZodString;
                 kind: z.ZodString;
                 subject_type: z.ZodEnum<{
-                    policy: "policy";
-                    entity: "entity";
-                    program: "program";
-                    offer: "offer";
                     agent_readiness_profile: "agent_readiness_profile";
                     asset_binding: "asset_binding";
+                    entity: "entity";
+                    offer: "offer";
+                    policy: "policy";
+                    program: "program";
                 }>;
                 subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
                 revision_digest: z.ZodOptional<z.ZodString>;
@@ -141,8 +141,8 @@ export declare const catalogJsonFeedSchema: z.ZodObject<{
                 tombstone: z.ZodOptional<z.ZodObject<{
                     reason: z.ZodEnum<{
                         ended: "ended";
-                        withdrawn: "withdrawn";
                         retired: "retired";
+                        withdrawn: "withdrawn";
                     }>;
                     canonical_route: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;

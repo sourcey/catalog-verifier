@@ -1,5 +1,5 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { catalogPublicationCompositionSchema, catalogPublicationProposalCoreSchema, } from "../../../contracts/publication/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { analyzeCatalogCandidateChanges, deriveCatalogPublicationChangeSet, planCatalogPublication, publicationSemanticInputDigest, resolveCatalogPublicationImpact, verifyCatalogPublicationChangeSet, verifyCatalogPublicationProposal, verifyPublicationIngressReceipt, } from "./publication.js";
 import { catalogPublicationAssetBindingKey, catalogPublicationAssetBindingMap, normalizeCatalogPublicationAssetProposals, } from "./publication-assets.js";
 import { normalizeCatalogPublicationAuthorityProposals } from "./publication-authorities.js";

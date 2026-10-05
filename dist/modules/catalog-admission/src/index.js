@@ -3,16 +3,17 @@ import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
+import { assertExactGitCheckout, gitComparisonBase } from "provenry/git";
+import { canonicalJson, compareCanonicalStrings, mapLimit } from "provenry/primitives";
 import { parse } from "yaml";
-import { retainedEntityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { catalogTaxonomySchema, } from "../../../contracts/taxonomy/src/index.js";
-import { assertCatalogTaxonomy } from "../../catalog-authoring-validation/src/index.js";
+import { assertCatalogContributionAuthoring, assertCatalogTaxonomy, } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
+import { ENTITY_ID_PATTERN } from "../../catalog-primitives/src/index.js";
 import { compileAuthoringFiles } from "../../compiler/src/index.js";
-import { gitComparisonBase } from "../../git-input/src/index.js";
-import { canonicalJson, compareCanonicalStrings } from "../../primitives/src/index.js";
-import { catalogChangedRevisions, } from "./change-analysis.js";
-import { analyzeCatalogCandidateChanges, buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
+import { catalogChangedEntitiesFromCurrent, catalogChangedRevisions, } from "./change-analysis.js";
+import { buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
+import { verifyCatalogPublicationCurrentState } from "./publication-state.js";
 const execFileAsync = promisify(execFile);
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
 export * from "./admission-conflicts.js";
@@ -70,78 +71,66 @@ export async function resolveCatalogChangeTree(input) {
     }
 }
 export async function validateCatalogPrTree(input) {
-    const analysis = await analyzeCatalogPrTree(input);
-    // Public validation stays strict: a renamed, copied or deleted Entity file
-    // is not a valid contribution shape, even though machine admission names it
-    // as a scope reason instead of failing.
-    if (analysis.unsupportedChanges.length > 0) {
-        throw new Error(`Unsupported Entity change status ${analysis.unsupportedChanges.join(", ")}.`);
-    }
+    const inspection = await inspectCatalogPrTree(input);
     return {
-        entities: analysis.entities,
-        programs: analysis.programs,
-        offers: analysis.offers,
+        entities: inspection.entities,
+        programs: inspection.programs,
+        offers: inspection.offers,
     };
 }
+/** Enforce the public contribution policy over the one shared PR analysis. */
+export function assertCatalogContributionAnalysis(analysis) {
+    assertCatalogContributionSelection(analysis.unsupportedChanges, analysis.changedEntities.map(({ currentAuthoring }) => currentAuthoring));
+}
+function assertCatalogContributionSelection(unsupportedChanges, authoring) {
+    if (unsupportedChanges.length > 0) {
+        throw new Error(`Unsupported Entity change status ${unsupportedChanges.join(", ")}.`);
+    }
+    assertCatalogContributionAuthoring(authoring);
+}
 /**
- * Validate explicit non-Git candidate bytes through the same compiler,
- * taxonomy, path, and role-closure rules used by changed-repository intake.
- * Transport-specific Git checks remain in validateCatalogPrTree.
+ * Validate strict changed-head authoring and Git scope for public PR intake.
+ * Historical Git supplies file identity only, never the semantic parent.
  */
 export async function inspectCatalogPrTree(input) {
     const baseRevision = await catalogPullRequestComparisonBase(input);
     const { changes, changedAuthoring } = await catalogChangedHeadClosure({ ...input, baseRevision }, true);
+    assertCatalogContributionSelection(changes.unsupportedChanges, changedAuthoring.authoring);
+    await assertFileIdentityContinuity({
+        repositoryRoot: input.repositoryRoot,
+        baseRevision,
+        changedAuthoring,
+    });
     return {
         baseRevision,
         entityFiles: changes.entityFiles,
+        identities: changedAuthoring.authoring.map(({ entity }) => entity),
         entities: changedAuthoring.entities.length,
         programs: changedAuthoring.entities.flatMap((entity) => entity.programs).length,
         offers: changedAuthoring.entities.flatMap((entity) => entity.offers).length,
     };
 }
-/**
- * The one exact pull-request analysis used by changed-closure validation,
- * private review preparation, and tree-bound admission. It reads only the
- * changed Entity files, their identity dependencies, and the corresponding
- * base versions of those same files.
- */
-export async function analyzeCatalogPrTree(input) {
-    const baseRevision = await catalogPullRequestComparisonBase(input);
-    return analyzeCatalogTree({ ...input, baseRevision }, true);
+/** Read the strict head authoring and its identity closure without interpreting old Git YAML. */
+export async function inspectCatalogReleaseHead(input) {
+    const { changes, changedAuthoring, identityClosure } = await catalogChangedHeadClosure(input, false);
+    return {
+        entityFiles: changes.entityFiles,
+        unsupportedChanges: changes.unsupportedChanges,
+        changedAuthoring,
+        identityClosure,
+    };
 }
 /**
- * Release construction uses the same changed-file and revision analysis as PR
- * validation while permitting unrelated documentation and workflow commits
- * that do not belong to Catalog data.
+ * Private PR admission compares the strict head with the materialized live
+ * authoring slice. Git supplies scope and file identity, not the semantic parent.
  */
-export async function analyzeCatalogReleaseTree(input) {
-    return analyzeCatalogTree(input, false);
-}
-/**
- * Analyze a data PR for admission against the release that is actually live.
- *
- * The PR comparison remains authoritative for its mutation boundary: it must
- * be data-only and identify every vendor the contributor changed. When main is
- * ahead of the live release, the release-relative comparison supplies the
- * complete final revisions that will be admitted. This permits a follow-up PR
- * to correct an unshipped version of the same vendor and permits independently
- * admitted vendor paths to advance without expanding this PR's authority.
- */
-export async function analyzeCatalogPrAdmissionTree(input) {
+export async function analyzeCatalogPrAgainstCurrent(input) {
     const comparisonBase = await catalogPullRequestComparisonBase({
         repositoryRoot: input.repositoryRoot,
         baseRevision: input.pullRequestBaseRevision,
         headRevision: input.pullRequestHeadRevision,
     });
     await validateCatalogPrReleaseBase(input);
-    if (!(await gitIsAncestor(input.repositoryRoot, input.liveRevision, comparisonBase))) {
-        return analyzeCatalogPrTree({
-            repositoryRoot: input.repositoryRoot,
-            baseRevision: input.pullRequestBaseRevision,
-            headRevision: input.pullRequestHeadRevision,
-            taxonomy: input.taxonomy,
-        });
-    }
     const pullRequestChanges = await catalogChangedPaths({
         repositoryRoot: input.repositoryRoot,
         baseRevision: comparisonBase,
@@ -150,14 +139,61 @@ export async function analyzeCatalogPrAdmissionTree(input) {
     if (pullRequestChanges.entityFiles.length > 0 && pullRequestChanges.otherFiles.length > 0) {
         throw new Error(`Catalog data changes cannot be mixed with other repository paths: ${pullRequestChanges.otherFiles.join(", ")}.`);
     }
-    return analyzeSelectedCatalogTree({
+    if (pullRequestChanges.unsupportedChanges.length > 0) {
+        throw new Error(`Unsupported Entity change status ${pullRequestChanges.unsupportedChanges.join(", ")}.`);
+    }
+    if (pullRequestChanges.entityFiles.length === 0) {
+        throw new Error("Catalog PR admission requires a changed Entity file.");
+    }
+    const { changedAuthoring, identityClosure, dependencyFiles } = await catalogChangedHeadClosure({
         repositoryRoot: input.repositoryRoot,
         baseRevision: input.liveRevision,
         headRevision: input.pullRequestHeadRevision,
-        entityFiles: pullRequestChanges.entityFiles,
-        unsupportedChanges: pullRequestChanges.unsupportedChanges,
         taxonomy: input.taxonomy,
+    }, false, pullRequestChanges.entityFiles);
+    assertCatalogContributionAuthoring(changedAuthoring.authoring);
+    await Promise.all([comparisonBase, input.liveRevision].map((baseRevision) => assertFileIdentityContinuity({
+        repositoryRoot: input.repositoryRoot,
+        baseRevision,
+        changedAuthoring,
+    })));
+    const entityIds = identityClosure.entities
+        .map(({ revision }) => revision.entity_id)
+        .sort(compareCanonicalStrings);
+    const state = verifyCatalogPublicationCurrentState(await input.readCurrentState(entityIds));
+    const liveTree = await gitRevision(input.repositoryRoot, `${input.liveRevision}^{tree}`);
+    if (canonicalJson(state.target_entity_ids) !== canonicalJson(entityIds) ||
+        state.live_parent_release_id !== input.liveParentReleaseId ||
+        state.git_cursor?.repository_id !== input.repositoryId ||
+        state.git_cursor.head_commit !== input.liveRevision ||
+        state.git_cursor.head_tree !== liveTree) {
+        throw new Error("Catalog PR analysis did not receive the exact live authoring slice.");
+    }
+    const currentById = new Map(state.current_entities.map((entity) => [entity.entity.entity_id, entity]));
+    for (const sourceFile of dependencyFiles) {
+        const head = identityClosure.entities.find((entity) => identityClosure.sourceFiles.get(entity.revision.entity_id) === sourceFile);
+        if (!head)
+            throw new Error(`Catalog identity dependency ${sourceFile} is unavailable.`);
+        const live = currentById.get(head.revision.entity_id);
+        if (!live || canonicalJson(compileEntity(live)) !== canonicalJson(head)) {
+            throw new Error(`Catalog identity dependency changed outside this pull request: ${sourceFile}.`);
+        }
+    }
+    const changedEntities = catalogChangedEntitiesFromCurrent({
+        currentEntities: state.current_entities,
+        candidates: changedAuthoring,
     });
+    return {
+        baseRevision: input.liveRevision,
+        entityFiles: pullRequestChanges.entityFiles,
+        unsupportedChanges: [],
+        changedEntities,
+        changedRevisions: catalogChangedRevisions(changedEntities),
+        closure: identityClosure,
+        entities: changedAuthoring.entities.length,
+        programs: changedAuthoring.entities.flatMap((entity) => entity.programs).length,
+        offers: changedAuthoring.entities.flatMap((entity) => entity.offers).length,
+    };
 }
 /**
  * Git is one immutable ingress adapter over the canonical publication port.
@@ -165,12 +201,28 @@ export async function analyzeCatalogPrAdmissionTree(input) {
  * proposal or Change Set bytes produced by another ingress for the same state.
  */
 export async function planCatalogGitPublication(input) {
-    const analysis = await analyzeCatalogReleaseTree({
+    const head = await inspectCatalogReleaseHead({
         repositoryRoot: input.repositoryRoot,
         baseRevision: input.liveRevision,
         headRevision: input.headRevision,
         taxonomy: input.taxonomy,
     });
+    const changedEntities = catalogChangedEntitiesFromCurrent({
+        currentEntities: input.currentEntities,
+        candidates: head.changedAuthoring,
+    });
+    const analysis = {
+        baseRevision: input.liveRevision,
+        entityFiles: head.entityFiles,
+        unsupportedChanges: head.unsupportedChanges,
+        changedEntities,
+        changedRevisions: catalogChangedRevisions(changedEntities),
+        closure: head.identityClosure,
+        entities: head.changedAuthoring.entities.length,
+        programs: head.changedAuthoring.entities.flatMap((entity) => entity.programs).length,
+        offers: head.changedAuthoring.entities.flatMap((entity) => entity.offers).length,
+    };
+    assertCatalogContributionAnalysis(analysis);
     const targetEntityIds = [
         ...new Set([
             ...analysis.changedEntities.map(({ currentAuthoring }) => currentAuthoring.entity.entity_id),
@@ -217,54 +269,9 @@ export async function planCatalogGitPublication(input) {
         }),
     };
 }
-async function analyzeCatalogTree(input, rejectMixedPullRequest) {
-    const repositoryRoot = resolve(input.repositoryRoot);
-    const { changes, changedAuthoring, identityClosure } = await catalogChangedHeadClosure(input, rejectMixedPullRequest);
-    const changedEntities = await changedRevisionClosure({
-        repositoryRoot,
-        baseRevision: input.baseRevision,
-        changedAuthoring,
-    });
-    return {
-        baseRevision: input.baseRevision,
-        entityFiles: changes.entityFiles,
-        unsupportedChanges: changes.unsupportedChanges,
-        changedEntities,
-        changedRevisions: catalogChangedRevisions(changedEntities),
-        closure: identityClosure,
-        entities: changedAuthoring.entities.length,
-        programs: changedAuthoring.entities.flatMap((entity) => entity.programs).length,
-        offers: changedAuthoring.entities.flatMap((entity) => entity.offers).length,
-    };
-}
-async function analyzeSelectedCatalogTree(input) {
-    const repositoryRoot = resolve(input.repositoryRoot);
-    const { changedAuthoring, identityClosure, dependencyFiles } = await catalogChangedHeadClosure(input, false, input.entityFiles);
-    await assertStableIdentityDependencies({
-        repositoryRoot,
-        liveRevision: input.baseRevision,
-        dependencyFiles,
-        identityClosure,
-    });
-    const changedEntities = await changedRevisionClosure({
-        repositoryRoot,
-        baseRevision: input.baseRevision,
-        changedAuthoring,
-    });
-    return {
-        baseRevision: input.baseRevision,
-        entityFiles: [...input.entityFiles],
-        unsupportedChanges: [...(input.unsupportedChanges ?? [])],
-        changedEntities,
-        changedRevisions: catalogChangedRevisions(changedEntities),
-        closure: identityClosure,
-        entities: changedAuthoring.entities.length,
-        programs: changedAuthoring.entities.flatMap((entity) => entity.programs).length,
-        offers: changedAuthoring.entities.flatMap((entity) => entity.offers).length,
-    };
-}
 async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selectedVendorFiles) {
     const repositoryRoot = resolve(input.repositoryRoot);
+    await assertExactGitCheckout(repositoryRoot, input.headRevision);
     const authoringRoot = resolveInside(repositoryRoot, CATALOG_ENTITY_ROOT);
     const changes = await catalogChangedPaths({
         repositoryRoot,
@@ -298,7 +305,15 @@ export async function catalogChangedPaths(input) {
     assertGitRevision(input.headRevision, "head");
     const authoringRoot = resolveInside(resolve(input.repositoryRoot), CATALOG_ENTITY_ROOT);
     const authoringPath = repositoryPath(input.repositoryRoot, authoringRoot);
-    const { stdout } = await execFileAsync("git", ["diff", "--name-status", "-z", "--find-renames", input.baseRevision, input.headRevision], { cwd: input.repositoryRoot, encoding: "buffer", maxBuffer: 16 * 1024 * 1024 });
+    const { stdout } = await execFileAsync("git", [
+        "diff",
+        "--name-status",
+        "-z",
+        "--find-renames",
+        "--find-copies-harder",
+        input.baseRevision,
+        input.headRevision,
+    ], { cwd: input.repositoryRoot, encoding: "buffer", maxBuffer: 16 * 1024 * 1024 });
     const fields = stdout.toString("utf8").split("\0");
     if (fields.at(-1) === "")
         fields.pop();
@@ -389,49 +404,34 @@ async function gitIsAncestor(root, ancestor, descendant) {
         throw error;
     }
 }
-async function changedRevisionClosure(input) {
-    const pairs = [];
-    for (const entity of input.changedAuthoring.entities) {
-        const sourceFile = input.changedAuthoring.sourceFiles.get(entity.revision.entity_id);
+/** Git binds a file to one identity; its old payload is not the semantic parent. */
+async function assertFileIdentityContinuity(input) {
+    await mapLimit(input.changedAuthoring.entities, 8, async (entity) => {
+        const entityId = entity.revision.entity_id;
+        const sourceFile = input.changedAuthoring.sourceFiles.get(entityId);
         if (!sourceFile)
-            throw new Error("Changed Catalog entity has no source file.");
-        const currentAuthoring = retainedEntityAuthoringSchema.parse(parse(await readFile(resolveInside(input.repositoryRoot, `${CATALOG_ENTITY_ROOT}/${sourceFile}`), "utf8")));
-        const priorAuthoring = await entityAuthoringAtRevision({
+            throw new Error(`Changed Entity '${entityId}' has no source file.`);
+        const source = await gitSourceAtRevision({
             repositoryRoot: input.repositoryRoot,
             revision: input.baseRevision,
             sourceFile,
         });
-        const prior = priorAuthoring ? compileEntity(priorAuthoring) : null;
-        if (prior && prior.revision.entity_id !== entity.revision.entity_id) {
-            throw new Error(`Entity file ${sourceFile} cannot replace Entity '${prior.revision.entity_id}' with '${entity.revision.entity_id}'.`);
+        if (source === null)
+            return;
+        const parsed = parse(source);
+        const priorEntity = typeof parsed === "object" && parsed !== null && "entity" in parsed ? parsed.entity : null;
+        const priorId = typeof priorEntity === "object" && priorEntity !== null && "entity_id" in priorEntity
+            ? priorEntity.entity_id
+            : null;
+        if (typeof priorId !== "string" || !ENTITY_ID_PATTERN.test(priorId)) {
+            throw new Error(`Historical Entity file ${sourceFile} has no valid Entity ID.`);
         }
-        pairs.push({ entity, currentAuthoring, priorAuthoring });
-    }
-    const semantic = analyzeCatalogCandidateChanges({
-        currentEntities: pairs.flatMap(({ priorAuthoring }) => priorAuthoring ? [priorAuthoring] : []),
-        candidateEntities: pairs.map(({ currentAuthoring }) => currentAuthoring),
-    });
-    return pairs.map(({ entity, currentAuthoring, priorAuthoring }) => {
-        const changes = semantic.revisionChanges.filter(({ entity_id: entityId }) => entityId === entity.revision.entity_id);
-        return {
-            entity,
-            currentAuthoring,
-            priorAuthoring,
-            entityChanged: changes.some(({ kind }) => kind === "entity"),
-            changedProgramIds: changes
-                .filter(({ kind }) => kind === "program")
-                .map(({ target_id: targetId }) => targetId),
-            changedOfferIds: changes
-                .filter(({ kind }) => kind === "offer")
-                .map(({ target_id: targetId }) => targetId),
-        };
+        if (priorId !== entityId) {
+            throw new Error(`Entity file ${sourceFile} cannot replace Entity '${priorId}' with '${entityId}'.`);
+        }
     });
 }
-async function compiledEntityAtRevision(input) {
-    const authoring = await entityAuthoringAtRevision(input);
-    return authoring ? compileEntity(authoring) : null;
-}
-async function entityAuthoringAtRevision(input) {
+async function gitSourceAtRevision(input) {
     const path = `${CATALOG_ENTITY_ROOT}/${input.sourceFile}`;
     try {
         const { stdout } = await execFileAsync("git", ["show", `${input.revision}:${path}`], {
@@ -439,27 +439,12 @@ async function entityAuthoringAtRevision(input) {
             encoding: "utf8",
             maxBuffer: 4 * 1024 * 1024,
         });
-        return retainedEntityAuthoringSchema.parse(parse(stdout));
+        return stdout;
     }
     catch (error) {
         if (error.code === 128)
             return null;
         throw error;
-    }
-}
-async function assertStableIdentityDependencies(input) {
-    for (const sourceFile of input.dependencyFiles) {
-        const current = input.identityClosure.entities.find((entity) => input.identityClosure.sourceFiles.get(entity.revision.entity_id) === sourceFile);
-        if (!current)
-            throw new Error(`Catalog identity dependency ${sourceFile} is unavailable.`);
-        const live = await compiledEntityAtRevision({
-            repositoryRoot: input.repositoryRoot,
-            revision: input.liveRevision,
-            sourceFile,
-        });
-        if (!live || canonicalJson(live) !== canonicalJson(current)) {
-            throw new Error(`Catalog identity dependency changed outside this pull request: ${sourceFile}.`);
-        }
     }
 }
 async function identityDependencyFiles(input) {

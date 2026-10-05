@@ -1,5 +1,5 @@
+import { compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "provenry/primitives";
 import { assetDeltaCoreSchema, assetDeltaSchema, assetIndexSchema, assetInputsSchema, assetManifestSchema, assetNoticesSchema, assetObjectCoreSchema, assetTransformReceiptCoreSchema, entityAssetProposalCoreSchema, entityAssetProposalSchema, retainedAssetCaptureCoreSchema, retainedAssetCaptureSchema, sourceyOwnedEntityIconCandidateCoreSchema, sourceyOwnedEntityIconCandidateSchema, } from "../../../contracts/assets/src/index.js";
-import { compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 export function verifyRetainedAssetCapture(input) {
     const capture = retainedAssetCaptureSchema.parse(input);
     const { capture_digest: captureDigest, ...core } = capture;

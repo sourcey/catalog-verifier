@@ -1,1 +1,0 @@
-{"version":3,"file":"files.d.ts","sourceRoot":"","sources":["../../../../modules/deterministic-release-archive/src/files.ts"],"names":[],"mappings":"AAGA,MAAM,WAAW,gCAAgC;IAC/C,QAAQ,CAAC,IAAI,EAAE,MAAM,CAAC;IACtB,QAAQ,CAAC,KAAK,EAAE,MAAM,CAAC;CACxB;AAED;qEACqE;AACrE,wBAAsB,mBAAmB,CACvC,IAAI,EAAE,MAAM,EACZ,SAAS,SAAK,GACb,OAAO,CAAC,gCAAgC,EAAE,CAAC,CAmB7C"}

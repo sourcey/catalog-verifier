@@ -1,4 +1,5 @@
-import { canonicalizePublicHttpsUrl } from "../../primitives/src/index.js";
+import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
+import { domainIsPublicSuffix } from "../../evidence-comparison/src/values.js";
 import { evidenceHttpAllowedHosts } from "./url-canonicalization.js";
 /**
  * Canonical-source authority for catalog evidence.
@@ -18,6 +19,9 @@ import { evidenceHttpAllowedHosts } from "./url-canonicalization.js";
 export function hostnameWithinEntityDomains(hostname, domains, retrievedAt) {
     const subject = hostname.toLowerCase().replace(/\.$/, "");
     return domains.some((domain) => {
+        // A public suffix is shared by every party registered under it and grants no one authority.
+        if (domainIsPublicSuffix(domain.value))
+            return false;
         if (Date.parse(domain.valid_from) > retrievedAt ||
             (domain.valid_until !== undefined && Date.parse(domain.valid_until) <= retrievedAt)) {
             return false;
@@ -25,6 +29,19 @@ export function hostnameWithinEntityDomains(hostname, domains, retrievedAt) {
         const declared = domain.value.toLowerCase().replace(/\.$/, "");
         return subject === declared || subject.endsWith(`.${declared}`);
     });
+}
+/**
+ * The one Entity among a subject's canonical publishers whose current domains
+ * serve a URL: canonical when exactly one does, ambiguous when several do,
+ * and inert when none does.
+ */
+export function resolveCanonicalPublisher(url, publishers, at) {
+    const hostname = new URL(url).hostname;
+    const matches = publishers.filter((publisher) => hostnameWithinEntityDomains(hostname, publisher.content.domains, at));
+    const [only] = matches;
+    if (only && matches.length === 1)
+        return { authority: "canonical", publisher: only };
+    return { authority: matches.length > 1 ? "ambiguous" : "inert", publisher: null };
 }
 /**
  * Split a subject's cited sources into the canonical set worth capturing and

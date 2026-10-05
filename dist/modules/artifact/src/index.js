@@ -1,27 +1,31 @@
-import { readFile } from "node:fs/promises";
-import { basename, join } from "node:path";
-import { agentReadinessDeclarationRevisionSchema, agentReadinessIndexSchema, agentReadinessInputsSchema, agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputsSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { canonicalArtifactSchema, compiledPolicySchema, identityIndexSchema, provenanceIndexSchema, releaseChangeSchema, releaseDiffSchema, searchIndexSchema, } from "../../../contracts/artifact/src/index.js";
+import { basename } from "node:path";
+import { compareCanonicalStrings, digest, digestFromPathSegment, parseJsonFile, } from "provenry/primitives";
+import { agentReadinessIndexSchema, agentReadinessInputsSchema, agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputsSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { canonicalArtifactSchema, compiledPolicySchema, identityIndexSchema, provenanceIndexSchema, searchIndexSchema, } from "../../../contracts/artifact/src/index.js";
 import { assetIndexSchema, assetInputsSchema, assetNoticesSchema, } from "../../../contracts/assets/src/index.js";
 import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema, rootSetTransitionSchema } from "../../../contracts/authority/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
-import { RELEASE_RESOURCES, releaseDescriptorSchema, releaseObjectManifestSchema, releaseResourceDigest, verifyCatalogReleaseBundle, } from "../../../contracts/release/src/index.js";
-import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
+import { closedInputSetSchema, RELEASE_RESOURCES, releaseObservationInputsSchema, releasePolicyObjectPath, releaseResourceDigest, releaseRootSetObjectPath, releaseSignerRegistryObjectPath, releaseTrustTransitionObjectPath, } from "../../../contracts/release/src/index.js";
 import { routeIndexSchema } from "../../../contracts/routes/src/index.js";
 import { validateProtectedEvent, validateProtectedRetainedCaptureReceipt, validateRootSetTransition, validateSignerRegistry, } from "../../authority/src/index.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
 import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
-import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
 import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogPolicyRevisionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
+import { boundObservationIds } from "../../provenance/src/index.js";
+import { readVerifiedSourceyRelease, } from "../../publication-instance/src/index.js";
 import { assertReleasedAgentReadinessClosure, assertReleasedAgentReadinessOfferRelationClosure, } from "./agent-readiness-closure.js";
 import { assertReleasedAssetClosure } from "./asset-closure.js";
 import { verifyReleasedAuthoringClosure } from "./authoring-closure.js";
 import { assertReleasedPolicyClosure } from "./policy-closure.js";
-import { verifiedReleaseFiles } from "./release-directory-files.js";
+import { CATALOG_RELEASE, releasedEvidenceObjects } from "./release-directory-files.js";
 import { validateTrustHistory } from "./trust-history.js";
 export async function verifyCatalogReleaseDirectory(directory, trust) {
-    return inspectCatalogReleaseDirectory(directory, trust, true);
+    return verifyCatalogRelease(await readVerifiedSourceyRelease(directory), trust);
+}
+/** Verifies a full release whose envelope is already verified. */
+export function verifyCatalogRelease(release, trust) {
+    return inspectCatalogRelease(release, trust, true);
 }
 /**
  * Loads an exact bundle already admitted with verifyCatalogReleaseDirectory and
@@ -30,94 +34,22 @@ export async function verifyCatalogReleaseDirectory(directory, trust) {
  * capture normalization on every serving-process start.
  */
 export async function loadAdmittedCatalogReleaseDirectory(directory, trust) {
-    return inspectCatalogReleaseDirectory(directory, trust, false);
+    return inspectCatalogRelease(await readVerifiedSourceyRelease(directory), trust, false);
 }
-async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceObjects) {
-    const bundle = verifyCatalogReleaseBundle(JSON.parse(await readFile(join(directory, "bundle.json"), "utf8")));
-    const files = await verifiedReleaseFiles(directory, bundle);
-    const artifact = canonicalArtifactSchema.parse(parseJson(files, "catalog.json"));
-    const routes = routeIndexSchema.parse(parseJson(files, "routes.json"));
-    const identities = identityIndexSchema.parse(parseJson(files, "identities.json"));
-    const search = searchIndexSchema.parse(parseJson(files, "indexes/search.json"));
-    const agentReadinessIndex = agentReadinessIndexSchema.parse(parseJson(files, "indexes/agent-readiness.json"));
-    const hasAgentReadinessOfferRelations = bundle.release.snapshot_core.resource_digests[RELEASE_RESOURCES.agentReadinessOfferRelationIndex] !== undefined ||
-        bundle.release.snapshot_core.resource_digests[RELEASE_RESOURCES.agentReadinessOfferRelationInputs] !== undefined;
-    if (hasAgentReadinessOfferRelations &&
-        (bundle.release.snapshot_core.resource_digests[RELEASE_RESOURCES.agentReadinessOfferRelationIndex] === undefined ||
-            bundle.release.snapshot_core.resource_digests[RELEASE_RESOURCES.agentReadinessOfferRelationInputs] === undefined)) {
-        throw new Error("Release has an incomplete Agent Readiness Offer relation resource pair.");
+function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
+    if (release.kind !== "full") {
+        throw new Error("A full Catalog release cannot carry a delta state file.");
     }
-    const agentReadinessOfferRelationIndex = agentReadinessOfferRelationIndexSchema.parse(hasAgentReadinessOfferRelations
-        ? parseJson(files, "indexes/agent-readiness-offer-relations.json")
-        : {
-            relation_index_contract: "sourcey.agent-readiness-offer-relation-index/v1alpha1",
-            relations: {},
-            by_profile: {},
-            by_offer: {},
-        });
-    const assetIndex = assetIndexSchema.parse(parseJson(files, "assets/index.json"));
-    const assetNotices = assetNoticesSchema.parse(parseJson(files, "assets/notices.json"));
-    const provenance = provenanceIndexSchema.parse(parseJson(files, "provenance/index.json"));
-    const descriptor = releaseDescriptorSchema.parse(parseJson(files, "release.json"));
-    const releaseDiff = releaseDiffSchema.parse(parseJson(files, "release-diff.json"));
-    const objectManifest = releaseObjectManifestSchema.parse(parseJson(files, "manifest.json"));
-    assertDigest("release object manifest", digest(objectManifest), bundle.object_manifest_digest);
-    const expectedManifestPaths = Object.keys(bundle.files)
-        .filter((path) => !["manifest.json", "changes.ndjson", "release-diff.json", "release.json"].includes(path))
-        .sort();
-    if (JSON.stringify(Object.keys(objectManifest.objects).sort()) !==
-        JSON.stringify(expectedManifestPaths)) {
-        throw new Error("Release object manifest does not close the semantic object set.");
-    }
-    for (const [path, declaration] of Object.entries(objectManifest.objects)) {
-        const bundleDeclaration = bundle.files[path];
-        if (!bundleDeclaration ||
-            bundleDeclaration.sha256 !== declaration.sha256 ||
-            bundleDeclaration.bytes !== declaration.bytes) {
-            throw new Error(`Release object manifest disagrees with bundle file ${path}.`);
-        }
-    }
-    if (digest(descriptor.snapshot_core) !== descriptor.snapshot_id) {
-        throw new Error("Snapshot ID does not match the canonical snapshot core.");
-    }
-    if (digest(descriptor.release_core) !== descriptor.release_id) {
-        throw new Error("Release ID does not match the canonical release core.");
-    }
-    if (descriptor.release_core.snapshot_id !== descriptor.snapshot_id ||
-        descriptor.release_core.release_sequence !== descriptor.snapshot_core.release_sequence) {
-        throw new Error("Release and snapshot cores disagree.");
-    }
-    if (bundle.release.release_id !== descriptor.release_id ||
-        bundle.release.snapshot_id !== descriptor.snapshot_id) {
-        throw new Error("Release and release descriptor identities disagree.");
-    }
-    if (releaseDiff.snapshot_id !== descriptor.snapshot_id ||
-        (descriptor.release_core.parent_release_id === null) !==
-            (releaseDiff.parent_snapshot_id === null)) {
-        throw new Error("Release diff does not bind the descriptor's snapshot chain.");
-    }
-    const changeBytes = requiredFile(files, "changes.ndjson");
-    if (sha256Bytes(changeBytes) !== descriptor.release_core.diff_digest) {
-        throw new Error("Release diff bytes do not match release_core.diff_digest.");
-    }
-    const changes = parseNdjson(changeBytes).map((value) => releaseChangeSchema.parse(value));
-    if (JSON.stringify(changes) !== JSON.stringify(releaseDiff.changes)) {
-        throw new Error("changes.ndjson and release-diff.json disagree.");
-    }
-    for (const change of changes) {
-        const { change_id: changeId, ...core } = change;
-        if (digest(core) !== changeId)
-            throw new Error(`Change ${changeId} has an invalid identity.`);
-    }
-    const changeIds = new Set(changes.map((change) => change.change_id));
-    if (changeIds.size !== changes.length)
-        throw new Error("Release diff contains duplicate changes.");
-    const orderedChanges = [...changes].sort((left, right) => compareCanonicalStrings(left.subject_type, right.subject_type) ||
-        compareCanonicalStrings(left.subject_id, right.subject_id) ||
-        compareCanonicalStrings(left.kind, right.kind));
-    if (JSON.stringify(changes) !== JSON.stringify(orderedChanges)) {
-        throw new Error("Release diff changes are not in canonical order.");
-    }
+    const { bundle, descriptor, changes, files } = release.envelope;
+    const artifact = canonicalArtifactSchema.parse(parseJsonFile(files, "catalog.json", CATALOG_RELEASE));
+    const routes = routeIndexSchema.parse(parseJsonFile(files, "routes.json", CATALOG_RELEASE));
+    const identities = identityIndexSchema.parse(parseJsonFile(files, "identities.json", CATALOG_RELEASE));
+    const search = searchIndexSchema.parse(parseJsonFile(files, "indexes/search.json", CATALOG_RELEASE));
+    const agentReadinessIndex = agentReadinessIndexSchema.parse(parseJsonFile(files, "indexes/agent-readiness.json", CATALOG_RELEASE));
+    const agentReadinessOfferRelationIndex = agentReadinessOfferRelationIndexSchema.parse(parseJsonFile(files, "indexes/agent-readiness-offer-relations.json", CATALOG_RELEASE));
+    const assetIndex = assetIndexSchema.parse(parseJsonFile(files, "assets/index.json", CATALOG_RELEASE));
+    const assetNotices = assetNoticesSchema.parse(parseJsonFile(files, "assets/notices.json", CATALOG_RELEASE));
+    const provenance = provenanceIndexSchema.parse(parseJsonFile(files, "provenance/index.json", CATALOG_RELEASE));
     const snapshot = descriptor.snapshot_core;
     assertDigest("artifact", digest(artifact), snapshot.artifact_digest);
     assertDigest("routes", digest(routes), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.routes));
@@ -125,19 +57,12 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
     assertDigest("search index", digest(search), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.searchIndex));
     assertDigest("agent readiness index", digest(agentReadinessIndex), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessIndex));
     assertDigest("asset index", digest(assetIndex), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.assetIndex));
-    const agentReadinessInputs = agentReadinessInputsSchema.parse(parseJson(files, "inputs/agent-readiness.json"));
-    const agentReadinessOfferRelationInputs = agentReadinessOfferRelationInputsSchema.parse(hasAgentReadinessOfferRelations
-        ? parseJson(files, "inputs/agent-readiness-offer-relations.json")
-        : {
-            input_contract: "sourcey.agent-readiness-offer-relation-inputs/v1alpha1",
-            relations: [],
-        });
-    const assetInputs = assetInputsSchema.parse(parseJson(files, "inputs/assets.json"));
+    const agentReadinessInputs = agentReadinessInputsSchema.parse(parseJsonFile(files, "inputs/agent-readiness.json", CATALOG_RELEASE));
+    const agentReadinessOfferRelationInputs = agentReadinessOfferRelationInputsSchema.parse(parseJsonFile(files, "inputs/agent-readiness-offer-relations.json", CATALOG_RELEASE));
+    const assetInputs = assetInputsSchema.parse(parseJsonFile(files, "inputs/assets.json", CATALOG_RELEASE));
     assertDigest("agent readiness inputs", digest(agentReadinessInputs), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessInputs));
-    if (hasAgentReadinessOfferRelations) {
-        assertDigest("agent readiness Offer relation index", digest(agentReadinessOfferRelationIndex), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationIndex));
-        assertDigest("agent readiness Offer relation inputs", digest(agentReadinessOfferRelationInputs), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationInputs));
-    }
+    assertDigest("agent readiness Offer relation index", digest(agentReadinessOfferRelationIndex), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationIndex));
+    assertDigest("agent readiness Offer relation inputs", digest(agentReadinessOfferRelationInputs), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationInputs));
     assertDigest("asset inputs", digest(assetInputs), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.assetInputs));
     if (releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy) !==
         agentReadinessInputs.policy_digest ||
@@ -151,47 +76,30 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
         artifactPolicyDigests: artifact.policy_digests,
         snapshotResourceDigests: snapshot.resource_digests,
     });
-    assertDigest("observation inputs", digest(parseJson(files, "inputs/observations.json")), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.observationInputs));
-    const inputSet = parseJson(files, "inputs/input-set.json");
+    assertDigest("observation inputs", digest(releaseObservationInputsSchema.parse(parseJsonFile(files, "inputs/observations.json", CATALOG_RELEASE))), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.observationInputs));
+    const inputSet = closedInputSetSchema.parse(parseJsonFile(files, "inputs/input-set.json", CATALOG_RELEASE));
     assertDigest("input set", digest(inputSet), snapshot.input_set_digest);
-    const declaredEnvironment = typeof inputSet === "object" && inputSet !== null
-        ? inputSet.environment
-        : undefined;
-    const environment = declaredEnvironment ??
-        (artifact.entities.every((entity) => new URL(entity.website).hostname.endsWith(".example"))
-            ? "dogfood"
-            : undefined);
-    if (environment !== "production" && environment !== "dogfood") {
-        throw new Error("Release closed input set lacks its environment boundary.");
-    }
-    const admittedInputs = [...new Set(bundle.admitted_input_digests)].sort(compareCanonicalStrings);
-    if (canonicalJson(admittedInputs) !== canonicalJson(bundle.admitted_input_digests)) {
-        throw new Error("Catalog admitted inputs must be unique and canonically ordered.");
-    }
+    const { environment } = inputSet;
     assertDigest("provenance", digest(provenance), releaseResourceDigest(snapshot.resource_digests, RELEASE_RESOURCES.provenance));
     assertDigest("root set", artifact.root_set_digest, snapshot.root_set_digest);
     assertDigest("signer registry", artifact.signer_registry_digest, snapshot.signer_registry_digest);
-    const rootPath = `trust/roots/${artifact.root_set_digest.replace(":", "-")}.json`;
-    const registryPath = `trust/registries/${artifact.signer_registry_digest.replace(":", "-")}.json`;
-    const rootSet = rootSetSchema.parse(parseJson(files, rootPath));
+    const rootSet = rootSetSchema.parse(parseJsonFile(files, releaseRootSetObjectPath(artifact.root_set_digest), CATALOG_RELEASE));
     if (digest(rootSet) !== artifact.root_set_digest)
         throw new Error("Root-set object is misaddressed.");
     if (trust && artifact.root_set_digest !== trust.rootSetDigest) {
         throw new Error("Release root set does not match the caller's trusted root pin.");
     }
-    const registry = validateSignerRegistry(rootSet, parseJson(files, registryPath));
+    const registry = validateSignerRegistry(rootSet, parseJsonFile(files, releaseSignerRegistryObjectPath(artifact.signer_registry_digest), CATALOG_RELEASE));
     if (registry.registry_digest !== artifact.signer_registry_digest) {
         throw new Error("Signer-registry object is misaddressed.");
     }
-    const transitionDigest = snapshot.trust_transition_digest ?? null;
+    const transitionDigest = snapshot.trust_transition_digest;
     if (transitionDigest) {
-        const transitionPath = `trust/transitions/${transitionDigest.replace(":", "-")}.json`;
-        const transition = rootSetTransitionSchema.parse(parseJson(files, transitionPath));
+        const transition = rootSetTransitionSchema.parse(parseJsonFile(files, releaseTrustTransitionObjectPath(transitionDigest), CATALOG_RELEASE));
         if (transition.transition_digest !== transitionDigest) {
             throw new Error("Root-set transition object is misaddressed.");
         }
-        const previousRootPath = `trust/roots/${transition.previous_root_set_digest.replace(":", "-")}.json`;
-        const previousRootSet = rootSetSchema.parse(parseJson(files, previousRootPath));
+        const previousRootSet = rootSetSchema.parse(parseJsonFile(files, releaseRootSetObjectPath(transition.previous_root_set_digest), CATALOG_RELEASE));
         validateRootSetTransition({
             previousRootSet,
             nextRootSet: rootSet,
@@ -201,9 +109,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
     }
     const trustedRegistries = validateTrustHistory(files, rootSet, registry);
     const revisions = new Map();
-    const retainedRevisions = new Map();
     const authoring = new Map();
-    const hasCurrentAuthoring = [...files.keys()].some((path) => path.startsWith("authoring/entities/"));
     const events = [];
     const observations = [];
     const captureReceipts = [];
@@ -217,17 +123,12 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             authoring.set(address, value);
         }
         else if (path.startsWith("revisions/")) {
-            const raw = JSON.parse(bytes.toString("utf8"));
-            const revision = parseRetainedCatalogRevision(raw);
+            const revision = parseRetainedCatalogRevision(JSON.parse(bytes.toString("utf8")));
             const address = addressFromJsonPath(path);
-            const { revision_digest: revisionDigest, ...core } = revision;
-            if (address !== revisionDigest || digest(core) !== revisionDigest) {
+            if (address !== revision.revision_digest) {
                 throw new Error(`Revision object ${path} is not content-addressed correctly.`);
             }
-            retainedRevisions.set(revisionDigest, revision);
-            const currentRevision = parseCurrentCatalogRevision(raw);
-            if (currentRevision)
-                revisions.set(revisionDigest, currentRevision);
+            revisions.set(address, revision);
         }
         else if (path.startsWith("events/")) {
             const input = JSON.parse(bytes.toString("utf8"));
@@ -262,7 +163,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
             if (input.receipt_digest !== address) {
                 throw new Error(`Capture receipt object ${path} is misaddressed.`);
             }
-            const inclusion = provenance.capture_receipts?.[address];
+            const inclusion = provenance.capture_receipts[address];
             if (!inclusion) {
                 throw new Error(`Capture receipt ${address} lacks first-inclusion provenance.`);
             }
@@ -280,32 +181,17 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
     const receiptAddresses = captureReceipts
         .map((receipt) => receipt.receipt_digest)
         .sort(compareCanonicalStrings);
-    const witnessedReceiptAddresses = Object.keys(provenance.capture_receipts ?? {}).sort(compareCanonicalStrings);
+    const witnessedReceiptAddresses = Object.keys(provenance.capture_receipts).sort(compareCanonicalStrings);
     if (JSON.stringify(receiptAddresses) !== JSON.stringify(witnessedReceiptAddresses)) {
         throw new Error("Capture receipt objects and provenance witnesses disagree.");
     }
-    // Authoring is a release-generation input, not a timeless wire contract.
-    // Current releases publish it under the current contract-owned path and can
-    // be recompiled for closure. Historical releases retain their original
-    // bytes and remain verifiable through their immutable bundle, manifest,
-    // projections, revisions, signatures, and provenance without being parsed
-    // by a later authoring schema.
-    if (hasCurrentAuthoring) {
-        verifyReleasedAuthoringClosure(authoring, artifact.entities);
-    }
-    const inputSetRecord = typeof inputSet === "object" && inputSet !== null ? inputSet : {};
-    const declaredCaptureReceipts = inputSetRecord.capture_receipt_digests;
-    if ((environment === "production" && !Array.isArray(declaredCaptureReceipts)) ||
-        (declaredCaptureReceipts !== undefined &&
-            (!Array.isArray(declaredCaptureReceipts) ||
-                declaredCaptureReceipts.some((value) => typeof value !== "string"))) ||
-        JSON.stringify(Array.isArray(declaredCaptureReceipts) ? declaredCaptureReceipts : []) !==
-            JSON.stringify(receiptAddresses)) {
+    verifyReleasedAuthoringClosure(authoring, artifact.entities);
+    if (JSON.stringify(inputSet.capture_receipt_digests) !== JSON.stringify(receiptAddresses)) {
         throw new Error("Closed input set disagrees with the capture receipt set.");
     }
     const agentReadinessProfiles = Object.values(agentReadinessIndex.profiles)
         .map((entry) => {
-        const profile = agentReadinessProjectionSchema.parse(parseJson(files, entry.path));
+        const profile = agentReadinessProjectionSchema.parse(parseJsonFile(files, entry.path, CATALOG_RELEASE));
         const { projection_digest: projectionDigest, ...core } = profile;
         if (profile.agent_readiness_profile_id !== entry.agent_readiness_profile_id ||
             projectionDigest !== entry.projection_digest ||
@@ -323,7 +209,7 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
         inputs: agentReadinessOfferRelationInputs,
         files,
     });
-    assertArtifactClosure(artifact, revisions, retainedRevisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
+    assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, bundle.files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
     return {
         bundle,
         descriptor,
@@ -343,12 +229,11 @@ async function inspectCatalogReleaseDirectory(directory, trust, replayEvidenceOb
         observations: observations.sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id)),
         captureReceipts: captureReceipts.sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest)),
         revisions,
-        retainedRevisions,
         files,
     };
 }
-function assertArtifactClosure(artifact, revisions, retainedRevisions, provenance, events, observations, captureReceipts, changes, files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
-    const eventIds = new Set(events.map((event) => event.event_id));
+function assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, declarations, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
+    const eventsById = new Map(events.map((event) => [event.event_id, event]));
     const observationIds = new Set(observations.map((observation) => observation.observation_id));
     for (const entity of artifact.entities) {
         for (const subject of [entity, ...entity.programs, ...entity.offers]) {
@@ -364,21 +249,12 @@ function assertArtifactClosure(artifact, revisions, retainedRevisions, provenanc
                 entry.freshness_policy_digest !== subject.provenance.freshness_policy_digest) {
                 throw new Error(`Revision ${subject.revision_digest} provenance index disagrees with its projection basis.`);
             }
-            const expectedObservationIds = entry.event_ids
-                .flatMap((eventId) => {
-                const event = events.find((bundle) => bundle.event_id === eventId);
-                if (event?.kind !== "evidence.bound")
-                    return [];
-                const observationId = event.payload.observation_id;
-                return typeof observationId === "string" ? [observationId] : [];
-            })
-                .filter((value, index, values) => values.indexOf(value) === index)
-                .sort();
+            const expectedObservationIds = boundObservationIds(entry.event_ids, eventsById);
             if (JSON.stringify(entry.observation_ids) !== JSON.stringify(expectedObservationIds)) {
                 throw new Error(`Revision ${subject.revision_digest} provenance observations disagree with its events.`);
             }
             for (const eventId of entry.event_ids) {
-                if (!eventIds.has(eventId)) {
+                if (!eventsById.has(eventId)) {
                     throw new Error(`Provenance targets missing event ${eventId}.`);
                 }
             }
@@ -401,41 +277,24 @@ function assertArtifactClosure(artifact, revisions, retainedRevisions, provenanc
     assertReleasedAssetClosure({
         artifact,
         events,
-        files,
+        declarations,
         index: assetIndex,
         notices: assetNotices,
         inputs: assetInputs,
     });
-    const captureBytes = new Map();
-    const normalizedObjects = new Map();
-    for (const observation of observations) {
-        if (observation.capture?.availability !== "public")
-            continue;
-        const captureDigest = observation.capture.digest;
-        const capture = files.get(`captures/${captureDigest.replace(":", "-")}`);
-        if (capture)
-            captureBytes.set(captureDigest, capture);
-        const normalizedDigest = observation.capture.normalized_object?.digest;
-        if (normalizedDigest) {
-            const normalized = files.get(`evidence/normalized/${normalizedDigest.replace(":", "-")}`);
-            if (normalized)
-                normalizedObjects.set(normalizedDigest, normalized);
-        }
-    }
     if (replayEvidenceObjects) {
         verifyEvidenceObjectGraph({
-            revisions: [...retainedRevisions.values()],
+            revisions: [...revisions.values()],
             events,
             observations,
             captureReceipts,
-            captures: captureBytes,
-            normalizedObjects,
+            ...releasedEvidenceObjects(observations, files, declarations),
+            capturesProven: true,
             allowFixtureEvidence: environment === "dogfood",
         });
     }
     for (const policy of artifact.policies) {
-        const policyPath = `policies/${policy.revision_digest.replace(":", "-")}.json`;
-        const bytes = files.get(policyPath);
+        const bytes = files.get(releasePolicyObjectPath(policy.revision_digest));
         if (!bytes)
             throw new Error(`Policy ${policy.revision_digest} lacks its addressed object.`);
         const parsed = compiledPolicySchema.parse(JSON.parse(bytes.toString("utf8")));
@@ -507,36 +366,6 @@ function assertArtifactClosure(artifact, revisions, retainedRevisions, provenanc
             }
         }
     }
-}
-function parseCurrentCatalogRevision(value) {
-    for (const schema of [
-        entityRevisionSchema,
-        programRevisionSchema,
-        offerRevisionSchema,
-        agentReadinessRevisionSchema,
-        agentReadinessDeclarationRevisionSchema,
-    ]) {
-        const parsed = schema.safeParse(value);
-        if (parsed.success)
-            return parsed.data;
-    }
-    return null;
-}
-function parseJson(files, path) {
-    return JSON.parse(requiredFile(files, path).toString("utf8"));
-}
-function requiredFile(files, path) {
-    const bytes = files.get(path);
-    if (!bytes)
-        throw new Error(`Release is missing ${path}.`);
-    return bytes;
-}
-function parseNdjson(bytes) {
-    return bytes
-        .toString("utf8")
-        .split("\n")
-        .filter((line) => line.length > 0)
-        .map((line) => JSON.parse(line));
 }
 function addressFromJsonPath(path) {
     return digestFromPathSegment(basename(path, ".json"));

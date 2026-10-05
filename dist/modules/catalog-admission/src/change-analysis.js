@@ -1,5 +1,5 @@
+import { compareCanonicalStrings } from "provenry/primitives";
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
 import { analyzeCatalogCandidateChanges } from "./publication.js";
 import { catalogSubmissionCandidates, catalogSubmissionReviewCandidates, verifyCatalogSubmissionWorkItem, } from "./submission-input.js";
 import { verifyCatalogSubmissionPublicationState } from "./submission-state.js";
@@ -28,17 +28,35 @@ export function analyzeCatalogSubmissionWorkItem(input) {
     const closure = compileAuthoringEntities(candidateEntities, {
         allowExternalRoleEntities: true,
     });
-    const currentAuthoring = new Map(currentState.current_entities.map((entity) => [entity.entity.entity_id, entity]));
-    const candidateAuthoring = new Map(closure.authoring.map((entity) => [entity.entity.entity_id, entity]));
-    const semantic = analyzeCatalogCandidateChanges({
+    const changedEntities = catalogChangedEntitiesFromCurrent({
         currentEntities: currentState.current_entities,
-        candidateEntities: closure.authoring,
+        candidates: closure,
     });
-    const changedEntities = closure.entities.map((entity) => {
+    return {
+        baseRevision: workItem.live_parent_release_id,
+        entityFiles: (input.reviewedAuthoringFiles ?? workItem.request.authoring_files).map(({ path }) => path.slice(`${CATALOG_ENTITY_ROOT}/`.length)),
+        unsupportedChanges: [],
+        changedEntities,
+        changedRevisions: catalogChangedRevisions(changedEntities),
+        closure,
+        entities: closure.entities.length,
+        programs: closure.entities.flatMap((entity) => entity.programs).length,
+        offers: closure.entities.flatMap((entity) => entity.offers).length,
+    };
+}
+/** Compare compiled candidates with the exact live authoring slice, regardless of ingress. */
+export function catalogChangedEntitiesFromCurrent(input) {
+    const currentAuthoring = new Map(input.currentEntities.map((entity) => [entity.entity.entity_id, entity]));
+    const candidateAuthoring = new Map(input.candidates.authoring.map((entity) => [entity.entity.entity_id, entity]));
+    const semantic = analyzeCatalogCandidateChanges({
+        currentEntities: input.currentEntities.filter((entity) => candidateAuthoring.has(entity.entity.entity_id)),
+        candidateEntities: input.candidates.authoring,
+    });
+    return input.candidates.entities.map((entity) => {
         const entityId = entity.revision.entity_id;
         const current = candidateAuthoring.get(entityId);
         if (!current)
-            throw new Error(`Compiled submission Entity '${entityId}' has no authoring.`);
+            throw new Error(`Compiled Entity '${entityId}' has no authoring.`);
         const changes = semantic.revisionChanges.filter(({ entity_id: changedEntityId }) => changedEntityId === entityId);
         return {
             entity,
@@ -53,17 +71,6 @@ export function analyzeCatalogSubmissionWorkItem(input) {
                 .map(({ target_id: targetId }) => targetId),
         };
     });
-    return {
-        baseRevision: workItem.live_parent_release_id,
-        entityFiles: (input.reviewedAuthoringFiles ?? workItem.request.authoring_files).map(({ path }) => path.slice(`${CATALOG_ENTITY_ROOT}/`.length)),
-        unsupportedChanges: [],
-        changedEntities,
-        changedRevisions: catalogChangedRevisions(changedEntities),
-        closure,
-        entities: closure.entities.length,
-        programs: closure.entities.flatMap((entity) => entity.programs).length,
-        offers: closure.entities.flatMap((entity) => entity.offers).length,
-    };
 }
 export function catalogChangedRevisions(changes) {
     return changes.flatMap(({ entity, entityChanged, changedProgramIds, changedOfferIds }) => [

@@ -1,6 +1,6 @@
+import { type Digest } from "provenry/primitives";
 import type { z } from "zod";
 import { type CatalogAdmissionCandidate, type CatalogAdmissionKeyKind, type CatalogVerifierIdentityContextCore, catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema } from "../../../contracts/catalog-verifier/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export type { CatalogAdmissionCandidate, CatalogAdmissionKeyKind };
 export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export declare function createCatalogAdmissionConflictLookupResponse(input: {
@@ -12,6 +12,7 @@ export declare function createCatalogAdmissionConflictLookupResponse(input: {
     matches: {
         keyDigest: `sha256:${string}`;
         targetReference: string;
+        targetIdentityDigest?: `sha256:${string}` | undefined;
         source: {
             kind: "current_catalog";
             liveParentReleaseId: `sha256:${string}`;
@@ -30,7 +31,6 @@ export declare function createCatalogAdmissionConflictLookupResponse(input: {
             candidateReference: string;
             candidateDigest: `sha256:${string}`;
         };
-        targetIdentityDigest?: `sha256:${string}` | undefined;
     }[];
     response_digest: `sha256:${string}`;
 };
@@ -43,6 +43,7 @@ export declare function verifyCatalogAdmissionConflictLookupResponse(input: {
     matches: {
         keyDigest: `sha256:${string}`;
         targetReference: string;
+        targetIdentityDigest?: `sha256:${string}` | undefined;
         source: {
             kind: "current_catalog";
             liveParentReleaseId: `sha256:${string}`;
@@ -61,7 +62,6 @@ export declare function verifyCatalogAdmissionConflictLookupResponse(input: {
             candidateReference: string;
             candidateDigest: `sha256:${string}`;
         };
-        targetIdentityDigest?: `sha256:${string}` | undefined;
     }[];
     response_digest: `sha256:${string}`;
 };
@@ -82,7 +82,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
     query: {
         query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
         keys: {
-            kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+            kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
             normalizedValue: string;
             keyDigest: `sha256:${string}`;
             candidateReference: string;
@@ -96,7 +96,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
             headSha: string;
         } | {
             kind: "detached";
-            repositoryKind: "startup-credits" | "agent-readiness";
+            repositoryKind: "agent-readiness" | "startup-credits";
             candidateDigest: `sha256:${string}`;
             candidateReference: string;
         };
@@ -107,6 +107,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
         matches: {
             keyDigest: `sha256:${string}`;
             targetReference: string;
+            targetIdentityDigest?: `sha256:${string}` | undefined;
             source: {
                 kind: "current_catalog";
                 liveParentReleaseId: `sha256:${string}`;
@@ -125,7 +126,6 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
                 candidateReference: string;
                 candidateDigest: `sha256:${string}`;
             };
-            targetIdentityDigest?: `sha256:${string}` | undefined;
         }[];
         response_digest: `sha256:${string}`;
     };
@@ -139,7 +139,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
         expires_at: string;
         context_digest: `sha256:${string}`;
         protected: {
-            signature_purpose: "catalog-capture" | "catalog-evidence" | "catalog-identity" | "catalog-authority" | "catalog-attestation" | "catalog-verification" | "catalog-dispute" | "catalog-policy" | "catalog-release" | "catalog-feed";
+            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
             signer_registry_digest: string;
             key_id: string;
             algorithm: "ed25519";
@@ -181,7 +181,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
         query: {
             query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
             keys: {
-                kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+                kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
                 normalizedValue: string;
                 keyDigest: `sha256:${string}`;
                 candidateReference: string;
@@ -195,7 +195,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                 headSha: string;
             } | {
                 kind: "detached";
-                repositoryKind: "startup-credits" | "agent-readiness";
+                repositoryKind: "agent-readiness" | "startup-credits";
                 candidateDigest: `sha256:${string}`;
                 candidateReference: string;
             };
@@ -206,6 +206,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
             matches: {
                 keyDigest: `sha256:${string}`;
                 targetReference: string;
+                targetIdentityDigest?: `sha256:${string}` | undefined;
                 source: {
                     kind: "current_catalog";
                     liveParentReleaseId: `sha256:${string}`;
@@ -224,7 +225,6 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                     candidateReference: string;
                     candidateDigest: `sha256:${string}`;
                 };
-                targetIdentityDigest?: `sha256:${string}` | undefined;
             }[];
             response_digest: `sha256:${string}`;
         };
@@ -238,7 +238,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
             expires_at: string;
             context_digest: `sha256:${string}`;
             protected: {
-                signature_purpose: "catalog-capture" | "catalog-evidence" | "catalog-identity" | "catalog-authority" | "catalog-attestation" | "catalog-verification" | "catalog-dispute" | "catalog-policy" | "catalog-release" | "catalog-feed";
+                signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
                 signer_registry_digest: string;
                 key_id: string;
                 algorithm: "ed25519";
@@ -272,7 +272,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
     query: {
         query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
         keys: {
-            kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+            kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
             normalizedValue: string;
             keyDigest: `sha256:${string}`;
             candidateReference: string;
@@ -286,7 +286,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
             headSha: string;
         } | {
             kind: "detached";
-            repositoryKind: "startup-credits" | "agent-readiness";
+            repositoryKind: "agent-readiness" | "startup-credits";
             candidateDigest: `sha256:${string}`;
             candidateReference: string;
         };
@@ -297,6 +297,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
         matches: {
             keyDigest: `sha256:${string}`;
             targetReference: string;
+            targetIdentityDigest?: `sha256:${string}` | undefined;
             source: {
                 kind: "current_catalog";
                 liveParentReleaseId: `sha256:${string}`;
@@ -315,7 +316,6 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
                 candidateReference: string;
                 candidateDigest: `sha256:${string}`;
             };
-            targetIdentityDigest?: `sha256:${string}` | undefined;
         }[];
         response_digest: `sha256:${string}`;
     };
@@ -329,7 +329,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
         expires_at: string;
         context_digest: `sha256:${string}`;
         protected: {
-            signature_purpose: "catalog-capture" | "catalog-evidence" | "catalog-identity" | "catalog-authority" | "catalog-attestation" | "catalog-verification" | "catalog-dispute" | "catalog-policy" | "catalog-release" | "catalog-feed";
+            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
             signer_registry_digest: string;
             key_id: string;
             algorithm: "ed25519";
@@ -389,7 +389,7 @@ export declare function createCatalogAdmissionConflictLookupRequest(input: {
 }): {
     query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
     keys: {
-        kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+        kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
         normalizedValue: string;
         keyDigest: `sha256:${string}`;
         candidateReference: string;
@@ -403,7 +403,7 @@ export declare function createCatalogAdmissionConflictLookupRequest(input: {
         headSha: string;
     } | {
         kind: "detached";
-        repositoryKind: "startup-credits" | "agent-readiness";
+        repositoryKind: "agent-readiness" | "startup-credits";
         candidateDigest: `sha256:${string}`;
         candidateReference: string;
     };

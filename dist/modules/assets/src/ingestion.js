@@ -1,5 +1,5 @@
+import { digest, digestPathSegment, sha256Bytes } from "provenry/primitives";
 import { assetObjectCoreSchema, assetTransformProfileCoreSchema, assetTransformProfileSchema, assetTransformReceiptCoreSchema, ENTITY_ICON_MAX_SOURCE_BYTES, ENTITY_ICON_RASTER_PROFILE_VERSION, entityAssetProposalCoreSchema, retainedAssetCaptureCoreSchema, SOURCEY_ENTITY_MONOGRAM_PROFILE_VERSION, } from "../../../contracts/assets/src/index.js";
-import { digest, digestPathSegment, sha256Bytes } from "../../primitives/src/index.js";
 import { verifyEntityAssetProposal, verifyRetainedAssetCapture } from "./index.js";
 export const ENTITY_ICON_MAX_SOURCE_PIXELS = 4096 * 4096;
 export const ENTITY_ICON_MAX_SOURCE_ASPECT_RATIO = 1.5;

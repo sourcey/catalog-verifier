@@ -1,5 +1,5 @@
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN } from "../../../modules/primitives/src/index.js";
 import { releaseChangeSchema } from "../../artifact/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
@@ -25,8 +25,8 @@ export const searchCursorCoreSchema = z
     signer_registry_digest: digest,
     release_id: digest,
     query_digest: digest,
-    sort_contract: z.literal("sourcey.search-sort/relevance-id-v1"),
-    next_ordinal: z.number().int().nonnegative(),
+    sort_contract: z.literal("sourcey.search-sort/keyset-v1"),
+    after: z.array(z.string()).min(1).max(3),
 })
     .strict();
 export const searchCursorSchema = searchCursorCoreSchema

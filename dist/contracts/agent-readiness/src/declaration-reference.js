@@ -14,7 +14,8 @@ export const agentReadinessRepositoryYamlPathSchema = z
 export const agentReadinessAuthoringPathSchema = z
     .string()
     .regex(/^entities\/[a-z0-9]{1,2}\/[a-z0-9]+(?:-[a-z0-9]+)*\.yaml$/);
-export const agentReadinessDeclarationProvenanceSchema = z
+/** A declaration held in the public repository at one pinned commit. */
+export const agentReadinessGitDeclarationProvenanceSchema = z
     .object({
     repository: z.literal(AGENT_READINESS_REPOSITORY),
     commit: gitObjectIdSchema,
@@ -23,6 +24,32 @@ export const agentReadinessDeclarationProvenanceSchema = z
     blob_digest: agentReadinessDigestSchema,
 })
     .strict();
+/**
+ * A declaration submitted to Sourcey without Git. Sourcey serves the exact
+ * authoring bytes by their digest once a published profile cites them.
+ */
+export const agentReadinessHostedDeclarationProvenanceSchema = z
+    .object({
+    source: z.literal("sourcey"),
+    path: agentReadinessAuthoringPathSchema,
+    blob_digest: agentReadinessDigestSchema,
+})
+    .strict();
+/**
+ * Where a declaration's exact bytes live. The two shapes share no field that
+ * could make one parse as the other, so a Git locator stays byte-identical.
+ */
+export const agentReadinessDeclarationProvenanceSchema = z.union([
+    agentReadinessGitDeclarationProvenanceSchema,
+    agentReadinessHostedDeclarationProvenanceSchema,
+]);
+/** Narrow a provenance to the Git locator; the local Git lane refuses anything else. */
+export function agentReadinessGitProvenance(provenance) {
+    if (!("repository" in provenance)) {
+        throw new Error("This lane reads declarations from the public Git repository only.");
+    }
+    return provenance;
+}
 export const agentReadinessDeclarationReferenceSchema = z
     .object({
     declaration_id: agentReadinessIdentifierSchema,

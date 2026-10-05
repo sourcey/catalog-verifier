@@ -1,4 +1,4 @@
-import type { Domain } from "../../../contracts/revisions/src/index.js";
+import type { Domain, EntityRevision } from "../../../contracts/revisions/src/index.js";
 /**
  * Canonical-source authority for catalog evidence.
  *
@@ -15,6 +15,18 @@ import type { Domain } from "../../../contracts/revisions/src/index.js";
  * underlying programs.)
  */
 export declare function hostnameWithinEntityDomains(hostname: string, domains: readonly Domain[], retrievedAt: number): boolean;
+/**
+ * The one Entity among a subject's canonical publishers whose current domains
+ * serve a URL: canonical when exactly one does, ambiguous when several do,
+ * and inert when none does.
+ */
+export declare function resolveCanonicalPublisher(url: string, publishers: readonly EntityRevision[], at: number): {
+    readonly authority: "canonical";
+    readonly publisher: EntityRevision;
+} | {
+    readonly authority: "ambiguous" | "inert";
+    readonly publisher: null;
+};
 /**
  * Split a subject's cited sources into the canonical set worth capturing and
  * the inert hosts that cannot carry authority for it. Inert sources are not

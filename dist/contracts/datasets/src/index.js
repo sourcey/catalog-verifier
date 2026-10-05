@@ -1,5 +1,5 @@
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN } from "../../../modules/primitives/src/index.js";
 import { agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, } from "../../agent-readiness/src/index.js";
 import { canonicalArtifactCoreSchema, compiledEntitySchema, provenanceSchema, } from "../../artifact/src/index.js";
 import { assetBindingProjectionSchema } from "../../assets/src/index.js";

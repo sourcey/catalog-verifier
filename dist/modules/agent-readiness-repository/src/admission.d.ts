@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import { z } from "zod";
-import { type Digest } from "../../primitives/src/index.js";
 declare const admissionCoreSchema: z.ZodObject<{
     admission_contract: z.ZodLiteral<"sourcey.agent-readiness-repository-merge-admission/v1alpha1">;
     repository: z.ZodLiteral<"sourcey/agent-ready-services">;

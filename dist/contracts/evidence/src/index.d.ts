@@ -1,14 +1,29 @@
 import { z } from "zod";
+export declare const evidenceArtifactScopeSchema: z.ZodEnum<{
+    complete_document: "complete_document";
+    document_excerpt: "document_excerpt";
+}>;
+export declare const evidenceSourceContentSchema: z.ZodObject<{
+    digest: z.ZodString;
+    bytes: z.ZodNumber;
+    media_type: z.ZodString;
+    normalized_digest: z.ZodString;
+    normalized_bytes: z.ZodNumber;
+}, z.core.$strict>;
+export declare function validateEvidenceArtifactScopeClosure(value: {
+    readonly artifact_scope?: z.infer<typeof evidenceArtifactScopeSchema> | undefined;
+    readonly source_content?: z.infer<typeof evidenceSourceContentSchema> | undefined;
+}, context: z.RefinementCtx): void;
 export declare const EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT = 16;
 export declare const evidenceCaptureMethodSchema: z.ZodEnum<{
-    http: "http";
-    headless: "headless";
     archive: "archive";
+    headless: "headless";
+    http: "http";
     manual: "manual";
 }>;
 export declare const evidenceCaptureAvailabilitySchema: z.ZodEnum<{
-    public: "public";
     "private-receipt": "private-receipt";
+    public: "public";
 }>;
 export declare const evidencePublicReadRequestSchema: z.ZodObject<{
     method: z.ZodLiteral<"GET">;
@@ -18,6 +33,24 @@ export declare const evidencePublicReadRequestSchema: z.ZodObject<{
         value: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>;
+/** The exact physical request retained for evidence replay. */
+export declare const evidenceCaptureRequestSchema: z.ZodUnion<readonly [z.ZodObject<{
+    method: z.ZodLiteral<"GET">;
+    target_url: z.ZodOptional<z.ZodURL>;
+    headers: z.ZodArray<z.ZodObject<{
+        name: z.ZodString;
+        value: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>, z.ZodObject<{
+    method: z.ZodLiteral<"STANDARD_OBSERVATION">;
+    observations: z.ZodArray<z.ZodObject<{
+        standard: z.ZodObject<{
+            namespace: z.ZodString;
+            version: z.ZodString;
+        }, z.core.$strict>;
+        probe_digest: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>]>;
 export declare const evidencePublicReadRequestSetSchema: z.ZodObject<{
     request_set_contract: z.ZodLiteral<"sourcey.evidence-public-read-request-set/v1alpha1">;
     requests: z.ZodArray<z.ZodObject<{
@@ -33,28 +66,27 @@ export declare const evidencePublicReadRequestSetSchema: z.ZodObject<{
     }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const evidenceProofKindSchema: z.ZodEnum<{
-    observed: "observed";
+    attested: "attested";
     derived: "derived";
     editorial: "editorial";
-    attested: "attested";
+    observed: "observed";
 }>;
 export declare const evidenceDerivationRuleSchema: z.ZodEnum<{
+    "consideration-from-benefits": "consideration-from-benefits";
     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-    "form-access-from-first-party-application": "form-access-from-first-party-application";
+    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
     "first-party-access-operator": "first-party-access-operator";
+    "form-access-from-first-party-application": "form-access-from-first-party-application";
     "public-availability-from-application": "public-availability-from-application";
 }>;
-export declare const EVIDENCE_DERIVATION_RULE_PATHS: {
-    readonly "contact-access-from-first-party-mailto": "/access/method";
-    readonly "form-access-from-first-party-application": "/access/method";
-    readonly "first-party-access-operator": "/roles/access_operator_entity_id";
-    readonly "public-availability-from-application": "/access/availability";
-};
+export declare function evidenceDerivationRuleTarget(rule: z.infer<typeof evidenceDerivationRuleSchema>): string;
+/** True when `path` is a pointer the rule may assert. */
+export declare function evidenceDerivationRuleApplies(rule: z.infer<typeof evidenceDerivationRuleSchema>, path: string): boolean;
 export declare const evidenceSourceStandingSchema: z.ZodEnum<{
-    "live-first-party": "live-first-party";
     "archived-first-party": "archived-first-party";
-    "live-third-party": "live-third-party";
     "archived-third-party": "archived-third-party";
+    "live-first-party": "live-first-party";
+    "live-third-party": "live-third-party";
     "manual-first-party": "manual-first-party";
     "manual-third-party": "manual-third-party";
 }>;
@@ -81,19 +113,21 @@ export declare const evidenceLocatorSchema: z.ZodObject<{
 export declare const evidenceAssertionSchema: z.ZodObject<{
     path: z.ZodString;
     polarity: z.ZodEnum<{
-        supports: "supports";
         contradicts: "contradicts";
+        supports: "supports";
     }>;
     proof_kind: z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>;
     derivation_rule: z.ZodNullable<z.ZodEnum<{
+        "consideration-from-benefits": "consideration-from-benefits";
         "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-        "form-access-from-first-party-application": "form-access-from-first-party-application";
+        "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
         "first-party-access-operator": "first-party-access-operator";
+        "form-access-from-first-party-application": "form-access-from-first-party-application";
         "public-availability-from-application": "public-availability-from-application";
     }>>;
     locators: z.ZodArray<z.ZodObject<{
@@ -217,9 +251,9 @@ export declare const evidenceCaptureDeclarationSchema: z.ZodObject<{
     }, z.core.$strict>>;
     retrieved_at: z.ZodISODateTime;
     method: z.ZodEnum<{
-        http: "http";
-        headless: "headless";
         archive: "archive";
+        headless: "headless";
+        http: "http";
         manual: "manual";
     }>;
     response_status_code: z.ZodNumber;
@@ -229,6 +263,17 @@ export declare const evidenceCaptureDeclarationSchema: z.ZodObject<{
         public: "public";
         restricted: "restricted";
     }>;
+    artifact_scope: z.ZodOptional<z.ZodEnum<{
+        complete_document: "complete_document";
+        document_excerpt: "document_excerpt";
+    }>>;
+    source_content: z.ZodOptional<z.ZodObject<{
+        digest: z.ZodString;
+        bytes: z.ZodNumber;
+        media_type: z.ZodString;
+        normalized_digest: z.ZodString;
+        normalized_bytes: z.ZodNumber;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const captureReceiptCoreSchema: z.ZodObject<{
     receipt_contract: z.ZodLiteral<"sourcey.capture-receipt/v1alpha1">;
@@ -294,9 +339,9 @@ export declare const captureReceiptCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         retrieved_at: z.ZodISODateTime;
         method: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>;
         response_status_code: z.ZodNumber;
@@ -306,6 +351,17 @@ export declare const captureReceiptCoreSchema: z.ZodObject<{
             public: "public";
             restricted: "restricted";
         }>;
+        artifact_scope: z.ZodOptional<z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>>;
+        source_content: z.ZodOptional<z.ZodObject<{
+            digest: z.ZodString;
+            bytes: z.ZodNumber;
+            media_type: z.ZodString;
+            normalized_digest: z.ZodString;
+            normalized_bytes: z.ZodNumber;
+        }, z.core.$strict>>;
         bytes: z.ZodNumber;
     }, z.core.$strict>;
     issued_at: z.ZodISODateTime;
@@ -374,9 +430,9 @@ export declare const captureReceiptSchema: z.ZodObject<{
         }, z.core.$strict>>;
         retrieved_at: z.ZodISODateTime;
         method: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>;
         response_status_code: z.ZodNumber;
@@ -386,22 +442,33 @@ export declare const captureReceiptSchema: z.ZodObject<{
             public: "public";
             restricted: "restricted";
         }>;
+        artifact_scope: z.ZodOptional<z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>>;
+        source_content: z.ZodOptional<z.ZodObject<{
+            digest: z.ZodString;
+            bytes: z.ZodNumber;
+            media_type: z.ZodString;
+            normalized_digest: z.ZodString;
+            normalized_bytes: z.ZodNumber;
+        }, z.core.$strict>>;
         bytes: z.ZodNumber;
     }, z.core.$strict>;
     issued_at: z.ZodISODateTime;
     receipt_digest: z.ZodString;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;
@@ -476,6 +543,7 @@ export declare const evidenceAuthoritySetManifestSchema: z.ZodObject<{
     authority_set_digest: z.ZodString;
 }, z.core.$strict>;
 export type EvidenceSourceStanding = z.infer<typeof evidenceSourceStandingSchema>;
+export type EvidenceCaptureRequest = z.infer<typeof evidenceCaptureRequestSchema>;
 export type EvidenceRedirect = z.infer<typeof evidenceRedirectSchema>;
 export type EvidenceNormalizedObject = z.infer<typeof evidenceNormalizedObjectSchema>;
 export type EvidenceProofKind = z.infer<typeof evidenceProofKindSchema>;

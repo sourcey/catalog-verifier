@@ -1,15 +1,15 @@
 import { z } from "zod";
 export declare const catalogGitSyncResultSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     status: z.ZodEnum<{
-        up_to_date: "up_to_date";
-        no_changes: "no_changes";
         awaiting_admission: "awaiting_admission";
+        no_changes: "no_changes";
+        up_to_date: "up_to_date";
     }>;
     head_commit: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
     status: z.ZodEnum<{
-        published: "published";
         converged_elsewhere: "converged_elsewhere";
+        published: "published";
     }>;
     head_commit: z.ZodString;
     release_id: z.ZodString;
@@ -17,32 +17,32 @@ export declare const catalogGitSyncResultSchema: z.ZodDiscriminatedUnion<[z.ZodO
 export type CatalogGitSyncResult = z.infer<typeof catalogGitSyncResultSchema>;
 export declare const PUBLICATION_STAGES: readonly ["validation", "evidence", "identity", "content", "readiness", "authorization", "publication", "readback"];
 export declare const publicationStageSchema: z.ZodEnum<{
-    content: "content";
-    identity: "identity";
     authorization: "authorization";
-    publication: "publication";
-    validation: "validation";
+    content: "content";
     evidence: "evidence";
-    readiness: "readiness";
+    identity: "identity";
+    publication: "publication";
     readback: "readback";
+    readiness: "readiness";
+    validation: "validation";
 }>;
 export declare const publicationStageStatusSchema: z.ZodEnum<{
-    pending: "pending";
-    passed: "passed";
     failed: "failed";
-    not_required: "not_required";
     invalidated: "invalidated";
+    not_required: "not_required";
+    passed: "passed";
+    pending: "pending";
 }>;
 export declare const publicationDiagnosticSchema: z.ZodObject<{
     stage: z.ZodEnum<{
-        content: "content";
-        identity: "identity";
         authorization: "authorization";
-        publication: "publication";
-        validation: "validation";
+        content: "content";
         evidence: "evidence";
-        readiness: "readiness";
+        identity: "identity";
+        publication: "publication";
         readback: "readback";
+        readiness: "readiness";
+        validation: "validation";
     }>;
     code: z.ZodString;
     message: z.ZodString;
@@ -50,32 +50,32 @@ export declare const publicationDiagnosticSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const publicationStageResultSchema: z.ZodObject<{
     stage: z.ZodEnum<{
-        content: "content";
-        identity: "identity";
         authorization: "authorization";
-        publication: "publication";
-        validation: "validation";
+        content: "content";
         evidence: "evidence";
-        readiness: "readiness";
+        identity: "identity";
+        publication: "publication";
         readback: "readback";
+        readiness: "readiness";
+        validation: "validation";
     }>;
     status: z.ZodEnum<{
-        pending: "pending";
-        passed: "passed";
         failed: "failed";
-        not_required: "not_required";
         invalidated: "invalidated";
+        not_required: "not_required";
+        passed: "passed";
+        pending: "pending";
     }>;
     diagnostics: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
-            content: "content";
-            identity: "identity";
             authorization: "authorization";
-            publication: "publication";
-            validation: "validation";
+            content: "content";
             evidence: "evidence";
-            readiness: "readiness";
+            identity: "identity";
+            publication: "publication";
             readback: "readback";
+            readiness: "readiness";
+            validation: "validation";
         }>;
         code: z.ZodString;
         message: z.ZodString;
@@ -124,10 +124,10 @@ export type PublicationAdmissionTarget = z.infer<typeof publicationAdmissionTarg
 export declare const publicationAdmissionAuthoritySchema: z.ZodObject<{
     kind: z.ZodEnum<{
         asset: "asset";
-        identity: "identity";
-        evidence: "evidence";
         assurance: "assurance";
         claim: "claim";
+        evidence: "evidence";
+        identity: "identity";
     }>;
     root: z.ZodString;
     tree_digest: z.ZodString;
@@ -145,10 +145,10 @@ export declare const publicationAdmissionManifestCoreSchema: z.ZodObject<{
     authorities: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             asset: "asset";
-            identity: "identity";
-            evidence: "evidence";
             assurance: "assurance";
             claim: "claim";
+            evidence: "evidence";
+            identity: "identity";
         }>;
         root: z.ZodString;
         tree_digest: z.ZodString;
@@ -167,10 +167,10 @@ export declare const publicationAdmissionManifestSchema: z.ZodObject<{
     authorities: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             asset: "asset";
-            identity: "identity";
-            evidence: "evidence";
             assurance: "assurance";
             claim: "claim";
+            evidence: "evidence";
+            identity: "identity";
         }>;
         root: z.ZodString;
         tree_digest: z.ZodString;
@@ -194,16 +194,16 @@ export declare const expectedPublicationAssetBindingSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const publicationAuthorityProposalSchema: z.ZodObject<{
     purpose: z.ZodEnum<{
-        "catalog-capture": "catalog-capture";
-        "catalog-evidence": "catalog-evidence";
-        "catalog-identity": "catalog-identity";
-        "catalog-authority": "catalog-authority";
         "catalog-attestation": "catalog-attestation";
-        "catalog-verification": "catalog-verification";
+        "catalog-authority": "catalog-authority";
+        "catalog-capture": "catalog-capture";
         "catalog-dispute": "catalog-dispute";
+        "catalog-evidence": "catalog-evidence";
+        "catalog-feed": "catalog-feed";
+        "catalog-identity": "catalog-identity";
         "catalog-policy": "catalog-policy";
         "catalog-release": "catalog-release";
-        "catalog-feed": "catalog-feed";
+        "catalog-verification": "catalog-verification";
     }>;
     proposal_digest: z.ZodString;
     dependency_keys: z.ZodArray<z.ZodString>;
@@ -229,8 +229,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -283,6 +283,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -323,9 +325,9 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -352,9 +354,9 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -414,14 +416,14 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -434,12 +436,10 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -453,19 +453,19 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -501,8 +501,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             captured_at: z.ZodISODateTime;
             storage_receipt_digest: z.ZodString;
@@ -515,8 +515,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             output_media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             maximum_width: z.ZodNumber;
             maximum_height: z.ZodNumber;
@@ -533,8 +533,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
             }, z.core.$strict>;
@@ -544,8 +544,8 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
                 served_path: z.ZodString;
@@ -564,10 +564,10 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -579,10 +579,10 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
         served_digest: z.ZodString;
         safe_storage_receipt_digest: z.ZodString;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         source_basis: z.ZodString;
@@ -596,10 +596,10 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
             served_digest: z.ZodString;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -607,10 +607,10 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
                 fallback_reason: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             source_basis: z.ZodString;
             decision: z.ZodLiteral<"approved">;
@@ -646,16 +646,16 @@ export declare const catalogPublicationProposalCoreSchema: z.ZodObject<{
     }, z.core.$strict>>>;
     authority_proposals: z.ZodArray<z.ZodObject<{
         purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         proposal_digest: z.ZodString;
         dependency_keys: z.ZodArray<z.ZodString>;
@@ -687,8 +687,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -741,6 +741,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -781,9 +783,9 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -810,9 +812,9 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -872,14 +874,14 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -892,12 +894,10 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -911,19 +911,19 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -959,8 +959,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             captured_at: z.ZodISODateTime;
             storage_receipt_digest: z.ZodString;
@@ -973,8 +973,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             output_media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             maximum_width: z.ZodNumber;
             maximum_height: z.ZodNumber;
@@ -991,8 +991,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
             }, z.core.$strict>;
@@ -1002,8 +1002,8 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
                 served_path: z.ZodString;
@@ -1022,10 +1022,10 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             }, z.core.$strict>>;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -1037,10 +1037,10 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
         served_digest: z.ZodString;
         safe_storage_receipt_digest: z.ZodString;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         source_basis: z.ZodString;
@@ -1054,10 +1054,10 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
             served_digest: z.ZodString;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -1065,10 +1065,10 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
                 fallback_reason: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             source_basis: z.ZodString;
             decision: z.ZodLiteral<"approved">;
@@ -1104,16 +1104,16 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
     }, z.core.$strict>>>;
     authority_proposals: z.ZodArray<z.ZodObject<{
         purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         proposal_digest: z.ZodString;
         dependency_keys: z.ZodArray<z.ZodString>;
@@ -1128,16 +1128,18 @@ export declare const catalogPublicationProposalSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type CatalogPublicationProposal = z.infer<typeof catalogPublicationProposalSchema>;
 export declare const gitPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"git">;
     repository_id: z.ZodString;
     base_commit: z.ZodString;
     head_commit: z.ZodString;
     head_tree: z.ZodString;
     changed_tree: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const authenticatedFormPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"authenticated_form">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1146,10 +1148,10 @@ export declare const authenticatedFormPublicationIngressReceiptCoreSchema: z.Zod
     authorization_digest: z.ZodString;
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const paidAgentPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"paid_agent">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1159,10 +1161,10 @@ export declare const paidAgentPublicationIngressReceiptCoreSchema: z.ZodObject<{
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     request_id: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const governedOpsPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"governed_ops">;
     submission_work_item_digest: z.ZodNullable<z.ZodString>;
     command_digest: z.ZodString;
@@ -1172,44 +1174,44 @@ export declare const governedOpsPublicationIngressReceiptCoreSchema: z.ZodObject
     authentication_digest: z.ZodString;
     authorization_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const scannerPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"scanner">;
     inventory_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const operatorJobPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"operator_job">;
     job_input_digest: z.ZodString;
     authority_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const policyTransitionPublicationIngressReceiptCoreSchema: z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"policy_transition">;
     intent_digest: z.ZodString;
     configuration_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const publicationIngressReceiptCoreSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"git">;
     repository_id: z.ZodString;
     base_commit: z.ZodString;
     head_commit: z.ZodString;
     head_tree: z.ZodString;
     changed_tree: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"authenticated_form">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1218,9 +1220,9 @@ export declare const publicationIngressReceiptCoreSchema: z.ZodDiscriminatedUnio
     authorization_digest: z.ZodString;
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"paid_agent">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1230,9 +1232,9 @@ export declare const publicationIngressReceiptCoreSchema: z.ZodDiscriminatedUnio
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     request_id: z.ZodString;
     idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"governed_ops">;
     submission_work_item_digest: z.ZodNullable<z.ZodString>;
     command_digest: z.ZodString;
@@ -1242,42 +1244,42 @@ export declare const publicationIngressReceiptCoreSchema: z.ZodDiscriminatedUnio
     authentication_digest: z.ZodString;
     authorization_digest: z.ZodString;
     idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"scanner">;
     inventory_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"operator_job">;
     job_input_digest: z.ZodString;
     authority_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"policy_transition">;
     intent_digest: z.ZodString;
     configuration_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
 }, z.core.$strict>], "kind">;
 export declare const publicationIngressReceiptSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"git">;
     repository_id: z.ZodString;
     base_commit: z.ZodString;
     head_commit: z.ZodString;
     head_tree: z.ZodString;
     changed_tree: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"authenticated_form">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1286,10 +1288,10 @@ export declare const publicationIngressReceiptSchema: z.ZodDiscriminatedUnion<[z
     authorization_digest: z.ZodString;
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"paid_agent">;
     submission_work_item_digest: z.ZodString;
     schema_digest: z.ZodString;
@@ -1299,10 +1301,10 @@ export declare const publicationIngressReceiptSchema: z.ZodDiscriminatedUnion<[z
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     request_id: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"governed_ops">;
     submission_work_item_digest: z.ZodNullable<z.ZodString>;
     command_digest: z.ZodString;
@@ -1312,33 +1314,31 @@ export declare const publicationIngressReceiptSchema: z.ZodDiscriminatedUnion<[z
     authentication_digest: z.ZodString;
     authorization_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"scanner">;
     inventory_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"operator_job">;
     job_input_digest: z.ZodString;
     authority_digest: z.ZodString;
     run_receipt_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"policy_transition">;
     intent_digest: z.ZodString;
     configuration_digest: z.ZodString;
     idempotency_key: z.ZodString;
-    proposal_digest: z.ZodString;
-    semantic_input_digest: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>], "kind">;
 export type PublicationIngressReceiptCore = z.infer<typeof publicationIngressReceiptCoreSchema>;
@@ -1395,8 +1395,8 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1449,6 +1449,8 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1489,9 +1491,9 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1518,9 +1520,9 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1580,14 +1582,14 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1600,12 +1602,10 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1619,19 +1619,19 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -1643,9 +1643,9 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
     current_asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
         entity_id: z.ZodString;
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_digest: z.ZodString;
@@ -1653,17 +1653,17 @@ export declare const catalogPublicationCurrentStateCoreSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         bytes: z.ZodNumber;
         width: z.ZodNumber;
         height: z.ZodNumber;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;
@@ -1701,8 +1701,8 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1755,6 +1755,8 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1795,9 +1797,9 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1824,9 +1826,9 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1886,14 +1888,14 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1906,12 +1908,10 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1925,19 +1925,19 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -1949,9 +1949,9 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
     current_asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
         entity_id: z.ZodString;
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_digest: z.ZodString;
@@ -1959,17 +1959,17 @@ export declare const catalogPublicationCurrentStateSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         bytes: z.ZodNumber;
         width: z.ZodNumber;
         height: z.ZodNumber;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;
@@ -2008,8 +2008,8 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2062,6 +2062,8 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -2102,9 +2104,9 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -2131,9 +2133,9 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -2193,14 +2195,14 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2213,12 +2215,10 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -2232,19 +2232,19 @@ export declare const catalogCurrentAuthoringCutoverEntrySchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -2288,8 +2288,8 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                 domains: z.ZodArray<z.ZodObject<{
                     value: z.ZodString;
                     role: z.ZodEnum<{
-                        primary: "primary";
                         alias: "alias";
+                        primary: "primary";
                     }>;
                     valid_from: z.ZodISODateTime;
                     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2342,6 +2342,8 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                         description: z.ZodString;
                     }, z.core.$strict>], "kind">;
                     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
                         kind: z.ZodLiteral<"credit">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -2382,9 +2384,9 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"discount">;
                         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -2411,9 +2413,9 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"cashback">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"money">;
@@ -2473,14 +2475,14 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"waiver">;
                         waived_item: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"free-service">;
                         service: z.ZodString;
                         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2493,12 +2495,10 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
-                        benefit_id: z.ZodString;
-                        description: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
-                        kind: z.ZodLiteral<"other">;
                         benefit_id: z.ZodString;
                         description: z.ZodString;
+                        kind: z.ZodLiteral<"other">;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>;
                 eligibility: z.ZodObject<{
@@ -2512,19 +2512,19 @@ export declare const catalogCurrentAuthoringCutoverCoreSchema: z.ZodObject<{
                 declared: z.ZodOptional<z.ZodLiteral<true>>;
                 access: z.ZodObject<{
                     availability: z.ZodEnum<{
-                        public: "public";
-                        other: "other";
-                        referral: "referral";
-                        membership: "membership";
-                        invite: "invite";
                         automatic: "automatic";
+                        invite: "invite";
+                        membership: "membership";
+                        other: "other";
+                        public: "public";
+                        referral: "referral";
                     }>;
                     method: z.ZodEnum<{
-                        code: "code";
-                        other: "other";
                         automatic: "automatic";
-                        form: "form";
+                        code: "code";
                         contact: "contact";
+                        form: "form";
+                        other: "other";
                     }>;
                     public_code: z.ZodOptional<z.ZodString>;
                     url: z.ZodOptional<z.ZodURL>;
@@ -2569,8 +2569,8 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                 domains: z.ZodArray<z.ZodObject<{
                     value: z.ZodString;
                     role: z.ZodEnum<{
-                        primary: "primary";
                         alias: "alias";
+                        primary: "primary";
                     }>;
                     valid_from: z.ZodISODateTime;
                     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2623,6 +2623,8 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                         description: z.ZodString;
                     }, z.core.$strict>], "kind">;
                     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
                         kind: z.ZodLiteral<"credit">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -2663,9 +2665,9 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"discount">;
                         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -2692,9 +2694,9 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"cashback">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"money">;
@@ -2754,14 +2756,14 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"waiver">;
                         waived_item: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"free-service">;
                         service: z.ZodString;
                         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2774,12 +2776,10 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
-                        benefit_id: z.ZodString;
-                        description: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
-                        kind: z.ZodLiteral<"other">;
                         benefit_id: z.ZodString;
                         description: z.ZodString;
+                        kind: z.ZodLiteral<"other">;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>;
                 eligibility: z.ZodObject<{
@@ -2793,19 +2793,19 @@ export declare const catalogCurrentAuthoringCutoverSchema: z.ZodObject<{
                 declared: z.ZodOptional<z.ZodLiteral<true>>;
                 access: z.ZodObject<{
                     availability: z.ZodEnum<{
-                        public: "public";
-                        other: "other";
-                        referral: "referral";
-                        membership: "membership";
-                        invite: "invite";
                         automatic: "automatic";
+                        invite: "invite";
+                        membership: "membership";
+                        other: "other";
+                        public: "public";
+                        referral: "referral";
                     }>;
                     method: z.ZodEnum<{
-                        code: "code";
-                        other: "other";
                         automatic: "automatic";
-                        form: "form";
+                        code: "code";
                         contact: "contact";
+                        form: "form";
+                        other: "other";
                     }>;
                     public_code: z.ZodOptional<z.ZodString>;
                     url: z.ZodOptional<z.ZodURL>;
@@ -2821,15 +2821,15 @@ export type CatalogCurrentAuthoringCutover = z.infer<typeof catalogCurrentAuthor
 export declare const publicationRevisionChangeSchema: z.ZodObject<{
     kind: z.ZodEnum<{
         entity: "entity";
-        program: "program";
         offer: "offer";
+        program: "program";
     }>;
     entity_id: z.ZodString;
     target_id: z.ZodString;
     change: z.ZodEnum<{
         added: "added";
-        updated: "updated";
         removed: "removed";
+        updated: "updated";
     }>;
     current_revision_digest: z.ZodNullable<z.ZodString>;
     candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -2842,8 +2842,8 @@ export declare const publicationSourceChangeSchema: z.ZodObject<{
     source_id: z.ZodString;
     change: z.ZodEnum<{
         added: "added";
-        updated: "updated";
         removed: "removed";
+        updated: "updated";
     }>;
     current_url: z.ZodNullable<z.ZodURL>;
     candidate_url: z.ZodNullable<z.ZodURL>;
@@ -2869,8 +2869,8 @@ export declare const publicationAssetChangeSchema: z.ZodDiscriminatedUnion<[z.Zo
 export declare const publicationRouteChangeSchema: z.ZodObject<{
     kind: z.ZodEnum<{
         entity: "entity";
-        program: "program";
         offer: "offer";
+        program: "program";
     }>;
     entity_id: z.ZodString;
     target_id: z.ZodString;
@@ -2929,10 +2929,10 @@ export declare const surfaceDependencyReferenceSchema: z.ZodDiscriminatedUnion<[
     agent_readiness_profile_id: z.ZodString;
     stage: z.ZodEnum<{
         evaluate: "evaluate";
-        sign_up: "sign_up";
+        operate: "operate";
         pay: "pay";
         provision: "provision";
-        operate: "operate";
+        sign_up: "sign_up";
     }>;
     signal_code: z.ZodString;
     conclusion_digest: z.ZodString;
@@ -2941,10 +2941,10 @@ export declare const surfaceDependencyReferenceSchema: z.ZodDiscriminatedUnion<[
     agent_readiness_profile_id: z.ZodString;
     stage: z.ZodEnum<{
         evaluate: "evaluate";
-        sign_up: "sign_up";
+        operate: "operate";
         pay: "pay";
         provision: "provision";
-        operate: "operate";
+        sign_up: "sign_up";
     }>;
     stage_projection_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
@@ -2959,10 +2959,10 @@ export declare const surfaceDependencyReferenceSchema: z.ZodDiscriminatedUnion<[
     relation_revision_digest: z.ZodString;
 }, z.core.$strict>], "kind">;
 export declare const publicationRecompositionActionSchema: z.ZodEnum<{
+    reassess: "reassess";
     rebind: "rebind";
     refresh: "refresh";
     reinterpret: "reinterpret";
-    reassess: "reassess";
     reproject: "reproject";
     withdraw: "withdraw";
 }>;
@@ -2983,10 +2983,10 @@ export declare const publicationRecompositionNodeSchema: z.ZodObject<{
     current_output_digest: z.ZodNullable<z.ZodString>;
     candidate_output_digest: z.ZodNullable<z.ZodString>;
     action: z.ZodEnum<{
+        reassess: "reassess";
         rebind: "rebind";
         refresh: "refresh";
         reinterpret: "reinterpret";
-        reassess: "reassess";
         reproject: "reproject";
         withdraw: "withdraw";
     }>;
@@ -3006,15 +3006,15 @@ export declare const catalogPublicationChangeSetCoreSchema: z.ZodObject<{
     revision_changes: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             entity: "entity";
-            program: "program";
             offer: "offer";
+            program: "program";
         }>;
         entity_id: z.ZodString;
         target_id: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         current_revision_digest: z.ZodNullable<z.ZodString>;
         candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -3027,8 +3027,8 @@ export declare const catalogPublicationChangeSetCoreSchema: z.ZodObject<{
         source_id: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         current_url: z.ZodNullable<z.ZodURL>;
         candidate_url: z.ZodNullable<z.ZodURL>;
@@ -3054,8 +3054,8 @@ export declare const catalogPublicationChangeSetCoreSchema: z.ZodObject<{
     route_changes: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             entity: "entity";
-            program: "program";
             offer: "offer";
+            program: "program";
         }>;
         entity_id: z.ZodString;
         target_id: z.ZodString;
@@ -3084,16 +3084,16 @@ export declare const catalogPublicationChangeSetCoreSchema: z.ZodObject<{
     }, z.core.$strict>>;
     unaffected_dependents_proof_digest: z.ZodString;
     required_authorities: z.ZodArray<z.ZodEnum<{
-        "catalog-capture": "catalog-capture";
-        "catalog-evidence": "catalog-evidence";
-        "catalog-identity": "catalog-identity";
-        "catalog-authority": "catalog-authority";
         "catalog-attestation": "catalog-attestation";
-        "catalog-verification": "catalog-verification";
+        "catalog-authority": "catalog-authority";
+        "catalog-capture": "catalog-capture";
         "catalog-dispute": "catalog-dispute";
+        "catalog-evidence": "catalog-evidence";
+        "catalog-feed": "catalog-feed";
+        "catalog-identity": "catalog-identity";
         "catalog-policy": "catalog-policy";
         "catalog-release": "catalog-release";
-        "catalog-feed": "catalog-feed";
+        "catalog-verification": "catalog-verification";
     }>>;
 }, z.core.$strict>;
 export declare const catalogPublicationChangeSetSchema: z.ZodObject<{
@@ -3104,15 +3104,15 @@ export declare const catalogPublicationChangeSetSchema: z.ZodObject<{
     revision_changes: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             entity: "entity";
-            program: "program";
             offer: "offer";
+            program: "program";
         }>;
         entity_id: z.ZodString;
         target_id: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         current_revision_digest: z.ZodNullable<z.ZodString>;
         candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -3125,8 +3125,8 @@ export declare const catalogPublicationChangeSetSchema: z.ZodObject<{
         source_id: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         current_url: z.ZodNullable<z.ZodURL>;
         candidate_url: z.ZodNullable<z.ZodURL>;
@@ -3152,8 +3152,8 @@ export declare const catalogPublicationChangeSetSchema: z.ZodObject<{
     route_changes: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
             entity: "entity";
-            program: "program";
             offer: "offer";
+            program: "program";
         }>;
         entity_id: z.ZodString;
         target_id: z.ZodString;
@@ -3182,16 +3182,16 @@ export declare const catalogPublicationChangeSetSchema: z.ZodObject<{
     }, z.core.$strict>>;
     unaffected_dependents_proof_digest: z.ZodString;
     required_authorities: z.ZodArray<z.ZodEnum<{
-        "catalog-capture": "catalog-capture";
-        "catalog-evidence": "catalog-evidence";
-        "catalog-identity": "catalog-identity";
-        "catalog-authority": "catalog-authority";
         "catalog-attestation": "catalog-attestation";
-        "catalog-verification": "catalog-verification";
+        "catalog-authority": "catalog-authority";
+        "catalog-capture": "catalog-capture";
         "catalog-dispute": "catalog-dispute";
+        "catalog-evidence": "catalog-evidence";
+        "catalog-feed": "catalog-feed";
+        "catalog-identity": "catalog-identity";
         "catalog-policy": "catalog-policy";
         "catalog-release": "catalog-release";
-        "catalog-feed": "catalog-feed";
+        "catalog-verification": "catalog-verification";
     }>>;
     change_set_digest: z.ZodString;
 }, z.core.$strict>;
@@ -3222,8 +3222,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 domains: z.ZodArray<z.ZodObject<{
                     value: z.ZodString;
                     role: z.ZodEnum<{
-                        primary: "primary";
                         alias: "alias";
+                        primary: "primary";
                     }>;
                     valid_from: z.ZodISODateTime;
                     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -3276,6 +3276,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                         description: z.ZodString;
                     }, z.core.$strict>], "kind">;
                     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
                         kind: z.ZodLiteral<"credit">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -3316,9 +3318,9 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"discount">;
                         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -3345,9 +3347,9 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"cashback">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"money">;
@@ -3407,14 +3409,14 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"waiver">;
                         waived_item: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"free-service">;
                         service: z.ZodString;
                         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -3427,12 +3429,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
-                        benefit_id: z.ZodString;
-                        description: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
-                        kind: z.ZodLiteral<"other">;
                         benefit_id: z.ZodString;
                         description: z.ZodString;
+                        kind: z.ZodLiteral<"other">;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>;
                 eligibility: z.ZodObject<{
@@ -3446,19 +3446,19 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 declared: z.ZodOptional<z.ZodLiteral<true>>;
                 access: z.ZodObject<{
                     availability: z.ZodEnum<{
-                        public: "public";
-                        other: "other";
-                        referral: "referral";
-                        membership: "membership";
-                        invite: "invite";
                         automatic: "automatic";
+                        invite: "invite";
+                        membership: "membership";
+                        other: "other";
+                        public: "public";
+                        referral: "referral";
                     }>;
                     method: z.ZodEnum<{
-                        code: "code";
-                        other: "other";
                         automatic: "automatic";
-                        form: "form";
+                        code: "code";
                         contact: "contact";
+                        form: "form";
+                        other: "other";
                     }>;
                     public_code: z.ZodOptional<z.ZodString>;
                     url: z.ZodOptional<z.ZodURL>;
@@ -3494,8 +3494,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 captured_at: z.ZodISODateTime;
                 storage_receipt_digest: z.ZodString;
@@ -3508,8 +3508,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 output_media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 maximum_width: z.ZodNumber;
                 maximum_height: z.ZodNumber;
@@ -3526,8 +3526,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                 }, z.core.$strict>;
@@ -3537,8 +3537,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                     served_path: z.ZodString;
@@ -3557,10 +3557,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -3572,10 +3572,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
             served_digest: z.ZodString;
             safe_storage_receipt_digest: z.ZodString;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             authority_claim_id: z.ZodOptional<z.ZodString>;
             source_basis: z.ZodString;
@@ -3589,10 +3589,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                 served_digest: z.ZodString;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -3600,10 +3600,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
                     fallback_reason: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>;
                 authority_basis: z.ZodEnum<{
-                    "sourcey-owned": "sourcey-owned";
-                    "vendor-authority": "vendor-authority";
                     "editorial-review": "editorial-review";
                     "licensed-source": "licensed-source";
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
                 }>;
                 source_basis: z.ZodString;
                 decision: z.ZodLiteral<"approved">;
@@ -3639,16 +3639,16 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         }, z.core.$strict>>>;
         authority_proposals: z.ZodArray<z.ZodObject<{
             purpose: z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>;
             proposal_digest: z.ZodString;
             dependency_keys: z.ZodArray<z.ZodString>;
@@ -3669,15 +3669,15 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         revision_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_revision_digest: z.ZodNullable<z.ZodString>;
             candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -3690,8 +3690,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
             source_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_url: z.ZodNullable<z.ZodURL>;
             candidate_url: z.ZodNullable<z.ZodURL>;
@@ -3717,8 +3717,8 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         route_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
@@ -3747,30 +3747,32 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         }, z.core.$strict>>;
         unaffected_dependents_proof_digest: z.ZodString;
         required_authorities: z.ZodArray<z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>>;
         change_set_digest: z.ZodString;
     }, z.core.$strict>;
     ingress_receipt: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"git">;
         repository_id: z.ZodString;
         base_commit: z.ZodString;
         head_commit: z.ZodString;
         head_tree: z.ZodString;
         changed_tree: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"authenticated_form">;
         submission_work_item_digest: z.ZodString;
         schema_digest: z.ZodString;
@@ -3779,10 +3781,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         authorization_digest: z.ZodString;
         operator_admission_digest: z.ZodNullable<z.ZodString>;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"paid_agent">;
         submission_work_item_digest: z.ZodString;
         schema_digest: z.ZodString;
@@ -3792,10 +3794,10 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         operator_admission_digest: z.ZodNullable<z.ZodString>;
         request_id: z.ZodString;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"governed_ops">;
         submission_work_item_digest: z.ZodNullable<z.ZodString>;
         command_digest: z.ZodString;
@@ -3805,33 +3807,31 @@ export declare const catalogPublicationIngressSchema: z.ZodObject<{
         authentication_digest: z.ZodString;
         authorization_digest: z.ZodString;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"scanner">;
         inventory_digest: z.ZodString;
         run_receipt_digest: z.ZodString;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"operator_job">;
         job_input_digest: z.ZodString;
         authority_digest: z.ZodString;
         run_receipt_digest: z.ZodString;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"policy_transition">;
         intent_digest: z.ZodString;
         configuration_digest: z.ZodString;
         idempotency_key: z.ZodString;
-        proposal_digest: z.ZodString;
-        semantic_input_digest: z.ZodString;
         receipt_digest: z.ZodString;
     }, z.core.$strict>], "kind">;
 }, z.core.$strict>;
@@ -3856,8 +3856,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 domains: z.ZodArray<z.ZodObject<{
                     value: z.ZodString;
                     role: z.ZodEnum<{
-                        primary: "primary";
                         alias: "alias";
+                        primary: "primary";
                     }>;
                     valid_from: z.ZodISODateTime;
                     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -3910,6 +3910,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                         description: z.ZodString;
                     }, z.core.$strict>], "kind">;
                     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
                         kind: z.ZodLiteral<"credit">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -3950,9 +3952,9 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"discount">;
                         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -3979,9 +3981,9 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"cashback">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"money">;
@@ -4041,14 +4043,14 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"waiver">;
                         waived_item: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"free-service">;
                         service: z.ZodString;
                         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -4061,12 +4063,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
-                        benefit_id: z.ZodString;
-                        description: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
-                        kind: z.ZodLiteral<"other">;
                         benefit_id: z.ZodString;
                         description: z.ZodString;
+                        kind: z.ZodLiteral<"other">;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>;
                 eligibility: z.ZodObject<{
@@ -4080,19 +4080,19 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 declared: z.ZodOptional<z.ZodLiteral<true>>;
                 access: z.ZodObject<{
                     availability: z.ZodEnum<{
-                        public: "public";
-                        other: "other";
-                        referral: "referral";
-                        membership: "membership";
-                        invite: "invite";
                         automatic: "automatic";
+                        invite: "invite";
+                        membership: "membership";
+                        other: "other";
+                        public: "public";
+                        referral: "referral";
                     }>;
                     method: z.ZodEnum<{
-                        code: "code";
-                        other: "other";
                         automatic: "automatic";
-                        form: "form";
+                        code: "code";
                         contact: "contact";
+                        form: "form";
+                        other: "other";
                     }>;
                     public_code: z.ZodOptional<z.ZodString>;
                     url: z.ZodOptional<z.ZodURL>;
@@ -4128,8 +4128,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 captured_at: z.ZodISODateTime;
                 storage_receipt_digest: z.ZodString;
@@ -4142,8 +4142,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 output_media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 maximum_width: z.ZodNumber;
                 maximum_height: z.ZodNumber;
@@ -4160,8 +4160,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                 }, z.core.$strict>;
@@ -4171,8 +4171,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                     served_path: z.ZodString;
@@ -4191,10 +4191,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -4206,10 +4206,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             served_digest: z.ZodString;
             safe_storage_receipt_digest: z.ZodString;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             authority_claim_id: z.ZodOptional<z.ZodString>;
             source_basis: z.ZodString;
@@ -4223,10 +4223,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 served_digest: z.ZodString;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -4234,10 +4234,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     fallback_reason: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>;
                 authority_basis: z.ZodEnum<{
-                    "sourcey-owned": "sourcey-owned";
-                    "vendor-authority": "vendor-authority";
                     "editorial-review": "editorial-review";
                     "licensed-source": "licensed-source";
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
                 }>;
                 source_basis: z.ZodString;
                 decision: z.ZodLiteral<"approved">;
@@ -4273,16 +4273,16 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
         }, z.core.$strict>>>;
         authority_proposals: z.ZodArray<z.ZodObject<{
             purpose: z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>;
             proposal_digest: z.ZodString;
             dependency_keys: z.ZodArray<z.ZodString>;
@@ -4303,15 +4303,15 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
         revision_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_revision_digest: z.ZodNullable<z.ZodString>;
             candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -4324,8 +4324,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             source_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_url: z.ZodNullable<z.ZodURL>;
             candidate_url: z.ZodNullable<z.ZodURL>;
@@ -4351,8 +4351,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
         route_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
@@ -4381,16 +4381,16 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
         }, z.core.$strict>>;
         unaffected_dependents_proof_digest: z.ZodString;
         required_authorities: z.ZodArray<z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>>;
         change_set_digest: z.ZodString;
     }, z.core.$strict>;
@@ -4415,8 +4415,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     domains: z.ZodArray<z.ZodObject<{
                         value: z.ZodString;
                         role: z.ZodEnum<{
-                            primary: "primary";
                             alias: "alias";
+                            primary: "primary";
                         }>;
                         valid_from: z.ZodISODateTime;
                         valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -4469,6 +4469,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                             description: z.ZodString;
                         }, z.core.$strict>], "kind">;
                         benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
                             kind: z.ZodLiteral<"credit">;
                             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"exact">;
@@ -4509,9 +4511,9 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"discount">;
                             percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"exact">;
@@ -4538,9 +4540,9 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"cashback">;
                             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"money">;
@@ -4600,14 +4602,14 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"waiver">;
                             waived_item: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"free-service">;
                             service: z.ZodString;
                             duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -4620,12 +4622,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
-                            benefit_id: z.ZodString;
-                            description: z.ZodString;
                         }, z.core.$strict>, z.ZodObject<{
-                            kind: z.ZodLiteral<"other">;
                             benefit_id: z.ZodString;
                             description: z.ZodString;
+                            kind: z.ZodLiteral<"other">;
                         }, z.core.$strict>], "kind">>;
                     }, z.core.$strict>;
                     eligibility: z.ZodObject<{
@@ -4639,19 +4639,19 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     declared: z.ZodOptional<z.ZodLiteral<true>>;
                     access: z.ZodObject<{
                         availability: z.ZodEnum<{
-                            public: "public";
-                            other: "other";
-                            referral: "referral";
-                            membership: "membership";
-                            invite: "invite";
                             automatic: "automatic";
+                            invite: "invite";
+                            membership: "membership";
+                            other: "other";
+                            public: "public";
+                            referral: "referral";
                         }>;
                         method: z.ZodEnum<{
-                            code: "code";
-                            other: "other";
                             automatic: "automatic";
-                            form: "form";
+                            code: "code";
                             contact: "contact";
+                            form: "form";
+                            other: "other";
                         }>;
                         public_code: z.ZodOptional<z.ZodString>;
                         url: z.ZodOptional<z.ZodURL>;
@@ -4687,8 +4687,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     captured_at: z.ZodISODateTime;
                     storage_receipt_digest: z.ZodString;
@@ -4701,8 +4701,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     output_media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     maximum_width: z.ZodNumber;
                     maximum_height: z.ZodNumber;
@@ -4719,8 +4719,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                         media_type: z.ZodEnum<{
                             "image/jpeg": "image/jpeg";
                             "image/png": "image/png";
-                            "image/webp": "image/webp";
                             "image/svg+xml": "image/svg+xml";
+                            "image/webp": "image/webp";
                         }>;
                         source_path: z.ZodString;
                     }, z.core.$strict>;
@@ -4730,8 +4730,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                         media_type: z.ZodEnum<{
                             "image/jpeg": "image/jpeg";
                             "image/png": "image/png";
-                            "image/webp": "image/webp";
                             "image/svg+xml": "image/svg+xml";
+                            "image/webp": "image/webp";
                         }>;
                         source_path: z.ZodString;
                         served_path: z.ZodString;
@@ -4750,10 +4750,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     }, z.core.$strict>>;
                     redistribution: z.ZodObject<{
                         basis: z.ZodEnum<{
-                            "vendor-approved": "vendor-approved";
-                            "redistributable-license": "redistributable-license";
                             "nominative-use": "nominative-use";
+                            "redistributable-license": "redistributable-license";
                             "sourcey-owned": "sourcey-owned";
+                            "vendor-approved": "vendor-approved";
                         }>;
                         license: z.ZodString;
                         notice: z.ZodString;
@@ -4765,10 +4765,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 served_digest: z.ZodString;
                 safe_storage_receipt_digest: z.ZodString;
                 authority_basis: z.ZodEnum<{
-                    "sourcey-owned": "sourcey-owned";
-                    "vendor-authority": "vendor-authority";
                     "editorial-review": "editorial-review";
                     "licensed-source": "licensed-source";
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
                 }>;
                 authority_claim_id: z.ZodOptional<z.ZodString>;
                 source_basis: z.ZodString;
@@ -4782,10 +4782,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                     served_digest: z.ZodString;
                     redistribution: z.ZodObject<{
                         basis: z.ZodEnum<{
-                            "vendor-approved": "vendor-approved";
-                            "redistributable-license": "redistributable-license";
                             "nominative-use": "nominative-use";
+                            "redistributable-license": "redistributable-license";
                             "sourcey-owned": "sourcey-owned";
+                            "vendor-approved": "vendor-approved";
                         }>;
                         license: z.ZodString;
                         notice: z.ZodString;
@@ -4793,10 +4793,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                         fallback_reason: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>;
                     authority_basis: z.ZodEnum<{
-                        "sourcey-owned": "sourcey-owned";
-                        "vendor-authority": "vendor-authority";
                         "editorial-review": "editorial-review";
                         "licensed-source": "licensed-source";
+                        "sourcey-owned": "sourcey-owned";
+                        "vendor-authority": "vendor-authority";
                     }>;
                     source_basis: z.ZodString;
                     decision: z.ZodLiteral<"approved">;
@@ -4832,16 +4832,16 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             }, z.core.$strict>>>;
             authority_proposals: z.ZodArray<z.ZodObject<{
                 purpose: z.ZodEnum<{
-                    "catalog-capture": "catalog-capture";
-                    "catalog-evidence": "catalog-evidence";
-                    "catalog-identity": "catalog-identity";
-                    "catalog-authority": "catalog-authority";
                     "catalog-attestation": "catalog-attestation";
-                    "catalog-verification": "catalog-verification";
+                    "catalog-authority": "catalog-authority";
+                    "catalog-capture": "catalog-capture";
                     "catalog-dispute": "catalog-dispute";
+                    "catalog-evidence": "catalog-evidence";
+                    "catalog-feed": "catalog-feed";
+                    "catalog-identity": "catalog-identity";
                     "catalog-policy": "catalog-policy";
                     "catalog-release": "catalog-release";
-                    "catalog-feed": "catalog-feed";
+                    "catalog-verification": "catalog-verification";
                 }>;
                 proposal_digest: z.ZodString;
                 dependency_keys: z.ZodArray<z.ZodString>;
@@ -4862,15 +4862,15 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             revision_changes: z.ZodArray<z.ZodObject<{
                 kind: z.ZodEnum<{
                     entity: "entity";
-                    program: "program";
                     offer: "offer";
+                    program: "program";
                 }>;
                 entity_id: z.ZodString;
                 target_id: z.ZodString;
                 change: z.ZodEnum<{
                     added: "added";
-                    updated: "updated";
                     removed: "removed";
+                    updated: "updated";
                 }>;
                 current_revision_digest: z.ZodNullable<z.ZodString>;
                 candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -4883,8 +4883,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
                 source_id: z.ZodString;
                 change: z.ZodEnum<{
                     added: "added";
-                    updated: "updated";
                     removed: "removed";
+                    updated: "updated";
                 }>;
                 current_url: z.ZodNullable<z.ZodURL>;
                 candidate_url: z.ZodNullable<z.ZodURL>;
@@ -4910,8 +4910,8 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             route_changes: z.ZodArray<z.ZodObject<{
                 kind: z.ZodEnum<{
                     entity: "entity";
-                    program: "program";
                     offer: "offer";
+                    program: "program";
                 }>;
                 entity_id: z.ZodString;
                 target_id: z.ZodString;
@@ -4940,30 +4940,32 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             }, z.core.$strict>>;
             unaffected_dependents_proof_digest: z.ZodString;
             required_authorities: z.ZodArray<z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>>;
             change_set_digest: z.ZodString;
         }, z.core.$strict>;
         ingress_receipt: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"git">;
             repository_id: z.ZodString;
             base_commit: z.ZodString;
             head_commit: z.ZodString;
             head_tree: z.ZodString;
             changed_tree: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"authenticated_form">;
             submission_work_item_digest: z.ZodString;
             schema_digest: z.ZodString;
@@ -4972,10 +4974,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             authorization_digest: z.ZodString;
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"paid_agent">;
             submission_work_item_digest: z.ZodString;
             schema_digest: z.ZodString;
@@ -4985,10 +4987,10 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             request_id: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"governed_ops">;
             submission_work_item_digest: z.ZodNullable<z.ZodString>;
             command_digest: z.ZodString;
@@ -4998,33 +5000,31 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             authentication_digest: z.ZodString;
             authorization_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"scanner">;
             inventory_digest: z.ZodString;
             run_receipt_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"operator_job">;
             job_input_digest: z.ZodString;
             authority_digest: z.ZodString;
             run_receipt_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"policy_transition">;
             intent_digest: z.ZodString;
             configuration_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
@@ -5051,8 +5051,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 domains: z.ZodArray<z.ZodObject<{
                     value: z.ZodString;
                     role: z.ZodEnum<{
-                        primary: "primary";
                         alias: "alias";
+                        primary: "primary";
                     }>;
                     valid_from: z.ZodISODateTime;
                     valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -5105,6 +5105,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         description: z.ZodString;
                     }, z.core.$strict>], "kind">;
                     benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                        benefit_id: z.ZodString;
+                        description: z.ZodString;
                         kind: z.ZodLiteral<"credit">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -5145,9 +5147,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"discount">;
                         percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"exact">;
@@ -5174,9 +5176,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"cashback">;
                         value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                             kind: z.ZodLiteral<"money">;
@@ -5236,14 +5238,14 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"waiver">;
                         waived_item: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
                         benefit_id: z.ZodString;
                         description: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"free-service">;
                         service: z.ZodString;
                         duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -5256,12 +5258,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                             kind: z.ZodLiteral<"at-least">;
                             value: z.ZodString;
                         }, z.core.$strict>], "kind">>;
-                        benefit_id: z.ZodString;
-                        description: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
-                        kind: z.ZodLiteral<"other">;
                         benefit_id: z.ZodString;
                         description: z.ZodString;
+                        kind: z.ZodLiteral<"other">;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>;
                 eligibility: z.ZodObject<{
@@ -5275,19 +5275,19 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 declared: z.ZodOptional<z.ZodLiteral<true>>;
                 access: z.ZodObject<{
                     availability: z.ZodEnum<{
-                        public: "public";
-                        other: "other";
-                        referral: "referral";
-                        membership: "membership";
-                        invite: "invite";
                         automatic: "automatic";
+                        invite: "invite";
+                        membership: "membership";
+                        other: "other";
+                        public: "public";
+                        referral: "referral";
                     }>;
                     method: z.ZodEnum<{
-                        code: "code";
-                        other: "other";
                         automatic: "automatic";
-                        form: "form";
+                        code: "code";
                         contact: "contact";
+                        form: "form";
+                        other: "other";
                     }>;
                     public_code: z.ZodOptional<z.ZodString>;
                     url: z.ZodOptional<z.ZodURL>;
@@ -5323,8 +5323,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 captured_at: z.ZodISODateTime;
                 storage_receipt_digest: z.ZodString;
@@ -5337,8 +5337,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 output_media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 maximum_width: z.ZodNumber;
                 maximum_height: z.ZodNumber;
@@ -5355,8 +5355,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                 }, z.core.$strict>;
@@ -5366,8 +5366,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     source_path: z.ZodString;
                     served_path: z.ZodString;
@@ -5386,10 +5386,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -5401,10 +5401,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             served_digest: z.ZodString;
             safe_storage_receipt_digest: z.ZodString;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             authority_claim_id: z.ZodOptional<z.ZodString>;
             source_basis: z.ZodString;
@@ -5418,10 +5418,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 served_digest: z.ZodString;
                 redistribution: z.ZodObject<{
                     basis: z.ZodEnum<{
-                        "vendor-approved": "vendor-approved";
-                        "redistributable-license": "redistributable-license";
                         "nominative-use": "nominative-use";
+                        "redistributable-license": "redistributable-license";
                         "sourcey-owned": "sourcey-owned";
+                        "vendor-approved": "vendor-approved";
                     }>;
                     license: z.ZodString;
                     notice: z.ZodString;
@@ -5429,10 +5429,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     fallback_reason: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>;
                 authority_basis: z.ZodEnum<{
-                    "sourcey-owned": "sourcey-owned";
-                    "vendor-authority": "vendor-authority";
                     "editorial-review": "editorial-review";
                     "licensed-source": "licensed-source";
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
                 }>;
                 source_basis: z.ZodString;
                 decision: z.ZodLiteral<"approved">;
@@ -5468,16 +5468,16 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
         }, z.core.$strict>>>;
         authority_proposals: z.ZodArray<z.ZodObject<{
             purpose: z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>;
             proposal_digest: z.ZodString;
             dependency_keys: z.ZodArray<z.ZodString>;
@@ -5498,15 +5498,15 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
         revision_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_revision_digest: z.ZodNullable<z.ZodString>;
             candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -5519,8 +5519,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             source_id: z.ZodString;
             change: z.ZodEnum<{
                 added: "added";
-                updated: "updated";
                 removed: "removed";
+                updated: "updated";
             }>;
             current_url: z.ZodNullable<z.ZodURL>;
             candidate_url: z.ZodNullable<z.ZodURL>;
@@ -5546,8 +5546,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
         route_changes: z.ZodArray<z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
             }>;
             entity_id: z.ZodString;
             target_id: z.ZodString;
@@ -5576,16 +5576,16 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
         }, z.core.$strict>>;
         unaffected_dependents_proof_digest: z.ZodString;
         required_authorities: z.ZodArray<z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>>;
         change_set_digest: z.ZodString;
     }, z.core.$strict>;
@@ -5610,8 +5610,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     domains: z.ZodArray<z.ZodObject<{
                         value: z.ZodString;
                         role: z.ZodEnum<{
-                            primary: "primary";
                             alias: "alias";
+                            primary: "primary";
                         }>;
                         valid_from: z.ZodISODateTime;
                         valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -5664,6 +5664,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                             description: z.ZodString;
                         }, z.core.$strict>], "kind">;
                         benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                            benefit_id: z.ZodString;
+                            description: z.ZodString;
                             kind: z.ZodLiteral<"credit">;
                             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"exact">;
@@ -5704,9 +5706,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"discount">;
                             percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"exact">;
@@ -5733,9 +5735,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"cashback">;
                             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                                 kind: z.ZodLiteral<"money">;
@@ -5795,14 +5797,14 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"waiver">;
                             waived_item: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
                             benefit_id: z.ZodString;
                             description: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
                             kind: z.ZodLiteral<"free-service">;
                             service: z.ZodString;
                             duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -5815,12 +5817,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                                 kind: z.ZodLiteral<"at-least">;
                                 value: z.ZodString;
                             }, z.core.$strict>], "kind">>;
-                            benefit_id: z.ZodString;
-                            description: z.ZodString;
                         }, z.core.$strict>, z.ZodObject<{
-                            kind: z.ZodLiteral<"other">;
                             benefit_id: z.ZodString;
                             description: z.ZodString;
+                            kind: z.ZodLiteral<"other">;
                         }, z.core.$strict>], "kind">>;
                     }, z.core.$strict>;
                     eligibility: z.ZodObject<{
@@ -5834,19 +5834,19 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     declared: z.ZodOptional<z.ZodLiteral<true>>;
                     access: z.ZodObject<{
                         availability: z.ZodEnum<{
-                            public: "public";
-                            other: "other";
-                            referral: "referral";
-                            membership: "membership";
-                            invite: "invite";
                             automatic: "automatic";
+                            invite: "invite";
+                            membership: "membership";
+                            other: "other";
+                            public: "public";
+                            referral: "referral";
                         }>;
                         method: z.ZodEnum<{
-                            code: "code";
-                            other: "other";
                             automatic: "automatic";
-                            form: "form";
+                            code: "code";
                             contact: "contact";
+                            form: "form";
+                            other: "other";
                         }>;
                         public_code: z.ZodOptional<z.ZodString>;
                         url: z.ZodOptional<z.ZodURL>;
@@ -5882,8 +5882,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     captured_at: z.ZodISODateTime;
                     storage_receipt_digest: z.ZodString;
@@ -5896,8 +5896,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     output_media_type: z.ZodEnum<{
                         "image/jpeg": "image/jpeg";
                         "image/png": "image/png";
-                        "image/webp": "image/webp";
                         "image/svg+xml": "image/svg+xml";
+                        "image/webp": "image/webp";
                     }>;
                     maximum_width: z.ZodNumber;
                     maximum_height: z.ZodNumber;
@@ -5914,8 +5914,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         media_type: z.ZodEnum<{
                             "image/jpeg": "image/jpeg";
                             "image/png": "image/png";
-                            "image/webp": "image/webp";
                             "image/svg+xml": "image/svg+xml";
+                            "image/webp": "image/webp";
                         }>;
                         source_path: z.ZodString;
                     }, z.core.$strict>;
@@ -5925,8 +5925,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         media_type: z.ZodEnum<{
                             "image/jpeg": "image/jpeg";
                             "image/png": "image/png";
-                            "image/webp": "image/webp";
                             "image/svg+xml": "image/svg+xml";
+                            "image/webp": "image/webp";
                         }>;
                         source_path: z.ZodString;
                         served_path: z.ZodString;
@@ -5945,10 +5945,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     }, z.core.$strict>>;
                     redistribution: z.ZodObject<{
                         basis: z.ZodEnum<{
-                            "vendor-approved": "vendor-approved";
-                            "redistributable-license": "redistributable-license";
                             "nominative-use": "nominative-use";
+                            "redistributable-license": "redistributable-license";
                             "sourcey-owned": "sourcey-owned";
+                            "vendor-approved": "vendor-approved";
                         }>;
                         license: z.ZodString;
                         notice: z.ZodString;
@@ -5960,10 +5960,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 served_digest: z.ZodString;
                 safe_storage_receipt_digest: z.ZodString;
                 authority_basis: z.ZodEnum<{
-                    "sourcey-owned": "sourcey-owned";
-                    "vendor-authority": "vendor-authority";
                     "editorial-review": "editorial-review";
                     "licensed-source": "licensed-source";
+                    "sourcey-owned": "sourcey-owned";
+                    "vendor-authority": "vendor-authority";
                 }>;
                 authority_claim_id: z.ZodOptional<z.ZodString>;
                 source_basis: z.ZodString;
@@ -5977,10 +5977,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     served_digest: z.ZodString;
                     redistribution: z.ZodObject<{
                         basis: z.ZodEnum<{
-                            "vendor-approved": "vendor-approved";
-                            "redistributable-license": "redistributable-license";
                             "nominative-use": "nominative-use";
+                            "redistributable-license": "redistributable-license";
                             "sourcey-owned": "sourcey-owned";
+                            "vendor-approved": "vendor-approved";
                         }>;
                         license: z.ZodString;
                         notice: z.ZodString;
@@ -5988,10 +5988,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         fallback_reason: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>;
                     authority_basis: z.ZodEnum<{
-                        "sourcey-owned": "sourcey-owned";
-                        "vendor-authority": "vendor-authority";
                         "editorial-review": "editorial-review";
                         "licensed-source": "licensed-source";
+                        "sourcey-owned": "sourcey-owned";
+                        "vendor-authority": "vendor-authority";
                     }>;
                     source_basis: z.ZodString;
                     decision: z.ZodLiteral<"approved">;
@@ -6027,16 +6027,16 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             }, z.core.$strict>>>;
             authority_proposals: z.ZodArray<z.ZodObject<{
                 purpose: z.ZodEnum<{
-                    "catalog-capture": "catalog-capture";
-                    "catalog-evidence": "catalog-evidence";
-                    "catalog-identity": "catalog-identity";
-                    "catalog-authority": "catalog-authority";
                     "catalog-attestation": "catalog-attestation";
-                    "catalog-verification": "catalog-verification";
+                    "catalog-authority": "catalog-authority";
+                    "catalog-capture": "catalog-capture";
                     "catalog-dispute": "catalog-dispute";
+                    "catalog-evidence": "catalog-evidence";
+                    "catalog-feed": "catalog-feed";
+                    "catalog-identity": "catalog-identity";
                     "catalog-policy": "catalog-policy";
                     "catalog-release": "catalog-release";
-                    "catalog-feed": "catalog-feed";
+                    "catalog-verification": "catalog-verification";
                 }>;
                 proposal_digest: z.ZodString;
                 dependency_keys: z.ZodArray<z.ZodString>;
@@ -6057,15 +6057,15 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             revision_changes: z.ZodArray<z.ZodObject<{
                 kind: z.ZodEnum<{
                     entity: "entity";
-                    program: "program";
                     offer: "offer";
+                    program: "program";
                 }>;
                 entity_id: z.ZodString;
                 target_id: z.ZodString;
                 change: z.ZodEnum<{
                     added: "added";
-                    updated: "updated";
                     removed: "removed";
+                    updated: "updated";
                 }>;
                 current_revision_digest: z.ZodNullable<z.ZodString>;
                 candidate_revision_digest: z.ZodNullable<z.ZodString>;
@@ -6078,8 +6078,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                 source_id: z.ZodString;
                 change: z.ZodEnum<{
                     added: "added";
-                    updated: "updated";
                     removed: "removed";
+                    updated: "updated";
                 }>;
                 current_url: z.ZodNullable<z.ZodURL>;
                 candidate_url: z.ZodNullable<z.ZodURL>;
@@ -6105,8 +6105,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             route_changes: z.ZodArray<z.ZodObject<{
                 kind: z.ZodEnum<{
                     entity: "entity";
-                    program: "program";
                     offer: "offer";
+                    program: "program";
                 }>;
                 entity_id: z.ZodString;
                 target_id: z.ZodString;
@@ -6135,30 +6135,32 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             }, z.core.$strict>>;
             unaffected_dependents_proof_digest: z.ZodString;
             required_authorities: z.ZodArray<z.ZodEnum<{
-                "catalog-capture": "catalog-capture";
-                "catalog-evidence": "catalog-evidence";
-                "catalog-identity": "catalog-identity";
-                "catalog-authority": "catalog-authority";
                 "catalog-attestation": "catalog-attestation";
-                "catalog-verification": "catalog-verification";
+                "catalog-authority": "catalog-authority";
+                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
+                "catalog-evidence": "catalog-evidence";
+                "catalog-feed": "catalog-feed";
+                "catalog-identity": "catalog-identity";
                 "catalog-policy": "catalog-policy";
                 "catalog-release": "catalog-release";
-                "catalog-feed": "catalog-feed";
+                "catalog-verification": "catalog-verification";
             }>>;
             change_set_digest: z.ZodString;
         }, z.core.$strict>;
         ingress_receipt: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"git">;
             repository_id: z.ZodString;
             base_commit: z.ZodString;
             head_commit: z.ZodString;
             head_tree: z.ZodString;
             changed_tree: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"authenticated_form">;
             submission_work_item_digest: z.ZodString;
             schema_digest: z.ZodString;
@@ -6167,10 +6169,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             authorization_digest: z.ZodString;
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"paid_agent">;
             submission_work_item_digest: z.ZodString;
             schema_digest: z.ZodString;
@@ -6180,10 +6182,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             request_id: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"governed_ops">;
             submission_work_item_digest: z.ZodNullable<z.ZodString>;
             command_digest: z.ZodString;
@@ -6193,33 +6195,31 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             authentication_digest: z.ZodString;
             authorization_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"scanner">;
             inventory_digest: z.ZodString;
             run_receipt_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"operator_job">;
             job_input_digest: z.ZodString;
             authority_digest: z.ZodString;
             run_receipt_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
             kind: z.ZodLiteral<"policy_transition">;
             intent_digest: z.ZodString;
             configuration_digest: z.ZodString;
             idempotency_key: z.ZodString;
-            proposal_digest: z.ZodString;
-            semantic_input_digest: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
@@ -6241,8 +6241,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -6295,6 +6295,8 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -6335,9 +6337,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -6364,9 +6366,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -6426,14 +6428,14 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -6446,12 +6448,10 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -6465,19 +6465,19 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -6489,9 +6489,9 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
     current_asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
         entity_id: z.ZodString;
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_digest: z.ZodString;
@@ -6499,17 +6499,17 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         bytes: z.ZodNumber;
         width: z.ZodNumber;
         height: z.ZodNumber;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;

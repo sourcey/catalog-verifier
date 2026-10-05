@@ -1,11 +1,11 @@
 import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
+import { digest } from "provenry/primitives";
 import { z } from "zod";
 import { verifierRepositoryKindSchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { readCatalogTaxonomy } from "../../../modules/catalog-admission/src/index.js";
 import { requiredFlag, requiredPath } from "../../../modules/cli/src/index.js";
-import { digest } from "../../../modules/primitives/src/index.js";
 import { CatalogVerifierApplication } from "./application.js";
 const execFileAsync = promisify(execFile);
 export async function main(arguments_) {

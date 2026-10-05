@@ -1,5 +1,5 @@
-import { EVIDENCE_DERIVATION_RULE_PATHS, } from "../../../contracts/evidence/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
+import { compareCanonicalStrings } from "provenry/primitives";
+import { evidenceDerivationRuleApplies, } from "../../../contracts/evidence/src/index.js";
 /**
  * Policy roots describe material claims when the corresponding field is
  * present. Required revision fields are always applicable; optional public
@@ -57,7 +57,7 @@ export function evidenceAssertionSatisfiesRequirement(assertion, requirement) {
         requirement.proof_kinds.includes(assertion.proof_kind) &&
         (assertion.proof_kind !== "derived" ||
             (assertion.derivation_rule !== null &&
-                assertion.path === EVIDENCE_DERIVATION_RULE_PATHS[assertion.derivation_rule] &&
+                evidenceDerivationRuleApplies(assertion.derivation_rule, assertion.path) &&
                 requirement.derivation_rules.includes(assertion.derivation_rule))));
 }
 function collectCoveragePaths(content, path, paths) {

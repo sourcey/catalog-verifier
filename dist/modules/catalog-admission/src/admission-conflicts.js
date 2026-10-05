@@ -1,8 +1,8 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { canonicalEntityIdentity, entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
 import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { validateCatalogVerifierIdentityContext, validateSignerRegistry, } from "../../authority/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export function createCatalogAdmissionConflictLookupResponse(input) {
     const query = catalogAdmissionConflictLookupRequestSchema.parse(input.query);
@@ -314,12 +314,18 @@ export function evaluateCatalogAdmissionConflicts(input) {
         }
         if (match.source.kind === "open_pull_request" &&
             input.candidate.kind === "git_pull_request" &&
-            match.source.repository === input.candidate.repository &&
-            match.source.pullRequestNumber === input.candidate.pullRequestNumber) {
-            if (match.source.headSha !== input.candidate.headSha) {
-                throw new Error("Catalog admission conflict result includes a stale candidate PR head.");
+            match.source.repository === input.candidate.repository) {
+            if (match.source.pullRequestNumber === input.candidate.pullRequestNumber) {
+                if (match.source.headSha !== input.candidate.headSha) {
+                    throw new Error("Catalog admission conflict result includes a stale candidate PR head.");
+                }
+                continue;
             }
-            continue;
+            // The first open pull request for an identity is the one reviewed. A
+            // later one, whether a duplicate or a copy, cannot hold it back; the
+            // later one still meets this one and waits until it merges or closes.
+            if (match.source.pullRequestNumber > input.candidate.pullRequestNumber)
+                continue;
         }
         if (match.source.kind === "pending_submission" &&
             input.candidate.kind === "detached" &&

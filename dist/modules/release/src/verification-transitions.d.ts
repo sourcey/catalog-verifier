@@ -1,13 +1,13 @@
-import type { AgentReadinessDeltaObject, AgentReadinessOfferRelationDeltaObject, AgentReadinessProfileReleaseInput } from "../../../contracts/agent-readiness/src/index.js";
+import { type Digest } from "provenry/primitives";
+import { type AgentReadinessDeltaObject, type AgentReadinessOfferRelationDeltaObject, type AgentReadinessProfileReleaseInput } from "../../../contracts/agent-readiness/src/index.js";
 import type { CatalogPublicationChangeSet } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
-import type { ReleaseRevision } from "./release-revision-parser.js";
+import type { RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
 /** Withdrawal is an independently verified transition, not permission to omit
  * an arbitrary live association. All evidence is in this exact delta. */
 export declare function verifyAgentReadinessOfferRelationWithdrawals(input: {
     readonly objects: ReadonlyMap<string, AgentReadinessOfferRelationDeltaObject>;
     readonly profiles: ReadonlyMap<string, AgentReadinessDeltaObject>;
-    readonly revisions: ReadonlyMap<Digest, ReleaseRevision>;
+    readonly revisions: ReadonlyMap<Digest, RetainedCatalogRevision>;
     readonly changeSet: Pick<CatalogPublicationChangeSet, "revision_changes">;
     readonly retiredProfileIds: ReadonlySet<string>;
     readonly admittedProfileInputs: ReadonlyMap<string, AgentReadinessProfileReleaseInput>;

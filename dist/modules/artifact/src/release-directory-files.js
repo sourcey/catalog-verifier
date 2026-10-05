@@ -1,38 +1,34 @@
 import { basename } from "node:path";
-import { regularReleaseFiles, } from "../../deterministic-release-archive/src/files.js";
-import { compareCanonicalStrings, digestFromPathSegment, sha256Bytes, } from "../../primitives/src/index.js";
-export async function verifiedReleaseFiles(directory, bundle) {
-    return verifyReleaseFiles(await regularReleaseFiles(directory), bundle);
-}
-export function verifyReleaseFiles(entries, bundle) {
-    const actual = entries.filter(({ path }) => path !== "bundle.json");
-    const actualPaths = actual.map(({ path }) => path).sort(compareCanonicalStrings);
-    const declaredPaths = Object.keys(bundle.files).sort(compareCanonicalStrings);
-    if (JSON.stringify(actualPaths) !== JSON.stringify(declaredPaths)) {
-        throw new Error("Catalog release file set does not match its immutable declaration.");
-    }
-    const files = new Map();
-    for (const { path, bytes } of actual.sort((left, right) => compareCanonicalStrings(left.path, right.path))) {
-        const declaration = bundle.files[path];
-        if (!declaration ||
-            bytes.byteLength !== declaration.bytes ||
-            sha256Bytes(bytes) !== declaration.sha256) {
-            throw new Error(`Catalog release file ${path} does not match its byte declaration.`);
-        }
-        files.set(path, bytes);
-    }
-    return files;
-}
-export function parseReleaseJson(files, path) {
-    return JSON.parse(requiredReleaseFile(files, path).toString("utf8"));
-}
-export function requiredReleaseFile(files, path) {
-    const bytes = files.get(path);
-    if (!bytes)
-        throw new Error(`Catalog delta bundle is missing ${path}.`);
-    return bytes;
-}
+import { digestFromPathSegment } from "provenry/primitives";
+import { releaseCaptureObjectPath, releaseNormalizedObjectPath, } from "../../../contracts/release/src/index.js";
+/** How errors name the file set of one Catalog release. */
+export const CATALOG_RELEASE = "Catalog release";
 export function addressFromReleaseJsonPath(path) {
     return digestFromPathSegment(basename(path, ".json"));
+}
+/**
+ * The public evidence bytes a verified release carries for its observations. The
+ * envelope proved every file against its declaration, so a declared digest equal
+ * to the object's address proves the bytes without hashing them again.
+ */
+export function releasedEvidenceObjects(observations, files, declarations) {
+    const captures = new Map();
+    const normalizedObjects = new Map();
+    const collect = (objects, objectDigest, path) => {
+        const bytes = files.get(path);
+        if (bytes && declarations[path]?.sha256 === objectDigest)
+            objects.set(objectDigest, bytes);
+    };
+    for (const observation of observations) {
+        if (observation.capture?.availability !== "public")
+            continue;
+        const captureDigest = observation.capture.digest;
+        collect(captures, captureDigest, releaseCaptureObjectPath(captureDigest));
+        const normalizedDigest = observation.capture.normalized_object?.digest;
+        if (normalizedDigest) {
+            collect(normalizedObjects, normalizedDigest, releaseNormalizedObjectPath(normalizedDigest));
+        }
+    }
+    return { captures, normalizedObjects };
 }
 //# sourceMappingURL=release-directory-files.js.map

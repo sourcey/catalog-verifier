@@ -1,5 +1,6 @@
+import { compareCanonicalStrings, digest } from "provenry/primitives";
 import { publicationDependencyRegistrationSchema, surfaceDependencyReferenceSchema, } from "../../../contracts/publication/src/index.js";
-import { canonicalizePublicHttpsUrl, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
+import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
 export function catalogSourceLocatorDigest(url) {
     return digest({
         canonical_requested_public_uri: canonicalizePublicHttpsUrl(url, {
@@ -16,6 +17,8 @@ export function catalogPublicationImpactProof(input) {
     });
 }
 export function dependencyKeysForChanges(input) {
+    // Context changes (policy pins, the verifier) have no dependency keys: they
+    // govern future decisions and never fan out to published resources.
     const keys = [];
     for (const change of input.revisionChanges) {
         keys.push(catalogPublicationDependencyKey.entity(change.entity_id));
@@ -58,11 +61,6 @@ export function dependencyKeysForChanges(input) {
     for (const change of input.routeChanges) {
         keys.push(catalogPublicationDependencyKey.entity(change.entity_id));
         keys.push(catalogPublicationDependencyKey.route(change.kind, change.target_id));
-    }
-    for (const change of input.contextChanges) {
-        keys.push(change.kind === "policy"
-            ? catalogPublicationDependencyKey.policy(change.key)
-            : catalogPublicationDependencyKey.contractAuthority());
     }
     for (const proposal of input.authorityProposals ?? [])
         keys.push(...proposal.dependency_keys);
@@ -117,8 +115,6 @@ export const catalogPublicationDependencyKey = {
     sourceLocator: (sourceLocatorDigest) => `catalog:source-locator:${sourceLocatorDigest}`,
     parent: (kind, targetId) => `catalog:parent:${kind}:${targetId}`,
     route: (kind, targetId) => `catalog:route:${kind}:${targetId}`,
-    policy: (key) => `catalog:policy:${key}`,
-    contractAuthority: () => "catalog:contract-authority",
 };
 export function surfaceDependencyReferenceKey(reference) {
     const parsed = surfaceDependencyReferenceSchema.parse(reference);

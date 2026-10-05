@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import type { CompiledEntity, CompiledOffer, CompiledProgram, PolicyCore } from "../../../contracts/artifact/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 /**
  * Canonical semantic fingerprints for public Catalog projections. Release
  * construction, immutable artifact verification, and public readback all call

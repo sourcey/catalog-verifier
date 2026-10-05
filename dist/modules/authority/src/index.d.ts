@@ -1,10 +1,10 @@
+import { type Digest } from "provenry/primitives";
 import type { ProtectedSignature, RootSet, RootSetTransition, RootSetTransitionCore, SignaturePurpose, SignerRegistry, SignerRegistryCore } from "../../../contracts/authority/src/index.js";
 import { type CatalogVerifierIdentityContext, type CatalogVerifierIdentityContextCore } from "../../../contracts/catalog-verifier/src/index.js";
 import { type CatalogEvent, type CatalogEventCore, type CatalogEventKind } from "../../../contracts/events/src/index.js";
 import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
 import { type ChangeCursor, type ChangeCursorCore, type SearchCursor, type SearchCursorCore } from "../../../contracts/feed/src/index.js";
 import { type ReleasePublication, type ReleasePublicationCore } from "../../../contracts/release/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type RetainedCaptureReceipt } from "./retained-capture-receipt.js";
 export { type RetainedCaptureReceipt, retainedCaptureReceiptSchema, } from "./retained-capture-receipt.js";
 export declare function signaturePurposeForKind(kind: CatalogEventKind): SignaturePurpose;
@@ -26,6 +26,7 @@ export declare function validateSearchCursor(input: unknown, registry: SignerReg
     readonly releaseSequence: number;
 }): SearchCursor;
 export declare function validateSignerRegistry(rootSet: RootSet, input: unknown): SignerRegistry;
+export declare function registryIssuerForPurpose(registry: SignerRegistry, purpose: SignaturePurpose): string;
 /**
  * Resolve the one registry authority that may issue a purpose-bound object at
  * an exact instant and release. This is deliberately independent of private

@@ -1,27 +1,27 @@
+import { type Digest } from "provenry/primitives";
 import { z } from "zod";
 import type { CoverageRequirement } from "../../../contracts/policies/src/index.js";
-import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
+import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
 export declare const materialClaimSemanticTypeSchema: z.ZodEnum<{
-    number: "number";
-    boolean: "boolean";
-    url: "url";
-    duration: "duration";
-    currency: "currency";
-    percentage: "percentage";
     access: "access";
+    boolean: "boolean";
+    composition: "composition";
+    currency: "currency";
     domain: "domain";
-    taxonomy: "taxonomy";
-    exact_text: "exact_text";
+    duration: "duration";
     editorial_text: "editorial_text";
-    lifecycle_state: "lifecycle_state";
-    qualifier: "qualifier";
-    money_amount: "money_amount";
     eligibility_composition: "eligibility_composition";
     eligibility_value: "eligibility_value";
+    exact_text: "exact_text";
+    lifecycle_state: "lifecycle_state";
+    money_amount: "money_amount";
+    number: "number";
+    percentage: "percentage";
+    qualifier: "qualifier";
     source_authority: "source_authority";
-    composition: "composition";
     structured_value: "structured_value";
+    taxonomy: "taxonomy";
+    url: "url";
 }>;
 export declare const materialClaimSubjectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     subject_type: z.ZodLiteral<"entity">;
@@ -44,31 +44,31 @@ export declare const materialClaimCoreSchema: z.ZodObject<{
     path: z.ZodString;
     value_digest: z.ZodString;
     semantic_type: z.ZodEnum<{
-        number: "number";
-        boolean: "boolean";
-        url: "url";
-        duration: "duration";
-        currency: "currency";
-        percentage: "percentage";
         access: "access";
+        boolean: "boolean";
+        composition: "composition";
+        currency: "currency";
         domain: "domain";
-        taxonomy: "taxonomy";
-        exact_text: "exact_text";
+        duration: "duration";
         editorial_text: "editorial_text";
-        lifecycle_state: "lifecycle_state";
-        qualifier: "qualifier";
-        money_amount: "money_amount";
         eligibility_composition: "eligibility_composition";
         eligibility_value: "eligibility_value";
+        exact_text: "exact_text";
+        lifecycle_state: "lifecycle_state";
+        money_amount: "money_amount";
+        number: "number";
+        percentage: "percentage";
+        qualifier: "qualifier";
         source_authority: "source_authority";
-        composition: "composition";
         structured_value: "structured_value";
+        taxonomy: "taxonomy";
+        url: "url";
     }>;
     proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     derivation_rules: z.ZodArray<z.ZodString>;
     guidance: z.ZodString;
@@ -79,31 +79,31 @@ export declare const materialClaimSchema: z.ZodObject<{
     path: z.ZodString;
     value_digest: z.ZodString;
     semantic_type: z.ZodEnum<{
-        number: "number";
-        boolean: "boolean";
-        url: "url";
-        duration: "duration";
-        currency: "currency";
-        percentage: "percentage";
         access: "access";
+        boolean: "boolean";
+        composition: "composition";
+        currency: "currency";
         domain: "domain";
-        taxonomy: "taxonomy";
-        exact_text: "exact_text";
+        duration: "duration";
         editorial_text: "editorial_text";
-        lifecycle_state: "lifecycle_state";
-        qualifier: "qualifier";
-        money_amount: "money_amount";
         eligibility_composition: "eligibility_composition";
         eligibility_value: "eligibility_value";
+        exact_text: "exact_text";
+        lifecycle_state: "lifecycle_state";
+        money_amount: "money_amount";
+        number: "number";
+        percentage: "percentage";
+        qualifier: "qualifier";
         source_authority: "source_authority";
-        composition: "composition";
         structured_value: "structured_value";
+        taxonomy: "taxonomy";
+        url: "url";
     }>;
     proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     derivation_rules: z.ZodArray<z.ZodString>;
     guidance: z.ZodString;
@@ -134,31 +134,31 @@ export declare const materialClaimPlanCoreSchema: z.ZodObject<{
         path: z.ZodString;
         value_digest: z.ZodString;
         semantic_type: z.ZodEnum<{
-            number: "number";
-            boolean: "boolean";
-            url: "url";
-            duration: "duration";
-            currency: "currency";
-            percentage: "percentage";
             access: "access";
+            boolean: "boolean";
+            composition: "composition";
+            currency: "currency";
             domain: "domain";
-            taxonomy: "taxonomy";
-            exact_text: "exact_text";
+            duration: "duration";
             editorial_text: "editorial_text";
-            lifecycle_state: "lifecycle_state";
-            qualifier: "qualifier";
-            money_amount: "money_amount";
             eligibility_composition: "eligibility_composition";
             eligibility_value: "eligibility_value";
+            exact_text: "exact_text";
+            lifecycle_state: "lifecycle_state";
+            money_amount: "money_amount";
+            number: "number";
+            percentage: "percentage";
+            qualifier: "qualifier";
             source_authority: "source_authority";
-            composition: "composition";
             structured_value: "structured_value";
+            taxonomy: "taxonomy";
+            url: "url";
         }>;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodString>;
         guidance: z.ZodString;
@@ -190,31 +190,31 @@ export declare const materialClaimPlanSchema: z.ZodObject<{
         path: z.ZodString;
         value_digest: z.ZodString;
         semantic_type: z.ZodEnum<{
-            number: "number";
-            boolean: "boolean";
-            url: "url";
-            duration: "duration";
-            currency: "currency";
-            percentage: "percentage";
             access: "access";
+            boolean: "boolean";
+            composition: "composition";
+            currency: "currency";
             domain: "domain";
-            taxonomy: "taxonomy";
-            exact_text: "exact_text";
+            duration: "duration";
             editorial_text: "editorial_text";
-            lifecycle_state: "lifecycle_state";
-            qualifier: "qualifier";
-            money_amount: "money_amount";
             eligibility_composition: "eligibility_composition";
             eligibility_value: "eligibility_value";
+            exact_text: "exact_text";
+            lifecycle_state: "lifecycle_state";
+            money_amount: "money_amount";
+            number: "number";
+            percentage: "percentage";
+            qualifier: "qualifier";
             source_authority: "source_authority";
-            composition: "composition";
             structured_value: "structured_value";
+            taxonomy: "taxonomy";
+            url: "url";
         }>;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodString>;
         guidance: z.ZodString;
@@ -230,15 +230,17 @@ export declare const materialClaimMatchBindingCoreSchema: z.ZodObject<{
     adapter_id: z.ZodString;
     adapter_digest: z.ZodString;
     proof_kind: z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>;
     derivation_rule: z.ZodNullable<z.ZodEnum<{
+        "consideration-from-benefits": "consideration-from-benefits";
         "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-        "form-access-from-first-party-application": "form-access-from-first-party-application";
+        "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
         "first-party-access-operator": "first-party-access-operator";
+        "form-access-from-first-party-application": "form-access-from-first-party-application";
         "public-availability-from-application": "public-availability-from-application";
     }>>;
     locators: z.ZodArray<z.ZodObject<{
@@ -255,15 +257,17 @@ export declare const materialClaimMatchBindingSchema: z.ZodObject<{
     adapter_id: z.ZodString;
     adapter_digest: z.ZodString;
     proof_kind: z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>;
     derivation_rule: z.ZodNullable<z.ZodEnum<{
+        "consideration-from-benefits": "consideration-from-benefits";
         "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-        "form-access-from-first-party-application": "form-access-from-first-party-application";
+        "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
         "first-party-access-operator": "first-party-access-operator";
+        "form-access-from-first-party-application": "form-access-from-first-party-application";
         "public-availability-from-application": "public-availability-from-application";
     }>>;
     locators: z.ZodArray<z.ZodObject<{
@@ -278,8 +282,8 @@ export declare const materialClaimResultCoreSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
     claim_id: z.ZodString;
     status: z.ZodEnum<{
-        supported: "supported";
         contradicted: "contradicted";
+        supported: "supported";
         unresolved: "unresolved";
         unsupported: "unsupported";
     }>;
@@ -290,15 +294,17 @@ export declare const materialClaimResultCoreSchema: z.ZodObject<{
         adapter_id: z.ZodString;
         adapter_digest: z.ZodString;
         proof_kind: z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>;
         derivation_rule: z.ZodNullable<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         locators: z.ZodArray<z.ZodObject<{
@@ -319,8 +325,8 @@ export declare const materialClaimResultSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
     claim_id: z.ZodString;
     status: z.ZodEnum<{
-        supported: "supported";
         contradicted: "contradicted";
+        supported: "supported";
         unresolved: "unresolved";
         unsupported: "unsupported";
     }>;
@@ -331,15 +337,17 @@ export declare const materialClaimResultSchema: z.ZodObject<{
         adapter_id: z.ZodString;
         adapter_digest: z.ZodString;
         proof_kind: z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>;
         derivation_rule: z.ZodNullable<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         locators: z.ZodArray<z.ZodObject<{

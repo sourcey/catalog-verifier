@@ -1,4 +1,5 @@
 import { z } from "zod";
+export { type CapturePolicyDefinition, capturePolicyDefinitionSchema, } from "../../../contracts/capture/src/index.js";
 export declare const evidenceTargetSchema: z.ZodObject<{
     target_contract: z.ZodLiteral<"sourcey.evidence-target/v1alpha1">;
     target_id: z.ZodString;
@@ -37,20 +38,6 @@ export declare const evidenceScheduleSchema: z.ZodObject<{
     timezone: z.ZodLiteral<"UTC">;
     enabled: z.ZodBoolean;
 }, z.core.$strict>;
-export declare const capturePolicyDefinitionSchema: z.ZodObject<{
-    policy_contract: z.ZodLiteral<"sourcey.capture-policy/v1alpha1">;
-    policy_id: z.ZodString;
-    maximum_bytes: z.ZodNumber;
-    timeout_ms: z.ZodNumber;
-    redirects: z.ZodEnum<{
-        reject: "reject";
-        "same-origin": "same-origin";
-        "allowed-hosts": "allowed-hosts";
-    }>;
-    require_https: z.ZodBoolean;
-    minimum_document_text_bytes: z.ZodNumber;
-}, z.core.$strict>;
-export type CapturePolicyDefinition = z.infer<typeof capturePolicyDefinitionSchema>;
 export declare const retryPolicyDefinitionSchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.retry-policy/v1alpha1">;
     policy_id: z.ZodString;
@@ -58,17 +45,14 @@ export declare const retryPolicyDefinitionSchema: z.ZodObject<{
     initial_delay_ms: z.ZodNumber;
     maximum_delay_ms: z.ZodNumber;
     strategy: z.ZodEnum<{
-        fixed: "fixed";
         exponential: "exponential";
+        fixed: "fixed";
     }>;
 }, z.core.$strict>;
 export declare const extractorDefinitionSchema: z.ZodObject<{
     extractor_contract: z.ZodLiteral<"sourcey.extractor-definition/v1alpha1">;
     extractor_id: z.ZodString;
-    kind: z.ZodEnum<{
-        "deterministic-text": "deterministic-text";
-        "structured-model": "structured-model";
-    }>;
+    kind: z.ZodLiteral<"structured-model">;
     version: z.ZodString;
     toolchain_digest: z.ZodString;
     output_contract: z.ZodString;
@@ -126,9 +110,9 @@ export declare const evidenceOpsBundleCoreSchema: z.ZodObject<{
         maximum_bytes: z.ZodNumber;
         timeout_ms: z.ZodNumber;
         redirects: z.ZodEnum<{
+            "allowed-hosts": "allowed-hosts";
             reject: "reject";
             "same-origin": "same-origin";
-            "allowed-hosts": "allowed-hosts";
         }>;
         require_https: z.ZodBoolean;
         minimum_document_text_bytes: z.ZodNumber;
@@ -140,17 +124,14 @@ export declare const evidenceOpsBundleCoreSchema: z.ZodObject<{
         initial_delay_ms: z.ZodNumber;
         maximum_delay_ms: z.ZodNumber;
         strategy: z.ZodEnum<{
-            fixed: "fixed";
             exponential: "exponential";
+            fixed: "fixed";
         }>;
     }, z.core.$strict>>;
     extractors: z.ZodArray<z.ZodObject<{
         extractor_contract: z.ZodLiteral<"sourcey.extractor-definition/v1alpha1">;
         extractor_id: z.ZodString;
-        kind: z.ZodEnum<{
-            "deterministic-text": "deterministic-text";
-            "structured-model": "structured-model";
-        }>;
+        kind: z.ZodLiteral<"structured-model">;
         version: z.ZodString;
         toolchain_digest: z.ZodString;
         output_contract: z.ZodString;
@@ -164,12 +145,12 @@ export declare const evidenceOpsBundleCoreSchema: z.ZodObject<{
     }, z.core.$strict>>;
     entries: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            target: "target";
-            schedule: "schedule";
             "capture-policy": "capture-policy";
-            "retry-policy": "retry-policy";
             extractor: "extractor";
             prompt: "prompt";
+            "retry-policy": "retry-policy";
+            schedule: "schedule";
+            target: "target";
         }>;
         id: z.ZodString;
         source_path: z.ZodString;
@@ -222,9 +203,9 @@ export declare const evidenceOpsBundleSchema: z.ZodObject<{
         maximum_bytes: z.ZodNumber;
         timeout_ms: z.ZodNumber;
         redirects: z.ZodEnum<{
+            "allowed-hosts": "allowed-hosts";
             reject: "reject";
             "same-origin": "same-origin";
-            "allowed-hosts": "allowed-hosts";
         }>;
         require_https: z.ZodBoolean;
         minimum_document_text_bytes: z.ZodNumber;
@@ -236,17 +217,14 @@ export declare const evidenceOpsBundleSchema: z.ZodObject<{
         initial_delay_ms: z.ZodNumber;
         maximum_delay_ms: z.ZodNumber;
         strategy: z.ZodEnum<{
-            fixed: "fixed";
             exponential: "exponential";
+            fixed: "fixed";
         }>;
     }, z.core.$strict>>;
     extractors: z.ZodArray<z.ZodObject<{
         extractor_contract: z.ZodLiteral<"sourcey.extractor-definition/v1alpha1">;
         extractor_id: z.ZodString;
-        kind: z.ZodEnum<{
-            "deterministic-text": "deterministic-text";
-            "structured-model": "structured-model";
-        }>;
+        kind: z.ZodLiteral<"structured-model">;
         version: z.ZodString;
         toolchain_digest: z.ZodString;
         output_contract: z.ZodString;
@@ -260,12 +238,12 @@ export declare const evidenceOpsBundleSchema: z.ZodObject<{
     }, z.core.$strict>>;
     entries: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            target: "target";
-            schedule: "schedule";
             "capture-policy": "capture-policy";
-            "retry-policy": "retry-policy";
             extractor: "extractor";
             prompt: "prompt";
+            "retry-policy": "retry-policy";
+            schedule: "schedule";
+            target: "target";
         }>;
         id: z.ZodString;
         source_path: z.ZodString;

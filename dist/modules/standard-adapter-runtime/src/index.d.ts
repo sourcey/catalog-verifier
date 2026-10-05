@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import type { StandardEvidenceArtifact, StandardEvidenceLocator, StandardEvidenceResidue } from "../../../contracts/standards/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export declare function standardAdapterKey(namespace: string, version: string): string;
 export declare function verifyRetainedStandardArtifacts(input: {
     readonly artifacts: readonly StandardEvidenceArtifact[];

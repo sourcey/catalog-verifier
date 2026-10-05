@@ -1,7 +1,7 @@
+import { digest } from "provenry/primitives";
 import { agentReadinessProfileReleaseInputSchema } from "../../../contracts/agent-readiness/src/index.js";
 import { mergeCatalogPublicationAuthorityProposalLanes } from "../../catalog-admission/src/publication-authorities.js";
 import { catalogPublicationEventDependencyKeys } from "../../catalog-admission/src/publication-dependencies.js";
-import { digest } from "../../primitives/src/index.js";
 /** Public canonical input only; private review and model material stay private. */
 export function agentReadinessPublicationInput(proposal) {
     if (!proposal.agent_readiness_profile_input)

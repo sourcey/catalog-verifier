@@ -1,10 +1,10 @@
+import { type Digest } from "provenry/primitives";
 import { z } from "zod";
-import type { AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import { type EvidenceAssertion, type EvidenceDerivationRule, type EvidenceProofKind, type EvidenceSourceStanding } from "../../../contracts/evidence/src/index.js";
-import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
+import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
 import type { RetainedEvidenceBearingRevision } from "./retained-revision.js";
-export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
+export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
 export declare const EVIDENCE_SUBMISSION_LIMITS: {
     readonly captureBytes: number;
     readonly normalizedBytes: number;
@@ -23,9 +23,9 @@ export declare const evidenceSubmissionCaptureSchema: z.ZodObject<{
     }, z.core.$strict>>;
     retrieved_at: z.ZodISODateTime;
     method: z.ZodEnum<{
-        http: "http";
-        headless: "headless";
         archive: "archive";
+        headless: "headless";
+        http: "http";
         manual: "manual";
     }>;
     response_status_code: z.ZodNumber;
@@ -35,6 +35,17 @@ export declare const evidenceSubmissionCaptureSchema: z.ZodObject<{
         public: "public";
         restricted: "restricted";
     }>;
+    artifact_scope: z.ZodOptional<z.ZodEnum<{
+        complete_document: "complete_document";
+        document_excerpt: "document_excerpt";
+    }>>;
+    source_content: z.ZodOptional<z.ZodObject<{
+        digest: z.ZodString;
+        bytes: z.ZodNumber;
+        media_type: z.ZodString;
+        normalized_digest: z.ZodString;
+        normalized_bytes: z.ZodNumber;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const evidenceSubmissionNormalizationSchema: z.ZodObject<{
     normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
@@ -57,9 +68,9 @@ export declare const evidenceSubmissionSchema: z.ZodObject<{
         }, z.core.$strict>>;
         retrieved_at: z.ZodISODateTime;
         method: z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>;
         response_status_code: z.ZodNumber;
@@ -69,6 +80,17 @@ export declare const evidenceSubmissionSchema: z.ZodObject<{
             public: "public";
             restricted: "restricted";
         }>;
+        artifact_scope: z.ZodOptional<z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>>;
+        source_content: z.ZodOptional<z.ZodObject<{
+            digest: z.ZodString;
+            bytes: z.ZodNumber;
+            media_type: z.ZodString;
+            normalized_digest: z.ZodString;
+            normalized_bytes: z.ZodNumber;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     normalization: z.ZodObject<{
         normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
@@ -80,19 +102,21 @@ export declare const evidenceSubmissionSchema: z.ZodObject<{
     assertions: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         polarity: z.ZodEnum<{
-            supports: "supports";
             contradicts: "contradicts";
+            supports: "supports";
         }>;
         proof_kind: z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>;
         derivation_rule: z.ZodNullable<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         locators: z.ZodArray<z.ZodObject<{
@@ -168,9 +192,9 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
             }, z.core.$strict>>;
             retrieved_at: z.ZodISODateTime;
             method: z.ZodEnum<{
-                http: "http";
-                headless: "headless";
                 archive: "archive";
+                headless: "headless";
+                http: "http";
                 manual: "manual";
             }>;
             response_status_code: z.ZodNumber;
@@ -180,6 +204,17 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
                 public: "public";
                 restricted: "restricted";
             }>;
+            artifact_scope: z.ZodOptional<z.ZodEnum<{
+                complete_document: "complete_document";
+                document_excerpt: "document_excerpt";
+            }>>;
+            source_content: z.ZodOptional<z.ZodObject<{
+                digest: z.ZodString;
+                bytes: z.ZodNumber;
+                media_type: z.ZodString;
+                normalized_digest: z.ZodString;
+                normalized_bytes: z.ZodNumber;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         normalization: z.ZodObject<{
             normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
@@ -191,19 +226,21 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
         assertions: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             polarity: z.ZodEnum<{
-                supports: "supports";
                 contradicts: "contradicts";
+                supports: "supports";
             }>;
             proof_kind: z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>;
             derivation_rule: z.ZodNullable<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             locators: z.ZodArray<z.ZodObject<{
@@ -216,29 +253,31 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
     }, z.core.$strict>;
     review_projection: z.ZodObject<{
         source_standing: z.ZodEnum<{
-            "live-first-party": "live-first-party";
             "archived-first-party": "archived-first-party";
-            "live-third-party": "live-third-party";
             "archived-third-party": "archived-third-party";
+            "live-first-party": "live-first-party";
+            "live-third-party": "live-third-party";
             "manual-first-party": "manual-first-party";
             "manual-third-party": "manual-third-party";
         }>;
         assertions: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             polarity: z.ZodEnum<{
-                supports: "supports";
                 contradicts: "contradicts";
+                supports: "supports";
             }>;
             proof_kind: z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>;
             derivation_rule: z.ZodNullable<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             values: z.ZodArray<z.ZodObject<{

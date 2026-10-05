@@ -1,5 +1,6 @@
+import { compareCanonicalStrings, IDENTIFIER_PATTERN, SLUG_PATTERN, visitStrings, } from "provenry/primitives";
 import { z } from "zod";
-import { compareCanonicalStrings, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, visitStrings, } from "../../../modules/primitives/src/index.js";
+import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { accessSchema, catalogAccessUrlSchema, catalogAuthoringUrlSchema, catalogUrlSchema, domainSchema, economicsSchema, eligibilitySchema, entityOfficialSiteProblem, entityRevisionContentSchema, entitySynopsisInvariant, offerRevisionContentSchema, offerRolesSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);

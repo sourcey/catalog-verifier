@@ -1,6 +1,8 @@
+import { compareCanonicalStrings, DIGEST_PATTERN, digest, IDENTIFIER_PATTERN, } from "provenry/primitives";
 import { z } from "zod";
 import { evidenceDerivationRuleSchema, evidenceLocatorSchema, evidenceProofKindSchema, } from "../../../contracts/evidence/src/index.js";
-import { compareCanonicalStrings, DIGEST_PATTERN, digest, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../primitives/src/index.js";
+import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
+import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../catalog-primitives/src/index.js";
 import { applicableEvidenceCoverageRequirements, evidenceCoverageCandidateRequirements, valueAtEvidencePointer, } from "./evidence-coverage.js";
 const digestSchema = z.string().regex(DIGEST_PATTERN);
 const identifierSchema = z.string().regex(IDENTIFIER_PATTERN);
@@ -311,14 +313,14 @@ function pointerDepth(path) {
     return path.split("/").length - 1;
 }
 function materialClaimSubject(revision) {
-    if (revision.revision_contract === "sourcey.entity-revision/v1alpha1") {
+    if (revision.revision_contract === catalogRevisionContracts.entity) {
         return {
             subject_type: "entity",
             entity_id: revision.entity_id,
             revision_digest: revision.revision_digest,
         };
     }
-    if (revision.revision_contract === "sourcey.program-revision/v1alpha1") {
+    if (revision.revision_contract === catalogRevisionContracts.program) {
         return {
             subject_type: "program",
             entity_id: revision.entity_id,

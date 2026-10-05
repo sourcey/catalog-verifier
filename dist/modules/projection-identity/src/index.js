@@ -1,5 +1,5 @@
+import { digest } from "provenry/primitives";
 import { policyCoreSchema } from "../../../contracts/artifact/src/index.js";
-import { digest } from "../../primitives/src/index.js";
 /**
  * Canonical semantic fingerprints for public Catalog projections. Release
  * construction, immutable artifact verification, and public readback all call

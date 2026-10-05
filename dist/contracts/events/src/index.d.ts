@@ -44,19 +44,21 @@ export declare const catalogEventPayloadSchemas: {
         assertions: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             polarity: z.ZodEnum<{
-                supports: "supports";
                 contradicts: "contradicts";
+                supports: "supports";
             }>;
             proof_kind: z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>;
             derivation_rule: z.ZodNullable<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             locators: z.ZodArray<z.ZodObject<{
@@ -68,8 +70,8 @@ export declare const catalogEventPayloadSchemas: {
         }, z.core.$strict>>;
         paths: z.ZodArray<z.ZodString>;
         polarity: z.ZodEnum<{
-            supports: "supports";
             contradicts: "contradicts";
+            supports: "supports";
         }>;
         binding_method: z.ZodString;
         binding_version: z.ZodString;
@@ -83,10 +85,10 @@ export declare const catalogEventPayloadSchemas: {
     readonly "discrepancy.resolved": z.ZodObject<{
         conflicting_event_ids: z.ZodArray<z.ZodString>;
         outcome: z.ZodEnum<{
-            "support-prevails": "support-prevails";
-            "contradiction-prevails": "contradiction-prevails";
             "both-invalid": "both-invalid";
+            "contradiction-prevails": "contradiction-prevails";
             "new-revision-required": "new-revision-required";
+            "support-prevails": "support-prevails";
         }>;
         active_event_ids: z.ZodArray<z.ZodString>;
         replacement_revision_digest: z.ZodOptional<z.ZodString>;
@@ -145,40 +147,40 @@ export declare const catalogEventPayloadSchemas: {
         receipt_digest: z.ZodString;
     }, z.core.$strict>;
     readonly "entity.identity-checked": z.ZodObject<{
-        identity_epoch_digest: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        coverage_paths: z.ZodArray<z.ZodString>;
         assurance_id: z.ZodString;
         reviewer_id: z.ZodString;
         method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
+        identity_epoch_digest: z.ZodString;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
     }, z.core.$strict>;
     readonly "offer.terms-checked": z.ZodObject<{
-        coverage_policy_digest: z.ZodString;
-        coverage_paths: z.ZodArray<z.ZodString>;
         assurance_id: z.ZodString;
         reviewer_id: z.ZodString;
         method_policy_digest: z.ZodString;
         receipt_digest: z.ZodString;
         checked_at: z.ZodISODateTime;
+        coverage_policy_digest: z.ZodString;
+        coverage_paths: z.ZodArray<z.ZodString>;
     }, z.core.$strict>;
     readonly "assurance.revoked": z.ZodDiscriminatedUnion<[z.ZodObject<{
+        assurance_id: z.ZodString;
+        reviewer_id: z.ZodString;
+        receipt_digest: z.ZodString;
+        revoked_at: z.ZodISODateTime;
+        reason_code: z.ZodString;
         assurance_kind: z.ZodLiteral<"entity_identity">;
         identity_epoch_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
         assurance_id: z.ZodString;
         reviewer_id: z.ZodString;
         receipt_digest: z.ZodString;
         revoked_at: z.ZodISODateTime;
         reason_code: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         assurance_kind: z.ZodLiteral<"offer_terms">;
         revision_digest: z.ZodString;
-        assurance_id: z.ZodString;
-        reviewer_id: z.ZodString;
-        receipt_digest: z.ZodString;
-        revoked_at: z.ZodISODateTime;
-        reason_code: z.ZodString;
     }, z.core.$strict>], "assurance_kind">;
     readonly "freshness.exception-granted": z.ZodObject<{
         paths: z.ZodArray<z.ZodString>;
@@ -206,17 +208,17 @@ export declare const catalogEventPayloadSchemas: {
     }, z.core.$strict>;
     readonly "asset.bound": z.ZodObject<{
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_derivative_digest: z.ZodString;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;
@@ -276,8 +278,8 @@ export declare const catalogEventPayloadSchemas: {
             asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
                 binding_event_id: z.ZodString;
                 disposition: z.ZodEnum<{
-                    rebind: "rebind";
                     end: "end";
+                    rebind: "rebind";
                 }>;
                 replacement_binding_event_id: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -325,8 +327,8 @@ export declare const catalogEventPayloadSchemas: {
             asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
                 binding_event_id: z.ZodString;
                 disposition: z.ZodEnum<{
-                    rebind: "rebind";
                     end: "end";
+                    rebind: "rebind";
                 }>;
                 replacement_binding_event_id: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -375,8 +377,8 @@ export declare const catalogEventPayloadSchemas: {
             asset_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
                 binding_event_id: z.ZodString;
                 disposition: z.ZodEnum<{
-                    rebind: "rebind";
                     end: "end";
+                    rebind: "rebind";
                 }>;
                 replacement_binding_event_id: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>>;
@@ -457,76 +459,76 @@ export declare const catalogEventPayloadSchemas: {
     }, z.core.$strict>;
 };
 export declare const catalogEventKindSchema: z.ZodEnum<{
-    "program.retired": "program.retired";
-    "offer.retired": "offer.retired";
+    "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+    "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+    "agent-readiness-profile.retired": "agent-readiness-profile.retired";
     "asset.bound": "asset.bound";
+    "asset.takedown-ordered": "asset.takedown-ordered";
     "asset.withdrawn": "asset.withdrawn";
-    "evidence.bound": "evidence.bound";
-    "evidence.retracted": "evidence.retracted";
-    "discrepancy.resolved": "discrepancy.resolved";
+    "assurance.revoked": "assurance.revoked";
+    "attestation.revoked": "attestation.revoked";
     "authority.claimed": "authority.claimed";
     "authority.rechecked": "authority.rechecked";
     "authority.revoked": "authority.revoked";
     "authority.superseded": "authority.superseded";
-    "subject.attested": "subject.attested";
-    "attestation.revoked": "attestation.revoked";
-    "verification.completed": "verification.completed";
-    "entity.identity-checked": "entity.identity-checked";
-    "offer.terms-checked": "offer.terms-checked";
-    "assurance.revoked": "assurance.revoked";
-    "freshness.exception-granted": "freshness.exception-granted";
-    "freshness.exception-revoked": "freshness.exception-revoked";
+    "discrepancy.resolved": "discrepancy.resolved";
     "dispute.opened": "dispute.opened";
     "dispute.resolved": "dispute.resolved";
-    "asset.takedown-ordered": "asset.takedown-ordered";
+    "entity.identity-checked": "entity.identity-checked";
     "entity.merged": "entity.merged";
     "entity.split": "entity.split";
     "entity.succeeded": "entity.succeeded";
+    "evidence.bound": "evidence.bound";
+    "evidence.retracted": "evidence.retracted";
+    "freshness.exception-granted": "freshness.exception-granted";
+    "freshness.exception-revoked": "freshness.exception-revoked";
+    "identity.transition-superseded": "identity.transition-superseded";
     "offer.merged": "offer.merged";
+    "offer.reparented": "offer.reparented";
+    "offer.retired": "offer.retired";
+    "offer.terms-checked": "offer.terms-checked";
     "program.merged": "program.merged";
     "program.reparented": "program.reparented";
-    "offer.reparented": "offer.reparented";
-    "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-    "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-    "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-    "identity.transition-superseded": "identity.transition-superseded";
+    "program.retired": "program.retired";
+    "subject.attested": "subject.attested";
+    "verification.completed": "verification.completed";
 }>;
 export declare const catalogEventCoreSchema: z.ZodObject<{
     event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
     kind: z.ZodEnum<{
-        "program.retired": "program.retired";
-        "offer.retired": "offer.retired";
+        "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+        "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+        "agent-readiness-profile.retired": "agent-readiness-profile.retired";
         "asset.bound": "asset.bound";
+        "asset.takedown-ordered": "asset.takedown-ordered";
         "asset.withdrawn": "asset.withdrawn";
-        "evidence.bound": "evidence.bound";
-        "evidence.retracted": "evidence.retracted";
-        "discrepancy.resolved": "discrepancy.resolved";
+        "assurance.revoked": "assurance.revoked";
+        "attestation.revoked": "attestation.revoked";
         "authority.claimed": "authority.claimed";
         "authority.rechecked": "authority.rechecked";
         "authority.revoked": "authority.revoked";
         "authority.superseded": "authority.superseded";
-        "subject.attested": "subject.attested";
-        "attestation.revoked": "attestation.revoked";
-        "verification.completed": "verification.completed";
-        "entity.identity-checked": "entity.identity-checked";
-        "offer.terms-checked": "offer.terms-checked";
-        "assurance.revoked": "assurance.revoked";
-        "freshness.exception-granted": "freshness.exception-granted";
-        "freshness.exception-revoked": "freshness.exception-revoked";
+        "discrepancy.resolved": "discrepancy.resolved";
         "dispute.opened": "dispute.opened";
         "dispute.resolved": "dispute.resolved";
-        "asset.takedown-ordered": "asset.takedown-ordered";
+        "entity.identity-checked": "entity.identity-checked";
         "entity.merged": "entity.merged";
         "entity.split": "entity.split";
         "entity.succeeded": "entity.succeeded";
+        "evidence.bound": "evidence.bound";
+        "evidence.retracted": "evidence.retracted";
+        "freshness.exception-granted": "freshness.exception-granted";
+        "freshness.exception-revoked": "freshness.exception-revoked";
+        "identity.transition-superseded": "identity.transition-superseded";
         "offer.merged": "offer.merged";
+        "offer.reparented": "offer.reparented";
+        "offer.retired": "offer.retired";
+        "offer.terms-checked": "offer.terms-checked";
         "program.merged": "program.merged";
         "program.reparented": "program.reparented";
-        "offer.reparented": "offer.reparented";
-        "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-        "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-        "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-        "identity.transition-superseded": "identity.transition-superseded";
+        "program.retired": "program.retired";
+        "subject.attested": "subject.attested";
+        "verification.completed": "verification.completed";
     }>;
     issuer_id: z.ZodString;
     operation_id: z.ZodString;
@@ -559,39 +561,39 @@ export declare const catalogEventIntentSchema: z.ZodObject<{
     core: z.ZodObject<{
         event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
         kind: z.ZodEnum<{
-            "program.retired": "program.retired";
-            "offer.retired": "offer.retired";
+            "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+            "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+            "agent-readiness-profile.retired": "agent-readiness-profile.retired";
             "asset.bound": "asset.bound";
+            "asset.takedown-ordered": "asset.takedown-ordered";
             "asset.withdrawn": "asset.withdrawn";
-            "evidence.bound": "evidence.bound";
-            "evidence.retracted": "evidence.retracted";
-            "discrepancy.resolved": "discrepancy.resolved";
+            "assurance.revoked": "assurance.revoked";
+            "attestation.revoked": "attestation.revoked";
             "authority.claimed": "authority.claimed";
             "authority.rechecked": "authority.rechecked";
             "authority.revoked": "authority.revoked";
             "authority.superseded": "authority.superseded";
-            "subject.attested": "subject.attested";
-            "attestation.revoked": "attestation.revoked";
-            "verification.completed": "verification.completed";
-            "entity.identity-checked": "entity.identity-checked";
-            "offer.terms-checked": "offer.terms-checked";
-            "assurance.revoked": "assurance.revoked";
-            "freshness.exception-granted": "freshness.exception-granted";
-            "freshness.exception-revoked": "freshness.exception-revoked";
+            "discrepancy.resolved": "discrepancy.resolved";
             "dispute.opened": "dispute.opened";
             "dispute.resolved": "dispute.resolved";
-            "asset.takedown-ordered": "asset.takedown-ordered";
+            "entity.identity-checked": "entity.identity-checked";
             "entity.merged": "entity.merged";
             "entity.split": "entity.split";
             "entity.succeeded": "entity.succeeded";
+            "evidence.bound": "evidence.bound";
+            "evidence.retracted": "evidence.retracted";
+            "freshness.exception-granted": "freshness.exception-granted";
+            "freshness.exception-revoked": "freshness.exception-revoked";
+            "identity.transition-superseded": "identity.transition-superseded";
             "offer.merged": "offer.merged";
+            "offer.reparented": "offer.reparented";
+            "offer.retired": "offer.retired";
+            "offer.terms-checked": "offer.terms-checked";
             "program.merged": "program.merged";
             "program.reparented": "program.reparented";
-            "offer.reparented": "offer.reparented";
-            "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-            "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-            "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-            "identity.transition-superseded": "identity.transition-superseded";
+            "program.retired": "program.retired";
+            "subject.attested": "subject.attested";
+            "verification.completed": "verification.completed";
         }>;
         issuer_id: z.ZodString;
         operation_id: z.ZodString;
@@ -623,39 +625,39 @@ export declare const catalogEventIntentSchema: z.ZodObject<{
 export declare const catalogEventSchema: z.ZodObject<{
     event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
     kind: z.ZodEnum<{
-        "program.retired": "program.retired";
-        "offer.retired": "offer.retired";
+        "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+        "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+        "agent-readiness-profile.retired": "agent-readiness-profile.retired";
         "asset.bound": "asset.bound";
+        "asset.takedown-ordered": "asset.takedown-ordered";
         "asset.withdrawn": "asset.withdrawn";
-        "evidence.bound": "evidence.bound";
-        "evidence.retracted": "evidence.retracted";
-        "discrepancy.resolved": "discrepancy.resolved";
+        "assurance.revoked": "assurance.revoked";
+        "attestation.revoked": "attestation.revoked";
         "authority.claimed": "authority.claimed";
         "authority.rechecked": "authority.rechecked";
         "authority.revoked": "authority.revoked";
         "authority.superseded": "authority.superseded";
-        "subject.attested": "subject.attested";
-        "attestation.revoked": "attestation.revoked";
-        "verification.completed": "verification.completed";
-        "entity.identity-checked": "entity.identity-checked";
-        "offer.terms-checked": "offer.terms-checked";
-        "assurance.revoked": "assurance.revoked";
-        "freshness.exception-granted": "freshness.exception-granted";
-        "freshness.exception-revoked": "freshness.exception-revoked";
+        "discrepancy.resolved": "discrepancy.resolved";
         "dispute.opened": "dispute.opened";
         "dispute.resolved": "dispute.resolved";
-        "asset.takedown-ordered": "asset.takedown-ordered";
+        "entity.identity-checked": "entity.identity-checked";
         "entity.merged": "entity.merged";
         "entity.split": "entity.split";
         "entity.succeeded": "entity.succeeded";
+        "evidence.bound": "evidence.bound";
+        "evidence.retracted": "evidence.retracted";
+        "freshness.exception-granted": "freshness.exception-granted";
+        "freshness.exception-revoked": "freshness.exception-revoked";
+        "identity.transition-superseded": "identity.transition-superseded";
         "offer.merged": "offer.merged";
+        "offer.reparented": "offer.reparented";
+        "offer.retired": "offer.retired";
+        "offer.terms-checked": "offer.terms-checked";
         "program.merged": "program.merged";
         "program.reparented": "program.reparented";
-        "offer.reparented": "offer.reparented";
-        "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-        "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-        "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-        "identity.transition-superseded": "identity.transition-superseded";
+        "program.retired": "program.retired";
+        "subject.attested": "subject.attested";
+        "verification.completed": "verification.completed";
     }>;
     issuer_id: z.ZodString;
     operation_id: z.ZodString;
@@ -685,16 +687,16 @@ export declare const catalogEventSchema: z.ZodObject<{
     event_id: z.ZodString;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;

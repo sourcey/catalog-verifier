@@ -1,38 +1,10 @@
+import { digest } from "provenry/primitives";
 import { agentReadinessAssessmentMethodPackCoreSchema, agentReadinessAssessmentMethodPackSchema, agentReadinessPolicyCoreSchema, agentReadinessPolicySchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { digest } from "../../primitives/src/index.js";
 import { METRICS } from "./current-policy-metrics.js";
-const AI_CATALOG_ENTRIES_REQUIREMENT = {
-    namespace: "ai-catalog",
-    version: "1.0",
-    requirement_id: "document.entries",
-    relation: "tests",
-};
-const OPENAPI_REQUIREMENTS = {
-    operations: {
-        namespace: "openapi",
-        version: "3.1.2",
-        requirement_id: "operations.present",
-        relation: "tests",
-    },
-    responses: {
-        namespace: "openapi",
-        version: "3.1.2",
-        requirement_id: "operations.responses",
-        relation: "tests",
-    },
-    errorResponses: {
-        namespace: "openapi",
-        version: "3.1.2",
-        requirement_id: "operations.error-responses",
-        relation: "tests",
-    },
-    oauth: {
-        namespace: "openapi",
-        version: "3.1.2",
-        requirement_id: "security.oauth2-or-openid-connect",
-        relation: "tests",
-    },
-};
+import { AI_CATALOG_ENTRIES_REQUIREMENT, MCP_REQUIREMENTS, OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS, OAUTH_PROTECTED_RESOURCE_REQUIREMENTS, OPENAPI_REQUIREMENTS, } from "./current-policy-standards.js";
+const PARTIAL_WHEN_SATISFIED = [
+    { result: "satisfied", values: ["partial"] },
+];
 function metricStandardEvidence(metric) {
     if (metric.code === "structured_evaluation_discovery") {
         return [
@@ -45,14 +17,6 @@ function metricStandardEvidence(metric) {
             },
         ];
     }
-    if (metric.code === "target_interface_access") {
-        return [
-            {
-                requirement: OPENAPI_REQUIREMENTS.operations,
-                support: [{ result: "satisfied", values: ["yes"] }],
-            },
-        ];
-    }
     if (metric.code === "operation_contract") {
         return [
             {
@@ -61,6 +25,10 @@ function metricStandardEvidence(metric) {
                     { result: "satisfied", values: ["partial"] },
                     { result: "not_satisfied", values: ["no"] },
                 ],
+            },
+            {
+                requirement: MCP_REQUIREMENTS.toolInputSchema,
+                support: PARTIAL_WHEN_SATISFIED,
             },
         ];
     }
@@ -73,6 +41,10 @@ function metricStandardEvidence(metric) {
                     { result: "not_satisfied", values: ["no"] },
                 ],
             },
+            {
+                requirement: MCP_REQUIREMENTS.errorResponse,
+                support: [{ result: "satisfied", values: ["partial"] }],
+            },
         ];
     }
     if (metric.code === "operation_authentication") {
@@ -81,9 +53,42 @@ function metricStandardEvidence(metric) {
                 requirement: OPENAPI_REQUIREMENTS.oauth,
                 support: [{ result: "satisfied", values: ["partial"] }],
             },
+            ...oauthAuthenticationEvidence(),
+        ];
+    }
+    if (metric.code === "delegated_identity_access")
+        return oauthAuthenticationEvidence();
+    if (metric.code === "credential_lifecycle") {
+        return [
+            {
+                requirement: OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.revocation,
+                support: PARTIAL_WHEN_SATISFIED,
+            },
+        ];
+    }
+    if (metric.code === "agent_protocol_interface") {
+        return [
+            {
+                requirement: MCP_REQUIREMENTS.protocolVersion,
+                support: [
+                    { result: "satisfied", values: ["yes"] },
+                    { result: "not_satisfied", values: ["no"] },
+                ],
+            },
         ];
     }
     return [];
+}
+function oauthAuthenticationEvidence() {
+    return [
+        OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.authorizationCode,
+        OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.clientCredentials,
+        OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.deviceCode,
+        OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.pkceS256,
+        OAUTH_AUTHORIZATION_SERVER_REQUIREMENTS.scopes,
+        OAUTH_PROTECTED_RESOURCE_REQUIREMENTS.authorizationServers,
+        OAUTH_PROTECTED_RESOURCE_REQUIREMENTS.bearerHeader,
+    ].map((requirement) => ({ requirement, support: PARTIAL_WHEN_SATISFIED }));
 }
 function buildMethod(input) {
     const determinationBases = input.determinationBases ?? [
@@ -185,10 +190,8 @@ function buildMethod(input) {
             ],
         },
         required_artifacts: [
-            "raw_bytes",
-            "normalized_text",
-            "utf8_locators",
-            "redirect_chain",
+            "source_observation",
+            "evidence_excerpt",
             ...(input.rungs.includes("headless") ? ["interaction_trace"] : []),
             ...(input.rungs.includes("manual") ? ["manual_review_note"] : []),
         ],
@@ -225,9 +228,7 @@ function alternative(id, kinds, input = {}) {
         require_independent_capture_rungs: input.independent ?? false,
         required_artifacts: kinds.includes("standard_requirement")
             ? ["standard_evidence_result"]
-            : kinds.includes("bounded_absence")
-                ? ["normalized_text", "redirect_chain"]
-                : ["normalized_text", "utf8_locators"],
+            : ["source_observation", "evidence_excerpt"],
         minimum_surfaces: input.surfaces ?? (kinds.includes("standard_requirement") ? 0 : 1),
         minimum_branches: input.branches ?? (kinds.includes("bounded_absence") ? 1 : 0),
     };
@@ -292,13 +293,13 @@ export function buildCurrentAgentReadinessPolicy() {
     const methods = [
         buildMethod({
             name: "public-semantic-assessment",
-            version: "2026-09-06",
+            version: "2026-09-29",
             rungs: ["http", "headless"],
             maxActions: 20,
         }),
         buildMethod({
             name: "operator-reviewed-public-document",
-            version: "2026-08-20",
+            version: "2026-09-29",
             rungs: ["manual"],
             maxActions: 0,
             determinationBases: ["direct_observation", "explicit_first_party_declaration"],
@@ -307,7 +308,7 @@ export function buildCurrentAgentReadinessPolicy() {
     const methodDigests = methods.map((method) => method.method_digest);
     const core = agentReadinessPolicyCoreSchema.parse({
         policy_contract: "sourcey.agent-readiness-policy/v1alpha1",
-        policy_version: "service-use-2026-09-07-blocking-barriers-r12",
+        policy_version: "service-use-2026-10-05-decisive-core",
         assessment_basis: {
             principal: "authorized_human_or_organization",
             initial_state: {
@@ -339,7 +340,7 @@ export function buildCurrentAgentReadinessPolicy() {
             ],
             success: {
                 target_coverage: "every_declared_target",
-                interface_coverage: "at_least_one_declared_alternative",
+                interface_coverage: "one_selected_interface_per_target",
                 authority: "scoped",
                 failure_semantics: "documented",
                 recovery: "supported",
@@ -423,7 +424,7 @@ export function buildCurrentAgentReadinessPolicy() {
             tie_breaker: "signal-code",
         },
         coverage: { unknown_signals: "uncovered", contradicted_signals: "uncovered" },
-        freshness: { source: "observation-freshness-policy", aggregation: "worst-evaluated-signal" },
+        freshness: { source: "observation-freshness-policy", aggregation: "worst-required-signal" },
         public_states: {
             pass: { state: "ready", label: "Ready" },
             constrained: { state: "limited", label: "Limited" },
@@ -448,13 +449,14 @@ export function buildCurrentAgentReadinessPolicy() {
                 provision: "F",
                 operate: "F",
             },
+            unverified_barrier_grade_cap: "B+",
             not_applicable_signals: "excluded",
             unrated_when: { coverage: "not-complete", freshness: "not-fresh" },
         },
         grade_derivation: {
             label: "Five-stage Agent Readiness report card",
             explanation: "A through C grades count Limited stages; D and F reflect Blocked stages by lifecycle severity.",
-            coverage_rule: "Coverage is complete only when every graded signal has supported, fresh, non-conflicting evidence. Barrier and informational signals do not change coverage; only fresh, supported barrier values that passed their admission evidence rule participate in stage outcomes.",
+            coverage_rule: "Every graded signal needs fresh, supported evidence. Unknown or stale barriers remain visible and cap A or A+ at B+. Only fresh, supported barriers affect stage outcomes.",
             outcome_rule: "Each stage takes its worst graded signal or verified barrier. A fresh, supported mandatory barrier that passed its admission evidence rule can block that stage; incomplete or stale barrier evidence remains context only. The overall grade is derived from the five stage states.",
         },
     });

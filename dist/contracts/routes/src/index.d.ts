@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { ALLOCATED_PUBLIC_ROUTE_ROOTS } from "./public-route-allocations.generated.js";
 export declare const publicRouteSlugSchema: z.ZodString;
 export declare const entityCanonicalPathInputSchema: z.ZodObject<{
     entity_slug: z.ZodString;
@@ -68,12 +67,12 @@ export declare const catalogRecordRedirects: readonly [{
     readonly action: "301";
 }, ...({
     readonly kind: "pattern";
-    readonly path: "/log/*/" | "/catalog/*/";
+    readonly path: "/catalog/*/" | "/log/*/";
     readonly canonical_target: `${string}/:splat`;
     readonly action: "301";
 } | {
     readonly kind: "pattern";
-    readonly path: "/log/*" | "/catalog/*";
+    readonly path: "/catalog/*" | "/log/*";
     readonly canonical_target: `${string}/:splat`;
     readonly action: "301";
 })[]];
@@ -114,18 +113,11 @@ export declare function parseEntityIconCurrentPath(path: string): {
     readonly entity_id: string;
 } | null;
 export declare function jsonTwinPath(canonicalPath: string): string;
-/**
- * Root paths owned by the site, machine surfaces, or retained public pages.
- * Catalog identities may never claim these names. Keeping this in
- * the public route contract makes collision prevention identical in the
- * compiler, site, and any future release tooling.
- */
-export { ALLOCATED_PUBLIC_ROUTE_ROOTS };
 export declare const routeEntrySchema: z.ZodObject<{
     kind: z.ZodEnum<{
         entity: "entity";
-        program: "program";
         offer: "offer";
+        program: "program";
         tombstone: "tombstone";
     }>;
     entity_id: z.ZodString;
@@ -146,8 +138,8 @@ export declare const routeIndexSchema: z.ZodObject<{
     routes: z.ZodRecord<z.ZodString, z.ZodObject<{
         kind: z.ZodEnum<{
             entity: "entity";
-            program: "program";
             offer: "offer";
+            program: "program";
             tombstone: "tombstone";
         }>;
         entity_id: z.ZodString;

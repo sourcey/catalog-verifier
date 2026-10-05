@@ -1,19 +1,42 @@
 import { z } from "zod";
-import { evidenceCaptureMethodSchema } from "../../evidence/src/index.js";
+import { evidenceArtifactScopeSchema, evidenceCaptureMethodSchema, evidenceRedirectSchema, evidenceSourceContentSchema, } from "../../evidence/src/index.js";
 import { standardRequirementReferenceSchema } from "../../standards/src/index.js";
-import { agentReadinessDigestSchema, agentReadinessScopeKeySchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
+import { agentReadinessDigestSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessScopeKeySchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
 export const agentReadinessRetainedArtifactSchema = z.enum([
-    "raw_bytes",
-    "normalized_text",
-    "structured_validation",
+    "source_observation",
+    "evidence_excerpt",
     "standard_evidence_result",
-    "utf8_locators",
-    "redirect_chain",
     "screenshot",
     "capture_interaction_trace",
     "interaction_trace",
     "manual_review_note",
 ]);
+export const agentReadinessManualCaptureAttestationSchema = z
+    .object({
+    attestation_contract: z.literal("sourcey.manual-capture-attestation/v1alpha1"),
+    operator_id: agentReadinessIdentifierSchema,
+    attested_at: agentReadinessInstantSchema,
+    observation_mode: z.literal("operator_visible_browser"),
+    artifact_scope: evidenceArtifactScopeSchema,
+    rationale: z.string().trim().min(20).max(2_000),
+})
+    .strict();
+export const agentReadinessSourceObservationSchema = z
+    .object({
+    observation_contract: z.literal("sourcey.agent-readiness-source-observation/v1alpha1"),
+    source_url: z.url({ protocol: /^https$/u }),
+    requested_url: z.url({ protocol: /^https$/u }),
+    final_url: z.url({ protocol: /^https$/u }),
+    redirect_chain: z.array(evidenceRedirectSchema).max(5),
+    response_status_code: z.number().int().min(100).max(599),
+    capture_method: evidenceCaptureMethodSchema,
+    captured_at: agentReadinessInstantSchema,
+    capture_policy_digest: agentReadinessDigestSchema,
+    normalizer_toolchain_digest: agentReadinessDigestSchema,
+    source_content: evidenceSourceContentSchema,
+    manual_capture_attestation: agentReadinessManualCaptureAttestationSchema.nullable(),
+})
+    .strict();
 export const agentReadinessDeterminationBasisKindSchema = z.enum([
     "direct_observation",
     "bounded_absence",

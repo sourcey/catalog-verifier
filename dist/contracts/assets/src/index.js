@@ -1,5 +1,6 @@
+import { digest as canonicalDigest, DIGEST_PATTERN, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { digest as canonicalDigest, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { ENTITY_ID_PATTERN } from "../../../modules/catalog-primitives/src/index.js";
 import { decisionBasisSchema } from "../../authority/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);

@@ -24,8 +24,8 @@ export declare const fundedWorkIntentEnvelopeCoreSchema: z.ZodObject<{
     forbidden_effects: z.ZodTuple<[z.ZodLiteral<"admit_without_evidence">, z.ZodLiteral<"alter_facts">, z.ZodLiteral<"alter_ranking">, z.ZodLiteral<"guarantee_outcome">, z.ZodLiteral<"publish_without_authority">], null>;
     price_lookup_key: z.ZodString;
     requested_by: z.ZodEnum<{
-        subject: "subject";
         contributor: "contributor";
+        subject: "subject";
     }>;
     issued_at: z.ZodISODateTime;
     expires_at: z.ZodISODateTime;
@@ -53,8 +53,8 @@ export declare const fundedWorkIntentEnvelopeSchema: z.ZodObject<{
     forbidden_effects: z.ZodTuple<[z.ZodLiteral<"admit_without_evidence">, z.ZodLiteral<"alter_facts">, z.ZodLiteral<"alter_ranking">, z.ZodLiteral<"guarantee_outcome">, z.ZodLiteral<"publish_without_authority">], null>;
     price_lookup_key: z.ZodString;
     requested_by: z.ZodEnum<{
-        subject: "subject";
         contributor: "contributor";
+        subject: "subject";
     }>;
     issued_at: z.ZodISODateTime;
     expires_at: z.ZodISODateTime;

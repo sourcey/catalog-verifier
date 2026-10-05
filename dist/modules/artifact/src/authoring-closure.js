@@ -1,5 +1,5 @@
+import { canonicalJson } from "provenry/primitives";
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
-import { canonicalJson } from "../../primitives/src/index.js";
 export function verifyReleasedAuthoringClosure(authoring, entities) {
     const compiled = compileAuthoringEntities([...authoring.values()]);
     const released = new Map(entities.map((entity) => [entity.entity_id, entity]));

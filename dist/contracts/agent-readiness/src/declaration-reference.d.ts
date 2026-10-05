@@ -8,22 +8,56 @@ export declare const AGENT_READINESS_REPOSITORY_URL: "https://github.com/sourcey
 export declare const agentReadinessRepositoryYamlPathSchema: z.ZodString;
 /** The single accepted path shape for new Agent Readiness authoring. */
 export declare const agentReadinessAuthoringPathSchema: z.ZodString;
-export declare const agentReadinessDeclarationProvenanceSchema: z.ZodObject<{
+/** A declaration held in the public repository at one pinned commit. */
+export declare const agentReadinessGitDeclarationProvenanceSchema: z.ZodObject<{
     repository: z.ZodLiteral<"sourcey/agent-ready-services">;
     commit: z.ZodString;
     path: z.ZodString;
     git_blob_oid: z.ZodString;
     blob_digest: z.ZodString;
 }, z.core.$strict>;
+/**
+ * A declaration submitted to Sourcey without Git. Sourcey serves the exact
+ * authoring bytes by their digest once a published profile cites them.
+ */
+export declare const agentReadinessHostedDeclarationProvenanceSchema: z.ZodObject<{
+    source: z.ZodLiteral<"sourcey">;
+    path: z.ZodString;
+    blob_digest: z.ZodString;
+}, z.core.$strict>;
+/**
+ * Where a declaration's exact bytes live. The two shapes share no field that
+ * could make one parse as the other, so a Git locator stays byte-identical.
+ */
+export declare const agentReadinessDeclarationProvenanceSchema: z.ZodUnion<readonly [z.ZodObject<{
+    repository: z.ZodLiteral<"sourcey/agent-ready-services">;
+    commit: z.ZodString;
+    path: z.ZodString;
+    git_blob_oid: z.ZodString;
+    blob_digest: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
+    source: z.ZodLiteral<"sourcey">;
+    path: z.ZodString;
+    blob_digest: z.ZodString;
+}, z.core.$strict>]>;
+export type AgentReadinessDeclarationProvenance = z.infer<typeof agentReadinessDeclarationProvenanceSchema>;
+export type AgentReadinessGitDeclarationProvenance = z.infer<typeof agentReadinessGitDeclarationProvenanceSchema>;
+export type AgentReadinessHostedDeclarationProvenance = z.infer<typeof agentReadinessHostedDeclarationProvenanceSchema>;
+/** Narrow a provenance to the Git locator; the local Git lane refuses anything else. */
+export declare function agentReadinessGitProvenance(provenance: AgentReadinessDeclarationProvenance): AgentReadinessGitDeclarationProvenance;
 export declare const agentReadinessDeclarationReferenceSchema: z.ZodObject<{
     declaration_id: z.ZodString;
-    provenance: z.ZodObject<{
+    provenance: z.ZodUnion<readonly [z.ZodObject<{
         repository: z.ZodLiteral<"sourcey/agent-ready-services">;
         commit: z.ZodString;
         path: z.ZodString;
         git_blob_oid: z.ZodString;
         blob_digest: z.ZodString;
-    }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        source: z.ZodLiteral<"sourcey">;
+        path: z.ZodString;
+        blob_digest: z.ZodString;
+    }, z.core.$strict>]>;
 }, z.core.$strict>;
 export declare const agentReadinessDeclarationAuthoritySchema: z.ZodEnum<{
     community_declared: "community_declared";
@@ -33,13 +67,17 @@ export declare const agentReadinessDeclarationStateSchema: z.ZodDiscriminatedUni
     status: z.ZodLiteral<"none">;
 }, z.core.$strict>, z.ZodObject<{
     declaration_id: z.ZodString;
-    provenance: z.ZodObject<{
+    provenance: z.ZodUnion<readonly [z.ZodObject<{
         repository: z.ZodLiteral<"sourcey/agent-ready-services">;
         commit: z.ZodString;
         path: z.ZodString;
         git_blob_oid: z.ZodString;
         blob_digest: z.ZodString;
-    }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        source: z.ZodLiteral<"sourcey">;
+        path: z.ZodString;
+        blob_digest: z.ZodString;
+    }, z.core.$strict>]>;
     status: z.ZodEnum<{
         community_declared: "community_declared";
         entity_attested: "entity_attested";

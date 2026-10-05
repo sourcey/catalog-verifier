@@ -4,29 +4,29 @@ export declare const fieldCoverageSchema: z.ZodObject<{
     supporting_event_ids: z.ZodArray<z.ZodString>;
     contradicting_event_ids: z.ZodArray<z.ZodString>;
     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
     freshness: z.ZodEnum<{
-        unknown: "unknown";
         fresh: "fresh";
         stale: "stale";
+        unknown: "unknown";
     }>;
 }, z.core.$strict>;
 export declare const provenanceSchema: z.ZodObject<{
     freshness: z.ZodEnum<{
-        unknown: "unknown";
         fresh: "fresh";
         stale: "stale";
+        unknown: "unknown";
     }>;
     dispute: z.ZodEnum<{
         none: "none";
@@ -41,22 +41,22 @@ export declare const provenanceSchema: z.ZodObject<{
         supporting_event_ids: z.ZodArray<z.ZodString>;
         contradicting_event_ids: z.ZodArray<z.ZodString>;
         accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
         freshness: z.ZodEnum<{
-            unknown: "unknown";
             fresh: "fresh";
             stale: "stale";
+            unknown: "unknown";
         }>;
     }, z.core.$strict>>;
     vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -225,8 +225,8 @@ export declare const offerHeadlineSchema: z.ZodObject<{
     rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
     benefit_id: z.ZodString;
     basis: z.ZodEnum<{
-        typed: "typed";
         described: "described";
+        typed: "typed";
     }>;
     figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"credit">;
@@ -398,6 +398,8 @@ export declare const compiledOfferSchema: z.ZodObject<{
             description: z.ZodString;
         }, z.core.$strict>], "kind">;
         benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            benefit_id: z.ZodString;
+            description: z.ZodString;
             kind: z.ZodLiteral<"credit">;
             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"exact">;
@@ -438,9 +440,9 @@ export declare const compiledOfferSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"discount">;
             percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"exact">;
@@ -467,9 +469,9 @@ export declare const compiledOfferSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"cashback">;
             value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"money">;
@@ -529,14 +531,14 @@ export declare const compiledOfferSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"waiver">;
             waived_item: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
             description: z.ZodString;
-        }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"free-service">;
             service: z.ZodString;
             duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -549,12 +551,10 @@ export declare const compiledOfferSchema: z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
             }, z.core.$strict>], "kind">>;
-            benefit_id: z.ZodString;
-            description: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"other">;
             benefit_id: z.ZodString;
             description: z.ZodString;
+            kind: z.ZodLiteral<"other">;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>;
     eligibility: z.ZodObject<{
@@ -566,19 +566,19 @@ export declare const compiledOfferSchema: z.ZodObject<{
     }, z.core.$strict>;
     access: z.ZodObject<{
         availability: z.ZodEnum<{
-            public: "public";
-            other: "other";
-            referral: "referral";
-            membership: "membership";
-            invite: "invite";
             automatic: "automatic";
+            invite: "invite";
+            membership: "membership";
+            other: "other";
+            public: "public";
+            referral: "referral";
         }>;
         method: z.ZodEnum<{
-            code: "code";
-            other: "other";
             automatic: "automatic";
-            form: "form";
+            code: "code";
             contact: "contact";
+            form: "form";
+            other: "other";
         }>;
         url: z.ZodOptional<z.ZodURL>;
         public_code: z.ZodOptional<z.ZodString>;
@@ -595,9 +595,9 @@ export declare const compiledOfferSchema: z.ZodObject<{
     revision_digest: z.ZodString;
     provenance: z.ZodObject<{
         freshness: z.ZodEnum<{
-            unknown: "unknown";
             fresh: "fresh";
             stale: "stale";
+            unknown: "unknown";
         }>;
         dispute: z.ZodEnum<{
             none: "none";
@@ -612,22 +612,22 @@ export declare const compiledOfferSchema: z.ZodObject<{
             supporting_event_ids: z.ZodArray<z.ZodString>;
             contradicting_event_ids: z.ZodArray<z.ZodString>;
             accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
         }, z.core.$strict>>;
         vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -652,8 +652,8 @@ export declare const compiledOfferSchema: z.ZodObject<{
         rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
         benefit_id: z.ZodString;
         basis: z.ZodEnum<{
-            typed: "typed";
             described: "described";
+            typed: "typed";
         }>;
         figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"credit">;
@@ -810,9 +810,9 @@ export declare const compiledProgramSchema: z.ZodObject<{
     revision_digest: z.ZodString;
     provenance: z.ZodObject<{
         freshness: z.ZodEnum<{
-            unknown: "unknown";
             fresh: "fresh";
             stale: "stale";
+            unknown: "unknown";
         }>;
         dispute: z.ZodEnum<{
             none: "none";
@@ -827,22 +827,22 @@ export declare const compiledProgramSchema: z.ZodObject<{
             supporting_event_ids: z.ZodArray<z.ZodString>;
             contradicting_event_ids: z.ZodArray<z.ZodString>;
             accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
         }, z.core.$strict>>;
         vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -866,9 +866,9 @@ export declare const compiledEntitySchema: z.ZodObject<{
     revision_digest: z.ZodString;
     provenance: z.ZodObject<{
         freshness: z.ZodEnum<{
-            unknown: "unknown";
             fresh: "fresh";
             stale: "stale";
+            unknown: "unknown";
         }>;
         dispute: z.ZodEnum<{
             none: "none";
@@ -883,22 +883,22 @@ export declare const compiledEntitySchema: z.ZodObject<{
             supporting_event_ids: z.ZodArray<z.ZodString>;
             contradicting_event_ids: z.ZodArray<z.ZodString>;
             accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
         }, z.core.$strict>>;
         vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -927,9 +927,9 @@ export declare const compiledEntitySchema: z.ZodObject<{
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
             dispute: z.ZodEnum<{
                 none: "none";
@@ -944,22 +944,22 @@ export declare const compiledEntitySchema: z.ZodObject<{
                 supporting_event_ids: z.ZodArray<z.ZodString>;
                 contradicting_event_ids: z.ZodArray<z.ZodString>;
                 accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
             }, z.core.$strict>>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -995,6 +995,8 @@ export declare const compiledEntitySchema: z.ZodObject<{
                 description: z.ZodString;
             }, z.core.$strict>], "kind">;
             benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                benefit_id: z.ZodString;
+                description: z.ZodString;
                 kind: z.ZodLiteral<"credit">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1035,9 +1037,9 @@ export declare const compiledEntitySchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"discount">;
                 percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"exact">;
@@ -1064,9 +1066,9 @@ export declare const compiledEntitySchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"cashback">;
                 value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"money">;
@@ -1126,14 +1128,14 @@ export declare const compiledEntitySchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"waiver">;
                 waived_item: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
                 description: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"free-service">;
                 service: z.ZodString;
                 duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1146,12 +1148,10 @@ export declare const compiledEntitySchema: z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
                 }, z.core.$strict>], "kind">>;
-                benefit_id: z.ZodString;
-                description: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"other">;
                 benefit_id: z.ZodString;
                 description: z.ZodString;
+                kind: z.ZodLiteral<"other">;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>;
         eligibility: z.ZodObject<{
@@ -1163,19 +1163,19 @@ export declare const compiledEntitySchema: z.ZodObject<{
         }, z.core.$strict>;
         access: z.ZodObject<{
             availability: z.ZodEnum<{
-                public: "public";
-                other: "other";
-                referral: "referral";
-                membership: "membership";
-                invite: "invite";
                 automatic: "automatic";
+                invite: "invite";
+                membership: "membership";
+                other: "other";
+                public: "public";
+                referral: "referral";
             }>;
             method: z.ZodEnum<{
-                code: "code";
-                other: "other";
                 automatic: "automatic";
-                form: "form";
+                code: "code";
                 contact: "contact";
+                form: "form";
+                other: "other";
             }>;
             url: z.ZodOptional<z.ZodURL>;
             public_code: z.ZodOptional<z.ZodString>;
@@ -1192,9 +1192,9 @@ export declare const compiledEntitySchema: z.ZodObject<{
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
             dispute: z.ZodEnum<{
                 none: "none";
@@ -1209,22 +1209,22 @@ export declare const compiledEntitySchema: z.ZodObject<{
                 supporting_event_ids: z.ZodArray<z.ZodString>;
                 contradicting_event_ids: z.ZodArray<z.ZodString>;
                 accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
             }, z.core.$strict>>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1249,8 +1249,8 @@ export declare const compiledEntitySchema: z.ZodObject<{
             rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
             benefit_id: z.ZodString;
             basis: z.ZodEnum<{
-                typed: "typed";
                 described: "described";
+                typed: "typed";
             }>;
             figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"credit">;
@@ -1576,9 +1576,9 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
             dispute: z.ZodEnum<{
                 none: "none";
@@ -1593,22 +1593,22 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                 supporting_event_ids: z.ZodArray<z.ZodString>;
                 contradicting_event_ids: z.ZodArray<z.ZodString>;
                 accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
             }, z.core.$strict>>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1637,9 +1637,9 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -1654,22 +1654,22 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1705,6 +1705,8 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1745,9 +1747,9 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1774,9 +1776,9 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1836,14 +1838,14 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1856,12 +1858,10 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1873,19 +1873,19 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -1902,9 +1902,9 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -1919,22 +1919,22 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1959,8 +1959,8 @@ export declare const canonicalArtifactSchema: z.ZodObject<{
                 rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
                 benefit_id: z.ZodString;
                 basis: z.ZodEnum<{
-                    typed: "typed";
                     described: "described";
+                    typed: "typed";
                 }>;
                 figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"credit">;
@@ -2117,12 +2117,12 @@ export declare const releaseChangeSchema: z.ZodObject<{
     change_id: z.ZodString;
     kind: z.ZodString;
     subject_type: z.ZodEnum<{
-        policy: "policy";
-        entity: "entity";
-        program: "program";
-        offer: "offer";
         agent_readiness_profile: "agent_readiness_profile";
         asset_binding: "asset_binding";
+        entity: "entity";
+        offer: "offer";
+        policy: "policy";
+        program: "program";
     }>;
     subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
     revision_digest: z.ZodOptional<z.ZodString>;
@@ -2133,45 +2133,12 @@ export declare const releaseChangeSchema: z.ZodObject<{
     tombstone: z.ZodOptional<z.ZodObject<{
         reason: z.ZodEnum<{
             ended: "ended";
-            withdrawn: "withdrawn";
             retired: "retired";
+            withdrawn: "withdrawn";
         }>;
         canonical_route: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
-export declare const releaseDiffSchema: z.ZodObject<{
-    diff_contract: z.ZodLiteral<"sourcey.release-diff/v1alpha1">;
-    parent_snapshot_id: z.ZodNullable<z.ZodString>;
-    snapshot_id: z.ZodString;
-    changes: z.ZodArray<z.ZodObject<{
-        change_id: z.ZodString;
-        kind: z.ZodString;
-        subject_type: z.ZodEnum<{
-            policy: "policy";
-            entity: "entity";
-            program: "program";
-            offer: "offer";
-            agent_readiness_profile: "agent_readiness_profile";
-            asset_binding: "asset_binding";
-        }>;
-        subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
-        revision_digest: z.ZodOptional<z.ZodString>;
-        previous_revision_digest: z.ZodOptional<z.ZodString>;
-        projection_digest: z.ZodOptional<z.ZodString>;
-        previous_projection_digest: z.ZodOptional<z.ZodString>;
-        basis_event_ids: z.ZodArray<z.ZodString>;
-        tombstone: z.ZodOptional<z.ZodObject<{
-            reason: z.ZodEnum<{
-                ended: "ended";
-                withdrawn: "withdrawn";
-                retired: "retired";
-            }>;
-            canonical_route: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>>;
-    }, z.core.$strict>>;
-}, z.core.$strict>;
-/** Canonical bytes committed by release_core.diff_digest. */
-export declare function encodeReleaseChanges(changes: readonly ReleaseChange[]): string;
 export declare const provenanceEntrySchema: z.ZodObject<{
     revision_digest: z.ZodString;
     first_inclusion_sequence: z.ZodNumber;
@@ -2214,14 +2181,14 @@ export declare const provenanceIndexSchema: z.ZodObject<{
         signer_registry_digest: z.ZodString;
         first_inclusion_sequence: z.ZodNumber;
     }, z.core.$strict>>;
-    capture_receipts: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+    capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
         receipt_digest: z.ZodString;
         receipt_object_digest: z.ZodString;
         issuer_id: z.ZodString;
         operation_id: z.ZodString;
         signer_registry_digest: z.ZodString;
         first_inclusion_sequence: z.ZodNumber;
-    }, z.core.$strict>>>;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const identityIndexSchema: z.ZodObject<{
     identity_contract: z.ZodLiteral<"sourcey.identities/v1alpha1">;
@@ -2229,16 +2196,16 @@ export declare const identityIndexSchema: z.ZodObject<{
     canonical_program_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
     canonical_offer_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
     canonical_agent_readiness_profile_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
-    program_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-        old_entity_id: z.ZodOptional<z.ZodString>;
+    program_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+        old_entity_id: z.ZodString;
         new_entity_id: z.ZodString;
         event_id: z.ZodString;
-    }, z.core.$strict>>>;
-    offer_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-        old_entity_id: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
+    offer_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+        old_entity_id: z.ZodString;
         new_entity_id: z.ZodString;
         event_id: z.ZodString;
-    }, z.core.$strict>>>;
+    }, z.core.$strict>>;
     agent_readiness_profile_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
         old_entity_id: z.ZodString;
         new_entity_id: z.ZodString;
@@ -2246,8 +2213,8 @@ export declare const identityIndexSchema: z.ZodObject<{
     }, z.core.$strict>>;
     asset_binding_dispositions: z.ZodRecord<z.ZodString, z.ZodObject<{
         disposition: z.ZodEnum<{
-            rebind: "rebind";
             end: "end";
+            rebind: "rebind";
         }>;
         event_id: z.ZodString;
         replacement_binding_event_id: z.ZodOptional<z.ZodString>;
@@ -2278,7 +2245,6 @@ export type PolicySection = z.infer<typeof policySectionSchema>;
 export type CanonicalArtifact = z.infer<typeof canonicalArtifactSchema>;
 export type CanonicalArtifactCore = z.infer<typeof canonicalArtifactCoreSchema>;
 export type ReleaseChange = z.infer<typeof releaseChangeSchema>;
-export type ReleaseDiff = z.infer<typeof releaseDiffSchema>;
 export type ProvenanceIndex = z.infer<typeof provenanceIndexSchema>;
 export type IdentityIndex = z.infer<typeof identityIndexSchema>;
 export type SearchIndex = z.infer<typeof searchIndexSchema>;

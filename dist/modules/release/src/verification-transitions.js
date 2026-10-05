@@ -1,5 +1,6 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
+import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { agentReadinessOfferRelationRequiresWithdrawal, compileAgentReadinessOfferRelationRevision, } from "../../agent-readiness-policy/src/offer-relations.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 /** Withdrawal is an independently verified transition, not permission to omit
  * an arbitrary live association. All evidence is in this exact delta. */
 export function verifyAgentReadinessOfferRelationWithdrawals(input) {
@@ -33,7 +34,7 @@ export function verifyAgentReadinessOfferRelationWithdrawals(input) {
             admitted &&
             !admitted.offer_relation_inputs.some((value) => compileAgentReadinessOfferRelationRevision(value).relation_id === prior.relation_id);
         const retired = input.retiredProfileIds.has(prior.agent_readiness_profile_id) && profile?.projection === null;
-        if (revision?.revision_contract !== "sourcey.agent-readiness-revision/v1alpha1" ||
+        if (revision?.revision_contract !== agentReadinessRevisionContract ||
             revision.agent_readiness_profile_id !== prior.agent_readiness_profile_id ||
             revision.entity_id !== context.entity_id ||
             declaration?.revision_contract !== "sourcey.agent-readiness-declaration-revision/v1alpha1" ||

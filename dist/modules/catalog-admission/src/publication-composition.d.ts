@@ -1,6 +1,6 @@
+import { type Digest } from "provenry/primitives";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { CatalogPublicationComposition, CatalogPublicationIngress } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type CatalogPublicationPlanningInput } from "./publication.js";
 import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 type PublicationContext = Omit<Pick<CatalogPublicationPlanningInput, "currentEntities" | "currentAssetBindings" | "currentPolicies" | "currentContractAuthorityDigest" | "impactIndex">, "currentAssetBindings"> & {
@@ -37,8 +37,8 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             program_slug: string;
             program_slug_aliases: string[];
             title: string;
-            source_ids: string[];
             summary?: string | undefined;
+            source_ids: string[];
         }[];
         entity: {
             entity_id: string;
@@ -47,19 +47,19 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             name: string;
             domains: {
                 value: string;
-                role: "primary" | "alias";
+                role: "alias" | "primary";
                 valid_from: string;
                 valid_until?: string | undefined;
             }[];
             category: string;
         };
         profile: {
+            summary?: string | undefined;
             description: string;
             links: {
                 site: string;
                 pricing?: string | undefined;
             };
-            summary?: string | undefined;
         };
         sources: {
             source_id: string;
@@ -67,10 +67,12 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
         }[];
         offers: {
             offer_id: string;
+            program_id?: string | undefined;
             offer_slug: string;
             offer_slug_aliases: string[];
             title: string;
             summary: string;
+            description?: string | undefined;
             lifecycle: {
                 status: "active" | "ended" | "withdrawn";
                 effective_from: string;
@@ -93,6 +95,8 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                     description: string;
                 };
                 benefits: ({
+                    benefit_id: string;
+                    description: string;
                     kind: "credit";
                     value: {
                         kind: "range";
@@ -123,8 +127,6 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                             minor_units: number;
                         };
                     };
-                    benefit_id: string;
-                    description: string;
                     duration?: {
                         kind: "exact";
                         value: string;
@@ -136,6 +138,8 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                         value: string;
                     } | undefined;
                 } | {
+                    benefit_id: string;
+                    description: string;
                     kind: "discount";
                     percentage: {
                         kind: "range";
@@ -151,8 +155,6 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                         kind: "at-least";
                         basis_points: number;
                     };
-                    benefit_id: string;
-                    description: string;
                     applies_to?: string | undefined;
                     duration?: {
                         kind: "exact";
@@ -165,6 +167,8 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                         value: string;
                     } | undefined;
                 } | {
+                    benefit_id: string;
+                    description: string;
                     kind: "cashback";
                     value: {
                         kind: "money";
@@ -214,8 +218,6 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                             basis_points: number;
                         };
                     };
-                    benefit_id: string;
-                    description: string;
                     duration?: {
                         kind: "exact";
                         value: string;
@@ -227,15 +229,15 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                         value: string;
                     } | undefined;
                 } | {
+                    benefit_id: string;
+                    description: string;
                     kind: "waiver";
                     waived_item: string;
+                } | {
                     benefit_id: string;
                     description: string;
-                } | {
                     kind: "free-service";
                     service: string;
-                    benefit_id: string;
-                    description: string;
                     duration?: {
                         kind: "exact";
                         value: string;
@@ -247,9 +249,9 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                         value: string;
                     } | undefined;
                 } | {
-                    kind: "other";
                     benefit_id: string;
                     description: string;
+                    kind: "other";
                 })[];
             };
             eligibility: {
@@ -259,17 +261,15 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                 terms_authority_entity_id: string;
                 access_operator_entity_id: string;
             };
+            source_ids?: string[] | undefined;
+            declared?: true | undefined;
             access: {
-                availability: "public" | "other" | "referral" | "membership" | "invite" | "automatic";
-                method: "code" | "other" | "automatic" | "form" | "contact";
+                availability: "automatic" | "invite" | "membership" | "other" | "public" | "referral";
+                method: "automatic" | "code" | "contact" | "form" | "other";
                 public_code?: string | undefined;
                 url?: string | undefined;
                 instructions?: string | undefined;
             };
-            program_id?: string | undefined;
-            description?: string | undefined;
-            source_ids?: string[] | undefined;
-            declared?: true | undefined;
             terms_url?: string | undefined;
         }[];
     }[];
@@ -297,7 +297,7 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             };
             original_digest: string;
             bytes: number;
-            media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+            media_type: "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp";
             captured_at: string;
             storage_receipt_digest: string;
             capture_digest: string;
@@ -306,7 +306,7 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             profile_contract: "sourcey.asset-transform-profile/v1alpha1";
             profile_version: string;
             toolchain_digest: string;
-            output_media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+            output_media_type: "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp";
             maximum_width: number;
             maximum_height: number;
             maximum_source_aspect_ratio: number | null;
@@ -319,13 +319,13 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             original: {
                 digest: string;
                 bytes: number;
-                media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                media_type: "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp";
                 source_path: string;
             };
             safe_variants: {
                 digest: string;
                 bytes: number;
-                media_type: "image/jpeg" | "image/png" | "image/webp" | "image/svg+xml";
+                media_type: "image/jpeg" | "image/png" | "image/svg+xml" | "image/webp";
                 source_path: string;
                 served_path: string;
                 width: number;
@@ -342,7 +342,7 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                 receipt_digest: string;
             }[];
             redistribution: {
-                basis: "vendor-approved" | "redistributable-license" | "nominative-use" | "sourcey-owned";
+                basis: "nominative-use" | "redistributable-license" | "sourcey-owned" | "vendor-approved";
                 license: string;
                 notice: string;
                 trademark_owner: string;
@@ -352,7 +352,8 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
         };
         served_digest: string;
         safe_storage_receipt_digest: string;
-        authority_basis: "sourcey-owned" | "vendor-authority" | "editorial-review" | "licensed-source";
+        authority_basis: "editorial-review" | "licensed-source" | "sourcey-owned" | "vendor-authority";
+        authority_claim_id?: string | undefined;
         source_basis: string;
         approval_scope: "entity-icon";
         review: {
@@ -363,13 +364,13 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
             capture_digest: string;
             served_digest: string;
             redistribution: {
-                basis: "vendor-approved" | "redistributable-license" | "nominative-use" | "sourcey-owned";
+                basis: "nominative-use" | "redistributable-license" | "sourcey-owned" | "vendor-approved";
                 license: string;
                 notice: string;
                 trademark_owner: string;
                 fallback_reason?: string | undefined;
             };
-            authority_basis: "sourcey-owned" | "vendor-authority" | "editorial-review" | "licensed-source";
+            authority_basis: "editorial-review" | "licensed-source" | "sourcey-owned" | "vendor-authority";
             source_basis: string;
             decision: "approved";
             decision_basis: {
@@ -390,7 +391,6 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
         };
         effective_from: string;
         proposal_digest: string;
-        authority_claim_id?: string | undefined;
     }[];
     remove_entity_ids: string[];
     expected_current_entities: {
@@ -404,7 +404,7 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
         binding_digest: string | null;
     }[];
     authority_proposals: {
-        purpose: "catalog-capture" | "catalog-evidence" | "catalog-identity" | "catalog-authority" | "catalog-attestation" | "catalog-verification" | "catalog-dispute" | "catalog-policy" | "catalog-release" | "catalog-feed";
+        purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
         proposal_digest: string;
         dependency_keys: string[];
         public_input_digest?: string | undefined;

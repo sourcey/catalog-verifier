@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import { type StandardEvidenceAdapterManifest, type StandardEvidenceRecord, type StandardEvidenceRequest, type StandardEvidenceRequirementResult, type StandardEvidenceResult, standardEvidenceAdapterManifestCoreSchema, standardEvidenceRequestCoreSchema } from "../../../contracts/standards/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export interface StandardEvidenceAdapter {
     readonly manifest: StandardEvidenceAdapterManifest;
     interpret(input: {

@@ -1,10 +1,14 @@
 import { TextDecoder } from "node:util";
+import { canonicalJson, digest, IDENTIFIER_PATTERN, sha256Bytes, } from "provenry/primitives";
 import { z } from "zod";
+import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
+import { sourceyEvidenceCaptureMethodVersion } from "../../../contracts/capture/src/method-names.js";
+import { sourceyCaptureMethodRegistry } from "../../../contracts/capture/src/methods.js";
 import { EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT, evidenceAssertionSchema, evidenceCaptureDeclarationSchema, evidenceDerivationRuleSchema, evidenceProofKindSchema, evidenceReceiptSubjectSchema, evidenceSourceStandingSchema, } from "../../../contracts/evidence/src/index.js";
-import { canonicalJson, digest, IDENTIFIER_PATTERN, sha256Bytes, } from "../../primitives/src/index.js";
+import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
 import { evidenceNormalizerSchema, normalizeEvidenceCapture } from "./evidence-normalization.js";
 import { hostnameWithinEntityDomains } from "./source-authority.js";
-export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
+export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const pointerSchema = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
 const utf8 = new TextDecoder("utf-8", { fatal: true });
@@ -167,7 +171,7 @@ function assertRevisionAuthorityBindings(input) {
     if (input.revision.entity_id !== input.authorityEntityRevision.entity_id) {
         throw new Error("Evidence submission authority entity does not own the revision.");
     }
-    if (input.revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+    if (input.revision.revision_contract === catalogRevisionContracts.offer) {
         if (input.revision.program_id === undefined) {
             if (input.authorityProgramRevision !== null) {
                 throw new Error("A standalone Offer cannot carry an authority Program revision.");
@@ -184,7 +188,7 @@ function assertRevisionAuthorityBindings(input) {
     }
 }
 function revisionSubject(revision) {
-    if (revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1") {
+    if (revision.revision_contract === agentReadinessRevisionContract) {
         return {
             subject_type: "agent_readiness_profile",
             entity_id: revision.entity_id,
@@ -192,7 +196,7 @@ function revisionSubject(revision) {
             revision_digest: revision.revision_digest,
         };
     }
-    if (revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+    if (revision.revision_contract === catalogRevisionContracts.offer) {
         return {
             subject_type: "offer",
             entity_id: revision.entity_id,
@@ -201,7 +205,7 @@ function revisionSubject(revision) {
             revision_digest: revision.revision_digest,
         };
     }
-    if (revision.revision_contract === "sourcey.program-revision/v1alpha1") {
+    if (revision.revision_contract === catalogRevisionContracts.program) {
         return {
             subject_type: "program",
             entity_id: revision.entity_id,
@@ -252,7 +256,7 @@ export function verifyEvidenceAssertions(input) {
     });
 }
 function revisionEvidenceValue(revision) {
-    return revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1"
+    return revision.revision_contract === agentReadinessRevisionContract
         ? revision
         : revision.content;
 }
@@ -322,14 +326,21 @@ export function verifyEvidenceReviewProposal(input) {
     return proposal;
 }
 export function deriveSourceStanding(capture, authorityEntityRevision) {
-    const comparedUrl = capture.method === "archive" ? capture.subject_source_url : capture.final_url;
+    const capabilities = sourceyCaptureMethodRegistry.require(capture.method, sourceyEvidenceCaptureMethodVersion).capabilities;
+    const historical = capabilities.includes("history-only");
+    const manual = capabilities.includes("manual-review");
+    const live = capabilities.includes("live-source");
+    if (Number(historical) + Number(manual) + Number(live) !== 1) {
+        throw new Error(`Capture method ${capture.method} has no unique source-standing capability.`);
+    }
+    const comparedUrl = historical ? capture.subject_source_url : capture.final_url;
     const hostname = new URL(comparedUrl).hostname.toLowerCase().replace(/\.$/, "");
     const retrievedAt = Date.parse(capture.retrieved_at);
     const firstParty = hostnameWithinEntityDomains(hostname, authorityEntityRevision.content.domains, retrievedAt);
-    if (capture.method === "archive") {
+    if (historical) {
         return firstParty ? "archived-first-party" : "archived-third-party";
     }
-    if (capture.method === "manual") {
+    if (manual) {
         return firstParty ? "manual-first-party" : "manual-third-party";
     }
     return firstParty ? "live-first-party" : "live-third-party";

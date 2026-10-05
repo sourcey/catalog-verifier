@@ -1,10 +1,10 @@
 import { execFile } from "node:child_process";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
+import { gitComparisonBase } from "provenry/git";
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
 import { assertAgentReadinessDeclarationPolicyClosure } from "../../agent-readiness-policy/src/index.js";
-import { gitComparisonBase } from "../../git-input/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
 /**
@@ -42,8 +42,8 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
                 ? null
                 : readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, headRevision, file),
         ]);
-        assertBlobPolicy(base, input.policy);
-        assertBlobPolicy(head, input.policy);
+        assertAgentReadinessBlobPolicy(base, input.policy);
+        assertAgentReadinessBlobPolicy(head, input.policy);
         return pathDelta(status, path, base, head);
     }));
     const core = {
@@ -74,6 +74,14 @@ export function selectedAgentReadinessDeclarationDeltas(packet) {
     return packet.paths.flatMap((path) => path.declarations.filter((delta) => path.entitySubjectChanged || delta.kind !== "declaration_unchanged"));
 }
 function pathDelta(status, path, base, head) {
+    return { status, path, ...agentReadinessAuthoringDelta({ base, head }) };
+}
+/**
+ * Compare one Entity file's base and head declarations. The Git change packet
+ * and hosted intake both select their planning targets from this delta.
+ */
+export function agentReadinessAuthoringDelta(input) {
+    const { base, head } = input;
     const prior = base?.declarationRevisions ?? {};
     const current = head?.declarationRevisions ?? {};
     const ids = [...new Set([...Object.keys(prior), ...Object.keys(current)])].sort(compareCanonicalStrings);
@@ -115,8 +123,6 @@ function pathDelta(status, path, base, head) {
         };
     });
     return {
-        status,
-        path,
         base,
         head,
         entitySubjectChanged: base === null || head === null || digest(entitySubject(base)) !== digest(entitySubject(head)),
@@ -208,7 +214,8 @@ async function resolveOptionalGitObject(repositoryRoot, revision) {
         throw error;
     }
 }
-function assertBlobPolicy(blob, policy) {
+/** Every declaration in the bytes closes over the installed readiness policy. */
+export function assertAgentReadinessBlobPolicy(blob, policy) {
     if (!blob)
         return;
     for (const revision of Object.values(blob.declarationRevisions)) {

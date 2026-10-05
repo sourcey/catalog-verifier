@@ -1,8 +1,8 @@
+import { type Digest } from "provenry/primitives";
 import { type AssetAuthorityBundleManifest, type EntityAssetProposal, type EntityAssetReviewArtifact } from "../../../contracts/assets/src/index.js";
 import type { SignerRegistry } from "../../../contracts/authority/src/index.js";
 import { type CatalogEvent, type CatalogEventCore } from "../../../contracts/events/src/index.js";
 import type { CatalogPublicationProposal } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 export interface ReadAssetAuthorityBundle {
     readonly manifest: AssetAuthorityBundleManifest;
     readonly proposals: readonly EntityAssetProposal[];

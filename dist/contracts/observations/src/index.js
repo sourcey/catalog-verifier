@@ -1,15 +1,13 @@
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN, IDENTIFIER_PATTERN } from "../../../modules/primitives/src/index.js";
-import { evidenceCaptureAvailabilitySchema, evidenceNormalizedObjectSchema, evidenceRedirectSchema, evidenceSourceStandingSchema, } from "../../evidence/src/index.js";
+import { sourceyEvidenceCaptureMethodNames } from "../../capture/src/method-names.js";
+import { evidenceArtifactScopeSchema, evidenceCaptureAvailabilitySchema, evidenceNormalizedObjectSchema, evidenceRedirectSchema, evidenceSourceContentSchema, evidenceSourceStandingSchema, validateEvidenceArtifactScopeClosure, } from "../../evidence/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 export const observationMethodKnownValues = [
     "fixture",
-    "http",
-    "headless",
-    "archive",
-    "manual",
+    ...sourceyEvidenceCaptureMethodNames,
 ];
 export const observationMethodSchema = identifier.meta({
     description: "Capture adapter identifier. Known values are examples; new adapters may appear without changing the observation envelope.",
@@ -27,8 +25,11 @@ const captureSchema = z
     redirect_chain: z.array(evidenceRedirectSchema).max(5).optional(),
     source_standing: evidenceSourceStandingSchema.optional(),
     normalized_object: evidenceNormalizedObjectSchema.optional(),
+    artifact_scope: evidenceArtifactScopeSchema.optional(),
+    source_content: evidenceSourceContentSchema.optional(),
 })
-    .strict();
+    .strict()
+    .superRefine(validateEvidenceArtifactScopeClosure);
 export const observationCoreSchema = z
     .object({
     observation_contract: z.literal("sourcey.observation/v1alpha1"),

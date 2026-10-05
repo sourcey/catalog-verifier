@@ -1,11 +1,11 @@
 import { basename } from "node:path";
+import { compareCanonicalStrings, digest } from "provenry/primitives";
 import { z } from "zod";
 import { agentReadinessDigestSchema, agentReadinessProfileIdSchema, agentReadinessProjectionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
 import { deriveAgentReadinessReprojection, regradeAgentReadinessProjection, } from "../../agent-readiness-policy/src/index.js";
 import { validateProtectedEvent } from "../../authority/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 import { buildEventGraph } from "../../provenance/src/index.js";
 import { mergeCanonicalById } from "./evidence-admission.js";
 export const AGENT_READINESS_REGRADE_EVIDENCE_PREFIX = "agent-readiness-regrade-evidence/";
@@ -121,7 +121,11 @@ export function readAgentReadinessRegradeEvidenceFile(input) {
         throw new Error(`Catalog delta regrade evidence ${input.path} is not addressed correctly.`);
     }
     for (const event of evidence.events) {
-        validateProtectedEvent(event, input.registry, input.releaseSequence);
+        const registry = input.registries.get(event.protected.signer_registry_digest);
+        if (!registry) {
+            throw new Error(`Catalog delta regrade event ${event.event_id} names a registry outside the trusted history.`);
+        }
+        validateProtectedEvent(event, registry, input.releaseSequence);
     }
     for (const observation of evidence.observations) {
         const { observation_id: observationId, ...core } = observation;

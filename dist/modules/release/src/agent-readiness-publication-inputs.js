@@ -1,6 +1,6 @@
+import { canonicalJson, digest, digestPathSegment, parseJsonFile, prettyJson, } from "provenry/primitives";
 import { agentReadinessProfileReleaseInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { parseReleaseJson } from "../../artifact/src/release-directory-files.js";
-import { canonicalJson, digest, digestPathSegment, prettyJson, } from "../../primitives/src/index.js";
+import { CATALOG_RELEASE } from "../../artifact/src/release-directory-files.js";
 import { agentReadinessPublicationInput, } from "./publication-authorities.js";
 const prefix = "inputs/agent-readiness-release/";
 export function addAgentReadinessPublicationInputs(files, proposals) {
@@ -24,7 +24,7 @@ export function verifyAgentReadinessPublicationInputs(input) {
         if (paths.has(path))
             continue;
         paths.add(path);
-        const value = agentReadinessProfileReleaseInputSchema.parse(parseReleaseJson(input.files, path));
+        const value = agentReadinessProfileReleaseInputSchema.parse(parseJsonFile(input.files, path, CATALOG_RELEASE));
         const profileId = value.profile_input.agent_readiness_profile_id;
         const object = input.profiles.get(profileId);
         const previous = profiles.get(profileId);

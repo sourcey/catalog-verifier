@@ -1,5 +1,5 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { publicationRecompositionNodeSchema } from "../../../contracts/publication/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 import { dependentKey, orderedUnique, } from "./publication-dependencies.js";
 /**
  * Plans one digest-gated DAG to a fixed point. Callers supply semantic outputs

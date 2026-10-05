@@ -18,6 +18,6 @@ export declare function buildAgentReadinessChanges(input: {
     readonly current: readonly AgentReadinessProjection[];
     readonly prior: readonly AgentReadinessProjectionLineage[];
     readonly identities: IdentityIndex;
-    readonly regradedProfileIds?: ReadonlySet<string>;
+    readonly regradedProfileIds: ReadonlySet<string>;
 }): ReleaseChange[];
 //# sourceMappingURL=changes.d.ts.map

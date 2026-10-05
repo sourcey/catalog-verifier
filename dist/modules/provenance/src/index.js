@@ -1,6 +1,8 @@
+import { compareCanonicalStrings, compareInstants } from "provenry/primitives";
+import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventPayloadSchemas, } from "../../../contracts/events/src/index.js";
+import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
 import { deriveAuthorityState, entityAcceptsClaimAuthorityDomain, } from "../../authority-state/src/index.js";
-import { compareCanonicalStrings, compareInstants, } from "../../primitives/src/index.js";
 import { assertEvidenceBindingClosure, evidenceAssertions } from "./evidence-bindings.js";
 import { applicableEvidenceCoverageRequirements, evidenceAssertionSatisfiesRequirement, evidencePathsOverlap, evidenceRequirementIsCovered, } from "./evidence-coverage.js";
 export { evidenceAssertions } from "./evidence-bindings.js";
@@ -19,6 +21,19 @@ export function evidenceStatusFor(field) {
     if (field.contradicting_event_ids.length > 0)
         return "contradicted";
     return "missing";
+}
+/** The unique observations that the evidence events among `eventIds` bind, in canonical order. */
+export function boundObservationIds(eventIds, events) {
+    const observationIds = new Set();
+    for (const eventId of eventIds) {
+        const event = events.get(eventId);
+        if (event?.kind !== "evidence.bound")
+            continue;
+        const observationId = event.payload.observation_id;
+        if (typeof observationId === "string")
+            observationIds.add(observationId);
+    }
+    return [...observationIds].sort(compareCanonicalStrings);
 }
 const identityKinds = new Set([
     "entity.merged",
@@ -288,7 +303,7 @@ export function buildEventGraph(events, observations) {
 export function deriveProvenance(input) {
     const { revision, authorityEntityRevision, graph, coveragePolicy, freshnessPolicy, policyAsOf } = input;
     const subjectEvents = (graph.byRevisionDigest.get(revision.revision_digest) ?? []).filter((event) => !graph.inactiveEventIds.has(event.event_id));
-    const agentReadinessRevision = revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1";
+    const agentReadinessRevision = revision.revision_contract === agentReadinessRevisionContract;
     const revisionValue = agentReadinessRevision ? revision : revision.content;
     const policyRequirements = agentReadinessRevision
         ? revision.signals.map((_, index) => ({
@@ -297,9 +312,9 @@ export function deriveProvenance(input) {
             derivation_rules: [],
             guidance: "Agent-readiness signals require exact observed test evidence.",
         }))
-        : revision.revision_contract === "sourcey.entity-revision/v1alpha1"
+        : revision.revision_contract === catalogRevisionContracts.entity
             ? coveragePolicy.entity_requirements
-            : revision.revision_contract === "sourcey.program-revision/v1alpha1"
+            : revision.revision_contract === catalogRevisionContracts.program
                 ? coveragePolicy.program_requirements
                 : coveragePolicy.offer_requirements;
     const requirements = applicableEvidenceCoverageRequirements(revisionValue, policyRequirements);

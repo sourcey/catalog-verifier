@@ -1,6 +1,6 @@
+import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, } from "provenry/primitives";
 import { catalogPublicationChangeSetCoreSchema, catalogPublicationChangeSetSchema, catalogPublicationProposalCoreSchema, catalogPublicationProposalSchema, publicationIngressReceiptCoreSchema, publicationIngressReceiptSchema, } from "../../../contracts/publication/src/index.js";
 import { catalogPublicationAdmittedInputDigests, catalogPublicationIngressUnion, verifyCatalogPublicationInputClosure, } from "../../catalog-admission/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, digestFromPathSegment, } from "../../primitives/src/index.js";
 export function verifyPublicationInputs(bundle, delta, files) {
     const proposals = valuesUnder(files, "publication/proposals/").map(([path, input]) => {
         const proposal = catalogPublicationProposalSchema.parse(input);
@@ -22,8 +22,8 @@ export function verifyPublicationInputs(bundle, delta, files) {
         return receipt;
     })
         .sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest));
-    if (receipts.length === 0 || !delta.base) {
-        throw new Error("Catalog delta must close ingress receipt provenance and an exact live base.");
+    if (receipts.length === 0) {
+        throw new Error("Catalog delta must close ingress receipt provenance.");
     }
     const proposalsByDigest = new Map(proposals.map((proposal) => [proposal.proposal_digest, proposal]));
     const changeSetsByProposal = new Map(changeSets.map((changeSet) => [changeSet.proposal_digest, changeSet]));

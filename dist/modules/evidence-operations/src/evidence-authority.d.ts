@@ -1,3 +1,4 @@
+import { type Digest } from "provenry/primitives";
 import { z } from "zod";
 import { type AgentReadinessDeclarationRevision, type AgentReadinessOfferRelationInput, type AgentReadinessProfileInput, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { DecisionBasis } from "../../../contracts/authority/src/index.js";
@@ -5,7 +6,6 @@ import { type CatalogEventIntent } from "../../../contracts/events/src/index.js"
 import { type EvidenceReviewDecision } from "../../../contracts/evidence/src/index.js";
 import { type Observation } from "../../../contracts/observations/src/index.js";
 import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type EvidenceReviewProposal } from "./submission-verifier.js";
 export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
     catalog_proposal_contract: z.ZodLiteral<"sourcey.evidence-catalog-proposal/v1alpha1">;
@@ -55,9 +55,9 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 retrieved_at: z.ZodISODateTime;
                 method: z.ZodEnum<{
-                    http: "http";
-                    headless: "headless";
                     archive: "archive";
+                    headless: "headless";
+                    http: "http";
                     manual: "manual";
                 }>;
                 response_status_code: z.ZodNumber;
@@ -67,6 +67,17 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     public: "public";
                     restricted: "restricted";
                 }>;
+                artifact_scope: z.ZodOptional<z.ZodEnum<{
+                    complete_document: "complete_document";
+                    document_excerpt: "document_excerpt";
+                }>>;
+                source_content: z.ZodOptional<z.ZodObject<{
+                    digest: z.ZodString;
+                    bytes: z.ZodNumber;
+                    media_type: z.ZodString;
+                    normalized_digest: z.ZodString;
+                    normalized_bytes: z.ZodNumber;
+                }, z.core.$strict>>;
             }, z.core.$strict>;
             normalization: z.ZodObject<{
                 normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
@@ -78,19 +89,21 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             assertions: z.ZodArray<z.ZodObject<{
                 path: z.ZodString;
                 polarity: z.ZodEnum<{
-                    supports: "supports";
                     contradicts: "contradicts";
+                    supports: "supports";
                 }>;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -103,29 +116,31 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         }, z.core.$strict>;
         review_projection: z.ZodObject<{
             source_standing: z.ZodEnum<{
-                "live-first-party": "live-first-party";
                 "archived-first-party": "archived-first-party";
-                "live-third-party": "live-third-party";
                 "archived-third-party": "archived-third-party";
+                "live-first-party": "live-first-party";
+                "live-third-party": "live-third-party";
                 "manual-first-party": "manual-first-party";
                 "manual-third-party": "manual-third-party";
             }>;
             assertions: z.ZodArray<z.ZodObject<{
                 path: z.ZodString;
                 polarity: z.ZodEnum<{
-                    supports: "supports";
                     contradicts: "contradicts";
+                    supports: "supports";
                 }>;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 values: z.ZodArray<z.ZodObject<{
@@ -171,8 +186,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -228,6 +243,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -268,9 +285,9 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -297,9 +314,9 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -359,14 +376,14 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -379,12 +396,10 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -396,19 +411,19 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -439,13 +454,17 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             status: z.ZodLiteral<"none">;
         }, z.core.$strict>, z.ZodObject<{
             declaration_id: z.ZodString;
-            provenance: z.ZodObject<{
+            provenance: z.ZodUnion<readonly [z.ZodObject<{
                 repository: z.ZodLiteral<"sourcey/agent-ready-services">;
                 commit: z.ZodString;
                 path: z.ZodString;
                 git_blob_oid: z.ZodString;
                 blob_digest: z.ZodString;
-            }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                source: z.ZodLiteral<"sourcey">;
+                path: z.ZodString;
+                blob_digest: z.ZodString;
+            }, z.core.$strict>]>;
             status: z.ZodEnum<{
                 community_declared: "community_declared";
                 entity_attested: "entity_attested";
@@ -461,26 +480,26 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         signals: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 evaluate: "evaluate";
-                sign_up: "sign_up";
+                operate: "operate";
                 pay: "pay";
                 provision: "provision";
-                operate: "operate";
+                sign_up: "sign_up";
             }>;
             signal_code: z.ZodString;
             selector_group_id: z.ZodString;
             value: z.ZodEnum<{
+                no: "no";
+                not_applicable: "not_applicable";
+                partial: "partial";
                 unknown: "unknown";
                 yes: "yes";
-                no: "no";
-                partial: "partial";
-                not_applicable: "not_applicable";
             }>;
             observed_at: z.ZodISODateTime;
             tested_surfaces: z.ZodArray<z.ZodObject<{
                 node_kind: z.ZodEnum<{
-                    resource: "resource";
                     endpoint: "endpoint";
                     interface: "interface";
+                    resource: "resource";
                     surface_exclusion: "surface_exclusion";
                 }>;
                 node_id: z.ZodString;
@@ -491,56 +510,67 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 method_digest: z.ZodString;
             }, z.core.$strict>;
             determination_bases: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"direct_observation">;
                 locators: z.ZodArray<z.ZodObject<{
                     artifact_digest: z.ZodString;
                     start_byte: z.ZodNumber;
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"direct_observation">;
             }, z.core.$strict>, z.ZodObject<{
-                coverage_scope: z.ZodEnum<{
-                    exact_resource: "exact_resource";
-                    tested_surfaces: "tested_surfaces";
-                    exact_funnel: "exact_funnel";
-                }>;
-                covered_surfaces: z.ZodArray<z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>>;
-                covered_branches: z.ZodNumber;
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
                     capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
                         archive: "archive";
+                        headless: "headless";
+                        http: "http";
                         manual: "manual";
                     }>;
                 }, z.core.$strict>>;
                 artifact_digests: z.ZodArray<z.ZodString>;
                 kind: z.ZodLiteral<"bounded_absence">;
-            }, z.core.$strict>, z.ZodObject<{
-                source_surface: z.ZodObject<{
+                coverage_scope: z.ZodEnum<{
+                    exact_funnel: "exact_funnel";
+                    exact_resource: "exact_resource";
+                    tested_surfaces: "tested_surfaces";
+                }>;
+                covered_surfaces: z.ZodArray<z.ZodObject<{
                     node_kind: z.ZodEnum<{
-                        resource: "resource";
                         endpoint: "endpoint";
                         interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>>;
+                covered_branches: z.ZodNumber;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"explicit_first_party_declaration">;
+                source_surface: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
                         surface_exclusion: "surface_exclusion";
                     }>;
                     node_id: z.ZodString;
@@ -551,17 +581,6 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"explicit_first_party_declaration">;
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"standard_requirement">;
                 adapter_digest: z.ZodString;
@@ -571,8 +590,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     version: z.ZodString;
                     requirement_id: z.ZodString;
                     relation: z.ZodEnum<{
-                        tests: "tests";
                         "informational-reference": "informational-reference";
+                        tests: "tests";
                     }>;
                 }, z.core.$strict>;
                 artifact_digests: z.ZodArray<z.ZodString>;
@@ -586,18 +605,6 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         revision_digest: z.ZodString;
     }, z.core.$strict>]>;
     agent_readiness_profile_input: z.ZodNullable<z.ZodObject<{
-        evidence_bindings: z.ZodArray<z.ZodObject<{
-            stage: z.ZodEnum<{
-                evaluate: "evaluate";
-                sign_up: "sign_up";
-                pay: "pay";
-                provision: "provision";
-                operate: "operate";
-            }>;
-            signal_code: z.ZodString;
-            evidence_event_ids: z.ZodArray<z.ZodString>;
-            observation_ids: z.ZodArray<z.ZodString>;
-        }, z.core.$strict>>;
         agent_readiness_profile_id: z.ZodString;
         entity_id: z.ZodString;
         scope: z.ZodObject<{
@@ -619,13 +626,17 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             status: z.ZodLiteral<"none">;
         }, z.core.$strict>, z.ZodObject<{
             declaration_id: z.ZodString;
-            provenance: z.ZodObject<{
+            provenance: z.ZodUnion<readonly [z.ZodObject<{
                 repository: z.ZodLiteral<"sourcey/agent-ready-services">;
                 commit: z.ZodString;
                 path: z.ZodString;
                 git_blob_oid: z.ZodString;
                 blob_digest: z.ZodString;
-            }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                source: z.ZodLiteral<"sourcey">;
+                path: z.ZodString;
+                blob_digest: z.ZodString;
+            }, z.core.$strict>]>;
             status: z.ZodEnum<{
                 community_declared: "community_declared";
                 entity_attested: "entity_attested";
@@ -641,26 +652,26 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         signals: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 evaluate: "evaluate";
-                sign_up: "sign_up";
+                operate: "operate";
                 pay: "pay";
                 provision: "provision";
-                operate: "operate";
+                sign_up: "sign_up";
             }>;
             signal_code: z.ZodString;
             selector_group_id: z.ZodString;
             value: z.ZodEnum<{
+                no: "no";
+                not_applicable: "not_applicable";
+                partial: "partial";
                 unknown: "unknown";
                 yes: "yes";
-                no: "no";
-                partial: "partial";
-                not_applicable: "not_applicable";
             }>;
             observed_at: z.ZodISODateTime;
             tested_surfaces: z.ZodArray<z.ZodObject<{
                 node_kind: z.ZodEnum<{
-                    resource: "resource";
                     endpoint: "endpoint";
                     interface: "interface";
+                    resource: "resource";
                     surface_exclusion: "surface_exclusion";
                 }>;
                 node_id: z.ZodString;
@@ -671,56 +682,67 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 method_digest: z.ZodString;
             }, z.core.$strict>;
             determination_bases: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"direct_observation">;
                 locators: z.ZodArray<z.ZodObject<{
                     artifact_digest: z.ZodString;
                     start_byte: z.ZodNumber;
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"direct_observation">;
             }, z.core.$strict>, z.ZodObject<{
-                coverage_scope: z.ZodEnum<{
-                    exact_resource: "exact_resource";
-                    tested_surfaces: "tested_surfaces";
-                    exact_funnel: "exact_funnel";
-                }>;
-                covered_surfaces: z.ZodArray<z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>>;
-                covered_branches: z.ZodNumber;
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
                     capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
                         archive: "archive";
+                        headless: "headless";
+                        http: "http";
                         manual: "manual";
                     }>;
                 }, z.core.$strict>>;
                 artifact_digests: z.ZodArray<z.ZodString>;
                 kind: z.ZodLiteral<"bounded_absence">;
-            }, z.core.$strict>, z.ZodObject<{
-                source_surface: z.ZodObject<{
+                coverage_scope: z.ZodEnum<{
+                    exact_funnel: "exact_funnel";
+                    exact_resource: "exact_resource";
+                    tested_surfaces: "tested_surfaces";
+                }>;
+                covered_surfaces: z.ZodArray<z.ZodObject<{
                     node_kind: z.ZodEnum<{
-                        resource: "resource";
                         endpoint: "endpoint";
                         interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>>;
+                covered_branches: z.ZodNumber;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"explicit_first_party_declaration">;
+                source_surface: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
                         surface_exclusion: "surface_exclusion";
                     }>;
                     node_id: z.ZodString;
@@ -731,17 +753,6 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"explicit_first_party_declaration">;
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"standard_requirement">;
                 adapter_digest: z.ZodString;
@@ -751,8 +762,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     version: z.ZodString;
                     requirement_id: z.ZodString;
                     relation: z.ZodEnum<{
-                        tests: "tests";
                         "informational-reference": "informational-reference";
+                        tests: "tests";
                     }>;
                 }, z.core.$strict>;
                 artifact_digests: z.ZodArray<z.ZodString>;
@@ -763,11 +774,24 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             note: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
         input_contract: z.ZodLiteral<"sourcey.agent-readiness-input/v1alpha1">;
+        evidence_bindings: z.ZodArray<z.ZodObject<{
+            stage: z.ZodEnum<{
+                evaluate: "evaluate";
+                operate: "operate";
+                pay: "pay";
+                provision: "provision";
+                sign_up: "sign_up";
+            }>;
+            signal_code: z.ZodString;
+            evidence_event_ids: z.ZodArray<z.ZodString>;
+            observation_ids: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>>;
     }, z.core.$strict>>;
     agent_readiness_declaration_revision: z.ZodNullable<z.ZodObject<{
         revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
         entity_id: z.ZodString;
         declaration: z.ZodObject<{
+            declaration_id: z.ZodString;
             scope: z.ZodObject<{
                 product: z.ZodObject<{
                     key: z.ZodString;
@@ -778,24 +802,45 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     name: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>;
+            assessment_targets: z.ZodArray<z.ZodObject<{
+                target_id: z.ZodString;
+                name: z.ZodString;
+                interface_ids: z.ZodArray<z.ZodString>;
+            }, z.core.$strict>>;
+            participants: z.ZodArray<z.ZodObject<{
+                participant_id: z.ZodString;
+                roles: z.ZodArray<z.ZodEnum<{
+                    access_operator: "access_operator";
+                    identity_provider: "identity_provider";
+                    operations_provider: "operations_provider";
+                    payment_provider: "payment_provider";
+                    provisioning_provider: "provisioning_provider";
+                    subject: "subject";
+                }>>;
+                identity: z.ZodUnion<readonly [z.ZodObject<{
+                    entity_id: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    origin_source_id: z.ZodString;
+                }, z.core.$strict>]>;
+            }, z.core.$strict>>;
             resources: z.ZodArray<z.ZodObject<{
                 resource_id: z.ZodString;
                 uri: z.ZodURL;
                 roles: z.ZodArray<z.ZodEnum<{
-                    policy: "policy";
-                    discovery: "discovery";
-                    status: "status";
-                    pricing: "pricing";
-                    eligibility: "eligibility";
                     access: "access";
-                    terms: "terms";
-                    checkout: "checkout";
-                    provisioning: "provisioning";
-                    operations: "operations";
-                    recovery: "recovery";
                     authentication: "authentication";
+                    checkout: "checkout";
                     descriptor: "descriptor";
+                    discovery: "discovery";
                     documentation: "documentation";
+                    eligibility: "eligibility";
+                    operations: "operations";
+                    policy: "policy";
+                    pricing: "pricing";
+                    provisioning: "provisioning";
+                    recovery: "recovery";
+                    status: "status";
+                    terms: "terms";
                 }>>;
                 operated_by_participant_id: z.ZodString;
                 standard_bindings: z.ZodArray<z.ZodObject<{
@@ -810,74 +855,23 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 allowed_redirect_hosts: z.ZodOptional<z.ZodArray<z.ZodString>>;
             }, z.core.$strict>>;
-            relations: z.ZodArray<z.ZodObject<{
-                relation_id: z.ZodString;
-                kind: z.ZodEnum<{
-                    describes: "describes";
-                    authenticates: "authenticates";
-                    requires: "requires";
-                    alternative_to: "alternative_to";
-                    precedes: "precedes";
-                }>;
-                from: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
-                to: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
-            }, z.core.$strict>>;
-            declaration_id: z.ZodString;
-            declared_at: z.ZodISODateTime;
-            assessment_targets: z.ZodArray<z.ZodObject<{
-                target_id: z.ZodString;
-                name: z.ZodString;
-                interface_ids: z.ZodArray<z.ZodString>;
-            }, z.core.$strict>>;
-            participants: z.ZodArray<z.ZodObject<{
-                participant_id: z.ZodString;
-                roles: z.ZodArray<z.ZodEnum<{
-                    subject: "subject";
-                    access_operator: "access_operator";
-                    identity_provider: "identity_provider";
-                    payment_provider: "payment_provider";
-                    provisioning_provider: "provisioning_provider";
-                    operations_provider: "operations_provider";
-                }>>;
-                identity: z.ZodUnion<readonly [z.ZodObject<{
-                    entity_id: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    origin_source_id: z.ZodString;
-                }, z.core.$strict>]>;
-            }, z.core.$strict>>;
             endpoints: z.ZodArray<z.ZodObject<{
                 endpoint_id: z.ZodString;
                 uri: z.ZodURL;
                 transport: z.ZodEnum<{
+                    grpc: "grpc";
                     http: "http";
                     websocket: "websocket";
-                    grpc: "grpc";
                 }>;
                 roles: z.ZodArray<z.ZodEnum<{
-                    status: "status";
-                    service: "service";
-                    checkout: "checkout";
-                    recovery: "recovery";
                     authorization: "authorization";
-                    token: "token";
-                    registration: "registration";
+                    checkout: "checkout";
                     protected_resource: "protected_resource";
+                    recovery: "recovery";
+                    registration: "registration";
+                    service: "service";
+                    status: "status";
+                    token: "token";
                     webhook: "webhook";
                 }>>;
                 operated_by_participant_id: z.ZodString;
@@ -896,19 +890,19 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             interfaces: z.ZodArray<z.ZodObject<{
                 interface_id: z.ZodString;
                 modality: z.ZodEnum<{
-                    web_application: "web_application";
-                    network_api: "network_api";
+                    agent_service: "agent_service";
                     command_line: "command_line";
+                    network_api: "network_api";
                     software_library: "software_library";
                     tool_server: "tool_server";
-                    agent_service: "agent_service";
+                    web_application: "web_application";
                 }>;
                 functions: z.ZodArray<z.ZodEnum<{
+                    authentication: "authentication";
+                    commerce: "commerce";
                     events: "events";
                     recovery: "recovery";
-                    authentication: "authentication";
                     service_operation: "service_operation";
-                    commerce: "commerce";
                 }>>;
                 endpoint_ids: z.ZodArray<z.ZodString>;
                 resource_ids: z.ZodArray<z.ZodString>;
@@ -924,47 +918,76 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     }>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
+            relations: z.ZodArray<z.ZodObject<{
+                relation_id: z.ZodString;
+                kind: z.ZodEnum<{
+                    alternative_to: "alternative_to";
+                    authenticates: "authenticates";
+                    describes: "describes";
+                    precedes: "precedes";
+                    requires: "requires";
+                }>;
+                from: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
+                to: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
             surface_exclusions: z.ZodArray<z.ZodObject<{
                 exclusion_id: z.ZodString;
                 role: z.ZodEnum<{
-                    policy: "policy";
-                    discovery: "discovery";
-                    status: "status";
-                    pricing: "pricing";
-                    eligibility: "eligibility";
                     access: "access";
-                    terms: "terms";
-                    checkout: "checkout";
-                    provisioning: "provisioning";
-                    operations: "operations";
-                    recovery: "recovery";
                     authentication: "authentication";
+                    checkout: "checkout";
                     descriptor: "descriptor";
+                    discovery: "discovery";
                     documentation: "documentation";
+                    eligibility: "eligibility";
+                    operations: "operations";
+                    policy: "policy";
+                    pricing: "pricing";
+                    provisioning: "provisioning";
+                    recovery: "recovery";
+                    status: "status";
+                    terms: "terms";
                 }>;
                 rationale: z.ZodString;
             }, z.core.$strict>>;
             authority_intent: z.ZodEnum<{
-                entity: "entity";
                 community: "community";
+                entity: "entity";
             }>;
+            declared_at: z.ZodISODateTime;
             source_bindings: z.ZodArray<z.ZodObject<{
-                target: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        relation: "relation";
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                        declaration: "declaration";
-                        participant: "participant";
-                        assessment_target: "assessment_target";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
                 source_binding_id: z.ZodString;
                 source_id: z.ZodString;
                 field_paths: z.ZodArray<z.ZodString>;
+                target: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        assessment_target: "assessment_target";
+                        declaration: "declaration";
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        participant: "participant";
+                        relation: "relation";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         sources: z.ZodArray<z.ZodObject<{
@@ -979,15 +1002,15 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         offer_id: z.ZodString;
         purpose: z.ZodEnum<{
             application_path: "application_path";
-            redemption_path: "redemption_path";
             operating_path: "operating_path";
+            redemption_path: "redemption_path";
         }>;
         applicable_stages: z.ZodArray<z.ZodEnum<{
             evaluate: "evaluate";
-            sign_up: "sign_up";
+            operate: "operate";
             pay: "pay";
             provision: "provision";
-            operate: "operate";
+            sign_up: "sign_up";
         }>>;
         effective_from: z.ZodISODateTime;
         effective_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1005,8 +1028,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1095,9 +1118,9 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 retrieved_at: z.ZodISODateTime;
                 method: z.ZodEnum<{
-                    http: "http";
-                    headless: "headless";
                     archive: "archive";
+                    headless: "headless";
+                    http: "http";
                     manual: "manual";
                 }>;
                 response_status_code: z.ZodNumber;
@@ -1107,6 +1130,17 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                     public: "public";
                     restricted: "restricted";
                 }>;
+                artifact_scope: z.ZodOptional<z.ZodEnum<{
+                    complete_document: "complete_document";
+                    document_excerpt: "document_excerpt";
+                }>>;
+                source_content: z.ZodOptional<z.ZodObject<{
+                    digest: z.ZodString;
+                    bytes: z.ZodNumber;
+                    media_type: z.ZodString;
+                    normalized_digest: z.ZodString;
+                    normalized_bytes: z.ZodNumber;
+                }, z.core.$strict>>;
                 bytes: z.ZodNumber;
             }, z.core.$strict>;
             issued_at: z.ZodISODateTime;
@@ -1122,9 +1156,9 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             version: z.ZodString;
         }, z.core.$strict>;
         outcome: z.ZodEnum<{
+            "contradicts-candidate": "contradicts-candidate";
             error: "error";
             "supports-candidate": "supports-candidate";
-            "contradicts-candidate": "contradicts-candidate";
             unreachable: "unreachable";
         }>;
         capture: z.ZodOptional<z.ZodObject<{
@@ -1132,8 +1166,8 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             media_type: z.ZodString;
             availability: z.ZodEnum<{
-                public: "public";
                 "private-receipt": "private-receipt";
+                public: "public";
             }>;
             requested_uri: z.ZodOptional<z.ZodURL>;
             final_uri: z.ZodOptional<z.ZodURL>;
@@ -1143,10 +1177,10 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 to: z.ZodURL;
             }, z.core.$strict>>>;
             source_standing: z.ZodOptional<z.ZodEnum<{
-                "live-first-party": "live-first-party";
                 "archived-first-party": "archived-first-party";
-                "live-third-party": "live-third-party";
                 "archived-third-party": "archived-third-party";
+                "live-first-party": "live-first-party";
+                "live-third-party": "live-third-party";
                 "manual-first-party": "manual-first-party";
                 "manual-third-party": "manual-third-party";
             }>>;
@@ -1159,15 +1193,26 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
                 version: z.ZodString;
                 toolchain_digest: z.ZodString;
             }, z.core.$strict>>;
+            artifact_scope: z.ZodOptional<z.ZodEnum<{
+                complete_document: "complete_document";
+                document_excerpt: "document_excerpt";
+            }>>;
+            source_content: z.ZodOptional<z.ZodObject<{
+                digest: z.ZodString;
+                bytes: z.ZodNumber;
+                media_type: z.ZodString;
+                normalized_digest: z.ZodString;
+                normalized_bytes: z.ZodNumber;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
         no_capture_reason: z.ZodOptional<z.ZodEnum<{
-            "dns-failure": "dns-failure";
-            "connect-timeout": "connect-timeout";
-            "tls-failure": "tls-failure";
             "access-denied": "access-denied";
-            "policy-blocked": "policy-blocked";
+            "connect-timeout": "connect-timeout";
+            "dns-failure": "dns-failure";
             "empty-response": "empty-response";
             "extractor-error": "extractor-error";
+            "policy-blocked": "policy-blocked";
+            "tls-failure": "tls-failure";
         }>>;
         observation_id: z.ZodString;
     }, z.core.$strict>>;
@@ -1176,39 +1221,39 @@ export declare const evidenceCatalogProposalCoreSchema: z.ZodObject<{
         core: z.ZodObject<{
             event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
             kind: z.ZodEnum<{
-                "program.retired": "program.retired";
-                "offer.retired": "offer.retired";
+                "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+                "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+                "agent-readiness-profile.retired": "agent-readiness-profile.retired";
                 "asset.bound": "asset.bound";
+                "asset.takedown-ordered": "asset.takedown-ordered";
                 "asset.withdrawn": "asset.withdrawn";
-                "evidence.bound": "evidence.bound";
-                "evidence.retracted": "evidence.retracted";
-                "discrepancy.resolved": "discrepancy.resolved";
+                "assurance.revoked": "assurance.revoked";
+                "attestation.revoked": "attestation.revoked";
                 "authority.claimed": "authority.claimed";
                 "authority.rechecked": "authority.rechecked";
                 "authority.revoked": "authority.revoked";
                 "authority.superseded": "authority.superseded";
-                "subject.attested": "subject.attested";
-                "attestation.revoked": "attestation.revoked";
-                "verification.completed": "verification.completed";
-                "entity.identity-checked": "entity.identity-checked";
-                "offer.terms-checked": "offer.terms-checked";
-                "assurance.revoked": "assurance.revoked";
-                "freshness.exception-granted": "freshness.exception-granted";
-                "freshness.exception-revoked": "freshness.exception-revoked";
+                "discrepancy.resolved": "discrepancy.resolved";
                 "dispute.opened": "dispute.opened";
                 "dispute.resolved": "dispute.resolved";
-                "asset.takedown-ordered": "asset.takedown-ordered";
+                "entity.identity-checked": "entity.identity-checked";
                 "entity.merged": "entity.merged";
                 "entity.split": "entity.split";
                 "entity.succeeded": "entity.succeeded";
+                "evidence.bound": "evidence.bound";
+                "evidence.retracted": "evidence.retracted";
+                "freshness.exception-granted": "freshness.exception-granted";
+                "freshness.exception-revoked": "freshness.exception-revoked";
+                "identity.transition-superseded": "identity.transition-superseded";
                 "offer.merged": "offer.merged";
+                "offer.reparented": "offer.reparented";
+                "offer.retired": "offer.retired";
+                "offer.terms-checked": "offer.terms-checked";
                 "program.merged": "program.merged";
                 "program.reparented": "program.reparented";
-                "offer.reparented": "offer.reparented";
-                "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-                "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-                "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-                "identity.transition-superseded": "identity.transition-superseded";
+                "program.retired": "program.retired";
+                "subject.attested": "subject.attested";
+                "verification.completed": "verification.completed";
             }>;
             issuer_id: z.ZodString;
             operation_id: z.ZodString;
@@ -1286,9 +1331,9 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 retrieved_at: z.ZodISODateTime;
                 method: z.ZodEnum<{
-                    http: "http";
-                    headless: "headless";
                     archive: "archive";
+                    headless: "headless";
+                    http: "http";
                     manual: "manual";
                 }>;
                 response_status_code: z.ZodNumber;
@@ -1298,6 +1343,17 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     public: "public";
                     restricted: "restricted";
                 }>;
+                artifact_scope: z.ZodOptional<z.ZodEnum<{
+                    complete_document: "complete_document";
+                    document_excerpt: "document_excerpt";
+                }>>;
+                source_content: z.ZodOptional<z.ZodObject<{
+                    digest: z.ZodString;
+                    bytes: z.ZodNumber;
+                    media_type: z.ZodString;
+                    normalized_digest: z.ZodString;
+                    normalized_bytes: z.ZodNumber;
+                }, z.core.$strict>>;
             }, z.core.$strict>;
             normalization: z.ZodObject<{
                 normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
@@ -1309,19 +1365,21 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             assertions: z.ZodArray<z.ZodObject<{
                 path: z.ZodString;
                 polarity: z.ZodEnum<{
-                    supports: "supports";
                     contradicts: "contradicts";
+                    supports: "supports";
                 }>;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -1334,29 +1392,31 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         }, z.core.$strict>;
         review_projection: z.ZodObject<{
             source_standing: z.ZodEnum<{
-                "live-first-party": "live-first-party";
                 "archived-first-party": "archived-first-party";
-                "live-third-party": "live-third-party";
                 "archived-third-party": "archived-third-party";
+                "live-first-party": "live-first-party";
+                "live-third-party": "live-third-party";
                 "manual-first-party": "manual-first-party";
                 "manual-third-party": "manual-third-party";
             }>;
             assertions: z.ZodArray<z.ZodObject<{
                 path: z.ZodString;
                 polarity: z.ZodEnum<{
-                    supports: "supports";
                     contradicts: "contradicts";
+                    supports: "supports";
                 }>;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 values: z.ZodArray<z.ZodObject<{
@@ -1402,8 +1462,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1459,6 +1519,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1499,9 +1561,9 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1528,9 +1590,9 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1590,14 +1652,14 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1610,12 +1672,10 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1627,19 +1687,19 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -1670,13 +1730,17 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             status: z.ZodLiteral<"none">;
         }, z.core.$strict>, z.ZodObject<{
             declaration_id: z.ZodString;
-            provenance: z.ZodObject<{
+            provenance: z.ZodUnion<readonly [z.ZodObject<{
                 repository: z.ZodLiteral<"sourcey/agent-ready-services">;
                 commit: z.ZodString;
                 path: z.ZodString;
                 git_blob_oid: z.ZodString;
                 blob_digest: z.ZodString;
-            }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                source: z.ZodLiteral<"sourcey">;
+                path: z.ZodString;
+                blob_digest: z.ZodString;
+            }, z.core.$strict>]>;
             status: z.ZodEnum<{
                 community_declared: "community_declared";
                 entity_attested: "entity_attested";
@@ -1692,26 +1756,26 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         signals: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 evaluate: "evaluate";
-                sign_up: "sign_up";
+                operate: "operate";
                 pay: "pay";
                 provision: "provision";
-                operate: "operate";
+                sign_up: "sign_up";
             }>;
             signal_code: z.ZodString;
             selector_group_id: z.ZodString;
             value: z.ZodEnum<{
+                no: "no";
+                not_applicable: "not_applicable";
+                partial: "partial";
                 unknown: "unknown";
                 yes: "yes";
-                no: "no";
-                partial: "partial";
-                not_applicable: "not_applicable";
             }>;
             observed_at: z.ZodISODateTime;
             tested_surfaces: z.ZodArray<z.ZodObject<{
                 node_kind: z.ZodEnum<{
-                    resource: "resource";
                     endpoint: "endpoint";
                     interface: "interface";
+                    resource: "resource";
                     surface_exclusion: "surface_exclusion";
                 }>;
                 node_id: z.ZodString;
@@ -1722,56 +1786,67 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 method_digest: z.ZodString;
             }, z.core.$strict>;
             determination_bases: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"direct_observation">;
                 locators: z.ZodArray<z.ZodObject<{
                     artifact_digest: z.ZodString;
                     start_byte: z.ZodNumber;
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"direct_observation">;
             }, z.core.$strict>, z.ZodObject<{
-                coverage_scope: z.ZodEnum<{
-                    exact_resource: "exact_resource";
-                    tested_surfaces: "tested_surfaces";
-                    exact_funnel: "exact_funnel";
-                }>;
-                covered_surfaces: z.ZodArray<z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>>;
-                covered_branches: z.ZodNumber;
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
                     capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
                         archive: "archive";
+                        headless: "headless";
+                        http: "http";
                         manual: "manual";
                     }>;
                 }, z.core.$strict>>;
                 artifact_digests: z.ZodArray<z.ZodString>;
                 kind: z.ZodLiteral<"bounded_absence">;
-            }, z.core.$strict>, z.ZodObject<{
-                source_surface: z.ZodObject<{
+                coverage_scope: z.ZodEnum<{
+                    exact_funnel: "exact_funnel";
+                    exact_resource: "exact_resource";
+                    tested_surfaces: "tested_surfaces";
+                }>;
+                covered_surfaces: z.ZodArray<z.ZodObject<{
                     node_kind: z.ZodEnum<{
-                        resource: "resource";
                         endpoint: "endpoint";
                         interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>>;
+                covered_branches: z.ZodNumber;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"explicit_first_party_declaration">;
+                source_surface: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
                         surface_exclusion: "surface_exclusion";
                     }>;
                     node_id: z.ZodString;
@@ -1782,17 +1857,6 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"explicit_first_party_declaration">;
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"standard_requirement">;
                 adapter_digest: z.ZodString;
@@ -1802,8 +1866,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     version: z.ZodString;
                     requirement_id: z.ZodString;
                     relation: z.ZodEnum<{
-                        tests: "tests";
                         "informational-reference": "informational-reference";
+                        tests: "tests";
                     }>;
                 }, z.core.$strict>;
                 artifact_digests: z.ZodArray<z.ZodString>;
@@ -1817,18 +1881,6 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         revision_digest: z.ZodString;
     }, z.core.$strict>]>;
     agent_readiness_profile_input: z.ZodNullable<z.ZodObject<{
-        evidence_bindings: z.ZodArray<z.ZodObject<{
-            stage: z.ZodEnum<{
-                evaluate: "evaluate";
-                sign_up: "sign_up";
-                pay: "pay";
-                provision: "provision";
-                operate: "operate";
-            }>;
-            signal_code: z.ZodString;
-            evidence_event_ids: z.ZodArray<z.ZodString>;
-            observation_ids: z.ZodArray<z.ZodString>;
-        }, z.core.$strict>>;
         agent_readiness_profile_id: z.ZodString;
         entity_id: z.ZodString;
         scope: z.ZodObject<{
@@ -1850,13 +1902,17 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             status: z.ZodLiteral<"none">;
         }, z.core.$strict>, z.ZodObject<{
             declaration_id: z.ZodString;
-            provenance: z.ZodObject<{
+            provenance: z.ZodUnion<readonly [z.ZodObject<{
                 repository: z.ZodLiteral<"sourcey/agent-ready-services">;
                 commit: z.ZodString;
                 path: z.ZodString;
                 git_blob_oid: z.ZodString;
                 blob_digest: z.ZodString;
-            }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                source: z.ZodLiteral<"sourcey">;
+                path: z.ZodString;
+                blob_digest: z.ZodString;
+            }, z.core.$strict>]>;
             status: z.ZodEnum<{
                 community_declared: "community_declared";
                 entity_attested: "entity_attested";
@@ -1872,26 +1928,26 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         signals: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 evaluate: "evaluate";
-                sign_up: "sign_up";
+                operate: "operate";
                 pay: "pay";
                 provision: "provision";
-                operate: "operate";
+                sign_up: "sign_up";
             }>;
             signal_code: z.ZodString;
             selector_group_id: z.ZodString;
             value: z.ZodEnum<{
+                no: "no";
+                not_applicable: "not_applicable";
+                partial: "partial";
                 unknown: "unknown";
                 yes: "yes";
-                no: "no";
-                partial: "partial";
-                not_applicable: "not_applicable";
             }>;
             observed_at: z.ZodISODateTime;
             tested_surfaces: z.ZodArray<z.ZodObject<{
                 node_kind: z.ZodEnum<{
-                    resource: "resource";
                     endpoint: "endpoint";
                     interface: "interface";
+                    resource: "resource";
                     surface_exclusion: "surface_exclusion";
                 }>;
                 node_id: z.ZodString;
@@ -1902,56 +1958,67 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 method_digest: z.ZodString;
             }, z.core.$strict>;
             determination_bases: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"direct_observation">;
                 locators: z.ZodArray<z.ZodObject<{
                     artifact_digest: z.ZodString;
                     start_byte: z.ZodNumber;
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"direct_observation">;
             }, z.core.$strict>, z.ZodObject<{
-                coverage_scope: z.ZodEnum<{
-                    exact_resource: "exact_resource";
-                    tested_surfaces: "tested_surfaces";
-                    exact_funnel: "exact_funnel";
-                }>;
-                covered_surfaces: z.ZodArray<z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>>;
-                covered_branches: z.ZodNumber;
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
                     capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
                         archive: "archive";
+                        headless: "headless";
+                        http: "http";
                         manual: "manual";
                     }>;
                 }, z.core.$strict>>;
                 artifact_digests: z.ZodArray<z.ZodString>;
                 kind: z.ZodLiteral<"bounded_absence">;
-            }, z.core.$strict>, z.ZodObject<{
-                source_surface: z.ZodObject<{
+                coverage_scope: z.ZodEnum<{
+                    exact_funnel: "exact_funnel";
+                    exact_resource: "exact_resource";
+                    tested_surfaces: "tested_surfaces";
+                }>;
+                covered_surfaces: z.ZodArray<z.ZodObject<{
                     node_kind: z.ZodEnum<{
-                        resource: "resource";
                         endpoint: "endpoint";
                         interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>>;
+                covered_branches: z.ZodNumber;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"explicit_first_party_declaration">;
+                source_surface: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
                         surface_exclusion: "surface_exclusion";
                     }>;
                     node_id: z.ZodString;
@@ -1962,17 +2029,6 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
-                captures: z.ZodArray<z.ZodObject<{
-                    retained_capture_digest: z.ZodString;
-                    capture_rung: z.ZodEnum<{
-                        http: "http";
-                        headless: "headless";
-                        archive: "archive";
-                        manual: "manual";
-                    }>;
-                }, z.core.$strict>>;
-                artifact_digests: z.ZodArray<z.ZodString>;
-                kind: z.ZodLiteral<"explicit_first_party_declaration">;
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"standard_requirement">;
                 adapter_digest: z.ZodString;
@@ -1982,8 +2038,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     version: z.ZodString;
                     requirement_id: z.ZodString;
                     relation: z.ZodEnum<{
-                        tests: "tests";
                         "informational-reference": "informational-reference";
+                        tests: "tests";
                     }>;
                 }, z.core.$strict>;
                 artifact_digests: z.ZodArray<z.ZodString>;
@@ -1994,11 +2050,24 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             note: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
         input_contract: z.ZodLiteral<"sourcey.agent-readiness-input/v1alpha1">;
+        evidence_bindings: z.ZodArray<z.ZodObject<{
+            stage: z.ZodEnum<{
+                evaluate: "evaluate";
+                operate: "operate";
+                pay: "pay";
+                provision: "provision";
+                sign_up: "sign_up";
+            }>;
+            signal_code: z.ZodString;
+            evidence_event_ids: z.ZodArray<z.ZodString>;
+            observation_ids: z.ZodArray<z.ZodString>;
+        }, z.core.$strict>>;
     }, z.core.$strict>>;
     agent_readiness_declaration_revision: z.ZodNullable<z.ZodObject<{
         revision_contract: z.ZodLiteral<"sourcey.agent-readiness-declaration-revision/v1alpha1">;
         entity_id: z.ZodString;
         declaration: z.ZodObject<{
+            declaration_id: z.ZodString;
             scope: z.ZodObject<{
                 product: z.ZodObject<{
                     key: z.ZodString;
@@ -2009,24 +2078,45 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     name: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>;
+            assessment_targets: z.ZodArray<z.ZodObject<{
+                target_id: z.ZodString;
+                name: z.ZodString;
+                interface_ids: z.ZodArray<z.ZodString>;
+            }, z.core.$strict>>;
+            participants: z.ZodArray<z.ZodObject<{
+                participant_id: z.ZodString;
+                roles: z.ZodArray<z.ZodEnum<{
+                    access_operator: "access_operator";
+                    identity_provider: "identity_provider";
+                    operations_provider: "operations_provider";
+                    payment_provider: "payment_provider";
+                    provisioning_provider: "provisioning_provider";
+                    subject: "subject";
+                }>>;
+                identity: z.ZodUnion<readonly [z.ZodObject<{
+                    entity_id: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    origin_source_id: z.ZodString;
+                }, z.core.$strict>]>;
+            }, z.core.$strict>>;
             resources: z.ZodArray<z.ZodObject<{
                 resource_id: z.ZodString;
                 uri: z.ZodURL;
                 roles: z.ZodArray<z.ZodEnum<{
-                    policy: "policy";
-                    discovery: "discovery";
-                    status: "status";
-                    pricing: "pricing";
-                    eligibility: "eligibility";
                     access: "access";
-                    terms: "terms";
-                    checkout: "checkout";
-                    provisioning: "provisioning";
-                    operations: "operations";
-                    recovery: "recovery";
                     authentication: "authentication";
+                    checkout: "checkout";
                     descriptor: "descriptor";
+                    discovery: "discovery";
                     documentation: "documentation";
+                    eligibility: "eligibility";
+                    operations: "operations";
+                    policy: "policy";
+                    pricing: "pricing";
+                    provisioning: "provisioning";
+                    recovery: "recovery";
+                    status: "status";
+                    terms: "terms";
                 }>>;
                 operated_by_participant_id: z.ZodString;
                 standard_bindings: z.ZodArray<z.ZodObject<{
@@ -2041,74 +2131,23 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 allowed_redirect_hosts: z.ZodOptional<z.ZodArray<z.ZodString>>;
             }, z.core.$strict>>;
-            relations: z.ZodArray<z.ZodObject<{
-                relation_id: z.ZodString;
-                kind: z.ZodEnum<{
-                    describes: "describes";
-                    authenticates: "authenticates";
-                    requires: "requires";
-                    alternative_to: "alternative_to";
-                    precedes: "precedes";
-                }>;
-                from: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
-                to: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
-            }, z.core.$strict>>;
-            declaration_id: z.ZodString;
-            declared_at: z.ZodISODateTime;
-            assessment_targets: z.ZodArray<z.ZodObject<{
-                target_id: z.ZodString;
-                name: z.ZodString;
-                interface_ids: z.ZodArray<z.ZodString>;
-            }, z.core.$strict>>;
-            participants: z.ZodArray<z.ZodObject<{
-                participant_id: z.ZodString;
-                roles: z.ZodArray<z.ZodEnum<{
-                    subject: "subject";
-                    access_operator: "access_operator";
-                    identity_provider: "identity_provider";
-                    payment_provider: "payment_provider";
-                    provisioning_provider: "provisioning_provider";
-                    operations_provider: "operations_provider";
-                }>>;
-                identity: z.ZodUnion<readonly [z.ZodObject<{
-                    entity_id: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    origin_source_id: z.ZodString;
-                }, z.core.$strict>]>;
-            }, z.core.$strict>>;
             endpoints: z.ZodArray<z.ZodObject<{
                 endpoint_id: z.ZodString;
                 uri: z.ZodURL;
                 transport: z.ZodEnum<{
+                    grpc: "grpc";
                     http: "http";
                     websocket: "websocket";
-                    grpc: "grpc";
                 }>;
                 roles: z.ZodArray<z.ZodEnum<{
-                    status: "status";
-                    service: "service";
-                    checkout: "checkout";
-                    recovery: "recovery";
                     authorization: "authorization";
-                    token: "token";
-                    registration: "registration";
+                    checkout: "checkout";
                     protected_resource: "protected_resource";
+                    recovery: "recovery";
+                    registration: "registration";
+                    service: "service";
+                    status: "status";
+                    token: "token";
                     webhook: "webhook";
                 }>>;
                 operated_by_participant_id: z.ZodString;
@@ -2127,19 +2166,19 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             interfaces: z.ZodArray<z.ZodObject<{
                 interface_id: z.ZodString;
                 modality: z.ZodEnum<{
-                    web_application: "web_application";
-                    network_api: "network_api";
+                    agent_service: "agent_service";
                     command_line: "command_line";
+                    network_api: "network_api";
                     software_library: "software_library";
                     tool_server: "tool_server";
-                    agent_service: "agent_service";
+                    web_application: "web_application";
                 }>;
                 functions: z.ZodArray<z.ZodEnum<{
+                    authentication: "authentication";
+                    commerce: "commerce";
                     events: "events";
                     recovery: "recovery";
-                    authentication: "authentication";
                     service_operation: "service_operation";
-                    commerce: "commerce";
                 }>>;
                 endpoint_ids: z.ZodArray<z.ZodString>;
                 resource_ids: z.ZodArray<z.ZodString>;
@@ -2155,47 +2194,76 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     }>;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
+            relations: z.ZodArray<z.ZodObject<{
+                relation_id: z.ZodString;
+                kind: z.ZodEnum<{
+                    alternative_to: "alternative_to";
+                    authenticates: "authenticates";
+                    describes: "describes";
+                    precedes: "precedes";
+                    requires: "requires";
+                }>;
+                from: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
+                to: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
             surface_exclusions: z.ZodArray<z.ZodObject<{
                 exclusion_id: z.ZodString;
                 role: z.ZodEnum<{
-                    policy: "policy";
-                    discovery: "discovery";
-                    status: "status";
-                    pricing: "pricing";
-                    eligibility: "eligibility";
                     access: "access";
-                    terms: "terms";
-                    checkout: "checkout";
-                    provisioning: "provisioning";
-                    operations: "operations";
-                    recovery: "recovery";
                     authentication: "authentication";
+                    checkout: "checkout";
                     descriptor: "descriptor";
+                    discovery: "discovery";
                     documentation: "documentation";
+                    eligibility: "eligibility";
+                    operations: "operations";
+                    policy: "policy";
+                    pricing: "pricing";
+                    provisioning: "provisioning";
+                    recovery: "recovery";
+                    status: "status";
+                    terms: "terms";
                 }>;
                 rationale: z.ZodString;
             }, z.core.$strict>>;
             authority_intent: z.ZodEnum<{
-                entity: "entity";
                 community: "community";
+                entity: "entity";
             }>;
+            declared_at: z.ZodISODateTime;
             source_bindings: z.ZodArray<z.ZodObject<{
-                target: z.ZodObject<{
-                    node_kind: z.ZodEnum<{
-                        relation: "relation";
-                        resource: "resource";
-                        endpoint: "endpoint";
-                        interface: "interface";
-                        surface_exclusion: "surface_exclusion";
-                        declaration: "declaration";
-                        participant: "participant";
-                        assessment_target: "assessment_target";
-                    }>;
-                    node_id: z.ZodString;
-                }, z.core.$strict>;
                 source_binding_id: z.ZodString;
                 source_id: z.ZodString;
                 field_paths: z.ZodArray<z.ZodString>;
+                target: z.ZodObject<{
+                    node_kind: z.ZodEnum<{
+                        assessment_target: "assessment_target";
+                        declaration: "declaration";
+                        endpoint: "endpoint";
+                        interface: "interface";
+                        participant: "participant";
+                        relation: "relation";
+                        resource: "resource";
+                        surface_exclusion: "surface_exclusion";
+                    }>;
+                    node_id: z.ZodString;
+                }, z.core.$strict>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
         sources: z.ZodArray<z.ZodObject<{
@@ -2210,15 +2278,15 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         offer_id: z.ZodString;
         purpose: z.ZodEnum<{
             application_path: "application_path";
-            redemption_path: "redemption_path";
             operating_path: "operating_path";
+            redemption_path: "redemption_path";
         }>;
         applicable_stages: z.ZodArray<z.ZodEnum<{
             evaluate: "evaluate";
-            sign_up: "sign_up";
+            operate: "operate";
             pay: "pay";
             provision: "provision";
-            operate: "operate";
+            sign_up: "sign_up";
         }>>;
         effective_from: z.ZodISODateTime;
         effective_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2236,8 +2304,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2326,9 +2394,9 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 retrieved_at: z.ZodISODateTime;
                 method: z.ZodEnum<{
-                    http: "http";
-                    headless: "headless";
                     archive: "archive";
+                    headless: "headless";
+                    http: "http";
                     manual: "manual";
                 }>;
                 response_status_code: z.ZodNumber;
@@ -2338,6 +2406,17 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                     public: "public";
                     restricted: "restricted";
                 }>;
+                artifact_scope: z.ZodOptional<z.ZodEnum<{
+                    complete_document: "complete_document";
+                    document_excerpt: "document_excerpt";
+                }>>;
+                source_content: z.ZodOptional<z.ZodObject<{
+                    digest: z.ZodString;
+                    bytes: z.ZodNumber;
+                    media_type: z.ZodString;
+                    normalized_digest: z.ZodString;
+                    normalized_bytes: z.ZodNumber;
+                }, z.core.$strict>>;
                 bytes: z.ZodNumber;
             }, z.core.$strict>;
             issued_at: z.ZodISODateTime;
@@ -2353,9 +2432,9 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             version: z.ZodString;
         }, z.core.$strict>;
         outcome: z.ZodEnum<{
+            "contradicts-candidate": "contradicts-candidate";
             error: "error";
             "supports-candidate": "supports-candidate";
-            "contradicts-candidate": "contradicts-candidate";
             unreachable: "unreachable";
         }>;
         capture: z.ZodOptional<z.ZodObject<{
@@ -2363,8 +2442,8 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             media_type: z.ZodString;
             availability: z.ZodEnum<{
-                public: "public";
                 "private-receipt": "private-receipt";
+                public: "public";
             }>;
             requested_uri: z.ZodOptional<z.ZodURL>;
             final_uri: z.ZodOptional<z.ZodURL>;
@@ -2374,10 +2453,10 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 to: z.ZodURL;
             }, z.core.$strict>>>;
             source_standing: z.ZodOptional<z.ZodEnum<{
-                "live-first-party": "live-first-party";
                 "archived-first-party": "archived-first-party";
-                "live-third-party": "live-third-party";
                 "archived-third-party": "archived-third-party";
+                "live-first-party": "live-first-party";
+                "live-third-party": "live-third-party";
                 "manual-first-party": "manual-first-party";
                 "manual-third-party": "manual-third-party";
             }>>;
@@ -2390,15 +2469,26 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
                 version: z.ZodString;
                 toolchain_digest: z.ZodString;
             }, z.core.$strict>>;
+            artifact_scope: z.ZodOptional<z.ZodEnum<{
+                complete_document: "complete_document";
+                document_excerpt: "document_excerpt";
+            }>>;
+            source_content: z.ZodOptional<z.ZodObject<{
+                digest: z.ZodString;
+                bytes: z.ZodNumber;
+                media_type: z.ZodString;
+                normalized_digest: z.ZodString;
+                normalized_bytes: z.ZodNumber;
+            }, z.core.$strict>>;
         }, z.core.$strict>>;
         no_capture_reason: z.ZodOptional<z.ZodEnum<{
-            "dns-failure": "dns-failure";
-            "connect-timeout": "connect-timeout";
-            "tls-failure": "tls-failure";
             "access-denied": "access-denied";
-            "policy-blocked": "policy-blocked";
+            "connect-timeout": "connect-timeout";
+            "dns-failure": "dns-failure";
             "empty-response": "empty-response";
             "extractor-error": "extractor-error";
+            "policy-blocked": "policy-blocked";
+            "tls-failure": "tls-failure";
         }>>;
         observation_id: z.ZodString;
     }, z.core.$strict>>;
@@ -2407,39 +2497,39 @@ export declare const evidenceCatalogProposalSchema: z.ZodObject<{
         core: z.ZodObject<{
             event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
             kind: z.ZodEnum<{
-                "program.retired": "program.retired";
-                "offer.retired": "offer.retired";
+                "agent-readiness-profile.merged": "agent-readiness-profile.merged";
+                "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
+                "agent-readiness-profile.retired": "agent-readiness-profile.retired";
                 "asset.bound": "asset.bound";
+                "asset.takedown-ordered": "asset.takedown-ordered";
                 "asset.withdrawn": "asset.withdrawn";
-                "evidence.bound": "evidence.bound";
-                "evidence.retracted": "evidence.retracted";
-                "discrepancy.resolved": "discrepancy.resolved";
+                "assurance.revoked": "assurance.revoked";
+                "attestation.revoked": "attestation.revoked";
                 "authority.claimed": "authority.claimed";
                 "authority.rechecked": "authority.rechecked";
                 "authority.revoked": "authority.revoked";
                 "authority.superseded": "authority.superseded";
-                "subject.attested": "subject.attested";
-                "attestation.revoked": "attestation.revoked";
-                "verification.completed": "verification.completed";
-                "entity.identity-checked": "entity.identity-checked";
-                "offer.terms-checked": "offer.terms-checked";
-                "assurance.revoked": "assurance.revoked";
-                "freshness.exception-granted": "freshness.exception-granted";
-                "freshness.exception-revoked": "freshness.exception-revoked";
+                "discrepancy.resolved": "discrepancy.resolved";
                 "dispute.opened": "dispute.opened";
                 "dispute.resolved": "dispute.resolved";
-                "asset.takedown-ordered": "asset.takedown-ordered";
+                "entity.identity-checked": "entity.identity-checked";
                 "entity.merged": "entity.merged";
                 "entity.split": "entity.split";
                 "entity.succeeded": "entity.succeeded";
+                "evidence.bound": "evidence.bound";
+                "evidence.retracted": "evidence.retracted";
+                "freshness.exception-granted": "freshness.exception-granted";
+                "freshness.exception-revoked": "freshness.exception-revoked";
+                "identity.transition-superseded": "identity.transition-superseded";
                 "offer.merged": "offer.merged";
+                "offer.reparented": "offer.reparented";
+                "offer.retired": "offer.retired";
+                "offer.terms-checked": "offer.terms-checked";
                 "program.merged": "program.merged";
                 "program.reparented": "program.reparented";
-                "offer.reparented": "offer.reparented";
-                "agent-readiness-profile.merged": "agent-readiness-profile.merged";
-                "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
-                "agent-readiness-profile.retired": "agent-readiness-profile.retired";
-                "identity.transition-superseded": "identity.transition-superseded";
+                "program.retired": "program.retired";
+                "subject.attested": "subject.attested";
+                "verification.completed": "verification.completed";
             }>;
             issuer_id: z.ZodString;
             operation_id: z.ZodString;

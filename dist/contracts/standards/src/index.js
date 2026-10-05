@@ -1,5 +1,5 @@
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN } from "../../../modules/primitives/src/index.js";
 const digestSchema = z.string().regex(DIGEST_PATTERN);
 const standardKeySchema = z.string().regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/);
 const standardVersionSchema = z.string().trim().min(1).max(160);
@@ -10,6 +10,117 @@ export const standardIdentitySchema = z
     version: standardVersionSchema,
 })
     .strict();
+/**
+ * A capture request for one installed, digest-bound standards observation.
+ *
+ * The request deliberately carries no HTTP method, headers, or body. Those
+ * are executable semantics owned by the exact probe digest, so authoring and
+ * assessment policy cannot turn the standards lane into an arbitrary effect
+ * surface.
+ */
+export const standardObservationRequestSchema = z
+    .object({
+    method: z.literal("STANDARD_OBSERVATION"),
+    observations: z
+        .array(z
+        .object({
+        standard: standardIdentitySchema,
+        probe_digest: digestSchema,
+    })
+        .strict())
+        .min(1)
+        .max(8),
+})
+    .strict()
+    .superRefine((value, context) => {
+    const keys = value.observations.map(({ standard }) => `${standard.namespace}\u0000${standard.version}`);
+    if (new Set(keys).size !== keys.length ||
+        keys.some((key, index) => key !== [...keys].sort()[index])) {
+        context.addIssue({
+            code: "custom",
+            path: ["observations"],
+            message: "Standards observations must be canonical and unique by exact standard version.",
+        });
+    }
+});
+const standardObservationHeaderSchema = z
+    .object({
+    name: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u),
+    value: z.string().min(1).max(512),
+})
+    .strict();
+export const standardObservationTranscriptSchema = z
+    .object({
+    observation_contract: z.literal("sourcey.standard-observation-transcript/v1alpha1"),
+    standard: standardIdentitySchema,
+    probe_digest: digestSchema,
+    endpoint_uri: z.url({ protocol: /^https$/u }),
+    observed_at: z.iso.datetime({ offset: true }),
+    exchanges: z
+        .array(z
+        .object({
+        exchange_id: standardKeySchema,
+        request: z
+            .object({
+            method: z.literal("POST"),
+            headers: z.array(standardObservationHeaderSchema).min(1).max(16),
+            body: z.json(),
+            body_digest: digestSchema,
+        })
+            .strict(),
+        response: z
+            .object({
+            status_code: z.number().int().min(100).max(599),
+            media_type: z.string().trim().min(1).max(160),
+            body_base64: z.string(),
+            body_digest: digestSchema,
+            parsed_json: z.json().nullable(),
+        })
+            .strict(),
+    })
+        .strict())
+        .min(1)
+        .max(16),
+})
+    .strict()
+    .superRefine((value, context) => {
+    const ids = value.exchanges.map(({ exchange_id: exchangeId }) => exchangeId);
+    if (new Set(ids).size !== ids.length) {
+        context.addIssue({
+            code: "custom",
+            path: ["exchanges"],
+            message: "A standards observation transcript cannot repeat an exchange.",
+        });
+    }
+    for (const [exchangeIndex, exchange] of value.exchanges.entries()) {
+        const names = exchange.request.headers.map(({ name }) => name);
+        if (new Set(names).size !== names.length ||
+            names.some((name, index) => name !== [...names].sort()[index])) {
+            context.addIssue({
+                code: "custom",
+                path: ["exchanges", exchangeIndex, "request", "headers"],
+                message: "Observation request headers must be canonical and unique.",
+            });
+        }
+    }
+});
+export const standardObservationArtifactSchema = z
+    .object({
+    artifact_contract: z.literal("sourcey.standard-observation-artifact/v1alpha1"),
+    observations: z.array(standardObservationTranscriptSchema).min(1).max(8),
+})
+    .strict()
+    .superRefine((value, context) => {
+    const keys = value.observations.map(({ standard }) => `${standard.namespace}\u0000${standard.version}`);
+    if (new Set(keys).size !== keys.length ||
+        keys.some((key, index) => key !== [...keys].sort()[index])) {
+        context.addIssue({
+            code: "custom",
+            path: ["observations"],
+            message: "Observation artifacts must be canonical and unique by exact standard version.",
+        });
+    }
+});
 export const standardImplementationBindingSchema = standardIdentitySchema
     .safeExtend({
     relation: z.enum(["declares", "describes", "implements", "uses"]),

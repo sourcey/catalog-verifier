@@ -1,5 +1,5 @@
+import { canonicalJson, compareCanonicalStrings, digest, sha256Bytes, } from "provenry/primitives";
 import { standardEvidenceAdapterManifestCoreSchema, standardEvidenceAdapterManifestSchema, standardEvidenceRecordCoreSchema, standardEvidenceRecordSchema, standardEvidenceRequestCoreSchema, standardEvidenceRequestSchema, standardEvidenceResultCoreSchema, standardEvidenceResultSchema, } from "../../../contracts/standards/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, sha256Bytes, } from "../../primitives/src/index.js";
 import { standardAdapterKey, verifyRetainedStandardArtifacts, verifyStandardLocatorClosure, } from "../../standard-adapter-runtime/src/index.js";
 export function buildStandardEvidenceAdapterManifest(input) {
     const core = standardEvidenceAdapterManifestCoreSchema.parse(input);

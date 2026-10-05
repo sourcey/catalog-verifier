@@ -1,4 +1,4 @@
-import { canonicalJson, compareCanonicalStrings } from "../../primitives/src/index.js";
+import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
 import { orderedUnique } from "./publication-dependencies.js";
 export function normalizeCatalogPublicationAuthorityProposals(proposals) {
     const normalized = proposals

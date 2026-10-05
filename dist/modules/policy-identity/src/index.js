@@ -1,5 +1,5 @@
+import { digest } from "provenry/primitives";
 import { agentReadinessAssessmentMethodPackCoreSchema, agentReadinessPolicyCoreSchema, agentReadinessPolicySchema, } from "../../../contracts/agent-readiness/src/index.js";
-import { digest } from "../../primitives/src/index.js";
 /**
  * Validate the immutable identity of any Agent Readiness policy without
  * importing the executable current-policy registry or grading runtime.

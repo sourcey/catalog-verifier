@@ -1,9 +1,9 @@
 import { lstat, readdir, readFile } from "node:fs/promises";
 import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
+import { compareCanonicalStrings } from "provenry/primitives";
 import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { assertCatalogAuthoringIdentity, parseCatalogAuthoringSources, } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
 export async function compileAuthoringTree(entityRoot) {
     const files = (await filesUnder(entityRoot))
         .filter((file) => [".yaml", ".yml"].includes(extname(file)))

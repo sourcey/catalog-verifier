@@ -3,23 +3,23 @@ export declare const ENTITY_ICON_MAX_SOURCE_BYTES: number;
 export declare const ENTITY_ICON_RASTER_PROFILE_VERSION = "entity-icon-png-256-v1";
 export declare const SOURCEY_ENTITY_MONOGRAM_PROFILE_VERSION = "sourcey-entity-monogram-svg-256-v1";
 export declare const assetRoleSchema: z.ZodEnum<{
-    "logo-light": "logo-light";
-    "logo-dark": "logo-dark";
     icon: "icon";
+    "logo-dark": "logo-dark";
+    "logo-light": "logo-light";
 }>;
 export declare const assetMediaTypeSchema: z.ZodEnum<{
     "image/jpeg": "image/jpeg";
     "image/png": "image/png";
-    "image/webp": "image/webp";
     "image/svg+xml": "image/svg+xml";
+    "image/webp": "image/webp";
 }>;
 export declare const entityIconRoleSchema: z.ZodLiteral<"icon">;
 export declare const assetRedistributionSchema: z.ZodObject<{
     basis: z.ZodEnum<{
-        "vendor-approved": "vendor-approved";
-        "redistributable-license": "redistributable-license";
         "nominative-use": "nominative-use";
+        "redistributable-license": "redistributable-license";
         "sourcey-owned": "sourcey-owned";
+        "vendor-approved": "vendor-approved";
     }>;
     license: z.ZodString;
     notice: z.ZodString;
@@ -35,8 +35,8 @@ export declare const entityAssetSubmissionSourceSchema: z.ZodDiscriminatedUnion<
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
 }, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"official_url">;
@@ -46,8 +46,8 @@ export declare const entityAssetUploadHeadersSchema: z.ZodObject<{
     "content-type": z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     "x-sourcey-object-digest": z.ZodString;
 }, z.core.$loose>;
@@ -60,8 +60,8 @@ export declare const entityAssetUploadReceiptCoreSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     storage_receipt_digest: z.ZodString;
     retained_at: z.ZodISODateTime;
@@ -75,8 +75,8 @@ export declare const entityAssetUploadReceiptSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     storage_receipt_digest: z.ZodString;
     retained_at: z.ZodISODateTime;
@@ -93,8 +93,8 @@ export declare const entityAssetSubmissionSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"official_url">;
@@ -102,10 +102,10 @@ export declare const entityAssetSubmissionSchema: z.ZodObject<{
     }, z.core.$strict>], "kind">;
     redistribution: z.ZodObject<{
         basis: z.ZodEnum<{
-            "vendor-approved": "vendor-approved";
-            "redistributable-license": "redistributable-license";
             "nominative-use": "nominative-use";
+            "redistributable-license": "redistributable-license";
             "sourcey-owned": "sourcey-owned";
+            "vendor-approved": "vendor-approved";
         }>;
         license: z.ZodString;
         notice: z.ZodString;
@@ -114,8 +114,8 @@ export declare const entityAssetSubmissionSchema: z.ZodObject<{
     }, z.core.$strict>;
     submitter_context: z.ZodObject<{
         relationship: z.ZodEnum<{
-            "vendor-representative": "vendor-representative";
             "community-contributor": "community-contributor";
+            "vendor-representative": "vendor-representative";
         }>;
         authority_asserted: z.ZodBoolean;
     }, z.core.$strict>;
@@ -142,8 +142,8 @@ export declare const retainedAssetCaptureCoreSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     captured_at: z.ZodISODateTime;
     storage_receipt_digest: z.ZodString;
@@ -169,8 +169,8 @@ export declare const retainedAssetCaptureSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     captured_at: z.ZodISODateTime;
     storage_receipt_digest: z.ZodString;
@@ -182,8 +182,8 @@ export declare const assetByteReferenceSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     source_path: z.ZodString;
 }, z.core.$strict>;
@@ -194,8 +194,8 @@ export declare const assetTransformProfileCoreSchema: z.ZodObject<{
     output_media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     maximum_width: z.ZodNumber;
     maximum_height: z.ZodNumber;
@@ -210,8 +210,8 @@ export declare const assetTransformProfileSchema: z.ZodObject<{
     output_media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     maximum_width: z.ZodNumber;
     maximum_height: z.ZodNumber;
@@ -241,8 +241,8 @@ export declare const assetSafeVariantSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     source_path: z.ZodString;
     served_path: z.ZodString;
@@ -259,8 +259,8 @@ export declare const assetObjectCoreSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         source_path: z.ZodString;
     }, z.core.$strict>;
@@ -270,8 +270,8 @@ export declare const assetObjectCoreSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         source_path: z.ZodString;
         served_path: z.ZodString;
@@ -290,10 +290,10 @@ export declare const assetObjectCoreSchema: z.ZodObject<{
     }, z.core.$strict>>;
     redistribution: z.ZodObject<{
         basis: z.ZodEnum<{
-            "vendor-approved": "vendor-approved";
-            "redistributable-license": "redistributable-license";
             "nominative-use": "nominative-use";
+            "redistributable-license": "redistributable-license";
             "sourcey-owned": "sourcey-owned";
+            "vendor-approved": "vendor-approved";
         }>;
         license: z.ZodString;
         notice: z.ZodString;
@@ -309,8 +309,8 @@ export declare const assetObjectSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         source_path: z.ZodString;
     }, z.core.$strict>;
@@ -320,8 +320,8 @@ export declare const assetObjectSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         source_path: z.ZodString;
         served_path: z.ZodString;
@@ -340,10 +340,10 @@ export declare const assetObjectSchema: z.ZodObject<{
     }, z.core.$strict>>;
     redistribution: z.ZodObject<{
         basis: z.ZodEnum<{
-            "vendor-approved": "vendor-approved";
-            "redistributable-license": "redistributable-license";
             "nominative-use": "nominative-use";
+            "redistributable-license": "redistributable-license";
             "sourcey-owned": "sourcey-owned";
+            "vendor-approved": "vendor-approved";
         }>;
         license: z.ZodString;
         notice: z.ZodString;
@@ -361,8 +361,8 @@ export declare const assetManifestSchema: z.ZodObject<{
         output_media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         maximum_width: z.ZodNumber;
         maximum_height: z.ZodNumber;
@@ -379,8 +379,8 @@ export declare const assetManifestSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
         }, z.core.$strict>;
@@ -390,8 +390,8 @@ export declare const assetManifestSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
             served_path: z.ZodString;
@@ -410,10 +410,10 @@ export declare const assetManifestSchema: z.ZodObject<{
         }, z.core.$strict>>;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -426,9 +426,9 @@ export declare const assetManifestSchema: z.ZodObject<{
 export declare const assetBindingProjectionSchema: z.ZodObject<{
     entity_id: z.ZodString;
     role: z.ZodEnum<{
-        "logo-light": "logo-light";
-        "logo-dark": "logo-dark";
         icon: "icon";
+        "logo-dark": "logo-dark";
+        "logo-light": "logo-light";
     }>;
     asset_object_digest: z.ZodString;
     served_digest: z.ZodString;
@@ -436,17 +436,17 @@ export declare const assetBindingProjectionSchema: z.ZodObject<{
     media_type: z.ZodEnum<{
         "image/jpeg": "image/jpeg";
         "image/png": "image/png";
-        "image/webp": "image/webp";
         "image/svg+xml": "image/svg+xml";
+        "image/webp": "image/webp";
     }>;
     bytes: z.ZodNumber;
     width: z.ZodNumber;
     height: z.ZodNumber;
     authority_basis: z.ZodEnum<{
-        "sourcey-owned": "sourcey-owned";
-        "vendor-authority": "vendor-authority";
         "editorial-review": "editorial-review";
         "licensed-source": "licensed-source";
+        "sourcey-owned": "sourcey-owned";
+        "vendor-authority": "vendor-authority";
     }>;
     authority_claim_id: z.ZodOptional<z.ZodString>;
     approval_receipt_digest: z.ZodString;
@@ -465,10 +465,10 @@ export declare const entityAssetReviewArtifactCoreSchema: z.ZodObject<{
     served_digest: z.ZodString;
     redistribution: z.ZodObject<{
         basis: z.ZodEnum<{
-            "vendor-approved": "vendor-approved";
-            "redistributable-license": "redistributable-license";
             "nominative-use": "nominative-use";
+            "redistributable-license": "redistributable-license";
             "sourcey-owned": "sourcey-owned";
+            "vendor-approved": "vendor-approved";
         }>;
         license: z.ZodString;
         notice: z.ZodString;
@@ -476,10 +476,10 @@ export declare const entityAssetReviewArtifactCoreSchema: z.ZodObject<{
         fallback_reason: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>;
     authority_basis: z.ZodEnum<{
-        "sourcey-owned": "sourcey-owned";
-        "vendor-authority": "vendor-authority";
         "editorial-review": "editorial-review";
         "licensed-source": "licensed-source";
+        "sourcey-owned": "sourcey-owned";
+        "vendor-authority": "vendor-authority";
     }>;
     source_basis: z.ZodString;
     decision: z.ZodLiteral<"approved">;
@@ -507,10 +507,10 @@ export declare const entityAssetReviewArtifactSchema: z.ZodObject<{
     served_digest: z.ZodString;
     redistribution: z.ZodObject<{
         basis: z.ZodEnum<{
-            "vendor-approved": "vendor-approved";
-            "redistributable-license": "redistributable-license";
             "nominative-use": "nominative-use";
+            "redistributable-license": "redistributable-license";
             "sourcey-owned": "sourcey-owned";
+            "vendor-approved": "vendor-approved";
         }>;
         license: z.ZodString;
         notice: z.ZodString;
@@ -518,10 +518,10 @@ export declare const entityAssetReviewArtifactSchema: z.ZodObject<{
         fallback_reason: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>;
     authority_basis: z.ZodEnum<{
-        "sourcey-owned": "sourcey-owned";
-        "vendor-authority": "vendor-authority";
         "editorial-review": "editorial-review";
         "licensed-source": "licensed-source";
+        "sourcey-owned": "sourcey-owned";
+        "vendor-authority": "vendor-authority";
     }>;
     source_basis: z.ZodString;
     decision: z.ZodLiteral<"approved">;
@@ -577,8 +577,8 @@ export declare const sourceyOwnedEntityIconCandidateCoreSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         captured_at: z.ZodISODateTime;
         storage_receipt_digest: z.ZodString;
@@ -591,8 +591,8 @@ export declare const sourceyOwnedEntityIconCandidateCoreSchema: z.ZodObject<{
         output_media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         maximum_width: z.ZodNumber;
         maximum_height: z.ZodNumber;
@@ -636,8 +636,8 @@ export declare const sourceyOwnedEntityIconCandidateSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         captured_at: z.ZodISODateTime;
         storage_receipt_digest: z.ZodString;
@@ -650,8 +650,8 @@ export declare const sourceyOwnedEntityIconCandidateSchema: z.ZodObject<{
         output_media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         maximum_width: z.ZodNumber;
         maximum_height: z.ZodNumber;
@@ -692,8 +692,8 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         captured_at: z.ZodISODateTime;
         storage_receipt_digest: z.ZodString;
@@ -706,8 +706,8 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
         output_media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         maximum_width: z.ZodNumber;
         maximum_height: z.ZodNumber;
@@ -724,8 +724,8 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
         }, z.core.$strict>;
@@ -735,8 +735,8 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
             served_path: z.ZodString;
@@ -755,10 +755,10 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -770,10 +770,10 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
     served_digest: z.ZodString;
     safe_storage_receipt_digest: z.ZodString;
     authority_basis: z.ZodEnum<{
-        "sourcey-owned": "sourcey-owned";
-        "vendor-authority": "vendor-authority";
         "editorial-review": "editorial-review";
         "licensed-source": "licensed-source";
+        "sourcey-owned": "sourcey-owned";
+        "vendor-authority": "vendor-authority";
     }>;
     authority_claim_id: z.ZodOptional<z.ZodString>;
     source_basis: z.ZodString;
@@ -787,10 +787,10 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
         served_digest: z.ZodString;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -798,10 +798,10 @@ export declare const entityAssetProposalCoreSchema: z.ZodObject<{
             fallback_reason: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         source_basis: z.ZodString;
         decision: z.ZodLiteral<"approved">;
@@ -850,8 +850,8 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         captured_at: z.ZodISODateTime;
         storage_receipt_digest: z.ZodString;
@@ -864,8 +864,8 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
         output_media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         maximum_width: z.ZodNumber;
         maximum_height: z.ZodNumber;
@@ -882,8 +882,8 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
         }, z.core.$strict>;
@@ -893,8 +893,8 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
             served_path: z.ZodString;
@@ -913,10 +913,10 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
         }, z.core.$strict>>;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -928,10 +928,10 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
     served_digest: z.ZodString;
     safe_storage_receipt_digest: z.ZodString;
     authority_basis: z.ZodEnum<{
-        "sourcey-owned": "sourcey-owned";
-        "vendor-authority": "vendor-authority";
         "editorial-review": "editorial-review";
         "licensed-source": "licensed-source";
+        "sourcey-owned": "sourcey-owned";
+        "vendor-authority": "vendor-authority";
     }>;
     authority_claim_id: z.ZodOptional<z.ZodString>;
     source_basis: z.ZodString;
@@ -945,10 +945,10 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
         served_digest: z.ZodString;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -956,10 +956,10 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
             fallback_reason: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         source_basis: z.ZodString;
         decision: z.ZodLiteral<"approved">;
@@ -990,9 +990,9 @@ export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
     binding: z.ZodObject<{
         entity_id: z.ZodString;
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_digest: z.ZodString;
@@ -1000,17 +1000,17 @@ export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         bytes: z.ZodNumber;
         width: z.ZodNumber;
         height: z.ZodNumber;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;
@@ -1028,8 +1028,8 @@ export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
         }, z.core.$strict>;
@@ -1039,8 +1039,8 @@ export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             source_path: z.ZodString;
             served_path: z.ZodString;
@@ -1059,10 +1059,10 @@ export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
         }, z.core.$strict>>;
         redistribution: z.ZodObject<{
             basis: z.ZodEnum<{
-                "vendor-approved": "vendor-approved";
-                "redistributable-license": "redistributable-license";
                 "nominative-use": "nominative-use";
+                "redistributable-license": "redistributable-license";
                 "sourcey-owned": "sourcey-owned";
+                "vendor-approved": "vendor-approved";
             }>;
             license: z.ZodString;
             notice: z.ZodString;
@@ -1092,9 +1092,9 @@ export declare const assetDeltaCoreSchema: z.ZodObject<{
         binding: z.ZodObject<{
             entity_id: z.ZodString;
             role: z.ZodEnum<{
-                "logo-light": "logo-light";
-                "logo-dark": "logo-dark";
                 icon: "icon";
+                "logo-dark": "logo-dark";
+                "logo-light": "logo-light";
             }>;
             asset_object_digest: z.ZodString;
             served_digest: z.ZodString;
@@ -1102,17 +1102,17 @@ export declare const assetDeltaCoreSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             bytes: z.ZodNumber;
             width: z.ZodNumber;
             height: z.ZodNumber;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             authority_claim_id: z.ZodOptional<z.ZodString>;
             approval_receipt_digest: z.ZodString;
@@ -1130,8 +1130,8 @@ export declare const assetDeltaCoreSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
             }, z.core.$strict>;
@@ -1141,8 +1141,8 @@ export declare const assetDeltaCoreSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
                 served_path: z.ZodString;
@@ -1161,10 +1161,10 @@ export declare const assetDeltaCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -1195,9 +1195,9 @@ export declare const assetDeltaSchema: z.ZodObject<{
         binding: z.ZodObject<{
             entity_id: z.ZodString;
             role: z.ZodEnum<{
-                "logo-light": "logo-light";
-                "logo-dark": "logo-dark";
                 icon: "icon";
+                "logo-dark": "logo-dark";
+                "logo-light": "logo-light";
             }>;
             asset_object_digest: z.ZodString;
             served_digest: z.ZodString;
@@ -1205,17 +1205,17 @@ export declare const assetDeltaSchema: z.ZodObject<{
             media_type: z.ZodEnum<{
                 "image/jpeg": "image/jpeg";
                 "image/png": "image/png";
-                "image/webp": "image/webp";
                 "image/svg+xml": "image/svg+xml";
+                "image/webp": "image/webp";
             }>;
             bytes: z.ZodNumber;
             width: z.ZodNumber;
             height: z.ZodNumber;
             authority_basis: z.ZodEnum<{
-                "sourcey-owned": "sourcey-owned";
-                "vendor-authority": "vendor-authority";
                 "editorial-review": "editorial-review";
                 "licensed-source": "licensed-source";
+                "sourcey-owned": "sourcey-owned";
+                "vendor-authority": "vendor-authority";
             }>;
             authority_claim_id: z.ZodOptional<z.ZodString>;
             approval_receipt_digest: z.ZodString;
@@ -1233,8 +1233,8 @@ export declare const assetDeltaSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
             }, z.core.$strict>;
@@ -1244,8 +1244,8 @@ export declare const assetDeltaSchema: z.ZodObject<{
                 media_type: z.ZodEnum<{
                     "image/jpeg": "image/jpeg";
                     "image/png": "image/png";
-                    "image/webp": "image/webp";
                     "image/svg+xml": "image/svg+xml";
+                    "image/webp": "image/webp";
                 }>;
                 source_path: z.ZodString;
                 served_path: z.ZodString;
@@ -1264,10 +1264,10 @@ export declare const assetDeltaSchema: z.ZodObject<{
             }, z.core.$strict>>;
             redistribution: z.ZodObject<{
                 basis: z.ZodEnum<{
-                    "vendor-approved": "vendor-approved";
-                    "redistributable-license": "redistributable-license";
                     "nominative-use": "nominative-use";
+                    "redistributable-license": "redistributable-license";
                     "sourcey-owned": "sourcey-owned";
+                    "vendor-approved": "vendor-approved";
                 }>;
                 license: z.ZodString;
                 notice: z.ZodString;
@@ -1324,9 +1324,9 @@ export declare const assetIndexSchema: z.ZodObject<{
     bindings: z.ZodArray<z.ZodObject<{
         entity_id: z.ZodString;
         role: z.ZodEnum<{
-            "logo-light": "logo-light";
-            "logo-dark": "logo-dark";
             icon: "icon";
+            "logo-dark": "logo-dark";
+            "logo-light": "logo-light";
         }>;
         asset_object_digest: z.ZodString;
         served_digest: z.ZodString;
@@ -1334,17 +1334,17 @@ export declare const assetIndexSchema: z.ZodObject<{
         media_type: z.ZodEnum<{
             "image/jpeg": "image/jpeg";
             "image/png": "image/png";
-            "image/webp": "image/webp";
             "image/svg+xml": "image/svg+xml";
+            "image/webp": "image/webp";
         }>;
         bytes: z.ZodNumber;
         width: z.ZodNumber;
         height: z.ZodNumber;
         authority_basis: z.ZodEnum<{
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
             "editorial-review": "editorial-review";
             "licensed-source": "licensed-source";
+            "sourcey-owned": "sourcey-owned";
+            "vendor-authority": "vendor-authority";
         }>;
         authority_claim_id: z.ZodOptional<z.ZodString>;
         approval_receipt_digest: z.ZodString;

@@ -1,5 +1,6 @@
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, isFunctionalAccessQueryParameter, isTrackingQueryParameter, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { ENTITY_ID_PATTERN, isFunctionalAccessQueryParameter, isTrackingQueryParameter, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
@@ -11,6 +12,15 @@ const duration = z
     .string()
     .regex(/^P(?=\d|T\d)(?:\d+Y)?(?:\d+M)?(?:\d+D)?(?:T(?:\d+H)?(?:\d+M)?(?:\d+S)?)?$/);
 const factKey = z.string().regex(/^[a-z][a-z0-9_-]*(?:\.[a-z][a-z0-9_-]*)+$/);
+/**
+ * Canonical discriminants for the three core Catalog revision documents.
+ * Consumers import these values instead of reproducing wire-contract strings.
+ */
+export const catalogRevisionContracts = {
+    entity: "sourcey.entity-revision/v1alpha1",
+    program: "sourcey.program-revision/v1alpha1",
+    offer: "sourcey.offer-revision/v1alpha1",
+};
 /**
  * The compact public synopsis used by catalog listings, metadata, and page
  * ledes. Longer explanatory copy belongs in the adjacent description field;
@@ -293,44 +303,36 @@ const criterionBase = {
     criterion_id: identifier,
     statement: z.string().min(1).max(500),
 };
-const eligibilityPredicateSchema = z.union([
-    z
-        .object({
-        kind: z.literal("predicate"),
-        ...criterionBase,
-        fact: factKey,
-        operator: z.enum(["present", "absent"]),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("predicate"),
-        ...criterionBase,
-        fact: factKey,
-        operator: z.enum(["eq", "neq", "contains"]),
-        value: scalarFactValueSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("predicate"),
-        ...criterionBase,
-        fact: factKey,
-        operator: z.literal("in"),
-        value: setFactValueSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("predicate"),
-        ...criterionBase,
-        fact: factKey,
-        operator: z.enum(["lt", "lte", "gt", "gte"]),
-        value: orderedFactValueSchema,
-    })
-        .strict(),
-]);
-const eligibilityManualSchema = z
+/** The typed comparisons a condition makes, each preceded by the fields `head` adds. */
+function eligibilityConditionVariants(head) {
+    return [
+        z.object({ ...head, fact: factKey, operator: z.enum(["present", "absent"]) }).strict(),
+        z
+            .object({
+            ...head,
+            fact: factKey,
+            operator: z.enum(["eq", "neq", "contains"]),
+            value: scalarFactValueSchema,
+        })
+            .strict(),
+        z
+            .object({ ...head, fact: factKey, operator: z.literal("in"), value: setFactValueSchema })
+            .strict(),
+        z
+            .object({
+            ...head,
+            fact: factKey,
+            operator: z.enum(["lt", "lte", "gt", "gte"]),
+            value: orderedFactValueSchema,
+        })
+            .strict(),
+    ];
+}
+/** A fact, an operator and its value: what evidence extraction reports for a page threshold. */
+export const eligibilityConditionSchema = z.union(eligibilityConditionVariants({}));
+/** One typed eligibility condition, with its criterion identity and statement. */
+export const eligibilityPredicateSchema = z.union(eligibilityConditionVariants({ kind: z.literal("predicate"), ...criterionBase }));
+export const eligibilityManualSchema = z
     .object({
     kind: z.literal("manual"),
     ...criterionBase,
@@ -342,7 +344,7 @@ const eligibilityManualSchema = z
     ]),
 })
     .strict();
-const eligibilityConstantSchema = z
+export const eligibilityConstantSchema = z
     .object({
     kind: z.literal("constant"),
     ...criterionBase,
@@ -461,7 +463,7 @@ export const entityRevisionContentSchema = z
     .superRefine(entityOfficialSiteInvariant);
 export const entityRevisionCoreSchema = z
     .object({
-    revision_contract: z.literal("sourcey.entity-revision/v1alpha1"),
+    revision_contract: z.literal(catalogRevisionContracts.entity),
     entity_id: entityId,
     content: entityRevisionContentSchema,
 })
@@ -479,7 +481,7 @@ export const programRevisionContentSchema = z
     .strict();
 export const programRevisionCoreSchema = z
     .object({
-    revision_contract: z.literal("sourcey.program-revision/v1alpha1"),
+    revision_contract: z.literal(catalogRevisionContracts.program),
     entity_id: entityId,
     program_id: programId,
     content: programRevisionContentSchema,
@@ -512,7 +514,7 @@ export const offerRevisionContentSchema = z
     .strict();
 export const offerRevisionCoreSchema = z
     .object({
-    revision_contract: z.literal("sourcey.offer-revision/v1alpha1"),
+    revision_contract: z.literal(catalogRevisionContracts.offer),
     entity_id: entityId,
     program_id: programId.optional(),
     offer_id: offerId,

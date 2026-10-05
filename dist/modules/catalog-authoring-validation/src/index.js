@@ -1,7 +1,7 @@
 import { extname, isAbsolute } from "node:path";
+import { compareCanonicalStrings } from "provenry/primitives";
 import { parse } from "yaml";
-import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
+import { contributionEntityAuthoringSchema, entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 /** Canonical parsing and cross-document identity validation for authoring bytes. */
 export function parseCatalogAuthoringSources(sources, options = {}) {
     const ordered = [...sources].sort((left, right) => compareCanonicalStrings(left.source, right.source));
@@ -87,6 +87,12 @@ export function assertCatalogTaxonomy(values, taxonomy) {
         if (!allowed.has(value.entity.category)) {
             throw new Error(`Catalog category '${value.entity.category}' for Entity '${value.entity.slug}' is not canonical. Choose one of: ${taxonomy.categories.join(", ")}.`);
         }
+    }
+}
+/** Apply rules that belong to public contributions, not retained or hosted authoring. */
+export function assertCatalogContributionAuthoring(values) {
+    for (const value of values) {
+        contributionEntityAuthoringSchema.parse(value);
     }
 }
 function unique(seen, value, source, label) {

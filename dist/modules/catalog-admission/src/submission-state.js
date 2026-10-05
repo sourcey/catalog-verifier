@@ -1,4 +1,4 @@
-import { canonicalJson } from "../../primitives/src/index.js";
+import { canonicalJson } from "provenry/primitives";
 import { assertCatalogPublicationPreconditions, catalogPublicationStatePreconditions, verifyCatalogPublicationCurrentState, } from "./publication-state.js";
 import { catalogSubmissionCandidates, verifyCatalogSubmissionWorkItem, } from "./submission-input.js";
 /** Admission authority is immutable; only its activation head can move. */

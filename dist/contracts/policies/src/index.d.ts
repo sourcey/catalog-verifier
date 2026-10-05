@@ -2,15 +2,17 @@ import { z } from "zod";
 export declare const coverageRequirementSchema: z.ZodObject<{
     path: z.ZodString;
     proof_kinds: z.ZodArray<z.ZodEnum<{
-        observed: "observed";
+        attested: "attested";
         derived: "derived";
         editorial: "editorial";
-        attested: "attested";
+        observed: "observed";
     }>>;
     derivation_rules: z.ZodArray<z.ZodEnum<{
+        "consideration-from-benefits": "consideration-from-benefits";
         "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-        "form-access-from-first-party-application": "form-access-from-first-party-application";
+        "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
         "first-party-access-operator": "first-party-access-operator";
+        "form-access-from-first-party-application": "form-access-from-first-party-application";
         "public-availability-from-application": "public-availability-from-application";
     }>>;
     guidance: z.ZodString;
@@ -21,15 +23,17 @@ export declare const coveragePolicyCoreSchema: z.ZodObject<{
     entity_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;
@@ -37,15 +41,17 @@ export declare const coveragePolicyCoreSchema: z.ZodObject<{
     program_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;
@@ -53,15 +59,17 @@ export declare const coveragePolicyCoreSchema: z.ZodObject<{
     offer_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;
@@ -73,15 +81,17 @@ export declare const coveragePolicySchema: z.ZodObject<{
     entity_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;
@@ -89,15 +99,17 @@ export declare const coveragePolicySchema: z.ZodObject<{
     program_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;
@@ -105,15 +117,17 @@ export declare const coveragePolicySchema: z.ZodObject<{
     offer_requirements: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         proof_kinds: z.ZodArray<z.ZodEnum<{
-            observed: "observed";
+            attested: "attested";
             derived: "derived";
             editorial: "editorial";
-            attested: "attested";
+            observed: "observed";
         }>>;
         derivation_rules: z.ZodArray<z.ZodEnum<{
+            "consideration-from-benefits": "consideration-from-benefits";
             "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-            "form-access-from-first-party-application": "form-access-from-first-party-application";
+            "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
             "first-party-access-operator": "first-party-access-operator";
+            "form-access-from-first-party-application": "form-access-from-first-party-application";
             "public-availability-from-application": "public-availability-from-application";
         }>>;
         guidance: z.ZodString;

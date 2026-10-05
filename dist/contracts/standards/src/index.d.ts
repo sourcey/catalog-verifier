@@ -3,6 +3,85 @@ export declare const standardIdentitySchema: z.ZodObject<{
     namespace: z.ZodString;
     version: z.ZodString;
 }, z.core.$strict>;
+/**
+ * A capture request for one installed, digest-bound standards observation.
+ *
+ * The request deliberately carries no HTTP method, headers, or body. Those
+ * are executable semantics owned by the exact probe digest, so authoring and
+ * assessment policy cannot turn the standards lane into an arbitrary effect
+ * surface.
+ */
+export declare const standardObservationRequestSchema: z.ZodObject<{
+    method: z.ZodLiteral<"STANDARD_OBSERVATION">;
+    observations: z.ZodArray<z.ZodObject<{
+        standard: z.ZodObject<{
+            namespace: z.ZodString;
+            version: z.ZodString;
+        }, z.core.$strict>;
+        probe_digest: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+export declare const standardObservationTranscriptSchema: z.ZodObject<{
+    observation_contract: z.ZodLiteral<"sourcey.standard-observation-transcript/v1alpha1">;
+    standard: z.ZodObject<{
+        namespace: z.ZodString;
+        version: z.ZodString;
+    }, z.core.$strict>;
+    probe_digest: z.ZodString;
+    endpoint_uri: z.ZodURL;
+    observed_at: z.ZodISODateTime;
+    exchanges: z.ZodArray<z.ZodObject<{
+        exchange_id: z.ZodString;
+        request: z.ZodObject<{
+            method: z.ZodLiteral<"POST">;
+            headers: z.ZodArray<z.ZodObject<{
+                name: z.ZodString;
+                value: z.ZodString;
+            }, z.core.$strict>>;
+            body: z.ZodJSONSchema;
+            body_digest: z.ZodString;
+        }, z.core.$strict>;
+        response: z.ZodObject<{
+            status_code: z.ZodNumber;
+            media_type: z.ZodString;
+            body_base64: z.ZodString;
+            body_digest: z.ZodString;
+            parsed_json: z.ZodNullable<z.ZodJSONSchema>;
+        }, z.core.$strict>;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+export declare const standardObservationArtifactSchema: z.ZodObject<{
+    artifact_contract: z.ZodLiteral<"sourcey.standard-observation-artifact/v1alpha1">;
+    observations: z.ZodArray<z.ZodObject<{
+        observation_contract: z.ZodLiteral<"sourcey.standard-observation-transcript/v1alpha1">;
+        standard: z.ZodObject<{
+            namespace: z.ZodString;
+            version: z.ZodString;
+        }, z.core.$strict>;
+        probe_digest: z.ZodString;
+        endpoint_uri: z.ZodURL;
+        observed_at: z.ZodISODateTime;
+        exchanges: z.ZodArray<z.ZodObject<{
+            exchange_id: z.ZodString;
+            request: z.ZodObject<{
+                method: z.ZodLiteral<"POST">;
+                headers: z.ZodArray<z.ZodObject<{
+                    name: z.ZodString;
+                    value: z.ZodString;
+                }, z.core.$strict>>;
+                body: z.ZodJSONSchema;
+                body_digest: z.ZodString;
+            }, z.core.$strict>;
+            response: z.ZodObject<{
+                status_code: z.ZodNumber;
+                media_type: z.ZodString;
+                body_base64: z.ZodString;
+                body_digest: z.ZodString;
+                parsed_json: z.ZodNullable<z.ZodJSONSchema>;
+            }, z.core.$strict>;
+        }, z.core.$strict>>;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
 export declare const standardImplementationBindingSchema: z.ZodObject<{
     namespace: z.ZodString;
     version: z.ZodString;
@@ -18,15 +97,15 @@ export declare const standardRequirementReferenceSchema: z.ZodObject<{
     version: z.ZodString;
     requirement_id: z.ZodString;
     relation: z.ZodEnum<{
-        tests: "tests";
         "informational-reference": "informational-reference";
+        tests: "tests";
     }>;
 }, z.core.$strict>;
 export declare const standardSourceProvenanceSchema: z.ZodObject<{
     role: z.ZodEnum<{
-        specification: "specification";
-        schema: "schema";
         "conformance-example": "conformance-example";
+        schema: "schema";
+        specification: "specification";
     }>;
     source_uri: z.ZodURL;
     object_digest: z.ZodString;
@@ -47,7 +126,6 @@ export declare const standardAdapterExecutionSchema: z.ZodObject<{
     external_effects: z.ZodLiteral<"forbidden">;
 }, z.core.$strict>;
 export declare const standardEvidenceAdapterManifestCoreSchema: z.ZodObject<{
-    requirement_ids: z.ZodArray<z.ZodString>;
     standard: z.ZodObject<{
         namespace: z.ZodString;
         version: z.ZodString;
@@ -56,9 +134,9 @@ export declare const standardEvidenceAdapterManifestCoreSchema: z.ZodObject<{
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -79,9 +157,9 @@ export declare const standardEvidenceAdapterManifestCoreSchema: z.ZodObject<{
         external_effects: z.ZodLiteral<"forbidden">;
     }, z.core.$strict>;
     adapter_contract: z.ZodLiteral<"sourcey.standard-evidence-adapter/v1alpha1">;
+    requirement_ids: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 export declare const standardEvidenceAdapterManifestSchema: z.ZodObject<{
-    requirement_ids: z.ZodArray<z.ZodString>;
     standard: z.ZodObject<{
         namespace: z.ZodString;
         version: z.ZodString;
@@ -90,9 +168,9 @@ export declare const standardEvidenceAdapterManifestSchema: z.ZodObject<{
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -113,10 +191,10 @@ export declare const standardEvidenceAdapterManifestSchema: z.ZodObject<{
         external_effects: z.ZodLiteral<"forbidden">;
     }, z.core.$strict>;
     adapter_contract: z.ZodLiteral<"sourcey.standard-evidence-adapter/v1alpha1">;
+    requirement_ids: z.ZodArray<z.ZodString>;
     adapter_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const standardResourceImportAdapterManifestCoreSchema: z.ZodObject<{
-    resource_kinds: z.ZodArray<z.ZodString>;
     standard: z.ZodObject<{
         namespace: z.ZodString;
         version: z.ZodString;
@@ -125,9 +203,9 @@ export declare const standardResourceImportAdapterManifestCoreSchema: z.ZodObjec
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -148,9 +226,9 @@ export declare const standardResourceImportAdapterManifestCoreSchema: z.ZodObjec
         external_effects: z.ZodLiteral<"forbidden">;
     }, z.core.$strict>;
     adapter_contract: z.ZodLiteral<"sourcey.standard-resource-import-adapter/v1alpha1">;
+    resource_kinds: z.ZodArray<z.ZodString>;
 }, z.core.$strict>;
 export declare const standardResourceImportAdapterManifestSchema: z.ZodObject<{
-    resource_kinds: z.ZodArray<z.ZodString>;
     standard: z.ZodObject<{
         namespace: z.ZodString;
         version: z.ZodString;
@@ -159,9 +237,9 @@ export declare const standardResourceImportAdapterManifestSchema: z.ZodObject<{
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -182,6 +260,7 @@ export declare const standardResourceImportAdapterManifestSchema: z.ZodObject<{
         external_effects: z.ZodLiteral<"forbidden">;
     }, z.core.$strict>;
     adapter_contract: z.ZodLiteral<"sourcey.standard-resource-import-adapter/v1alpha1">;
+    resource_kinds: z.ZodArray<z.ZodString>;
     adapter_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const standardEvidenceArtifactSchema: z.ZodObject<{
@@ -191,11 +270,11 @@ export declare const standardEvidenceArtifactSchema: z.ZodObject<{
     bytes: z.ZodNumber;
     source_uri: z.ZodURL;
     role: z.ZodEnum<{
-        representation: "representation";
-        transport_metadata: "transport_metadata";
-        rendered_view: "rendered_view";
         interaction_trace: "interaction_trace";
         manual_record: "manual_record";
+        rendered_view: "rendered_view";
+        representation: "representation";
+        transport_metadata: "transport_metadata";
     }>;
 }, z.core.$strict>;
 export declare const standardResourceImportRequestCoreSchema: z.ZodObject<{
@@ -213,11 +292,11 @@ export declare const standardResourceImportRequestCoreSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -236,11 +315,11 @@ export declare const standardResourceImportRequestSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
     request_digest: z.ZodString;
@@ -257,8 +336,8 @@ export declare const standardEvidenceRequestCoreSchema: z.ZodObject<{
         version: z.ZodString;
         requirement_id: z.ZodString;
         relation: z.ZodEnum<{
-            tests: "tests";
             "informational-reference": "informational-reference";
+            tests: "tests";
         }>;
     }, z.core.$strict>>;
     artifacts: z.ZodArray<z.ZodObject<{
@@ -268,11 +347,11 @@ export declare const standardEvidenceRequestCoreSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -288,8 +367,8 @@ export declare const standardEvidenceRequestSchema: z.ZodObject<{
         version: z.ZodString;
         requirement_id: z.ZodString;
         relation: z.ZodEnum<{
-            tests: "tests";
             "informational-reference": "informational-reference";
+            tests: "tests";
         }>;
     }, z.core.$strict>>;
     artifacts: z.ZodArray<z.ZodObject<{
@@ -299,11 +378,11 @@ export declare const standardEvidenceRequestSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
     request_digest: z.ZodString;
@@ -317,13 +396,13 @@ export declare const standardEvidenceLocatorSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const standardEvidenceResidueSchema: z.ZodObject<{
     code: z.ZodEnum<{
-        resource_required: "resource_required";
-        invalid_artifact: "invalid_artifact";
-        insufficient_artifacts: "insufficient_artifacts";
         ambiguous_result: "ambiguous_result";
-        unsupported_version: "unsupported_version";
         cyclic_reference: "cyclic_reference";
+        insufficient_artifacts: "insufficient_artifacts";
+        invalid_artifact: "invalid_artifact";
+        resource_required: "resource_required";
         unsupported_requirement: "unsupported_requirement";
+        unsupported_version: "unsupported_version";
     }>;
     resource_uri: z.ZodNullable<z.ZodURL>;
     object_digest: z.ZodNullable<z.ZodString>;
@@ -414,13 +493,13 @@ export declare const standardResourceImportResultCoreSchema: z.ZodObject<{
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            resource_required: "resource_required";
-            invalid_artifact: "invalid_artifact";
-            insufficient_artifacts: "insufficient_artifacts";
             ambiguous_result: "ambiguous_result";
-            unsupported_version: "unsupported_version";
             cyclic_reference: "cyclic_reference";
+            insufficient_artifacts: "insufficient_artifacts";
+            invalid_artifact: "invalid_artifact";
+            resource_required: "resource_required";
             unsupported_requirement: "unsupported_requirement";
+            unsupported_version: "unsupported_version";
         }>;
         resource_uri: z.ZodNullable<z.ZodURL>;
         object_digest: z.ZodNullable<z.ZodString>;
@@ -467,13 +546,13 @@ export declare const standardResourceImportResultSchema: z.ZodObject<{
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            resource_required: "resource_required";
-            invalid_artifact: "invalid_artifact";
-            insufficient_artifacts: "insufficient_artifacts";
             ambiguous_result: "ambiguous_result";
-            unsupported_version: "unsupported_version";
             cyclic_reference: "cyclic_reference";
+            insufficient_artifacts: "insufficient_artifacts";
+            invalid_artifact: "invalid_artifact";
+            resource_required: "resource_required";
             unsupported_requirement: "unsupported_requirement";
+            unsupported_version: "unsupported_version";
         }>;
         resource_uri: z.ZodNullable<z.ZodURL>;
         object_digest: z.ZodNullable<z.ZodString>;
@@ -498,11 +577,11 @@ export declare const standardResourceImportRecordCoreSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -547,13 +626,13 @@ export declare const standardResourceImportRecordCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -580,11 +659,11 @@ export declare const standardResourceImportRecordSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -629,13 +708,13 @@ export declare const standardResourceImportRecordSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -652,14 +731,14 @@ export declare const standardEvidenceRequirementResultSchema: z.ZodObject<{
         version: z.ZodString;
         requirement_id: z.ZodString;
         relation: z.ZodEnum<{
-            tests: "tests";
             "informational-reference": "informational-reference";
+            tests: "tests";
         }>;
     }, z.core.$strict>;
     status: z.ZodEnum<{
-        satisfied: "satisfied";
-        not_satisfied: "not_satisfied";
         indeterminate: "indeterminate";
+        not_satisfied: "not_satisfied";
+        satisfied: "satisfied";
     }>;
     locators: z.ZodArray<z.ZodObject<{
         object_digest: z.ZodString;
@@ -670,13 +749,13 @@ export declare const standardEvidenceRequirementResultSchema: z.ZodObject<{
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
         code: z.ZodEnum<{
-            resource_required: "resource_required";
-            invalid_artifact: "invalid_artifact";
-            insufficient_artifacts: "insufficient_artifacts";
             ambiguous_result: "ambiguous_result";
-            unsupported_version: "unsupported_version";
             cyclic_reference: "cyclic_reference";
+            insufficient_artifacts: "insufficient_artifacts";
+            invalid_artifact: "invalid_artifact";
+            resource_required: "resource_required";
             unsupported_requirement: "unsupported_requirement";
+            unsupported_version: "unsupported_version";
         }>;
         resource_uri: z.ZodNullable<z.ZodURL>;
         object_digest: z.ZodNullable<z.ZodString>;
@@ -693,14 +772,14 @@ export declare const standardEvidenceResultCoreSchema: z.ZodObject<{
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>;
         status: z.ZodEnum<{
-            satisfied: "satisfied";
-            not_satisfied: "not_satisfied";
             indeterminate: "indeterminate";
+            not_satisfied: "not_satisfied";
+            satisfied: "satisfied";
         }>;
         locators: z.ZodArray<z.ZodObject<{
             object_digest: z.ZodString;
@@ -711,13 +790,13 @@ export declare const standardEvidenceResultCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -735,14 +814,14 @@ export declare const standardEvidenceResultSchema: z.ZodObject<{
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>;
         status: z.ZodEnum<{
-            satisfied: "satisfied";
-            not_satisfied: "not_satisfied";
             indeterminate: "indeterminate";
+            not_satisfied: "not_satisfied";
+            satisfied: "satisfied";
         }>;
         locators: z.ZodArray<z.ZodObject<{
             object_digest: z.ZodString;
@@ -753,13 +832,13 @@ export declare const standardEvidenceResultSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -782,8 +861,8 @@ export declare const standardEvidenceRecordCoreSchema: z.ZodObject<{
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>>;
         artifacts: z.ZodArray<z.ZodObject<{
@@ -793,11 +872,11 @@ export declare const standardEvidenceRecordCoreSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -812,14 +891,14 @@ export declare const standardEvidenceRecordCoreSchema: z.ZodObject<{
                 version: z.ZodString;
                 requirement_id: z.ZodString;
                 relation: z.ZodEnum<{
-                    tests: "tests";
                     "informational-reference": "informational-reference";
+                    tests: "tests";
                 }>;
             }, z.core.$strict>;
             status: z.ZodEnum<{
-                satisfied: "satisfied";
-                not_satisfied: "not_satisfied";
                 indeterminate: "indeterminate";
+                not_satisfied: "not_satisfied";
+                satisfied: "satisfied";
             }>;
             locators: z.ZodArray<z.ZodObject<{
                 object_digest: z.ZodString;
@@ -830,13 +909,13 @@ export declare const standardEvidenceRecordCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
             residue: z.ZodArray<z.ZodObject<{
                 code: z.ZodEnum<{
-                    resource_required: "resource_required";
-                    invalid_artifact: "invalid_artifact";
-                    insufficient_artifacts: "insufficient_artifacts";
                     ambiguous_result: "ambiguous_result";
-                    unsupported_version: "unsupported_version";
                     cyclic_reference: "cyclic_reference";
+                    insufficient_artifacts: "insufficient_artifacts";
+                    invalid_artifact: "invalid_artifact";
+                    resource_required: "resource_required";
                     unsupported_requirement: "unsupported_requirement";
+                    unsupported_version: "unsupported_version";
                 }>;
                 resource_uri: z.ZodNullable<z.ZodURL>;
                 object_digest: z.ZodNullable<z.ZodString>;
@@ -861,8 +940,8 @@ export declare const standardEvidenceRecordSchema: z.ZodObject<{
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>>;
         artifacts: z.ZodArray<z.ZodObject<{
@@ -872,11 +951,11 @@ export declare const standardEvidenceRecordSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -891,14 +970,14 @@ export declare const standardEvidenceRecordSchema: z.ZodObject<{
                 version: z.ZodString;
                 requirement_id: z.ZodString;
                 relation: z.ZodEnum<{
-                    tests: "tests";
                     "informational-reference": "informational-reference";
+                    tests: "tests";
                 }>;
             }, z.core.$strict>;
             status: z.ZodEnum<{
-                satisfied: "satisfied";
-                not_satisfied: "not_satisfied";
                 indeterminate: "indeterminate";
+                not_satisfied: "not_satisfied";
+                satisfied: "satisfied";
             }>;
             locators: z.ZodArray<z.ZodObject<{
                 object_digest: z.ZodString;
@@ -909,13 +988,13 @@ export declare const standardEvidenceRecordSchema: z.ZodObject<{
             }, z.core.$strict>>;
             residue: z.ZodArray<z.ZodObject<{
                 code: z.ZodEnum<{
-                    resource_required: "resource_required";
-                    invalid_artifact: "invalid_artifact";
-                    insufficient_artifacts: "insufficient_artifacts";
                     ambiguous_result: "ambiguous_result";
-                    unsupported_version: "unsupported_version";
                     cyclic_reference: "cyclic_reference";
+                    insufficient_artifacts: "insufficient_artifacts";
+                    invalid_artifact: "invalid_artifact";
+                    resource_required: "resource_required";
                     unsupported_requirement: "unsupported_requirement";
+                    unsupported_version: "unsupported_version";
                 }>;
                 resource_uri: z.ZodNullable<z.ZodURL>;
                 object_digest: z.ZodNullable<z.ZodString>;
@@ -935,9 +1014,9 @@ export declare const externalStandardSuiteDefinitionCoreSchema: z.ZodObject<{
     }, z.core.$strict>;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -953,27 +1032,27 @@ export declare const externalStandardSuiteDefinitionCoreSchema: z.ZodObject<{
         title: z.ZodString;
         metadata: z.ZodRecord<z.ZodString, z.ZodJSONSchema>;
         operator: z.ZodEnum<{
-            any: "any";
             all: "all";
+            any: "any";
         }>;
         requirements: z.ZodArray<z.ZodObject<{
             namespace: z.ZodString;
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>>;
         mapping_residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -989,9 +1068,9 @@ export declare const externalStandardSuiteDefinitionSchema: z.ZodObject<{
     }, z.core.$strict>;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -1007,27 +1086,27 @@ export declare const externalStandardSuiteDefinitionSchema: z.ZodObject<{
         title: z.ZodString;
         metadata: z.ZodRecord<z.ZodString, z.ZodJSONSchema>;
         operator: z.ZodEnum<{
-            any: "any";
             all: "all";
+            any: "any";
         }>;
         requirements: z.ZodArray<z.ZodObject<{
             namespace: z.ZodString;
             version: z.ZodString;
             requirement_id: z.ZodString;
             relation: z.ZodEnum<{
-                tests: "tests";
                 "informational-reference": "informational-reference";
+                tests: "tests";
             }>;
         }, z.core.$strict>>;
         mapping_residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -1043,9 +1122,9 @@ export declare const externalStandardSuiteEvaluationCoreSchema: z.ZodObject<{
     assertions: z.ZodArray<z.ZodObject<{
         assertion_id: z.ZodString;
         status: z.ZodEnum<{
+            failed: "failed";
             indeterminate: "indeterminate";
             passed: "passed";
-            failed: "failed";
         }>;
         leaf_requirements: z.ZodArray<z.ZodObject<{
             requirement: z.ZodObject<{
@@ -1053,26 +1132,26 @@ export declare const externalStandardSuiteEvaluationCoreSchema: z.ZodObject<{
                 version: z.ZodString;
                 requirement_id: z.ZodString;
                 relation: z.ZodEnum<{
-                    tests: "tests";
                     "informational-reference": "informational-reference";
+                    tests: "tests";
                 }>;
             }, z.core.$strict>;
             evidence_result_digest: z.ZodString;
             status: z.ZodEnum<{
-                satisfied: "satisfied";
-                not_satisfied: "not_satisfied";
                 indeterminate: "indeterminate";
+                not_satisfied: "not_satisfied";
+                satisfied: "satisfied";
             }>;
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -1087,9 +1166,9 @@ export declare const externalStandardSuiteEvaluationSchema: z.ZodObject<{
     assertions: z.ZodArray<z.ZodObject<{
         assertion_id: z.ZodString;
         status: z.ZodEnum<{
+            failed: "failed";
             indeterminate: "indeterminate";
             passed: "passed";
-            failed: "failed";
         }>;
         leaf_requirements: z.ZodArray<z.ZodObject<{
             requirement: z.ZodObject<{
@@ -1097,26 +1176,26 @@ export declare const externalStandardSuiteEvaluationSchema: z.ZodObject<{
                 version: z.ZodString;
                 requirement_id: z.ZodString;
                 relation: z.ZodEnum<{
-                    tests: "tests";
                     "informational-reference": "informational-reference";
+                    tests: "tests";
                 }>;
             }, z.core.$strict>;
             evidence_result_digest: z.ZodString;
             status: z.ZodEnum<{
-                satisfied: "satisfied";
-                not_satisfied: "not_satisfied";
                 indeterminate: "indeterminate";
+                not_satisfied: "not_satisfied";
+                satisfied: "satisfied";
             }>;
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -1136,9 +1215,9 @@ export declare const externalAssessmentAdapterManifestCoreSchema: z.ZodObject<{
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -1170,9 +1249,9 @@ export declare const externalAssessmentAdapterManifestSchema: z.ZodObject<{
     implementation_digest: z.ZodString;
     official_sources: z.ZodArray<z.ZodObject<{
         role: z.ZodEnum<{
-            specification: "specification";
-            schema: "schema";
             "conformance-example": "conformance-example";
+            schema: "schema";
+            specification: "specification";
         }>;
         source_uri: z.ZodURL;
         object_digest: z.ZodString;
@@ -1209,11 +1288,11 @@ export declare const externalAssessmentRequestCoreSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -1232,11 +1311,11 @@ export declare const externalAssessmentRequestSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         source_uri: z.ZodURL;
         role: z.ZodEnum<{
-            representation: "representation";
-            transport_metadata: "transport_metadata";
-            rendered_view: "rendered_view";
             interaction_trace: "interaction_trace";
             manual_record: "manual_record";
+            rendered_view: "rendered_view";
+            representation: "representation";
+            transport_metadata: "transport_metadata";
         }>;
     }, z.core.$strict>>;
     request_digest: z.ZodString;
@@ -1248,9 +1327,9 @@ export declare const externalAssessmentResultCoreSchema: z.ZodObject<{
     assertions: z.ZodArray<z.ZodObject<{
         assertion_id: z.ZodString;
         reported_status: z.ZodEnum<{
+            failed: "failed";
             indeterminate: "indeterminate";
             passed: "passed";
-            failed: "failed";
         }>;
         reported_score: z.ZodOptional<z.ZodObject<{
             value: z.ZodNumber;
@@ -1266,13 +1345,13 @@ export declare const externalAssessmentResultCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -1287,9 +1366,9 @@ export declare const externalAssessmentResultSchema: z.ZodObject<{
     assertions: z.ZodArray<z.ZodObject<{
         assertion_id: z.ZodString;
         reported_status: z.ZodEnum<{
+            failed: "failed";
             indeterminate: "indeterminate";
             passed: "passed";
-            failed: "failed";
         }>;
         reported_score: z.ZodOptional<z.ZodObject<{
             value: z.ZodNumber;
@@ -1305,13 +1384,13 @@ export declare const externalAssessmentResultSchema: z.ZodObject<{
         }, z.core.$strict>>;
         residue: z.ZodArray<z.ZodObject<{
             code: z.ZodEnum<{
-                resource_required: "resource_required";
-                invalid_artifact: "invalid_artifact";
-                insufficient_artifacts: "insufficient_artifacts";
                 ambiguous_result: "ambiguous_result";
-                unsupported_version: "unsupported_version";
                 cyclic_reference: "cyclic_reference";
+                insufficient_artifacts: "insufficient_artifacts";
+                invalid_artifact: "invalid_artifact";
+                resource_required: "resource_required";
                 unsupported_requirement: "unsupported_requirement";
+                unsupported_version: "unsupported_version";
             }>;
             resource_uri: z.ZodNullable<z.ZodURL>;
             object_digest: z.ZodNullable<z.ZodString>;
@@ -1337,11 +1416,11 @@ export declare const externalAssessmentRecordCoreSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -1353,9 +1432,9 @@ export declare const externalAssessmentRecordCoreSchema: z.ZodObject<{
         assertions: z.ZodArray<z.ZodObject<{
             assertion_id: z.ZodString;
             reported_status: z.ZodEnum<{
+                failed: "failed";
                 indeterminate: "indeterminate";
                 passed: "passed";
-                failed: "failed";
             }>;
             reported_score: z.ZodOptional<z.ZodObject<{
                 value: z.ZodNumber;
@@ -1371,13 +1450,13 @@ export declare const externalAssessmentRecordCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
             residue: z.ZodArray<z.ZodObject<{
                 code: z.ZodEnum<{
-                    resource_required: "resource_required";
-                    invalid_artifact: "invalid_artifact";
-                    insufficient_artifacts: "insufficient_artifacts";
                     ambiguous_result: "ambiguous_result";
-                    unsupported_version: "unsupported_version";
                     cyclic_reference: "cyclic_reference";
+                    insufficient_artifacts: "insufficient_artifacts";
+                    invalid_artifact: "invalid_artifact";
+                    resource_required: "resource_required";
                     unsupported_requirement: "unsupported_requirement";
+                    unsupported_version: "unsupported_version";
                 }>;
                 resource_uri: z.ZodNullable<z.ZodURL>;
                 object_digest: z.ZodNullable<z.ZodString>;
@@ -1405,11 +1484,11 @@ export declare const externalAssessmentRecordSchema: z.ZodObject<{
             bytes: z.ZodNumber;
             source_uri: z.ZodURL;
             role: z.ZodEnum<{
-                representation: "representation";
-                transport_metadata: "transport_metadata";
-                rendered_view: "rendered_view";
                 interaction_trace: "interaction_trace";
                 manual_record: "manual_record";
+                rendered_view: "rendered_view";
+                representation: "representation";
+                transport_metadata: "transport_metadata";
             }>;
         }, z.core.$strict>>;
         request_digest: z.ZodString;
@@ -1421,9 +1500,9 @@ export declare const externalAssessmentRecordSchema: z.ZodObject<{
         assertions: z.ZodArray<z.ZodObject<{
             assertion_id: z.ZodString;
             reported_status: z.ZodEnum<{
+                failed: "failed";
                 indeterminate: "indeterminate";
                 passed: "passed";
-                failed: "failed";
             }>;
             reported_score: z.ZodOptional<z.ZodObject<{
                 value: z.ZodNumber;
@@ -1439,13 +1518,13 @@ export declare const externalAssessmentRecordSchema: z.ZodObject<{
             }, z.core.$strict>>;
             residue: z.ZodArray<z.ZodObject<{
                 code: z.ZodEnum<{
-                    resource_required: "resource_required";
-                    invalid_artifact: "invalid_artifact";
-                    insufficient_artifacts: "insufficient_artifacts";
                     ambiguous_result: "ambiguous_result";
-                    unsupported_version: "unsupported_version";
                     cyclic_reference: "cyclic_reference";
+                    insufficient_artifacts: "insufficient_artifacts";
+                    invalid_artifact: "invalid_artifact";
+                    resource_required: "resource_required";
                     unsupported_requirement: "unsupported_requirement";
+                    unsupported_version: "unsupported_version";
                 }>;
                 resource_uri: z.ZodNullable<z.ZodURL>;
                 object_digest: z.ZodNullable<z.ZodString>;
@@ -1458,6 +1537,9 @@ export declare const externalAssessmentRecordSchema: z.ZodObject<{
     record_digest: z.ZodString;
 }, z.core.$strict>;
 export type StandardIdentity = z.infer<typeof standardIdentitySchema>;
+export type StandardObservationRequest = z.infer<typeof standardObservationRequestSchema>;
+export type StandardObservationTranscript = z.infer<typeof standardObservationTranscriptSchema>;
+export type StandardObservationArtifact = z.infer<typeof standardObservationArtifactSchema>;
 export type StandardImplementationBinding = z.infer<typeof standardImplementationBindingSchema>;
 export type StandardRequirementReference = z.infer<typeof standardRequirementReferenceSchema>;
 export type StandardEvidenceAdapterManifest = z.infer<typeof standardEvidenceAdapterManifestSchema>;

@@ -1,13 +1,13 @@
+import { type Digest } from "provenry/primitives";
 import { type AgentReadinessDeclarationRevision, type AgentReadinessIndex, type AgentReadinessOfferRelationInput, type AgentReadinessOfferRelationRevision, type AgentReadinessPolicy, type AgentReadinessProfileInput, type AgentReadinessProjection, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { AssetManifest } from "../../../contracts/assets/src/index.js";
 import { type CatalogEvent } from "../../../contracts/events/src/index.js";
 import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
 import type { Observation } from "../../../contracts/observations/src/index.js";
-import type { OfferRevision } from "../../../contracts/revisions/src/index.js";
+import { type OfferRevision } from "../../../contracts/revisions/src/index.js";
 import { type RetainedCaptureReceipt, type validateSignerRegistry } from "../../authority/src/index.js";
 import type { CompiledCatalogFacts } from "../../compiler/src/index.js";
 import { type RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
-import { type Digest } from "../../primitives/src/index.js";
 import type { RevisionHistory } from "./identity.js";
 export interface LoadedAgentReadinessProfile {
     readonly input: AgentReadinessProfileInput;
@@ -60,26 +60,26 @@ export declare function loadPublicPolicies(directory: string): Promise<{
     summary: string;
     sections: ({
         kind: "prose";
-        paragraphs: string[];
         heading?: string | undefined;
+        paragraphs: string[];
     } | {
         kind: "clauses";
+        heading?: string | undefined;
         clauses: {
             title: string;
             body: string;
         }[];
-        heading?: string | undefined;
     } | {
         kind: "definitions";
+        heading?: string | undefined;
         definitions: {
             term: string;
             detail: string;
         }[];
-        heading?: string | undefined;
     } | {
         kind: "steps";
-        steps: string[];
         heading?: string | undefined;
+        steps: string[];
     })[];
 }[]>;
 export declare function validateCaptures(observations: readonly Observation[], captureRoot: string, normalizedRoot: string): Promise<{

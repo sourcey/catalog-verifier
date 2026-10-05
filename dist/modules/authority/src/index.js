@@ -1,11 +1,11 @@
 import { createPublicKey, verify } from "node:crypto";
+import { canonicalJson, digest } from "provenry/primitives";
 import { rootSetTransitionCoreSchema, rootSetTransitionSchema, signerRegistryCoreSchema, signerRegistrySchema, } from "../../../contracts/authority/src/index.js";
 import { catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextSchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { catalogEventCoreSchema, catalogEventSchema, } from "../../../contracts/events/src/index.js";
 import { captureReceiptCoreSchema, captureReceiptSchema, evidenceReviewDecisionCoreSchema, } from "../../../contracts/evidence/src/index.js";
 import { changeCursorCoreSchema, changeCursorSchema, searchCursorCoreSchema, searchCursorSchema, } from "../../../contracts/feed/src/index.js";
 import { releasePublicationCoreSchema, releasePublicationSchema, } from "../../../contracts/release/src/index.js";
-import { canonicalJson, digest } from "../../primitives/src/index.js";
 import { retainedCaptureReceiptSchema, } from "./retained-capture-receipt.js";
 export { retainedCaptureReceiptSchema, } from "./retained-capture-receipt.js";
 const REGISTRY_DOMAIN = "sourcey:signer-registry:v1alpha1";
@@ -195,6 +195,13 @@ export function validateSignerRegistry(rootSet, input) {
         throw new Error(`Signer registry has ${valid.size} valid root signatures; ${rootSet.threshold} required.`);
     }
     return registry;
+}
+export function registryIssuerForPurpose(registry, purpose) {
+    const issuers = registry.issuers.filter((issuer) => issuer.keys.some((key) => key.purposes.includes(purpose)));
+    if (issuers.length !== 1 || !issuers[0]) {
+        throw new Error(`Signer registry must name exactly one issuer for ${purpose}.`);
+    }
+    return issuers[0].issuer_id;
 }
 /**
  * Resolve the one registry authority that may issue a purpose-bound object at

@@ -11,9 +11,9 @@ export declare const observationCoreSchema: z.ZodObject<{
         version: z.ZodString;
     }, z.core.$strict>;
     outcome: z.ZodEnum<{
+        "contradicts-candidate": "contradicts-candidate";
         error: "error";
         "supports-candidate": "supports-candidate";
-        "contradicts-candidate": "contradicts-candidate";
         unreachable: "unreachable";
     }>;
     capture: z.ZodOptional<z.ZodObject<{
@@ -21,8 +21,8 @@ export declare const observationCoreSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         media_type: z.ZodString;
         availability: z.ZodEnum<{
-            public: "public";
             "private-receipt": "private-receipt";
+            public: "public";
         }>;
         requested_uri: z.ZodOptional<z.ZodURL>;
         final_uri: z.ZodOptional<z.ZodURL>;
@@ -32,10 +32,10 @@ export declare const observationCoreSchema: z.ZodObject<{
             to: z.ZodURL;
         }, z.core.$strict>>>;
         source_standing: z.ZodOptional<z.ZodEnum<{
-            "live-first-party": "live-first-party";
             "archived-first-party": "archived-first-party";
-            "live-third-party": "live-third-party";
             "archived-third-party": "archived-third-party";
+            "live-first-party": "live-first-party";
+            "live-third-party": "live-third-party";
             "manual-first-party": "manual-first-party";
             "manual-third-party": "manual-third-party";
         }>>;
@@ -48,15 +48,26 @@ export declare const observationCoreSchema: z.ZodObject<{
             version: z.ZodString;
             toolchain_digest: z.ZodString;
         }, z.core.$strict>>;
+        artifact_scope: z.ZodOptional<z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>>;
+        source_content: z.ZodOptional<z.ZodObject<{
+            digest: z.ZodString;
+            bytes: z.ZodNumber;
+            media_type: z.ZodString;
+            normalized_digest: z.ZodString;
+            normalized_bytes: z.ZodNumber;
+        }, z.core.$strict>>;
     }, z.core.$strict>>;
     no_capture_reason: z.ZodOptional<z.ZodEnum<{
-        "dns-failure": "dns-failure";
-        "connect-timeout": "connect-timeout";
-        "tls-failure": "tls-failure";
         "access-denied": "access-denied";
-        "policy-blocked": "policy-blocked";
+        "connect-timeout": "connect-timeout";
+        "dns-failure": "dns-failure";
         "empty-response": "empty-response";
         "extractor-error": "extractor-error";
+        "policy-blocked": "policy-blocked";
+        "tls-failure": "tls-failure";
     }>>;
 }, z.core.$strict>;
 export declare const observationSchema: z.ZodObject<{
@@ -69,9 +80,9 @@ export declare const observationSchema: z.ZodObject<{
         version: z.ZodString;
     }, z.core.$strict>;
     outcome: z.ZodEnum<{
+        "contradicts-candidate": "contradicts-candidate";
         error: "error";
         "supports-candidate": "supports-candidate";
-        "contradicts-candidate": "contradicts-candidate";
         unreachable: "unreachable";
     }>;
     capture: z.ZodOptional<z.ZodObject<{
@@ -79,8 +90,8 @@ export declare const observationSchema: z.ZodObject<{
         bytes: z.ZodNumber;
         media_type: z.ZodString;
         availability: z.ZodEnum<{
-            public: "public";
             "private-receipt": "private-receipt";
+            public: "public";
         }>;
         requested_uri: z.ZodOptional<z.ZodURL>;
         final_uri: z.ZodOptional<z.ZodURL>;
@@ -90,10 +101,10 @@ export declare const observationSchema: z.ZodObject<{
             to: z.ZodURL;
         }, z.core.$strict>>>;
         source_standing: z.ZodOptional<z.ZodEnum<{
-            "live-first-party": "live-first-party";
             "archived-first-party": "archived-first-party";
-            "live-third-party": "live-third-party";
             "archived-third-party": "archived-third-party";
+            "live-first-party": "live-first-party";
+            "live-third-party": "live-third-party";
             "manual-first-party": "manual-first-party";
             "manual-third-party": "manual-third-party";
         }>>;
@@ -106,15 +117,26 @@ export declare const observationSchema: z.ZodObject<{
             version: z.ZodString;
             toolchain_digest: z.ZodString;
         }, z.core.$strict>>;
+        artifact_scope: z.ZodOptional<z.ZodEnum<{
+            complete_document: "complete_document";
+            document_excerpt: "document_excerpt";
+        }>>;
+        source_content: z.ZodOptional<z.ZodObject<{
+            digest: z.ZodString;
+            bytes: z.ZodNumber;
+            media_type: z.ZodString;
+            normalized_digest: z.ZodString;
+            normalized_bytes: z.ZodNumber;
+        }, z.core.$strict>>;
     }, z.core.$strict>>;
     no_capture_reason: z.ZodOptional<z.ZodEnum<{
-        "dns-failure": "dns-failure";
-        "connect-timeout": "connect-timeout";
-        "tls-failure": "tls-failure";
         "access-denied": "access-denied";
-        "policy-blocked": "policy-blocked";
+        "connect-timeout": "connect-timeout";
+        "dns-failure": "dns-failure";
         "empty-response": "empty-response";
         "extractor-error": "extractor-error";
+        "policy-blocked": "policy-blocked";
+        "tls-failure": "tls-failure";
     }>>;
     observation_id: z.ZodString;
 }, z.core.$strict>;

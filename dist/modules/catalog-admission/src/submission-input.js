@@ -1,6 +1,6 @@
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { catalogSubmissionOperatorAdmissionCoreSchema, catalogSubmissionOperatorAdmissionSchema, catalogSubmissionRequestSchema, catalogSubmissionWorkItemCoreSchema, catalogSubmissionWorkItemSchema, } from "../../../contracts/api/src/index.js";
 import { parseCatalogAuthoringSources } from "../../catalog-authoring-validation/src/index.js";
-import { canonicalJson, compareCanonicalStrings, digest, } from "../../primitives/src/index.js";
 export function reviewedAssetWorkItemDigest(workItem) {
     return (workItem.operator_admission?.prior_work_item_digest ??
         workItem.work_item_digest);

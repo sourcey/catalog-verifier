@@ -1,14 +1,16 @@
+import { digest, parseJsonFile } from "provenry/primitives";
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
-import { RELEASE_RESOURCES, releasePolicyInputsSchema, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
+import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
+import { releasePolicyInputsSchema } from "../../../contracts/sourcey-publication/src/index.js";
 import { validateAgentReadinessPolicy } from "../../agent-readiness-policy/src/policy-validation.js";
 import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
-import { digest } from "../../primitives/src/index.js";
+import { CATALOG_RELEASE } from "./release-directory-files.js";
 /**
  * Proves that every policy pin, addressed policy object, Artifact projection,
  * and closed policy-input declaration names the same content-addressed bytes.
  */
 export function assertReleasedPolicyClosure(input) {
-    const policyObject = (resource) => parseJson(input.files, releasePolicyObjectPath(releaseResourceDigest(input.bundle.resource_digests, resource)));
+    const policyObject = (resource) => parseJsonFile(input.files, releasePolicyObjectPath(releaseResourceDigest(input.bundle.resource_digests, resource)), CATALOG_RELEASE);
     const agentReadinessPolicy = validateAgentReadinessPolicy(policyObject(RELEASE_RESOURCES.agentReadinessPolicy));
     const assuranceMethodPolicy = validateAssuranceMethodPolicy(policyObject(RELEASE_RESOURCES.assuranceMethodPolicy));
     const coveragePolicy = coveragePolicySchema.parse(policyObject(RELEASE_RESOURCES.coveragePolicy));
@@ -31,7 +33,7 @@ export function assertReleasedPolicyClosure(input) {
             throw new Error(`Release policy ${resource} disagrees with its Artifact and bundle pins.`);
         }
     }
-    const policyInputs = releasePolicyInputsSchema.parse(parseJson(input.files, "inputs/policies.json"));
+    const policyInputs = releasePolicyInputsSchema.parse(parseJsonFile(input.files, "inputs/policies.json", CATALOG_RELEASE));
     if (digest(policyInputs) !==
         releaseResourceDigest(input.snapshotResourceDigests, RELEASE_RESOURCES.policyInputs)) {
         throw new Error("Release policy inputs digest mismatch.");
@@ -42,11 +44,5 @@ export function assertReleasedPolicyClosure(input) {
         policyInputs.freshness_policy_digest !== freshnessPolicy.policy_digest) {
         throw new Error("Release policy inputs disagree with the admitted policy objects.");
     }
-}
-function parseJson(files, path) {
-    const bytes = files.get(path);
-    if (!bytes)
-        throw new Error(`Release is missing ${path}.`);
-    return JSON.parse(bytes.toString("utf8"));
 }
 //# sourceMappingURL=policy-closure.js.map

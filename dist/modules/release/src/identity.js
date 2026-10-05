@@ -1,6 +1,9 @@
+import { assertAcyclicIdentityResolutions, assertSubjectIdentityClosure, projectSubjectIdentities, } from "provenry/identity";
+import { canonicalJson } from "provenry/primitives";
+import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { identityIndexSchema } from "../../../contracts/artifact/src/index.js";
+import { catalogRevisionContracts } from "../../../contracts/revisions/src/index.js";
 import { assertEntityIdentityAuthorityClosure } from "../../authority-state/src/index.js";
-import { canonicalJson } from "../../primitives/src/index.js";
 const identityKinds = new Set([
     "entity.merged",
     "entity.split",
@@ -16,9 +19,55 @@ const identityKinds = new Set([
     "agent-readiness-profile.retired",
 ]);
 export function projectIdentities(graph, prior) {
-    const entityResolutions = {
-        ...(prior?.canonical_entity_resolutions ?? {}),
-    };
+    const subjectIdentities = projectSubjectIdentities({
+        ...(prior
+            ? {
+                prior: {
+                    canonicalResolutions: prior.canonical_entity_resolutions,
+                    splitRelationships: prior.split_relationships,
+                    retiredSubjectIds: prior.retired_entities,
+                },
+            }
+            : {}),
+        transitions: graph.events.flatMap((event) => {
+            if (graph.inactiveEventIds.has(event.event_id))
+                return [];
+            const payload = event.payload;
+            if (event.kind === "entity.merged") {
+                return [
+                    {
+                        kind: "merge",
+                        survivingSubjectId: stringValue(payload.surviving_entity_id),
+                        retiredSubjectIds: stringArray(payload.retired_entity_ids),
+                    },
+                ];
+            }
+            if (event.kind === "entity.split") {
+                return [
+                    {
+                        kind: "split",
+                        originalSubjectId: stringValue(payload.original_entity_id),
+                        ...(payload.continuing_entity_id === undefined
+                            ? {}
+                            : { continuingSubjectId: stringValue(payload.continuing_entity_id) }),
+                        newSubjectIds: stringArray(payload.new_entity_ids),
+                    },
+                ];
+            }
+            if (event.kind === "entity.succeeded") {
+                return [
+                    {
+                        kind: "succession",
+                        predecessorSubjectId: stringValue(payload.predecessor_entity_id),
+                        successorSubjectId: stringValue(payload.successor_entity_id),
+                        predecessorRetires: payload.predecessor_retires === true,
+                    },
+                ];
+            }
+            return [];
+        }),
+    });
+    const entityResolutions = subjectIdentities.canonicalResolutions;
     const programResolutions = {
         ...(prior?.canonical_program_resolutions ?? {}),
     };
@@ -40,8 +89,8 @@ export function projectIdentities(graph, prior) {
     const assetDispositions = {
         ...(prior?.asset_binding_dispositions ?? {}),
     };
-    const splits = { ...(prior?.split_relationships ?? {}) };
-    const retiredEntities = new Set(prior?.retired_entities ?? []);
+    const splits = subjectIdentities.splitRelationships;
+    const retiredEntities = subjectIdentities.retiredSubjectIds;
     const retiredPrograms = new Set(prior?.retired_programs ?? []);
     const retiredOffers = new Set(prior?.retired_offers ?? []);
     const retiredAgentReadinessProfiles = new Set(prior?.retired_agent_readiness_profiles ?? []);
@@ -51,32 +100,14 @@ export function projectIdentities(graph, prior) {
         const payload = event.payload;
         if (event.kind === "entity.merged") {
             const retiredEntityIds = stringArray(payload.retired_entity_ids);
-            for (const retired of retiredEntityIds) {
-                assignOnce(entityResolutions, retired, stringValue(payload.surviving_entity_id));
-                retiredEntities.add(retired);
-            }
             applyDisposition(payload.disposition, programResolutions, retiredPrograms, programReparents, offerResolutions, retiredOffers, offerReparents, agentReadinessResolutions, retiredAgentReadinessProfiles, agentReadinessReparents, assetDispositions, event, retiredEntityIds.length === 1 ? retiredEntityIds[0] : undefined);
         }
         else if (event.kind === "entity.succeeded" && payload.predecessor_retires === true) {
-            const predecessor = stringValue(payload.predecessor_entity_id);
-            assignOnce(entityResolutions, predecessor, stringValue(payload.successor_entity_id));
-            retiredEntities.add(predecessor);
             if (payload.disposition) {
                 applyDisposition(payload.disposition, programResolutions, retiredPrograms, programReparents, offerResolutions, retiredOffers, offerReparents, agentReadinessResolutions, retiredAgentReadinessProfiles, agentReadinessReparents, assetDispositions, event);
             }
         }
         else if (event.kind === "entity.split") {
-            const original = stringValue(payload.original_entity_id);
-            const nextSplit = stringArray(payload.new_entity_ids).sort();
-            if (splits[original] && canonicalJson(splits[original]) !== canonicalJson(nextSplit)) {
-                throw new Error(`Entity ${original} has multiple active split events.`);
-            }
-            splits[original] = nextSplit;
-            const continuing = optionalStringValue(payload.continuing_entity_id);
-            if (continuing && continuing !== original)
-                assignOnce(entityResolutions, original, continuing);
-            if (continuing !== original)
-                retiredEntities.add(original);
             applyDisposition(payload.disposition, programResolutions, retiredPrograms, programReparents, offerResolutions, retiredOffers, offerReparents, agentReadinessResolutions, retiredAgentReadinessProfiles, agentReadinessReparents, assetDispositions, event);
         }
         else if (event.kind === "program.merged") {
@@ -128,10 +159,9 @@ export function projectIdentities(graph, prior) {
             retiredAgentReadinessProfiles.add(stringValue(payload.agent_readiness_profile_id));
         }
     }
-    assertAcyclic(entityResolutions, "entity");
-    assertAcyclic(programResolutions, "program");
-    assertAcyclic(offerResolutions, "offer");
-    assertAcyclic(agentReadinessResolutions, "agent readiness profile");
+    assertAcyclicIdentityResolutions(programResolutions, "program");
+    assertAcyclicIdentityResolutions(offerResolutions, "offer");
+    assertAcyclicIdentityResolutions(agentReadinessResolutions, "agent readiness profile");
     return {
         identity_contract: "sourcey.identities/v1alpha1",
         canonical_entity_resolutions: entityResolutions,
@@ -143,7 +173,7 @@ export function projectIdentities(graph, prior) {
         agent_readiness_profile_reparents: agentReadinessReparents,
         asset_binding_dispositions: assetDispositions,
         split_relationships: splits,
-        retired_entities: [...retiredEntities].sort(),
+        retired_entities: retiredEntities,
         retired_programs: [...retiredPrograms].sort(),
         retired_offers: [...retiredOffers].sort(),
         retired_agent_readiness_profiles: [...retiredAgentReadinessProfiles].sort(),
@@ -289,13 +319,13 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
     const historicalAgentReadinessProfiles = new Set();
     for (const revision of revisions.all.values()) {
         historicalEntities.add(revision.entity_id);
-        if (revision.revision_contract === "sourcey.program-revision/v1alpha1") {
+        if (revision.revision_contract === catalogRevisionContracts.program) {
             historicalPrograms.add(revision.program_id);
         }
-        else if (revision.revision_contract === "sourcey.offer-revision/v1alpha1") {
+        else if (revision.revision_contract === catalogRevisionContracts.offer) {
             historicalOffers.add(revision.offer_id);
         }
-        else if (revision.revision_contract === "sourcey.agent-readiness-revision/v1alpha1") {
+        else if (revision.revision_contract === agentReadinessRevisionContract) {
             historicalAgentReadinessProfiles.add(revision.agent_readiness_profile_id);
         }
     }
@@ -328,11 +358,15 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
         profile.agent_readiness_profile_id,
         profile.entity_id,
     ]) ?? []);
-    for (const [retired, target] of Object.entries(identities.canonical_entity_resolutions)) {
-        if (!historicalEntities.has(retired) || !currentEntities.has(target) || retired === target) {
-            throw new Error(`Entity identity resolution ${retired} -> ${target} is not closed.`);
-        }
-    }
+    assertSubjectIdentityClosure({
+        projection: {
+            canonicalResolutions: identities.canonical_entity_resolutions,
+            splitRelationships: identities.split_relationships,
+            retiredSubjectIds: identities.retired_entities,
+        },
+        historicalSubjectIds: historicalEntities,
+        currentSubjectIds: currentEntities,
+    });
     for (const [retired, target] of Object.entries(identities.canonical_offer_resolutions)) {
         if (!historicalOffers.has(retired) || !currentOffers.has(target) || retired === target) {
             throw new Error(`Offer identity resolution ${retired} -> ${target} is not closed.`);
@@ -348,11 +382,6 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
             !currentAgentReadinessOwners.has(target) ||
             retired === target) {
             throw new Error(`Agent-readiness-profile identity resolution ${retired} -> ${target} is not closed.`);
-        }
-    }
-    for (const retired of identities.retired_entities) {
-        if (!historicalEntities.has(retired) || currentEntities.has(retired)) {
-            throw new Error(`Retired entity ${retired} is missing history or remains current.`);
         }
     }
     for (const retired of identities.retired_offers) {
@@ -371,19 +400,17 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
             throw new Error(`Retired agent readiness profile ${retired} is missing history or remains current.`);
         }
     }
-    for (const [programId, reparent] of Object.entries(identities.program_reparents ?? {})) {
+    for (const [programId, reparent] of Object.entries(identities.program_reparents)) {
         if (!historicalPrograms.has(programId) ||
-            (reparent.old_entity_id !== undefined &&
-                priorProgramOwners.get(programId) !== reparent.old_entity_id) ||
+            priorProgramOwners.get(programId) !== reparent.old_entity_id ||
             currentProgramOwners.get(programId) !== reparent.new_entity_id ||
             priorProgramOwners.get(programId) === reparent.new_entity_id) {
             throw new Error(`Program reparent ${programId} is not closed over adjacent releases.`);
         }
     }
-    for (const [offerId, reparent] of Object.entries(identities.offer_reparents ?? {})) {
+    for (const [offerId, reparent] of Object.entries(identities.offer_reparents)) {
         if (!historicalOffers.has(offerId) ||
-            (reparent.old_entity_id !== undefined &&
-                priorOfferOwners.get(offerId) !== reparent.old_entity_id) ||
+            priorOfferOwners.get(offerId) !== reparent.old_entity_id ||
             currentOfferOwners.get(offerId) !== reparent.new_entity_id ||
             priorOfferOwners.get(offerId) === reparent.new_entity_id) {
             throw new Error(`Offer reparent ${offerId} is not closed over the adjacent releases.`);
@@ -395,13 +422,6 @@ export function validateIdentityClosure(identities, revisions, facts, agentReadi
             currentAgentReadinessOwners.get(profileId) !== reparent.new_entity_id ||
             reparent.old_entity_id === reparent.new_entity_id) {
             throw new Error(`Agent-readiness-profile reparent ${profileId} is not closed over adjacent releases.`);
-        }
-    }
-    for (const [original, replacements] of Object.entries(identities.split_relationships)) {
-        if (!historicalEntities.has(original) ||
-            replacements.length === 0 ||
-            replacements.some((replacement) => !currentEntities.has(replacement))) {
-            throw new Error(`Entity split ${original} is not closed over current entities.`);
         }
     }
 }
@@ -416,14 +436,14 @@ function identityFloorProgramIds(identities) {
     return new Set([
         ...Object.keys(identities.canonical_program_resolutions),
         ...identities.retired_programs,
-        ...Object.keys(identities.program_reparents ?? {}),
+        ...Object.keys(identities.program_reparents),
     ]);
 }
 function identityFloorOfferIds(identities) {
     return new Set([
         ...Object.keys(identities.canonical_offer_resolutions),
         ...identities.retired_offers,
-        ...Object.keys(identities.offer_reparents ?? {}),
+        ...Object.keys(identities.offer_reparents),
     ]);
 }
 function identityFloorAgentReadinessProfileIds(identities) {
@@ -437,9 +457,6 @@ function stringValue(value) {
     if (typeof value !== "string")
         throw new Error("Expected a string in a validated event payload.");
     return value;
-}
-function optionalStringValue(value) {
-    return value === undefined ? undefined : stringValue(value);
 }
 function stringArray(value) {
     if (!Array.isArray(value) || value.some((entry) => typeof entry !== "string")) {
@@ -459,17 +476,5 @@ function assignReparent(target, subjectId, reparent) {
         throw new Error(`${subjectId} has multiple active reparent transitions.`);
     }
     target[subjectId] = reparent;
-}
-function assertAcyclic(edges, label) {
-    for (const start of Object.keys(edges)) {
-        const seen = new Set();
-        let current = start;
-        while (current && edges[current]) {
-            if (seen.has(current))
-                throw new Error(`${label} identity resolution contains a cycle.`);
-            seen.add(current);
-            current = edges[current];
-        }
-    }
 }
 //# sourceMappingURL=identity.js.map

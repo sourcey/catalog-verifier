@@ -56,15 +56,17 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         entity_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -72,15 +74,17 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         program_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -88,15 +92,17 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         offer_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -109,16 +115,16 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         path: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
     }, z.core.$strict>>;
     changed_subjects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
@@ -126,8 +132,8 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         kind: z.ZodLiteral<"program">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodString;
@@ -136,16 +142,16 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         kind: z.ZodLiteral<"offer">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
         evidence_basis: z.ZodEnum<{
-            observed: "observed";
             declared: "declared";
+            observed: "observed";
         }>;
     }, z.core.$strict>], "kind">>;
     candidate_revisions: z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
@@ -158,8 +164,8 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -215,6 +221,8 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -255,9 +263,9 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -284,9 +292,9 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -346,14 +354,14 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -366,12 +374,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -383,19 +389,19 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -430,31 +436,31 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                 path: z.ZodString;
                 value_digest: z.ZodString;
                 semantic_type: z.ZodEnum<{
-                    number: "number";
-                    boolean: "boolean";
-                    url: "url";
-                    duration: "duration";
-                    currency: "currency";
-                    percentage: "percentage";
                     access: "access";
+                    boolean: "boolean";
+                    composition: "composition";
+                    currency: "currency";
                     domain: "domain";
-                    taxonomy: "taxonomy";
-                    exact_text: "exact_text";
+                    duration: "duration";
                     editorial_text: "editorial_text";
-                    lifecycle_state: "lifecycle_state";
-                    qualifier: "qualifier";
-                    money_amount: "money_amount";
                     eligibility_composition: "eligibility_composition";
                     eligibility_value: "eligibility_value";
+                    exact_text: "exact_text";
+                    lifecycle_state: "lifecycle_state";
+                    money_amount: "money_amount";
+                    number: "number";
+                    percentage: "percentage";
+                    qualifier: "qualifier";
                     source_authority: "source_authority";
-                    composition: "composition";
                     structured_value: "structured_value";
+                    taxonomy: "taxonomy";
+                    url: "url";
                 }>;
                 proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 derivation_rules: z.ZodArray<z.ZodString>;
                 guidance: z.ZodString;
@@ -467,8 +473,8 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
             result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
             claim_id: z.ZodString;
             status: z.ZodEnum<{
-                supported: "supported";
                 contradicted: "contradicted";
+                supported: "supported";
                 unresolved: "unresolved";
                 unsupported: "unsupported";
             }>;
@@ -479,15 +485,17 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                 adapter_id: z.ZodString;
                 adapter_digest: z.ZodString;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -518,16 +526,16 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         }>;
         publisher_entity_id: z.ZodNullable<z.ZodString>;
         capture_status: z.ZodEnum<{
+            anomaly: "anomaly";
             captured: "captured";
             not_attempted: "not_attempted";
             retryable_failure: "retryable_failure";
             terminal_failure: "terminal_failure";
-            anomaly: "anomaly";
         }>;
         capture_method: z.ZodNullable<z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>>;
         capture_policy_digest: z.ZodNullable<z.ZodString>;
@@ -542,21 +550,21 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
     }, z.core.$strict>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            url: "url";
-            slug: "slug";
-            name: "name";
-            program: "program";
-            offer: "offer";
-            identity: "identity";
             domain: "domain";
-            semantic_offer: "semantic_offer";
+            identity: "identity";
+            name: "name";
+            offer: "offer";
             open_pull_request: "open_pull_request";
             pending_git_lineage: "pending_git_lineage";
             pending_submission: "pending_submission";
+            program: "program";
+            semantic_offer: "semantic_offer";
+            slug: "slug";
+            url: "url";
         }>;
         strength: z.ZodEnum<{
-            exact: "exact";
             ambiguous: "ambiguous";
+            exact: "exact";
         }>;
         key_digest: z.ZodString;
         target_references: z.ZodArray<z.ZodString>;
@@ -608,15 +616,17 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         entity_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -624,15 +634,17 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         program_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -640,15 +652,17 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         offer_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -661,16 +675,16 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         path: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
     }, z.core.$strict>>;
     changed_subjects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
@@ -678,8 +692,8 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         kind: z.ZodLiteral<"program">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodString;
@@ -688,16 +702,16 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         kind: z.ZodLiteral<"offer">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
         evidence_basis: z.ZodEnum<{
-            observed: "observed";
             declared: "declared";
+            observed: "observed";
         }>;
     }, z.core.$strict>], "kind">>;
     candidate_revisions: z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
@@ -710,8 +724,8 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -767,6 +781,8 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -807,9 +823,9 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -836,9 +852,9 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -898,14 +914,14 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -918,12 +934,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -935,19 +949,19 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -982,31 +996,31 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                 path: z.ZodString;
                 value_digest: z.ZodString;
                 semantic_type: z.ZodEnum<{
-                    number: "number";
-                    boolean: "boolean";
-                    url: "url";
-                    duration: "duration";
-                    currency: "currency";
-                    percentage: "percentage";
                     access: "access";
+                    boolean: "boolean";
+                    composition: "composition";
+                    currency: "currency";
                     domain: "domain";
-                    taxonomy: "taxonomy";
-                    exact_text: "exact_text";
+                    duration: "duration";
                     editorial_text: "editorial_text";
-                    lifecycle_state: "lifecycle_state";
-                    qualifier: "qualifier";
-                    money_amount: "money_amount";
                     eligibility_composition: "eligibility_composition";
                     eligibility_value: "eligibility_value";
+                    exact_text: "exact_text";
+                    lifecycle_state: "lifecycle_state";
+                    money_amount: "money_amount";
+                    number: "number";
+                    percentage: "percentage";
+                    qualifier: "qualifier";
                     source_authority: "source_authority";
-                    composition: "composition";
                     structured_value: "structured_value";
+                    taxonomy: "taxonomy";
+                    url: "url";
                 }>;
                 proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 derivation_rules: z.ZodArray<z.ZodString>;
                 guidance: z.ZodString;
@@ -1019,8 +1033,8 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
             result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
             claim_id: z.ZodString;
             status: z.ZodEnum<{
-                supported: "supported";
                 contradicted: "contradicted";
+                supported: "supported";
                 unresolved: "unresolved";
                 unsupported: "unsupported";
             }>;
@@ -1031,15 +1045,17 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                 adapter_id: z.ZodString;
                 adapter_digest: z.ZodString;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -1070,16 +1086,16 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         }>;
         publisher_entity_id: z.ZodNullable<z.ZodString>;
         capture_status: z.ZodEnum<{
+            anomaly: "anomaly";
             captured: "captured";
             not_attempted: "not_attempted";
             retryable_failure: "retryable_failure";
             terminal_failure: "terminal_failure";
-            anomaly: "anomaly";
         }>;
         capture_method: z.ZodNullable<z.ZodEnum<{
-            http: "http";
-            headless: "headless";
             archive: "archive";
+            headless: "headless";
+            http: "http";
             manual: "manual";
         }>>;
         capture_policy_digest: z.ZodNullable<z.ZodString>;
@@ -1094,21 +1110,21 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
     }, z.core.$strict>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            url: "url";
-            slug: "slug";
-            name: "name";
-            program: "program";
-            offer: "offer";
-            identity: "identity";
             domain: "domain";
-            semantic_offer: "semantic_offer";
+            identity: "identity";
+            name: "name";
+            offer: "offer";
             open_pull_request: "open_pull_request";
             pending_git_lineage: "pending_git_lineage";
             pending_submission: "pending_submission";
+            program: "program";
+            semantic_offer: "semantic_offer";
+            slug: "slug";
+            url: "url";
         }>;
         strength: z.ZodEnum<{
-            exact: "exact";
             ambiguous: "ambiguous";
+            exact: "exact";
         }>;
         key_digest: z.ZodString;
         target_references: z.ZodArray<z.ZodString>;
@@ -1133,8 +1149,7 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
     input_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObject<{
-    evaluator_id: z.ZodString;
-    evaluator_digest: z.ZodString;
+    live_parent_release_id: z.ZodString;
     policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
         policy_id: z.ZodString;
@@ -1149,72 +1164,23 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         }, z.core.$strict>;
         policy_digest: z.ZodString;
     }, z.core.$strict>;
-    asset: z.ZodObject<{
-        kind: z.ZodEnum<{
-            sourcey_monogram: "sourcey_monogram";
-            vendor_asset: "vendor_asset";
-        }>;
-        status: z.ZodEnum<{
-            supported: "supported";
-            unresolved: "unresolved";
-            unsupported: "unsupported";
-        }>;
-        candidate_digest: z.ZodNullable<z.ZodString>;
-        capture_digest: z.ZodNullable<z.ZodString>;
-        served_digest: z.ZodNullable<z.ZodString>;
-        transform_profile_digest: z.ZodNullable<z.ZodString>;
-        fallback_reason_digest: z.ZodNullable<z.ZodString>;
-    }, z.core.$strict>;
-    live_parent_release_id: z.ZodString;
-    sources: z.ZodArray<z.ZodObject<{
-        subject_revision_digest: z.ZodString;
-        source_id: z.ZodString;
-        requested_url: z.ZodURL;
-        final_url: z.ZodNullable<z.ZodURL>;
-        authority: z.ZodEnum<{
-            ambiguous: "ambiguous";
-            canonical: "canonical";
-            inert: "inert";
-        }>;
-        publisher_entity_id: z.ZodNullable<z.ZodString>;
-        capture_status: z.ZodEnum<{
-            captured: "captured";
-            not_attempted: "not_attempted";
-            retryable_failure: "retryable_failure";
-            terminal_failure: "terminal_failure";
-            anomaly: "anomaly";
-        }>;
-        capture_method: z.ZodNullable<z.ZodEnum<{
-            http: "http";
-            headless: "headless";
-            archive: "archive";
-            manual: "manual";
-        }>>;
-        capture_policy_digest: z.ZodNullable<z.ZodString>;
-        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-        response_status_code: z.ZodNullable<z.ZodNumber>;
-        availability: z.ZodNullable<z.ZodEnum<{
-            public: "public";
-            restricted: "restricted";
-        }>>;
-        capture_digest: z.ZodNullable<z.ZodString>;
-        normalized_object_digest: z.ZodNullable<z.ZodString>;
-    }, z.core.$strict>>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
         entity_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -1222,15 +1188,17 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         program_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -1238,35 +1206,39 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         offer_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
         }, z.core.$strict>>;
         policy_digest: z.ZodString;
     }, z.core.$strict>;
+    evaluator_id: z.ZodString;
+    evaluator_digest: z.ZodString;
     changed_files: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
     }, z.core.$strict>>;
     changed_subjects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
@@ -1274,8 +1246,8 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         kind: z.ZodLiteral<"program">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodString;
@@ -1284,16 +1256,16 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         kind: z.ZodLiteral<"offer">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
         evidence_basis: z.ZodEnum<{
-            observed: "observed";
             declared: "declared";
+            observed: "observed";
         }>;
     }, z.core.$strict>], "kind">>;
     candidate_revisions: z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
@@ -1306,8 +1278,8 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1363,6 +1335,8 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1403,9 +1377,9 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1432,9 +1406,9 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1494,14 +1468,14 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1514,12 +1488,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1531,19 +1503,19 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -1578,31 +1550,31 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                 path: z.ZodString;
                 value_digest: z.ZodString;
                 semantic_type: z.ZodEnum<{
-                    number: "number";
-                    boolean: "boolean";
-                    url: "url";
-                    duration: "duration";
-                    currency: "currency";
-                    percentage: "percentage";
                     access: "access";
+                    boolean: "boolean";
+                    composition: "composition";
+                    currency: "currency";
                     domain: "domain";
-                    taxonomy: "taxonomy";
-                    exact_text: "exact_text";
+                    duration: "duration";
                     editorial_text: "editorial_text";
-                    lifecycle_state: "lifecycle_state";
-                    qualifier: "qualifier";
-                    money_amount: "money_amount";
                     eligibility_composition: "eligibility_composition";
                     eligibility_value: "eligibility_value";
+                    exact_text: "exact_text";
+                    lifecycle_state: "lifecycle_state";
+                    money_amount: "money_amount";
+                    number: "number";
+                    percentage: "percentage";
+                    qualifier: "qualifier";
                     source_authority: "source_authority";
-                    composition: "composition";
                     structured_value: "structured_value";
+                    taxonomy: "taxonomy";
+                    url: "url";
                 }>;
                 proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 derivation_rules: z.ZodArray<z.ZodString>;
                 guidance: z.ZodString;
@@ -1615,8 +1587,8 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
             result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
             claim_id: z.ZodString;
             status: z.ZodEnum<{
-                supported: "supported";
                 contradicted: "contradicted";
+                supported: "supported";
                 unresolved: "unresolved";
                 unsupported: "unsupported";
             }>;
@@ -1627,15 +1599,17 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                 adapter_id: z.ZodString;
                 adapter_digest: z.ZodString;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -1654,33 +1628,82 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
             result_digest: z.ZodString;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
+    sources: z.ZodArray<z.ZodObject<{
+        subject_revision_digest: z.ZodString;
+        source_id: z.ZodString;
+        requested_url: z.ZodURL;
+        final_url: z.ZodNullable<z.ZodURL>;
+        authority: z.ZodEnum<{
+            ambiguous: "ambiguous";
+            canonical: "canonical";
+            inert: "inert";
+        }>;
+        publisher_entity_id: z.ZodNullable<z.ZodString>;
+        capture_status: z.ZodEnum<{
+            anomaly: "anomaly";
+            captured: "captured";
+            not_attempted: "not_attempted";
+            retryable_failure: "retryable_failure";
+            terminal_failure: "terminal_failure";
+        }>;
+        capture_method: z.ZodNullable<z.ZodEnum<{
+            archive: "archive";
+            headless: "headless";
+            http: "http";
+            manual: "manual";
+        }>>;
+        capture_policy_digest: z.ZodNullable<z.ZodString>;
+        failure_receipt_digest: z.ZodNullable<z.ZodString>;
+        response_status_code: z.ZodNullable<z.ZodNumber>;
+        availability: z.ZodNullable<z.ZodEnum<{
+            public: "public";
+            restricted: "restricted";
+        }>>;
+        capture_digest: z.ZodNullable<z.ZodString>;
+        normalized_object_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            url: "url";
-            slug: "slug";
-            name: "name";
-            program: "program";
-            offer: "offer";
-            identity: "identity";
             domain: "domain";
-            semantic_offer: "semantic_offer";
+            identity: "identity";
+            name: "name";
+            offer: "offer";
             open_pull_request: "open_pull_request";
             pending_git_lineage: "pending_git_lineage";
             pending_submission: "pending_submission";
+            program: "program";
+            semantic_offer: "semantic_offer";
+            slug: "slug";
+            url: "url";
         }>;
         strength: z.ZodEnum<{
-            exact: "exact";
             ambiguous: "ambiguous";
+            exact: "exact";
         }>;
         key_digest: z.ZodString;
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>;
+    asset: z.ZodObject<{
+        kind: z.ZodEnum<{
+            sourcey_monogram: "sourcey_monogram";
+            vendor_asset: "vendor_asset";
+        }>;
+        status: z.ZodEnum<{
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        candidate_digest: z.ZodNullable<z.ZodString>;
+        capture_digest: z.ZodNullable<z.ZodString>;
+        served_digest: z.ZodNullable<z.ZodString>;
+        transform_profile_digest: z.ZodNullable<z.ZodString>;
+        fallback_reason_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>;
     candidate_contract: z.ZodLiteral<"sourcey.startup-credits-admission-candidate-input/v1alpha1">;
 }, z.core.$strict>;
 export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
-    evaluator_id: z.ZodString;
-    evaluator_digest: z.ZodString;
+    live_parent_release_id: z.ZodString;
     policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
         policy_id: z.ZodString;
@@ -1695,72 +1718,23 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         }, z.core.$strict>;
         policy_digest: z.ZodString;
     }, z.core.$strict>;
-    asset: z.ZodObject<{
-        kind: z.ZodEnum<{
-            sourcey_monogram: "sourcey_monogram";
-            vendor_asset: "vendor_asset";
-        }>;
-        status: z.ZodEnum<{
-            supported: "supported";
-            unresolved: "unresolved";
-            unsupported: "unsupported";
-        }>;
-        candidate_digest: z.ZodNullable<z.ZodString>;
-        capture_digest: z.ZodNullable<z.ZodString>;
-        served_digest: z.ZodNullable<z.ZodString>;
-        transform_profile_digest: z.ZodNullable<z.ZodString>;
-        fallback_reason_digest: z.ZodNullable<z.ZodString>;
-    }, z.core.$strict>;
-    live_parent_release_id: z.ZodString;
-    sources: z.ZodArray<z.ZodObject<{
-        subject_revision_digest: z.ZodString;
-        source_id: z.ZodString;
-        requested_url: z.ZodURL;
-        final_url: z.ZodNullable<z.ZodURL>;
-        authority: z.ZodEnum<{
-            ambiguous: "ambiguous";
-            canonical: "canonical";
-            inert: "inert";
-        }>;
-        publisher_entity_id: z.ZodNullable<z.ZodString>;
-        capture_status: z.ZodEnum<{
-            captured: "captured";
-            not_attempted: "not_attempted";
-            retryable_failure: "retryable_failure";
-            terminal_failure: "terminal_failure";
-            anomaly: "anomaly";
-        }>;
-        capture_method: z.ZodNullable<z.ZodEnum<{
-            http: "http";
-            headless: "headless";
-            archive: "archive";
-            manual: "manual";
-        }>>;
-        capture_policy_digest: z.ZodNullable<z.ZodString>;
-        failure_receipt_digest: z.ZodNullable<z.ZodString>;
-        response_status_code: z.ZodNullable<z.ZodNumber>;
-        availability: z.ZodNullable<z.ZodEnum<{
-            public: "public";
-            restricted: "restricted";
-        }>>;
-        capture_digest: z.ZodNullable<z.ZodString>;
-        normalized_object_digest: z.ZodNullable<z.ZodString>;
-    }, z.core.$strict>>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
         entity_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -1768,15 +1742,17 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         program_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
@@ -1784,35 +1760,39 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         offer_requirements: z.ZodArray<z.ZodObject<{
             path: z.ZodString;
             proof_kinds: z.ZodArray<z.ZodEnum<{
-                observed: "observed";
+                attested: "attested";
                 derived: "derived";
                 editorial: "editorial";
-                attested: "attested";
+                observed: "observed";
             }>>;
             derivation_rules: z.ZodArray<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
                 "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                 "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
                 "public-availability-from-application": "public-availability-from-application";
             }>>;
             guidance: z.ZodString;
         }, z.core.$strict>>;
         policy_digest: z.ZodString;
     }, z.core.$strict>;
+    evaluator_id: z.ZodString;
+    evaluator_digest: z.ZodString;
     changed_files: z.ZodArray<z.ZodObject<{
         path: z.ZodString;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
     }, z.core.$strict>>;
     changed_subjects: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"entity">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
@@ -1820,8 +1800,8 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         kind: z.ZodLiteral<"program">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodString;
@@ -1830,16 +1810,16 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         kind: z.ZodLiteral<"offer">;
         change: z.ZodEnum<{
             added: "added";
-            updated: "updated";
             removed: "removed";
+            updated: "updated";
         }>;
         entity_id: z.ZodString;
         program_id: z.ZodOptional<z.ZodString>;
         offer_id: z.ZodString;
         revision_digest: z.ZodNullable<z.ZodString>;
         evidence_basis: z.ZodEnum<{
-            observed: "observed";
             declared: "declared";
+            observed: "observed";
         }>;
     }, z.core.$strict>], "kind">>;
     candidate_revisions: z.ZodArray<z.ZodUnion<readonly [z.ZodObject<{
@@ -1852,8 +1832,8 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1909,6 +1889,8 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1949,9 +1931,9 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1978,9 +1960,9 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -2040,14 +2022,14 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2060,12 +2042,10 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -2077,19 +2057,19 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -2124,31 +2104,31 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                 path: z.ZodString;
                 value_digest: z.ZodString;
                 semantic_type: z.ZodEnum<{
-                    number: "number";
-                    boolean: "boolean";
-                    url: "url";
-                    duration: "duration";
-                    currency: "currency";
-                    percentage: "percentage";
                     access: "access";
+                    boolean: "boolean";
+                    composition: "composition";
+                    currency: "currency";
                     domain: "domain";
-                    taxonomy: "taxonomy";
-                    exact_text: "exact_text";
+                    duration: "duration";
                     editorial_text: "editorial_text";
-                    lifecycle_state: "lifecycle_state";
-                    qualifier: "qualifier";
-                    money_amount: "money_amount";
                     eligibility_composition: "eligibility_composition";
                     eligibility_value: "eligibility_value";
+                    exact_text: "exact_text";
+                    lifecycle_state: "lifecycle_state";
+                    money_amount: "money_amount";
+                    number: "number";
+                    percentage: "percentage";
+                    qualifier: "qualifier";
                     source_authority: "source_authority";
-                    composition: "composition";
                     structured_value: "structured_value";
+                    taxonomy: "taxonomy";
+                    url: "url";
                 }>;
                 proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 derivation_rules: z.ZodArray<z.ZodString>;
                 guidance: z.ZodString;
@@ -2161,8 +2141,8 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
             result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
             claim_id: z.ZodString;
             status: z.ZodEnum<{
-                supported: "supported";
                 contradicted: "contradicted";
+                supported: "supported";
                 unresolved: "unresolved";
                 unsupported: "unsupported";
             }>;
@@ -2173,15 +2153,17 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                 adapter_id: z.ZodString;
                 adapter_digest: z.ZodString;
                 proof_kind: z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>;
                 derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
                     "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
-                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
                     "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
                     "public-availability-from-application": "public-availability-from-application";
                 }>>;
                 locators: z.ZodArray<z.ZodObject<{
@@ -2200,96 +2182,146 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
             result_digest: z.ZodString;
         }, z.core.$strict>>;
     }, z.core.$strict>>;
+    sources: z.ZodArray<z.ZodObject<{
+        subject_revision_digest: z.ZodString;
+        source_id: z.ZodString;
+        requested_url: z.ZodURL;
+        final_url: z.ZodNullable<z.ZodURL>;
+        authority: z.ZodEnum<{
+            ambiguous: "ambiguous";
+            canonical: "canonical";
+            inert: "inert";
+        }>;
+        publisher_entity_id: z.ZodNullable<z.ZodString>;
+        capture_status: z.ZodEnum<{
+            anomaly: "anomaly";
+            captured: "captured";
+            not_attempted: "not_attempted";
+            retryable_failure: "retryable_failure";
+            terminal_failure: "terminal_failure";
+        }>;
+        capture_method: z.ZodNullable<z.ZodEnum<{
+            archive: "archive";
+            headless: "headless";
+            http: "http";
+            manual: "manual";
+        }>>;
+        capture_policy_digest: z.ZodNullable<z.ZodString>;
+        failure_receipt_digest: z.ZodNullable<z.ZodString>;
+        response_status_code: z.ZodNullable<z.ZodNumber>;
+        availability: z.ZodNullable<z.ZodEnum<{
+            public: "public";
+            restricted: "restricted";
+        }>>;
+        capture_digest: z.ZodNullable<z.ZodString>;
+        normalized_object_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodEnum<{
-            url: "url";
-            slug: "slug";
-            name: "name";
-            program: "program";
-            offer: "offer";
-            identity: "identity";
             domain: "domain";
-            semantic_offer: "semantic_offer";
+            identity: "identity";
+            name: "name";
+            offer: "offer";
             open_pull_request: "open_pull_request";
             pending_git_lineage: "pending_git_lineage";
             pending_submission: "pending_submission";
+            program: "program";
+            semantic_offer: "semantic_offer";
+            slug: "slug";
+            url: "url";
         }>;
         strength: z.ZodEnum<{
-            exact: "exact";
             ambiguous: "ambiguous";
+            exact: "exact";
         }>;
         key_digest: z.ZodString;
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>;
+    asset: z.ZodObject<{
+        kind: z.ZodEnum<{
+            sourcey_monogram: "sourcey_monogram";
+            vendor_asset: "vendor_asset";
+        }>;
+        status: z.ZodEnum<{
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        candidate_digest: z.ZodNullable<z.ZodString>;
+        capture_digest: z.ZodNullable<z.ZodString>;
+        served_digest: z.ZodNullable<z.ZodString>;
+        transform_profile_digest: z.ZodNullable<z.ZodString>;
+        fallback_reason_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>;
     candidate_contract: z.ZodLiteral<"sourcey.startup-credits-admission-candidate-input/v1alpha1">;
     candidate_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const startupCreditsMachineAdmissionOutcomeSchema: z.ZodEnum<{
+    auto_admissible: "auto_admissible";
+    human_review_required: "human_review_required";
+    needs_revision: "needs_revision";
     rejected: "rejected";
     temporarily_unavailable: "temporarily_unavailable";
-    auto_admissible: "auto_admissible";
-    needs_revision: "needs_revision";
-    human_review_required: "human_review_required";
 }>;
 export declare const startupCreditsMachineAdmissionReasonSchema: z.ZodEnum<{
-    scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
-    scope_requires_one_new_entity: "scope_requires_one_new_entity";
-    scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
-    scope_requires_one_new_offer: "scope_requires_one_new_offer";
-    scope_unsupported_change_shape: "scope_unsupported_change_shape";
+    ambiguous_conflict: "ambiguous_conflict";
+    capture_method_not_unattended: "capture_method_not_unattended";
+    claim_contradicted: "claim_contradicted";
+    claim_unresolved: "claim_unresolved";
+    claim_unsupported: "claim_unsupported";
     declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
     entity_summary_required: "entity_summary_required";
+    exact_conflict: "exact_conflict";
     program_summary_required: "program_summary_required";
-    source_capture_retryable: "source_capture_retryable";
-    source_capture_failed: "source_capture_failed";
+    safe_asset_required: "safe_asset_required";
+    scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
+    scope_requires_one_new_entity: "scope_requires_one_new_entity";
+    scope_requires_one_new_offer: "scope_requires_one_new_offer";
+    scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
+    scope_unsupported_change_shape: "scope_unsupported_change_shape";
+    source_authority_ambiguous: "source_authority_ambiguous";
     source_capture_anomaly: "source_capture_anomaly";
+    source_capture_failed: "source_capture_failed";
+    source_capture_retryable: "source_capture_retryable";
     source_http_status_not_success: "source_http_status_not_success";
     source_not_public: "source_not_public";
-    capture_method_not_unattended: "capture_method_not_unattended";
-    source_authority_ambiguous: "source_authority_ambiguous";
     supported_claim_uses_inert_source: "supported_claim_uses_inert_source";
-    claim_unsupported: "claim_unsupported";
-    claim_unresolved: "claim_unresolved";
-    claim_contradicted: "claim_contradicted";
-    exact_conflict: "exact_conflict";
-    ambiguous_conflict: "ambiguous_conflict";
-    safe_asset_required: "safe_asset_required";
     vendor_asset_requires_authority_review: "vendor_asset_requires_authority_review";
 }>;
 export declare const startupCreditsMachineAdmissionResultCoreSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-result/v1alpha1">;
     input_digest: z.ZodString;
     outcome: z.ZodEnum<{
+        auto_admissible: "auto_admissible";
+        human_review_required: "human_review_required";
+        needs_revision: "needs_revision";
         rejected: "rejected";
         temporarily_unavailable: "temporarily_unavailable";
-        auto_admissible: "auto_admissible";
-        needs_revision: "needs_revision";
-        human_review_required: "human_review_required";
     }>;
     reason_codes: z.ZodArray<z.ZodEnum<{
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
-        scope_requires_one_new_entity: "scope_requires_one_new_entity";
-        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
-        scope_requires_one_new_offer: "scope_requires_one_new_offer";
-        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        ambiguous_conflict: "ambiguous_conflict";
+        capture_method_not_unattended: "capture_method_not_unattended";
+        claim_contradicted: "claim_contradicted";
+        claim_unresolved: "claim_unresolved";
+        claim_unsupported: "claim_unsupported";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
+        exact_conflict: "exact_conflict";
         program_summary_required: "program_summary_required";
-        source_capture_retryable: "source_capture_retryable";
-        source_capture_failed: "source_capture_failed";
+        safe_asset_required: "safe_asset_required";
+        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
+        scope_requires_one_new_entity: "scope_requires_one_new_entity";
+        scope_requires_one_new_offer: "scope_requires_one_new_offer";
+        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
+        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        source_authority_ambiguous: "source_authority_ambiguous";
         source_capture_anomaly: "source_capture_anomaly";
+        source_capture_failed: "source_capture_failed";
+        source_capture_retryable: "source_capture_retryable";
         source_http_status_not_success: "source_http_status_not_success";
         source_not_public: "source_not_public";
-        capture_method_not_unattended: "capture_method_not_unattended";
-        source_authority_ambiguous: "source_authority_ambiguous";
         supported_claim_uses_inert_source: "supported_claim_uses_inert_source";
-        claim_unsupported: "claim_unsupported";
-        claim_unresolved: "claim_unresolved";
-        claim_contradicted: "claim_contradicted";
-        exact_conflict: "exact_conflict";
-        ambiguous_conflict: "ambiguous_conflict";
-        safe_asset_required: "safe_asset_required";
         vendor_asset_requires_authority_review: "vendor_asset_requires_authority_review";
     }>>;
     retryable: z.ZodBoolean;
@@ -2300,35 +2332,35 @@ export declare const startupCreditsMachineAdmissionResultSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-result/v1alpha1">;
     input_digest: z.ZodString;
     outcome: z.ZodEnum<{
+        auto_admissible: "auto_admissible";
+        human_review_required: "human_review_required";
+        needs_revision: "needs_revision";
         rejected: "rejected";
         temporarily_unavailable: "temporarily_unavailable";
-        auto_admissible: "auto_admissible";
-        needs_revision: "needs_revision";
-        human_review_required: "human_review_required";
     }>;
     reason_codes: z.ZodArray<z.ZodEnum<{
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
-        scope_requires_one_new_entity: "scope_requires_one_new_entity";
-        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
-        scope_requires_one_new_offer: "scope_requires_one_new_offer";
-        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        ambiguous_conflict: "ambiguous_conflict";
+        capture_method_not_unattended: "capture_method_not_unattended";
+        claim_contradicted: "claim_contradicted";
+        claim_unresolved: "claim_unresolved";
+        claim_unsupported: "claim_unsupported";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
+        exact_conflict: "exact_conflict";
         program_summary_required: "program_summary_required";
-        source_capture_retryable: "source_capture_retryable";
-        source_capture_failed: "source_capture_failed";
+        safe_asset_required: "safe_asset_required";
+        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
+        scope_requires_one_new_entity: "scope_requires_one_new_entity";
+        scope_requires_one_new_offer: "scope_requires_one_new_offer";
+        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
+        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        source_authority_ambiguous: "source_authority_ambiguous";
         source_capture_anomaly: "source_capture_anomaly";
+        source_capture_failed: "source_capture_failed";
+        source_capture_retryable: "source_capture_retryable";
         source_http_status_not_success: "source_http_status_not_success";
         source_not_public: "source_not_public";
-        capture_method_not_unattended: "capture_method_not_unattended";
-        source_authority_ambiguous: "source_authority_ambiguous";
         supported_claim_uses_inert_source: "supported_claim_uses_inert_source";
-        claim_unsupported: "claim_unsupported";
-        claim_unresolved: "claim_unresolved";
-        claim_contradicted: "claim_contradicted";
-        exact_conflict: "exact_conflict";
-        ambiguous_conflict: "ambiguous_conflict";
-        safe_asset_required: "safe_asset_required";
         vendor_asset_requires_authority_review: "vendor_asset_requires_authority_review";
     }>>;
     retryable: z.ZodBoolean;
@@ -2340,35 +2372,35 @@ export declare const startupCreditsAdmissionCandidateResultCoreSchema: z.ZodObje
     result_contract: z.ZodLiteral<"sourcey.startup-credits-admission-candidate-result/v1alpha1">;
     candidate_digest: z.ZodString;
     outcome: z.ZodEnum<{
+        auto_admissible: "auto_admissible";
+        human_review_required: "human_review_required";
+        needs_revision: "needs_revision";
         rejected: "rejected";
         temporarily_unavailable: "temporarily_unavailable";
-        auto_admissible: "auto_admissible";
-        needs_revision: "needs_revision";
-        human_review_required: "human_review_required";
     }>;
     reason_codes: z.ZodArray<z.ZodEnum<{
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
-        scope_requires_one_new_entity: "scope_requires_one_new_entity";
-        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
-        scope_requires_one_new_offer: "scope_requires_one_new_offer";
-        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        ambiguous_conflict: "ambiguous_conflict";
+        capture_method_not_unattended: "capture_method_not_unattended";
+        claim_contradicted: "claim_contradicted";
+        claim_unresolved: "claim_unresolved";
+        claim_unsupported: "claim_unsupported";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
+        exact_conflict: "exact_conflict";
         program_summary_required: "program_summary_required";
-        source_capture_retryable: "source_capture_retryable";
-        source_capture_failed: "source_capture_failed";
+        safe_asset_required: "safe_asset_required";
+        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
+        scope_requires_one_new_entity: "scope_requires_one_new_entity";
+        scope_requires_one_new_offer: "scope_requires_one_new_offer";
+        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
+        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        source_authority_ambiguous: "source_authority_ambiguous";
         source_capture_anomaly: "source_capture_anomaly";
+        source_capture_failed: "source_capture_failed";
+        source_capture_retryable: "source_capture_retryable";
         source_http_status_not_success: "source_http_status_not_success";
         source_not_public: "source_not_public";
-        capture_method_not_unattended: "capture_method_not_unattended";
-        source_authority_ambiguous: "source_authority_ambiguous";
         supported_claim_uses_inert_source: "supported_claim_uses_inert_source";
-        claim_unsupported: "claim_unsupported";
-        claim_unresolved: "claim_unresolved";
-        claim_contradicted: "claim_contradicted";
-        exact_conflict: "exact_conflict";
-        ambiguous_conflict: "ambiguous_conflict";
-        safe_asset_required: "safe_asset_required";
         vendor_asset_requires_authority_review: "vendor_asset_requires_authority_review";
     }>>;
     retryable: z.ZodBoolean;
@@ -2379,35 +2411,35 @@ export declare const startupCreditsAdmissionCandidateResultSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.startup-credits-admission-candidate-result/v1alpha1">;
     candidate_digest: z.ZodString;
     outcome: z.ZodEnum<{
+        auto_admissible: "auto_admissible";
+        human_review_required: "human_review_required";
+        needs_revision: "needs_revision";
         rejected: "rejected";
         temporarily_unavailable: "temporarily_unavailable";
-        auto_admissible: "auto_admissible";
-        needs_revision: "needs_revision";
-        human_review_required: "human_review_required";
     }>;
     reason_codes: z.ZodArray<z.ZodEnum<{
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
-        scope_requires_one_new_entity: "scope_requires_one_new_entity";
-        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
-        scope_requires_one_new_offer: "scope_requires_one_new_offer";
-        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        ambiguous_conflict: "ambiguous_conflict";
+        capture_method_not_unattended: "capture_method_not_unattended";
+        claim_contradicted: "claim_contradicted";
+        claim_unresolved: "claim_unresolved";
+        claim_unsupported: "claim_unsupported";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
+        exact_conflict: "exact_conflict";
         program_summary_required: "program_summary_required";
-        source_capture_retryable: "source_capture_retryable";
-        source_capture_failed: "source_capture_failed";
+        safe_asset_required: "safe_asset_required";
+        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
+        scope_requires_one_new_entity: "scope_requires_one_new_entity";
+        scope_requires_one_new_offer: "scope_requires_one_new_offer";
+        scope_requires_zero_or_one_new_program: "scope_requires_zero_or_one_new_program";
+        scope_unsupported_change_shape: "scope_unsupported_change_shape";
+        source_authority_ambiguous: "source_authority_ambiguous";
         source_capture_anomaly: "source_capture_anomaly";
+        source_capture_failed: "source_capture_failed";
+        source_capture_retryable: "source_capture_retryable";
         source_http_status_not_success: "source_http_status_not_success";
         source_not_public: "source_not_public";
-        capture_method_not_unattended: "capture_method_not_unattended";
-        source_authority_ambiguous: "source_authority_ambiguous";
         supported_claim_uses_inert_source: "supported_claim_uses_inert_source";
-        claim_unsupported: "claim_unsupported";
-        claim_unresolved: "claim_unresolved";
-        claim_contradicted: "claim_contradicted";
-        exact_conflict: "exact_conflict";
-        ambiguous_conflict: "ambiguous_conflict";
-        safe_asset_required: "safe_asset_required";
         vendor_asset_requires_authority_review: "vendor_asset_requires_authority_review";
     }>>;
     retryable: z.ZodBoolean;

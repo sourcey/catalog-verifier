@@ -1,7 +1,7 @@
 import { basename } from "node:path";
+import { digest, digestFromPathSegment } from "provenry/primitives";
 import { rootSetSchema, rootSetTransitionSchema, signerRegistrySchema, } from "../../../contracts/authority/src/index.js";
 import { validateRootSetTransition, validateSignerRegistry } from "../../authority/src/index.js";
-import { digest, digestFromPathSegment } from "../../primitives/src/index.js";
 export function validateTrustHistory(files, currentRootSet, currentRegistry) {
     const rootSets = new Map();
     const transitions = new Map();

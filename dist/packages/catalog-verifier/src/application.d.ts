@@ -31,7 +31,7 @@ export declare class CatalogVerifierApplication {
     }): Promise<{
         query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
         keys: {
-            kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+            kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
             normalizedValue: string;
             keyDigest: `sha256:${string}`;
             candidateReference: string;
@@ -45,7 +45,7 @@ export declare class CatalogVerifierApplication {
             headSha: string;
         } | {
             kind: "detached";
-            repositoryKind: "startup-credits" | "agent-readiness";
+            repositoryKind: "agent-readiness" | "startup-credits";
             candidateDigest: `sha256:${string}`;
             candidateReference: string;
         };
@@ -60,7 +60,7 @@ export declare class CatalogVerifierApplication {
     }): {
         query_contract: "sourcey.catalog-admission-conflict-query/v1alpha1";
         keys: {
-            kind: "entity_id" | "entity_name" | "program_id" | "offer_id" | "offer_slug" | "program_slug" | "domain" | "entity_slug" | "entity_url" | "evidence_url" | "offer_url" | "semantic_offer";
+            kind: "domain" | "entity_id" | "entity_name" | "entity_slug" | "entity_url" | "evidence_url" | "offer_id" | "offer_slug" | "offer_url" | "program_id" | "program_slug" | "semantic_offer";
             normalizedValue: string;
             keyDigest: `sha256:${string}`;
             candidateReference: string;
@@ -74,7 +74,7 @@ export declare class CatalogVerifierApplication {
             headSha: string;
         } | {
             kind: "detached";
-            repositoryKind: "startup-credits" | "agent-readiness";
+            repositoryKind: "agent-readiness" | "startup-credits";
             candidateDigest: `sha256:${string}`;
             candidateReference: string;
         };

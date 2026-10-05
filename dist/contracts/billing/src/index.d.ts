@@ -30,15 +30,15 @@ export declare const stripePaymentAttemptSchema: z.ZodObject<{
         minor_units: z.ZodNumber;
     }, z.core.$strict>;
     state: z.ZodEnum<{
-        verified: "verified";
-        failed: "failed";
-        prepared: "prepared";
-        payment_pending: "payment_pending";
-        settlement_pending: "settlement_pending";
-        settled: "settled";
         expired: "expired";
+        failed: "failed";
+        payment_pending: "payment_pending";
+        prepared: "prepared";
         refund_pending: "refund_pending";
         refunded: "refunded";
+        settled: "settled";
+        settlement_pending: "settlement_pending";
+        verified: "verified";
     }>;
     expires_at: z.ZodISODateTime;
     created_at: z.ZodISODateTime;
@@ -59,15 +59,15 @@ export declare const x402PaymentAttemptSchema: z.ZodObject<{
         minor_units: z.ZodNumber;
     }, z.core.$strict>;
     state: z.ZodEnum<{
-        verified: "verified";
-        failed: "failed";
-        prepared: "prepared";
-        payment_pending: "payment_pending";
-        settlement_pending: "settlement_pending";
-        settled: "settled";
         expired: "expired";
+        failed: "failed";
+        payment_pending: "payment_pending";
+        prepared: "prepared";
         refund_pending: "refund_pending";
         refunded: "refunded";
+        settled: "settled";
+        settlement_pending: "settlement_pending";
+        verified: "verified";
     }>;
     expires_at: z.ZodISODateTime;
     created_at: z.ZodISODateTime;
@@ -93,15 +93,15 @@ export declare const paymentAttemptSchema: z.ZodDiscriminatedUnion<[z.ZodObject<
         minor_units: z.ZodNumber;
     }, z.core.$strict>;
     state: z.ZodEnum<{
-        verified: "verified";
-        failed: "failed";
-        prepared: "prepared";
-        payment_pending: "payment_pending";
-        settlement_pending: "settlement_pending";
-        settled: "settled";
         expired: "expired";
+        failed: "failed";
+        payment_pending: "payment_pending";
+        prepared: "prepared";
         refund_pending: "refund_pending";
         refunded: "refunded";
+        settled: "settled";
+        settlement_pending: "settlement_pending";
+        verified: "verified";
     }>;
     expires_at: z.ZodISODateTime;
     created_at: z.ZodISODateTime;
@@ -121,15 +121,15 @@ export declare const paymentAttemptSchema: z.ZodDiscriminatedUnion<[z.ZodObject<
         minor_units: z.ZodNumber;
     }, z.core.$strict>;
     state: z.ZodEnum<{
-        verified: "verified";
-        failed: "failed";
-        prepared: "prepared";
-        payment_pending: "payment_pending";
-        settlement_pending: "settlement_pending";
-        settled: "settled";
         expired: "expired";
+        failed: "failed";
+        payment_pending: "payment_pending";
+        prepared: "prepared";
         refund_pending: "refund_pending";
         refunded: "refunded";
+        settled: "settled";
+        settlement_pending: "settlement_pending";
+        verified: "verified";
     }>;
     expires_at: z.ZodISODateTime;
     created_at: z.ZodISODateTime;
@@ -160,28 +160,28 @@ export declare const commercialOrderSchema: z.ZodObject<{
         minor_units: z.ZodNumber;
     }, z.core.$strict>;
     payment_state: z.ZodEnum<{
+        cancelled: "cancelled";
+        paid: "paid";
         payment_pending: "payment_pending";
         refund_pending: "refund_pending";
         refunded: "refunded";
-        paid: "paid";
-        cancelled: "cancelled";
     }>;
     payment_attempt_id: z.ZodString;
     work_state: z.ZodEnum<{
-        failed: "failed";
         blocked: "blocked";
         cancelled: "cancelled";
-        queued: "queued";
-        in_review: "in_review";
+        failed: "failed";
         fulfilled: "fulfilled";
+        in_review: "in_review";
+        queued: "queued";
     }>;
     paid_at: z.ZodNullable<z.ZodISODateTime>;
     sla_due_at: z.ZodNullable<z.ZodISODateTime>;
     refund_reason: z.ZodNullable<z.ZodEnum<{
+        duplicate_charge: "duplicate_charge";
         scope_superseded: "scope_superseded";
         service_level_missed: "service_level_missed";
         sourcey_error: "sourcey_error";
-        duplicate_charge: "duplicate_charge";
     }>>;
     refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
     refunded_at: z.ZodNullable<z.ZodISODateTime>;
@@ -189,57 +189,6 @@ export declare const commercialOrderSchema: z.ZodObject<{
     failure_receipt_digest: z.ZodNullable<z.ZodString>;
     created_at: z.ZodISODateTime;
     updated_at: z.ZodISODateTime;
-}, z.core.$strict>;
-export declare const paymentEffectSchema: z.ZodObject<{
-    effect_contract: z.ZodLiteral<"sourcey.payment-effect/v1alpha1">;
-    effect_id: z.ZodString;
-    order_id: z.ZodString;
-    attempt_id: z.ZodString;
-    rail: z.ZodEnum<{
-        stripe: "stripe";
-        x402: "x402";
-    }>;
-    kind: z.ZodEnum<{
-        "attempt.prepared": "attempt.prepared";
-        "payment.verified": "payment.verified";
-        "payment.settlement_pending": "payment.settlement_pending";
-        "payment.settled": "payment.settled";
-        "payment.failed": "payment.failed";
-        "refund.requested": "refund.requested";
-        "refund.settlement_pending": "refund.settlement_pending";
-        "refund.settled": "refund.settled";
-        "refund.failed": "refund.failed";
-    }>;
-    provider_effect_ref: z.ZodNullable<z.ZodString>;
-    provider_payload_digest: z.ZodString;
-    provider_readback_digest: z.ZodNullable<z.ZodString>;
-    money_state: z.ZodEnum<{
-        unknown: "unknown";
-        none: "none";
-        moved: "moved";
-    }>;
-    occurred_at: z.ZodISODateTime;
-}, z.core.$strict>;
-export declare const commercialOrderEventSchema: z.ZodObject<{
-    event_contract: z.ZodLiteral<"sourcey.commercial-order-event/v1alpha1">;
-    event_id: z.ZodString;
-    order_id: z.ZodString;
-    kind: z.ZodEnum<{
-        "payment.settled": "payment.settled";
-        "payment.failed": "payment.failed";
-        "refund.requested": "refund.requested";
-        "refund.settled": "refund.settled";
-        "order.created": "order.created";
-        "payment.attempted": "payment.attempted";
-        "work.authorized": "work.authorized";
-        "work.started": "work.started";
-        "work.fulfilled": "work.fulfilled";
-        "work.failed": "work.failed";
-        "order.cancelled": "order.cancelled";
-    }>;
-    payment_effect_id: z.ZodNullable<z.ZodString>;
-    payload_digest: z.ZodString;
-    occurred_at: z.ZodISODateTime;
 }, z.core.$strict>;
 export declare const createCommercialOrderRequestSchema: z.ZodObject<{
     funded_work_intent_id: z.ZodString;
@@ -262,28 +211,28 @@ export declare const commercialOrderProjectionSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         payment_state: z.ZodEnum<{
+            cancelled: "cancelled";
+            paid: "paid";
             payment_pending: "payment_pending";
             refund_pending: "refund_pending";
             refunded: "refunded";
-            paid: "paid";
-            cancelled: "cancelled";
         }>;
         payment_attempt_id: z.ZodString;
         work_state: z.ZodEnum<{
-            failed: "failed";
             blocked: "blocked";
             cancelled: "cancelled";
-            queued: "queued";
-            in_review: "in_review";
+            failed: "failed";
             fulfilled: "fulfilled";
+            in_review: "in_review";
+            queued: "queued";
         }>;
         paid_at: z.ZodNullable<z.ZodISODateTime>;
         sla_due_at: z.ZodNullable<z.ZodISODateTime>;
         refund_reason: z.ZodNullable<z.ZodEnum<{
+            duplicate_charge: "duplicate_charge";
             scope_superseded: "scope_superseded";
             service_level_missed: "service_level_missed";
             sourcey_error: "sourcey_error";
-            duplicate_charge: "duplicate_charge";
         }>>;
         refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
         refunded_at: z.ZodNullable<z.ZodISODateTime>;
@@ -302,15 +251,15 @@ export declare const commercialOrderProjectionSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -330,15 +279,15 @@ export declare const commercialOrderProjectionSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -377,27 +326,27 @@ export declare const commercialOrderStatusSchema: z.ZodObject<{
         x402: "x402";
     }>;
     payment_state: z.ZodEnum<{
+        cancelled: "cancelled";
+        paid: "paid";
         payment_pending: "payment_pending";
         refund_pending: "refund_pending";
         refunded: "refunded";
-        paid: "paid";
-        cancelled: "cancelled";
     }>;
     work_state: z.ZodEnum<{
-        failed: "failed";
         blocked: "blocked";
         cancelled: "cancelled";
-        queued: "queued";
-        in_review: "in_review";
+        failed: "failed";
         fulfilled: "fulfilled";
+        in_review: "in_review";
+        queued: "queued";
     }>;
     paid_at: z.ZodNullable<z.ZodISODateTime>;
     sla_due_at: z.ZodNullable<z.ZodISODateTime>;
     refund_reason: z.ZodNullable<z.ZodEnum<{
+        duplicate_charge: "duplicate_charge";
         scope_superseded: "scope_superseded";
         service_level_missed: "service_level_missed";
         sourcey_error: "sourcey_error";
-        duplicate_charge: "duplicate_charge";
     }>>;
     refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
     refunded_at: z.ZodNullable<z.ZodISODateTime>;
@@ -422,28 +371,28 @@ export declare const createCommercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         payment_state: z.ZodEnum<{
+            cancelled: "cancelled";
+            paid: "paid";
             payment_pending: "payment_pending";
             refund_pending: "refund_pending";
             refunded: "refunded";
-            paid: "paid";
-            cancelled: "cancelled";
         }>;
         payment_attempt_id: z.ZodString;
         work_state: z.ZodEnum<{
-            failed: "failed";
             blocked: "blocked";
             cancelled: "cancelled";
-            queued: "queued";
-            in_review: "in_review";
+            failed: "failed";
             fulfilled: "fulfilled";
+            in_review: "in_review";
+            queued: "queued";
         }>;
         paid_at: z.ZodNullable<z.ZodISODateTime>;
         sla_due_at: z.ZodNullable<z.ZodISODateTime>;
         refund_reason: z.ZodNullable<z.ZodEnum<{
+            duplicate_charge: "duplicate_charge";
             scope_superseded: "scope_superseded";
             service_level_missed: "service_level_missed";
             sourcey_error: "sourcey_error";
-            duplicate_charge: "duplicate_charge";
         }>>;
         refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
         refunded_at: z.ZodNullable<z.ZodISODateTime>;
@@ -462,15 +411,15 @@ export declare const createCommercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -490,15 +439,15 @@ export declare const createCommercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -531,28 +480,28 @@ export declare const commercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         payment_state: z.ZodEnum<{
+            cancelled: "cancelled";
+            paid: "paid";
             payment_pending: "payment_pending";
             refund_pending: "refund_pending";
             refunded: "refunded";
-            paid: "paid";
-            cancelled: "cancelled";
         }>;
         payment_attempt_id: z.ZodString;
         work_state: z.ZodEnum<{
-            failed: "failed";
             blocked: "blocked";
             cancelled: "cancelled";
-            queued: "queued";
-            in_review: "in_review";
+            failed: "failed";
             fulfilled: "fulfilled";
+            in_review: "in_review";
+            queued: "queued";
         }>;
         paid_at: z.ZodNullable<z.ZodISODateTime>;
         sla_due_at: z.ZodNullable<z.ZodISODateTime>;
         refund_reason: z.ZodNullable<z.ZodEnum<{
+            duplicate_charge: "duplicate_charge";
             scope_superseded: "scope_superseded";
             service_level_missed: "service_level_missed";
             sourcey_error: "sourcey_error";
-            duplicate_charge: "duplicate_charge";
         }>>;
         refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
         refunded_at: z.ZodNullable<z.ZodISODateTime>;
@@ -571,15 +520,15 @@ export declare const commercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -599,15 +548,15 @@ export declare const commercialOrderResponseSchema: z.ZodObject<{
             minor_units: z.ZodNumber;
         }, z.core.$strict>;
         state: z.ZodEnum<{
-            verified: "verified";
-            failed: "failed";
-            prepared: "prepared";
-            payment_pending: "payment_pending";
-            settlement_pending: "settlement_pending";
-            settled: "settled";
             expired: "expired";
+            failed: "failed";
+            payment_pending: "payment_pending";
+            prepared: "prepared";
             refund_pending: "refund_pending";
             refunded: "refunded";
+            settled: "settled";
+            settlement_pending: "settlement_pending";
+            verified: "verified";
         }>;
         expires_at: z.ZodISODateTime;
         created_at: z.ZodISODateTime;
@@ -628,14 +577,10 @@ export declare const fulfilCommercialOrderRequestSchema: z.ZodObject<{
     receipt_digest: z.ZodString;
 }, z.core.$strict>;
 export type CommercialOrder = z.infer<typeof commercialOrderSchema>;
-export type CommercialOrderEvent = z.infer<typeof commercialOrderEventSchema>;
 export type CommercialProductDefinition = z.infer<typeof commercialProductDefinitionSchema>;
 export type CommercialOrderStatus = z.infer<typeof commercialOrderStatusSchema>;
 export type PaymentAttempt = z.infer<typeof paymentAttemptSchema>;
-export type PaymentEffect = z.infer<typeof paymentEffectSchema>;
 export type CommercialOrderProjection = z.infer<typeof commercialOrderProjectionSchema>;
 export declare function commercialProductDefinitionDigest(definition: CommercialProductDefinition): `sha256:${string}`;
 export declare function projectCommercialOrderStatus(projection: CommercialOrderProjection): CommercialOrderStatus;
-export declare function buildCommercialOrderEvent(order: CommercialOrder, kind: CommercialOrderEvent["kind"], paymentEffectId: string | null, payload: unknown, occurredAt: string): CommercialOrderEvent;
-export declare function buildPaymentEffect(input: Omit<PaymentEffect, "effect_id">): PaymentEffect;
 //# sourceMappingURL=index.d.ts.map

@@ -1,5 +1,5 @@
+import { compareCanonicalStrings } from "provenry/primitives";
 import { verifyEntityAssetProposal } from "../../assets/src/index.js";
-import { compareCanonicalStrings } from "../../primitives/src/index.js";
 export function catalogPublicationAssetBindingKey(entityId, role) {
     return `${entityId}:${role}`;
 }

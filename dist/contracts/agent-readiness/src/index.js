@@ -1,5 +1,5 @@
+import { SLUG_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { SLUG_PATTERN } from "../../../modules/primitives/src/index.js";
 import { provenanceSchema } from "../../artifact/src/index.js";
 import { entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, } from "../../revisions/src/index.js";
 import { standardRequirementReferenceSchema } from "../../standards/src/index.js";
@@ -15,6 +15,8 @@ export * from "./evidence.js";
 export * from "./interaction.js";
 export * from "./method-pack.js";
 export * from "./shared.js";
+/** Canonical discriminant for a published Agent Readiness revision. */
+export const agentReadinessRevisionContract = "sourcey.agent-readiness-revision/v1alpha1";
 /**
  * Runtime residue that proves a document failed to render: serialized
  * JavaScript values, replacement characters, and a sentence whose interpolated
@@ -237,7 +239,7 @@ export const agentReadinessFactualInputSchema = z
     .superRefine(validateAgentReadinessProfile);
 export const agentReadinessRevisionCoreSchema = z
     .object({
-    revision_contract: z.literal("sourcey.agent-readiness-revision/v1alpha1"),
+    revision_contract: z.literal(agentReadinessRevisionContract),
     ...agentReadinessRevisionFields,
 })
     .strict()
@@ -251,7 +253,7 @@ export const agentReadinessRevisionSchema = agentReadinessRevisionCoreSchema
  * current factual contract.
  */
 export const agentReadinessRevisionHeadSchema = z.object({
-    revision_contract: z.literal("sourcey.agent-readiness-revision/v1alpha1"),
+    revision_contract: z.literal(agentReadinessRevisionContract),
     agent_readiness_profile_id: agentReadinessProfileIdSchema,
     entity_id: agentReadinessEntityIdSchema,
     revision_digest: agentReadinessDigestSchema,
@@ -309,7 +311,7 @@ const agentReadinessSurfaceSelectorSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("assessment_target_membership"),
-        membership: z.enum(["direct", "reachable"]),
+        membership: z.enum(["direct", "reachable", "selected_path"]),
     })
         .strict(),
     z
@@ -643,7 +645,10 @@ export const agentReadinessAssessmentBasisSchema = z
     success: z
         .object({
         target_coverage: z.literal("every_declared_target"),
-        interface_coverage: z.literal("at_least_one_declared_alternative"),
+        interface_coverage: z.enum([
+            "at_least_one_declared_alternative",
+            "one_selected_interface_per_target",
+        ]),
         authority: z.literal("scoped"),
         failure_semantics: z.literal("documented"),
         recovery: z.literal("supported"),

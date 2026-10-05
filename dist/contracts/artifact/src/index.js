@@ -1,5 +1,7 @@
+import { publicationChangeSchema } from "provenry/contracts/publication";
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN, SLUG_PATTERN } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
+import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { entityIdentityAssuranceSchema, offerTermsAssuranceSchema, } from "../../assurance/src/index.js";
 import { evidenceProofKindSchema } from "../../evidence/src/index.js";
 import { accessSchema, benefitTextSchema, cashbackValueSchema, catalogUrlSchema, durationValueSchema, economicsSchema, eligibilitySchema, lifecycleStatusSchema, moneyValueSchema, offerRevisionContentSchema, offerRolesSchema, percentageValueSchema, programRevisionContentSchema, } from "../../revisions/src/index.js";
@@ -246,47 +248,23 @@ export const releaseChangeKindSchema = z
     examples: releaseChangeKindKnownValues,
     "x-sourcey-extensible-enum": true,
 });
-export const releaseChangeSchema = z
-    .object({
-    change_id: digest,
+export const releaseChangeSchema = publicationChangeSchema({
     kind: releaseChangeKindSchema,
-    subject_type: z.enum([
+    subjectTypes: [
         "entity",
         "program",
         "offer",
         "policy",
         "agent_readiness_profile",
         "asset_binding",
-    ]),
-    subject_id: z.union([identifier, digest]),
-    revision_digest: digest.optional(),
-    previous_revision_digest: digest.optional(),
-    projection_digest: digest.optional(),
-    previous_projection_digest: digest.optional(),
-    basis_event_ids: z.array(digest),
+    ],
     tombstone: z
         .object({
         reason: z.enum(["retired", "ended", "withdrawn"]),
         canonical_route: z.string().startsWith("/").optional(),
     })
-        .strict()
-        .optional(),
-})
-    .strict();
-export const releaseDiffSchema = z
-    .object({
-    diff_contract: z.literal("sourcey.release-diff/v1alpha1"),
-    parent_snapshot_id: digest.nullable(),
-    snapshot_id: digest,
-    changes: z.array(releaseChangeSchema),
-})
-    .strict();
-/** Canonical bytes committed by release_core.diff_digest. */
-export function encodeReleaseChanges(changes) {
-    return changes.length === 0
-        ? ""
-        : `${changes.map((change) => JSON.stringify(change)).join("\n")}\n`;
-}
+        .strict(),
+});
 export const provenanceEntrySchema = z
     .object({
     revision_digest: digest,
@@ -322,7 +300,15 @@ export const provenanceIndexSchema = z
     provenance_contract: z.literal("sourcey.provenance-index/v1alpha1"),
     revisions: z.record(z.string(), provenanceEntrySchema),
     events: z.record(z.string(), eventInclusionSchema),
-    capture_receipts: z.record(z.string(), captureReceiptInclusionSchema).optional(),
+    capture_receipts: z.record(z.string(), captureReceiptInclusionSchema),
+})
+    .strict();
+/** One subject moved from its old owning Entity to a new one by one event. */
+const reparentSchema = z
+    .object({
+    old_entity_id: entityId,
+    new_entity_id: entityId,
+    event_id: digest,
 })
     .strict();
 export const identityIndexSchema = z
@@ -332,31 +318,9 @@ export const identityIndexSchema = z
     canonical_program_resolutions: z.record(z.string(), programId),
     canonical_offer_resolutions: z.record(z.string(), offerId),
     canonical_agent_readiness_profile_resolutions: z.record(z.string(), agentReadinessProfileId),
-    program_reparents: z
-        .record(z.string(), z
-        .object({
-        old_entity_id: entityId.optional(),
-        new_entity_id: entityId,
-        event_id: digest,
-    })
-        .strict())
-        .optional(),
-    offer_reparents: z
-        .record(z.string(), z
-        .object({
-        old_entity_id: entityId.optional(),
-        new_entity_id: entityId,
-        event_id: digest,
-    })
-        .strict())
-        .optional(),
-    agent_readiness_profile_reparents: z.record(z.string(), z
-        .object({
-        old_entity_id: entityId,
-        new_entity_id: entityId,
-        event_id: digest,
-    })
-        .strict()),
+    program_reparents: z.record(z.string(), reparentSchema),
+    offer_reparents: z.record(z.string(), reparentSchema),
+    agent_readiness_profile_reparents: z.record(z.string(), reparentSchema),
     asset_binding_dispositions: z.record(z.string(), z
         .object({
         disposition: z.enum(["rebind", "end"]),

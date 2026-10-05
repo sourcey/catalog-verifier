@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import { z } from "zod";
-import { type Digest } from "../../primitives/src/index.js";
 /** The document normalized to nothing: no metadata, no structured data, no content. */
 export declare class EmptyEvidenceDocumentError extends Error {
     readonly documentKind: "html" | "text";
@@ -15,45 +15,61 @@ export declare const EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN: {
 };
 /** Exact retained profile for captures created before empty HTML values were omitted. */
 export declare const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN: {
-    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
     readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
     readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];
     readonly html_links: readonly ["a[href]", "form[action]"];
     readonly html_link_protocols: readonly ["http", "https", "mailto"];
     readonly parse5: string;
     readonly unicode: "NFC";
+    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
+};
+/** Exact retained profile for captures made before bounded embedded JSON was read. */
+export declare const EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN: {
+    readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
+    readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];
+    readonly html_links: readonly ["a[href]", "form[action]"];
+    readonly html_link_protocols: readonly ["http", "https", "mailto"];
+    readonly parse5: string;
+    readonly unicode: "NFC";
+    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
+    readonly html_empty_values: "omit";
 };
 export declare const EVIDENCE_NORMALIZER_TOOLCHAIN: {
-    readonly html_empty_values: "omit";
-    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
     readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
     readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];
     readonly html_links: readonly ["a[href]", "form[action]"];
     readonly html_link_protocols: readonly ["http", "https", "mailto"];
     readonly parse5: string;
     readonly unicode: "NFC";
+    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
+    readonly html_empty_values: "omit";
+    readonly html_json_attributes: {
+        readonly name_prefix: "data-";
+        readonly maximum_attribute_bytes: 32768;
+        readonly maximum_document_bytes: 131072;
+    };
 };
 /** Exact retained XML profile for captures created before empty HTML values were omitted. */
 export declare const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN: {
-    readonly xml_media_types: readonly ["application/xml", "text/xml", "application/*+xml"];
-    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
     readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
     readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];
     readonly html_links: readonly ["a[href]", "form[action]"];
     readonly html_link_protocols: readonly ["http", "https", "mailto"];
     readonly parse5: string;
     readonly unicode: "NFC";
+    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
+    readonly xml_media_types: readonly ["application/xml", "text/xml", "application/*+xml"];
 };
 export declare const EVIDENCE_NORMALIZER_XML_TOOLCHAIN: {
-    readonly xml_media_types: readonly ["application/xml", "text/xml", "application/*+xml"];
-    readonly html_empty_values: "omit";
-    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
     readonly algorithm: "sourcey.deterministic-content-normalizer/v1";
     readonly html_metadata: readonly ["meta", "structured-data", "canonical-link"];
     readonly html_links: readonly ["a[href]", "form[action]"];
     readonly html_link_protocols: readonly ["http", "https", "mailto"];
     readonly parse5: string;
     readonly unicode: "NFC";
+    readonly json_media_types: readonly ["application/json", "application/*+json", "application/*-json"];
+    readonly html_empty_values: "omit";
+    readonly xml_media_types: readonly ["application/xml", "text/xml", "application/*+xml"];
 };
 /** Exact retained profile for evidence captured before public mail actions were preserved. */
 export declare const EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN: {
@@ -75,28 +91,28 @@ export declare const EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN: {
     readonly unicode: "NFC";
 };
 export declare const EVIDENCE_NORMALIZER: {
-    readonly toolchain_digest: `sha256:${string}`;
     readonly normalizer_contract: "sourcey.evidence-normalizer/v1alpha1";
     readonly normalizer_id: "sourcey-deterministic-content";
     readonly version: "1";
+    readonly toolchain_digest: `sha256:${string}`;
 };
 export declare const EVIDENCE_NORMALIZER_XML: {
-    readonly toolchain_digest: `sha256:${string}`;
     readonly normalizer_contract: "sourcey.evidence-normalizer/v1alpha1";
     readonly normalizer_id: "sourcey-deterministic-content";
     readonly version: "1";
+    readonly toolchain_digest: `sha256:${string}`;
 };
 export declare const EVIDENCE_NORMALIZER_CANONICAL_LINK: {
-    readonly toolchain_digest: `sha256:${string}`;
     readonly normalizer_contract: "sourcey.evidence-normalizer/v1alpha1";
     readonly normalizer_id: "sourcey-deterministic-content";
     readonly version: "1";
+    readonly toolchain_digest: `sha256:${string}`;
 };
 export declare const EVIDENCE_NORMALIZER_FOUNDATION: {
-    readonly toolchain_digest: `sha256:${string}`;
     readonly normalizer_contract: "sourcey.evidence-normalizer/v1alpha1";
     readonly normalizer_id: "sourcey-deterministic-content";
     readonly version: "1";
+    readonly toolchain_digest: `sha256:${string}`;
 };
 export declare const evidenceNormalizerSchema: z.ZodObject<{
     normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;

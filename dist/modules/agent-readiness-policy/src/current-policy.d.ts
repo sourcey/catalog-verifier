@@ -12,18 +12,18 @@ export declare const currentAgentReadinessPolicy: {
             provisioned_resource: false;
             external_identity: "only_when_declared_by_exact_funnel";
         };
-        permitted_human_boundaries: ("account_ownership_confirmation" | "delegated_identity_consent" | "regulated_approval" | "final_payment_or_irreversible_commitment")[];
-        required_handoff_properties: ("exact_disclosure" | "resumable_handoff" | "deterministic_continuation")[];
-        forbidden_substitutions: ("captcha_solving" | "human_password_or_session_sharing" | "concealed_agent_identity" | "invented_eligibility" | "unbound_out_of_band_code" | "vendor_policy_bypass" | "unapproved_consequential_action")[];
+        permitted_human_boundaries: ("account_ownership_confirmation" | "delegated_identity_consent" | "final_payment_or_irreversible_commitment" | "regulated_approval")[];
+        required_handoff_properties: ("deterministic_continuation" | "exact_disclosure" | "resumable_handoff")[];
+        forbidden_substitutions: ("captcha_solving" | "concealed_agent_identity" | "human_password_or_session_sharing" | "invented_eligibility" | "unapproved_consequential_action" | "unbound_out_of_band_code" | "vendor_policy_bypass")[];
         success: {
             target_coverage: "every_declared_target";
-            interface_coverage: "at_least_one_declared_alternative";
+            interface_coverage: "at_least_one_declared_alternative" | "one_selected_interface_per_target";
             authority: "scoped";
             failure_semantics: "documented";
             recovery: "supported";
         };
         observed_assessment: {
-            allowed_sources: ("public_documentation" | "public_metadata" | "public_endpoints" | "non_mutating_interaction" | "operator_attested_public_observation")[];
+            allowed_sources: ("non_mutating_interaction" | "operator_attested_public_observation" | "public_documentation" | "public_endpoints" | "public_metadata")[];
             consequential_claims: "certification_required";
         };
     };
@@ -32,21 +32,21 @@ export declare const currentAgentReadinessPolicy: {
         name: string;
         version: string;
         capabilities: {
-            stage: "evaluate" | "sign_up" | "pay" | "provision" | "operate";
+            stage: "evaluate" | "operate" | "pay" | "provision" | "sign_up";
             signal_code: string;
-            values: ("yes" | "no" | "partial" | "not_applicable")[];
-            determination_bases: ("direct_observation" | "bounded_absence" | "explicit_first_party_declaration" | "standard_requirement" | "certification_receipt")[];
+            values: ("no" | "not_applicable" | "partial" | "yes")[];
+            determination_bases: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "standard_requirement")[];
         }[];
         surface_support: {
-            node_kinds: ("resource" | "endpoint" | "interface" | "surface_exclusion")[];
-            resource_roles: ("policy" | "discovery" | "status" | "pricing" | "eligibility" | "access" | "terms" | "checkout" | "provisioning" | "operations" | "recovery" | "authentication" | "descriptor" | "documentation")[];
-            endpoint_roles: ("status" | "service" | "checkout" | "recovery" | "authorization" | "token" | "registration" | "protected_resource" | "webhook")[];
-            interface_modalities: ("web_application" | "network_api" | "command_line" | "software_library" | "tool_server" | "agent_service")[];
-            interface_functions: ("events" | "recovery" | "authentication" | "service_operation" | "commerce")[];
+            node_kinds: ("endpoint" | "interface" | "resource" | "surface_exclusion")[];
+            resource_roles: ("access" | "authentication" | "checkout" | "descriptor" | "discovery" | "documentation" | "eligibility" | "operations" | "policy" | "pricing" | "provisioning" | "recovery" | "status" | "terms")[];
+            endpoint_roles: ("authorization" | "checkout" | "protected_resource" | "recovery" | "registration" | "service" | "status" | "token" | "webhook")[];
+            interface_modalities: ("agent_service" | "command_line" | "network_api" | "software_library" | "tool_server" | "web_application")[];
+            interface_functions: ("authentication" | "commerce" | "events" | "recovery" | "service_operation")[];
         };
         capture: {
-            rungs: ("http" | "headless" | "archive" | "manual")[];
-            redirects: "reject" | "same-origin" | "allowed-hosts";
+            rungs: ("archive" | "headless" | "http" | "manual")[];
+            redirects: "allowed-hosts" | "reject" | "same-origin";
             require_https: true;
             max_redirects: number;
             timeout_ms: number;
@@ -56,51 +56,51 @@ export declare const currentAgentReadinessPolicy: {
         interaction: {
             mode: "non_mutating";
             max_actions: number;
-            allowed_actions: ("navigate" | "follow_link" | "expand_disclosure" | "select_non_submitting_control" | "scroll" | "wait")[];
-            forbidden_effects: ("provision" | "submit_application" | "create_account" | "send_verification_code" | "accept_terms" | "enter_credentials" | "enter_payment_details" | "purchase" | "create_key" | "invoke_billable_service")[];
+            allowed_actions: ("expand_disclosure" | "follow_link" | "navigate" | "scroll" | "select_non_submitting_control" | "wait")[];
+            forbidden_effects: ("accept_terms" | "create_account" | "create_key" | "enter_credentials" | "enter_payment_details" | "invoke_billable_service" | "provision" | "purchase" | "send_verification_code" | "submit_application")[];
         };
-        required_artifacts: ("redirect_chain" | "interaction_trace" | "raw_bytes" | "normalized_text" | "structured_validation" | "standard_evidence_result" | "utf8_locators" | "screenshot" | "capture_interaction_trace" | "manual_review_note")[];
-        failure_classes: ("network_failure" | "policy_refusal" | "authentication_required" | "timeout" | "render_failure" | "invalid_structure" | "interaction_budget_exhausted" | "capture_unavailable")[];
-        residue_classes: ("unresolved_signal" | "insufficient_determination_basis" | "conflicting_observations" | "scope_mismatch" | "manual_review_required" | "unsupported_interaction")[];
+        required_artifacts: ("capture_interaction_trace" | "evidence_excerpt" | "interaction_trace" | "manual_review_note" | "screenshot" | "source_observation" | "standard_evidence_result")[];
+        failure_classes: ("authentication_required" | "capture_unavailable" | "interaction_budget_exhausted" | "invalid_structure" | "network_failure" | "policy_refusal" | "render_failure" | "timeout")[];
+        residue_classes: ("conflicting_observations" | "insufficient_determination_basis" | "manual_review_required" | "scope_mismatch" | "unresolved_signal" | "unsupported_interaction")[];
         external_references: {
             namespace: string;
             version: string;
             requirement_id: string;
-            relation: "tests" | "informational-reference";
+            relation: "informational-reference" | "tests";
         }[];
         method_digest: string;
     }[];
     signal_rules: {
-        stage: "evaluate" | "sign_up" | "pay" | "provision" | "operate";
+        stage: "evaluate" | "operate" | "pay" | "provision" | "sign_up";
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        pass_values: ("unknown" | "yes" | "no" | "partial" | "not_applicable")[];
-        constrained_values: ("unknown" | "yes" | "no" | "partial" | "not_applicable")[];
-        fail_values: ("unknown" | "yes" | "no" | "partial" | "not_applicable")[];
+        pass_values: ("no" | "not_applicable" | "partial" | "unknown" | "yes")[];
+        constrained_values: ("no" | "not_applicable" | "partial" | "unknown" | "yes")[];
+        fail_values: ("no" | "not_applicable" | "partial" | "unknown" | "yes")[];
         allow_not_applicable: boolean;
         allowed_method_digests: string[];
         selector_groups: {
             selector_group_id: string;
-            coverage: "at_least_one" | "all_matches";
+            coverage: "all_matches" | "at_least_one";
             alternatives: {
                 alternative_id: string;
                 selectors: ({
                     kind: "resource_role";
-                    roles: ("policy" | "discovery" | "status" | "pricing" | "eligibility" | "access" | "terms" | "checkout" | "provisioning" | "operations" | "recovery" | "authentication" | "descriptor" | "documentation")[];
+                    roles: ("access" | "authentication" | "checkout" | "descriptor" | "discovery" | "documentation" | "eligibility" | "operations" | "policy" | "pricing" | "provisioning" | "recovery" | "status" | "terms")[];
                 } | {
                     kind: "endpoint_role";
-                    roles: ("status" | "service" | "checkout" | "recovery" | "authorization" | "token" | "registration" | "protected_resource" | "webhook")[];
+                    roles: ("authorization" | "checkout" | "protected_resource" | "recovery" | "registration" | "service" | "status" | "token" | "webhook")[];
                 } | {
                     kind: "interface_signature";
-                    modalities: ("web_application" | "network_api" | "command_line" | "software_library" | "tool_server" | "agent_service")[];
-                    functions: ("events" | "recovery" | "authentication" | "service_operation" | "commerce")[];
+                    modalities: ("agent_service" | "command_line" | "network_api" | "software_library" | "tool_server" | "web_application")[];
+                    functions: ("authentication" | "commerce" | "events" | "recovery" | "service_operation")[];
                 } | {
                     kind: "assessment_target_membership";
-                    membership: "direct" | "reachable";
+                    membership: "direct" | "reachable" | "selected_path";
                 } | {
                     kind: "target_relation";
-                    relation_kind: "describes" | "authenticates" | "requires" | "alternative_to" | "precedes";
+                    relation_kind: "alternative_to" | "authenticates" | "describes" | "precedes" | "requires";
                     direction: "from_target" | "to_target";
                 } | {
                     kind: "standard_requirement";
@@ -108,24 +108,33 @@ export declare const currentAgentReadinessPolicy: {
                         namespace: string;
                         version: string;
                         requirement_id: string;
-                        relation: "tests" | "informational-reference";
+                        relation: "informational-reference" | "tests";
                     };
                 })[];
             }[];
         }[];
+        evidence_terms?: string[] | undefined;
         value_evidence: {
-            value: "yes" | "no" | "partial" | "not_applicable";
+            value: "no" | "not_applicable" | "partial" | "yes";
             alternatives: {
                 alternative_id: string;
-                required_basis_kinds: ("direct_observation" | "bounded_absence" | "explicit_first_party_declaration" | "standard_requirement" | "certification_receipt")[];
+                required_basis_kinds: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "standard_requirement")[];
                 minimum_distinct_captures: number;
                 require_independent_capture_rungs: boolean;
-                required_artifacts: ("redirect_chain" | "interaction_trace" | "raw_bytes" | "normalized_text" | "structured_validation" | "standard_evidence_result" | "utf8_locators" | "screenshot" | "capture_interaction_trace" | "manual_review_note")[];
+                required_artifacts: ("capture_interaction_trace" | "evidence_excerpt" | "interaction_trace" | "manual_review_note" | "screenshot" | "source_observation" | "standard_evidence_result")[];
                 minimum_surfaces: number;
                 minimum_branches: number;
             }[];
         }[];
         priority: number;
+        blocker?: {
+            code: string;
+            explanation: string;
+        } | undefined;
+        remediation?: {
+            code: string;
+            instruction: string;
+        } | undefined;
         public_findings: {
             yes: {
                 condition: string;
@@ -152,34 +161,25 @@ export declare const currentAgentReadinessPolicy: {
             namespace: string;
             version: string;
             requirement_id: string;
-            relation: "tests" | "informational-reference";
+            relation: "informational-reference" | "tests";
         }[];
         standard_evidence: {
             requirement: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             support: {
-                result: "satisfied" | "not_satisfied";
-                values: ("yes" | "no" | "partial" | "not_applicable")[];
+                result: "not_satisfied" | "satisfied";
+                values: ("no" | "not_applicable" | "partial" | "yes")[];
             }[];
         }[];
-        evidence_terms?: string[] | undefined;
-        blocker?: {
-            code: string;
-            explanation: string;
-        } | undefined;
-        remediation?: {
-            code: string;
-            instruction: string;
-        } | undefined;
     }[];
     aggregation: {
         stage: "worst-signal";
         overall: "worst-stage";
-        outcome_precedence: ("unknown" | "not_applicable" | "pass" | "constrained" | "fail")[];
+        outcome_precedence: ("constrained" | "fail" | "not_applicable" | "pass" | "unknown")[];
         blocker_precedence: "outcome-then-rule-priority";
         tie_breaker: "signal-code";
     };
@@ -189,27 +189,27 @@ export declare const currentAgentReadinessPolicy: {
     };
     freshness: {
         source: "observation-freshness-policy";
-        aggregation: "worst-signal" | "worst-required-signal" | "worst-evaluated-signal";
+        aggregation: "worst-evaluated-signal" | "worst-required-signal" | "worst-signal";
     };
     public_states: {
         pass: {
-            state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             label: string;
         };
         constrained: {
-            state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             label: string;
         };
         fail: {
-            state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             label: string;
         };
         unknown: {
-            state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             label: string;
         };
         not_applicable: {
-            state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             label: string;
         };
     };
@@ -230,12 +230,12 @@ export declare const currentAgentReadinessPolicy: {
             provision: "F";
             operate: "F";
         };
+        unverified_barrier_grade_cap?: "B+" | undefined;
         not_applicable_signals: "excluded";
         unrated_when: {
             coverage: "not-complete";
             freshness: "not-fresh";
         };
-        unverified_barrier_grade_cap?: "B+" | undefined;
     };
     grade_derivation: {
         label: string;

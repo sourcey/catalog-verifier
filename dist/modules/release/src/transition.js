@@ -1,15 +1,16 @@
-import { agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputsSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { digest } from "provenry/primitives";
+import { orderPublicationChanges, sealPublicationChange } from "provenry/publication/changes";
 import { releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
-import { catalogDeltaCoreSchema, catalogStateTransitionCoreSchema, RELEASE_RESOURCES, releaseResourceDigest, snapshotCoreSchema, } from "../../../contracts/release/src/index.js";
+import { catalogStateTransitionCoreSchema, RELEASE_RESOURCES, releaseResourceDigest, SOURCEY_PUBLICATION_CONTRACTS, sourceyReleaseEnvelopeSchemas, } from "../../../contracts/release/src/index.js";
 import { offerCanonicalPath, programCanonicalPath } from "../../../contracts/routes/src/index.js";
-import { assetIndexTransitionDigest, verifyAssetDelta } from "../../assets/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
+import { assetIndexTransitionChanges, verifyAssetDelta } from "../../assets/src/index.js";
 import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
+import { sourceyReleaseEnvelope } from "../../publication-instance/src/index.js";
 import { buildAgentReadinessChanges } from "./changes.js";
-export function buildDeltaChanges(entities, identities, agentReadiness = { current: [], prior: [] }, assetDelta = null) {
+export function buildDeltaChanges(entities, identities, agentReadiness, assetDelta) {
     const changes = [];
     for (const { current, prior } of entities) {
-        changes.push(releaseChangeSchema.parse(withChangeId({
+        changes.push(releaseChangeSchema.parse(sealPublicationChange({
             kind: prior ? "entity.updated" : "entity.added",
             subject_type: "entity",
             subject_id: current.entity_id,
@@ -24,7 +25,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             const previous = priorPrograms.get(program.program_id);
             if (!previous ||
                 catalogProgramProjectionDigest(previous) !== catalogProgramProjectionDigest(program)) {
-                changes.push(releaseChangeSchema.parse(withChangeId({
+                changes.push(releaseChangeSchema.parse(sealPublicationChange({
                     kind: previous ? "program.updated" : "program.added",
                     subject_type: "program",
                     subject_id: program.program_id,
@@ -43,7 +44,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             if (!identities.retired_programs.includes(program.program_id)) {
                 throw new Error("Program removal requires an identity transition.");
             }
-            changes.push(releaseChangeSchema.parse(withChangeId({
+            changes.push(releaseChangeSchema.parse(sealPublicationChange({
                 kind: "program.retired",
                 subject_type: "program",
                 subject_id: program.program_id,
@@ -71,7 +72,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
                         : previous
                             ? "offer.updated"
                             : "offer.added";
-                changes.push(releaseChangeSchema.parse(withChangeId({
+                changes.push(releaseChangeSchema.parse(sealPublicationChange({
                     kind,
                     subject_type: "offer",
                     subject_id: offer.offer_id,
@@ -101,7 +102,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             if (!identities.retired_offers.includes(offer.offer_id)) {
                 throw new Error("Offer removal requires an identity transition.");
             }
-            changes.push(releaseChangeSchema.parse(withChangeId({
+            changes.push(releaseChangeSchema.parse(sealPublicationChange({
                 kind: "offer.retired",
                 subject_type: "offer",
                 subject_id: offer.offer_id,
@@ -118,18 +119,11 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             })));
         }
     }
-    changes.push(...buildAgentReadinessChanges({
-        current: agentReadiness.current,
-        prior: agentReadiness.prior,
-        identities,
-        ...(agentReadiness.regradedProfileIds
-            ? { regradedProfileIds: agentReadiness.regradedProfileIds }
-            : {}),
-    }));
+    changes.push(...buildAgentReadinessChanges({ ...agentReadiness, identities }));
     if (assetDelta) {
         for (const change of verifyAssetDelta(assetDelta).changes) {
             if (change.operation === "remove") {
-                changes.push(releaseChangeSchema.parse(withChangeId({
+                changes.push(releaseChangeSchema.parse(sealPublicationChange({
                     kind: "asset.withdrawn",
                     subject_type: "asset_binding",
                     subject_id: change.prior_binding_event_id,
@@ -138,7 +132,7 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
                 })));
                 continue;
             }
-            changes.push(releaseChangeSchema.parse(withChangeId({
+            changes.push(releaseChangeSchema.parse(sealPublicationChange({
                 kind: change.prior_binding_event_id ? "asset.updated" : "asset.bound",
                 subject_type: "asset_binding",
                 subject_id: change.binding.binding_event_id,
@@ -147,14 +141,26 @@ export function buildDeltaChanges(entities, identities, agentReadiness = { curre
             })));
         }
     }
-    return changes.sort((left, right) => compareCanonicalStrings(left.subject_type, right.subject_type) ||
-        compareCanonicalStrings(left.subject_id, right.subject_id) ||
-        compareCanonicalStrings(left.kind, right.kind));
+    return orderPublicationChanges(changes);
 }
+/** The canonical state transition a delta's `state_digest` commits to. */
+export function catalogStateTransitionCore(delta) {
+    return catalogStateTransitionCoreSchema.parse(stateTransition(delta));
+}
+/** A parsed delta already holds schema-valid fields, so its digests need no second parse. */
 export function verifyCatalogDeltaState(delta) {
-    const stateCore = catalogStateTransitionCoreSchema.parse({
+    if (digest(stateTransition(delta)) !== delta.state_digest) {
+        throw new Error("Catalog delta state digest does not match its canonical transition.");
+    }
+    const { delta_digest: deltaDigest, ...core } = delta;
+    if (digest(core) !== deltaDigest) {
+        throw new Error("Catalog delta digest does not match its canonical core.");
+    }
+}
+function stateTransition(delta) {
+    return {
         state_contract: "sourcey.catalog-state-transition/v1alpha1",
-        parent_state_digest: delta.base?.release.snapshot_core.artifact_digest ?? null,
+        parent_state_digest: delta.base.release.snapshot_core.artifact_digest,
         policy_as_of: delta.policy_as_of,
         artifact_core: delta.artifact_core,
         entity_changes: delta.entity_changes,
@@ -163,108 +169,72 @@ export function verifyCatalogDeltaState(delta) {
         provenance: delta.provenance,
         authority_set_digests: delta.authority_set_digests,
         object_manifest_digest: delta.object_manifest_digest,
-    });
-    if (digest(stateCore) !== delta.state_digest) {
-        throw new Error("Catalog delta state digest does not match its canonical transition.");
-    }
-    const { delta_digest: deltaDigest, ...coreInput } = delta;
-    const core = catalogDeltaCoreSchema.parse(coreInput);
-    if (digest(core) !== deltaDigest) {
-        throw new Error("Catalog delta digest does not match its canonical core.");
-    }
+    };
 }
 export function buildDeltaSnapshotCore(input) {
+    const parentResources = input.parent.resource_digests;
+    const chain = (resource, changes) => sourceyReleaseEnvelope.resourceTransitionDigest(resource, releaseResourceDigest(parentResources, resource), changes);
+    const carried = (resource) => releaseResourceDigest(parentResources, resource);
     const entityTransition = { entity_changes: input.delta.entity_changes };
     const provenanceTransition = {
         provenance: input.delta.provenance,
         authority_set_digests: input.delta.authority_set_digests,
     };
-    const readinessChanges = input.agentReadinessChanges ?? [];
-    const readinessIndexDigest = readinessChanges.length === 0
-        ? releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessIndex)
-        : transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessIndex), RELEASE_RESOURCES.agentReadinessIndex, readinessChanges.map(({ input_digest: _, ...change }) => change));
-    const readinessInputsDigest = readinessChanges.every((change) => change.input_digest === null)
-        ? releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessInputs)
-        : transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessInputs), RELEASE_RESOURCES.agentReadinessInputs, readinessChanges.map((change) => ({
-            agent_readiness_profile_id: change.agent_readiness_profile_id,
-            input_digest: change.input_digest,
-            revision_digest: change.revision_digest,
-        })));
-    const relationChanges = input.agentReadinessOfferRelationChanges ?? [];
-    const priorRelationIndexDigest = optionalResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationIndex, digest(agentReadinessOfferRelationIndexSchema.parse({
-        relation_index_contract: "sourcey.agent-readiness-offer-relation-index/v1alpha1",
-        relations: {},
-        by_profile: {},
-        by_offer: {},
-    })));
-    const priorRelationInputsDigest = optionalResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.agentReadinessOfferRelationInputs, digest(agentReadinessOfferRelationInputsSchema.parse({
-        input_contract: "sourcey.agent-readiness-offer-relation-inputs/v1alpha1",
-        relations: [],
-    })));
-    const relationIndexDigest = relationChanges.length === 0
-        ? priorRelationIndexDigest
-        : transitionDigest(priorRelationIndexDigest, RELEASE_RESOURCES.agentReadinessOfferRelationIndex, relationChanges.map(({ input_digest: _, ...change }) => change));
-    const relationInputsDigest = relationChanges.every((change) => change.input_digest === null)
-        ? priorRelationInputsDigest
-        : transitionDigest(priorRelationInputsDigest, RELEASE_RESOURCES.agentReadinessOfferRelationInputs, relationChanges.map((change) => ({
-            relation_id: change.relation_id,
-            input_digest: change.input_digest,
-            relation_revision_digest: change.relation_revision_digest,
-        })));
-    const agentReadinessPolicyDigest = input.delta.artifact_core.policy_digests[RELEASE_RESOURCES.agentReadinessPolicy];
-    const parentAssetIndexDigest = releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.assetIndex);
-    const assetIndexDigest = input.assetDelta
-        ? (() => {
-            const assetDelta = verifyAssetDelta(input.assetDelta);
-            if (assetDelta.parent_asset_index_digest !== parentAssetIndexDigest) {
-                throw new Error("Asset delta does not target the exact parent asset index.");
-            }
-            return assetIndexTransitionDigest(assetDelta);
-        })()
-        : parentAssetIndexDigest;
-    return snapshotCoreSchema.parse({
-        snapshot_contract: "sourcey.snapshot-core/v1alpha1",
+    const readinessChanges = input.agentReadinessChanges;
+    const relationChanges = input.agentReadinessOfferRelationChanges;
+    const assetDelta = input.assetDelta ? verifyAssetDelta(input.assetDelta) : null;
+    if (assetDelta &&
+        assetDelta.parent_asset_index_digest !== carried(RELEASE_RESOURCES.assetIndex)) {
+        throw new Error("Asset delta does not target the exact parent asset index.");
+    }
+    const resourceDigests = {
+        ...parentResources,
+        [RELEASE_RESOURCES.agentReadinessIndex]: readinessChanges.length === 0
+            ? carried(RELEASE_RESOURCES.agentReadinessIndex)
+            : chain(RELEASE_RESOURCES.agentReadinessIndex, readinessChanges.map(({ input_digest: _, ...change }) => change)),
+        [RELEASE_RESOURCES.agentReadinessInputs]: readinessChanges.every((change) => change.input_digest === null)
+            ? carried(RELEASE_RESOURCES.agentReadinessInputs)
+            : chain(RELEASE_RESOURCES.agentReadinessInputs, readinessChanges.map((change) => ({
+                agent_readiness_profile_id: change.agent_readiness_profile_id,
+                input_digest: change.input_digest,
+                revision_digest: change.revision_digest,
+            }))),
+        [RELEASE_RESOURCES.agentReadinessOfferRelationIndex]: relationChanges.length === 0
+            ? carried(RELEASE_RESOURCES.agentReadinessOfferRelationIndex)
+            : chain(RELEASE_RESOURCES.agentReadinessOfferRelationIndex, relationChanges.map(({ input_digest: _, ...change }) => change)),
+        [RELEASE_RESOURCES.agentReadinessOfferRelationInputs]: relationChanges.every((change) => change.input_digest === null)
+            ? carried(RELEASE_RESOURCES.agentReadinessOfferRelationInputs)
+            : chain(RELEASE_RESOURCES.agentReadinessOfferRelationInputs, relationChanges.map((change) => ({
+                relation_id: change.relation_id,
+                input_digest: change.input_digest,
+                relation_revision_digest: change.relation_revision_digest,
+            }))),
+        [RELEASE_RESOURCES.agentReadinessPolicy]: releaseResourceDigest(input.delta.artifact_core.policy_digests, RELEASE_RESOURCES.agentReadinessPolicy),
+        [RELEASE_RESOURCES.assetIndex]: assetDelta
+            ? chain(RELEASE_RESOURCES.assetIndex, assetIndexTransitionChanges(assetDelta))
+            : carried(RELEASE_RESOURCES.assetIndex),
+        [RELEASE_RESOURCES.identities]: chain(RELEASE_RESOURCES.identities, {
+            ...entityTransition,
+            identities: input.delta.identities,
+        }),
+        [RELEASE_RESOURCES.observationInputs]: chain(RELEASE_RESOURCES.observationInputs, provenanceTransition),
+        [RELEASE_RESOURCES.policyInputs]: chain(RELEASE_RESOURCES.policyInputs, input.delta.artifact_core.policy_digests),
+        [RELEASE_RESOURCES.provenance]: chain(RELEASE_RESOURCES.provenance, provenanceTransition),
+        [RELEASE_RESOURCES.routes]: chain(RELEASE_RESOURCES.routes, input.delta.routes),
+        [RELEASE_RESOURCES.searchIndex]: chain(RELEASE_RESOURCES.searchIndex, entityTransition),
+    };
+    return sourceyReleaseEnvelopeSchemas.snapshotCore.parse({
+        snapshot_contract: SOURCEY_PUBLICATION_CONTRACTS.snapshot,
         release_sequence: input.releaseSequence,
         compiler_version: input.parent.compiler_version,
         artifact_contract: input.parent.artifact_contract,
         input_set_digest: input.delta.delta_digest,
         artifact_digest: input.delta.state_digest,
-        resource_digests: {
-            ...input.parent.resource_digests,
-            [RELEASE_RESOURCES.agentReadinessIndex]: readinessIndexDigest,
-            [RELEASE_RESOURCES.agentReadinessInputs]: readinessInputsDigest,
-            [RELEASE_RESOURCES.agentReadinessOfferRelationIndex]: relationIndexDigest,
-            [RELEASE_RESOURCES.agentReadinessOfferRelationInputs]: relationInputsDigest,
-            ...(agentReadinessPolicyDigest
-                ? { [RELEASE_RESOURCES.agentReadinessPolicy]: agentReadinessPolicyDigest }
-                : {}),
-            [RELEASE_RESOURCES.assetIndex]: assetIndexDigest,
-            [RELEASE_RESOURCES.identities]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.identities), RELEASE_RESOURCES.identities, { ...entityTransition, identities: input.delta.identities }),
-            [RELEASE_RESOURCES.observationInputs]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.observationInputs), RELEASE_RESOURCES.observationInputs, provenanceTransition),
-            [RELEASE_RESOURCES.policyInputs]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.policyInputs), RELEASE_RESOURCES.policyInputs, input.delta.artifact_core.policy_digests),
-            [RELEASE_RESOURCES.provenance]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.provenance), RELEASE_RESOURCES.provenance, provenanceTransition),
-            [RELEASE_RESOURCES.routes]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.routes), RELEASE_RESOURCES.routes, input.delta.routes),
-            [RELEASE_RESOURCES.searchIndex]: transitionDigest(releaseResourceDigest(input.parent.resource_digests, RELEASE_RESOURCES.searchIndex), RELEASE_RESOURCES.searchIndex, entityTransition),
-        },
+        resource_digests: resourceDigests,
         root_set_digest: input.rootSetDigest,
         signer_registry_digest: input.signerRegistryDigest,
         trust_transition_digest: null,
         policy_as_of: input.delta.policy_as_of,
     });
-}
-function optionalResourceDigest(resources, name, emptyDigest) {
-    const value = resources[name];
-    return value === undefined ? emptyDigest : releaseResourceDigest(resources, name);
-}
-function transitionDigest(parentDigest, projection, changes) {
-    return digest({
-        transition_contract: "sourcey.projection-transition/v1alpha1",
-        projection,
-        parent_digest: parentDigest,
-        changes,
-    });
-}
-function withChangeId(core) {
-    return { change_id: digest(core), ...core };
 }
 //# sourceMappingURL=transition.js.map

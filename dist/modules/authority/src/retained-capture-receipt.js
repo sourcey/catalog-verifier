@@ -1,7 +1,7 @@
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN } from "provenry/primitives";
 import { z } from "zod";
 import { protectedSignatureSchema } from "../../../contracts/authority/src/index.js";
 import { evidenceCaptureMethodSchema, evidenceReceiptSubjectSchema, evidenceRedirectSchema, } from "../../../contracts/evidence/src/index.js";
-import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN, } from "../../primitives/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);

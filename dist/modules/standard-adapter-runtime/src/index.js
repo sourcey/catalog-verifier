@@ -1,4 +1,4 @@
-import { sha256Bytes } from "../../primitives/src/index.js";
+import { sha256Bytes } from "provenry/primitives";
 export function standardAdapterKey(namespace, version) {
     return `${namespace}\u0000${version}`;
 }

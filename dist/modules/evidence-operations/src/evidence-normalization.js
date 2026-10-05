@@ -1,8 +1,8 @@
 import { TextDecoder, TextEncoder } from "node:util";
-import { parse } from "parse5";
+import { canonicalJson, digest, sha256Bytes } from "provenry/primitives";
 import { z } from "zod";
-import { canonicalJson, digest, sha256Bytes } from "../../primitives/src/index.js";
 import { PARSE5_VERSION } from "./dependency-versions.js";
+import { parseHtmlDocument } from "./html-document.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const utf8 = new TextDecoder("utf-8", { fatal: true });
 const encoder = new TextEncoder();
@@ -28,9 +28,18 @@ export const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN = {
     ...EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN,
     json_media_types: ["application/json", "application/*+json", "application/*-json"],
 };
-export const EVIDENCE_NORMALIZER_TOOLCHAIN = {
+/** Exact retained profile for captures made before bounded embedded JSON was read. */
+export const EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN = {
     ...EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN,
     html_empty_values: "omit",
+};
+export const EVIDENCE_NORMALIZER_TOOLCHAIN = {
+    ...EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
+    html_json_attributes: {
+        name_prefix: "data-",
+        maximum_attribute_bytes: 32_768,
+        maximum_document_bytes: 131_072,
+    },
 };
 /** Exact retained XML profile for captures created before empty HTML values were omitted. */
 export const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN = {
@@ -38,7 +47,7 @@ export const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN = {
     xml_media_types: ["application/xml", "text/xml", "application/*+xml"],
 };
 export const EVIDENCE_NORMALIZER_XML_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_TOOLCHAIN,
+    ...EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
     xml_media_types: ["application/xml", "text/xml", "application/*+xml"],
 };
 /** Exact retained profile for evidence captured before public mail actions were preserved. */
@@ -74,6 +83,10 @@ export const EVIDENCE_NORMALIZER_CANONICAL_LINK = evidenceNormalizerDefinition(E
 export const EVIDENCE_NORMALIZER_FOUNDATION = evidenceNormalizerDefinition(EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN);
 const NORMALIZER_TOOLCHAIN_BY_DIGEST = new Map([
     [EVIDENCE_NORMALIZER.toolchain_digest, EVIDENCE_NORMALIZER_TOOLCHAIN],
+    [
+        digest(EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN),
+        EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
+    ],
     [
         digest(EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN),
         EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN,
@@ -128,6 +141,7 @@ export function normalizeEvidenceCapture(input) {
             includeDocumentLinks: "html_links" in toolchain,
             includeMailtoLinks: "html_link_protocols" in toolchain && toolchain.html_link_protocols.includes("mailto"),
             omitEmptyValues: "html_empty_values" in toolchain,
+            embeddedJsonAttributes: "html_json_attributes" in toolchain ? toolchain.html_json_attributes : null,
         });
     }
     else if (mediaType &&
@@ -173,13 +187,16 @@ function normalizerToolchainForDigest(value) {
     return toolchain;
 }
 function normalizeHtml(html, options) {
-    const document = parse(html);
+    const document = parseHtmlDocument(html);
     const visible = [];
     const metadata = [];
     const structured = [];
     const canonicalLinks = [];
     const documentLinks = [];
-    visitHtml(document, false, options.includeMailtoLinks, options.omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks);
+    const embeddedJsonBudget = options.embeddedJsonAttributes
+        ? { remaining: options.embeddedJsonAttributes.maximum_document_bytes }
+        : null;
+    visitHtml(document, false, options.includeMailtoLinks, options.omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, options.embeddedJsonAttributes, embeddedJsonBudget);
     const sections = [
         ["metadata", [...new Set(metadata)].sort()],
         ...(options.includeCanonicalLinks
@@ -199,7 +216,7 @@ function normalizeHtml(html, options) {
         throw new EmptyEvidenceDocumentError("html");
     return `${rendered}\n`;
 }
-function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks) {
+function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, embeddedJsonAttributes, embeddedJsonBudget) {
     if (isElement(node)) {
         const tag = node.tagName.toLowerCase();
         const attributes = new Map(node.attrs.map((attribute) => [attribute.name, attribute.value]));
@@ -242,6 +259,29 @@ function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visibl
                 // Malformed structured data is ignored as input, never repaired or guessed.
             }
         }
+        if (!suppressed &&
+            !["script", "style", "template", "noscript", "svg", "canvas"].includes(tag) &&
+            embeddedJsonAttributes &&
+            embeddedJsonBudget) {
+            for (const [name, value] of attributes) {
+                if (!name.startsWith(embeddedJsonAttributes.name_prefix) ||
+                    !/^[{[]/u.test(value.trimStart()) ||
+                    value.length > embeddedJsonAttributes.maximum_attribute_bytes ||
+                    encoder.encode(value).byteLength > embeddedJsonAttributes.maximum_attribute_bytes)
+                    continue;
+                try {
+                    const normalized = canonicalJson(JSON.parse(value));
+                    const bytes = encoder.encode(normalized).byteLength;
+                    if (bytes > embeddedJsonBudget.remaining)
+                        continue;
+                    structured.push(normalized);
+                    embeddedJsonBudget.remaining -= bytes;
+                }
+                catch {
+                    // Invalid page data is not repaired or admitted as evidence.
+                }
+            }
+        }
         suppressed =
             suppressed || ["script", "style", "template", "noscript", "svg", "canvas"].includes(tag);
     }
@@ -252,7 +292,7 @@ function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visibl
     }
     if ("childNodes" in node) {
         for (const child of node.childNodes) {
-            visitHtml(child, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks);
+            visitHtml(child, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, embeddedJsonAttributes, embeddedJsonBudget);
         }
     }
 }

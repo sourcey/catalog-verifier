@@ -1,7 +1,8 @@
+import { compareCanonicalStrings, digest } from "provenry/primitives";
+import { orderPublicationChanges, sealPublicationChange } from "provenry/publication/changes";
 import { releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
 import { offerCanonicalPath, programCanonicalPath, } from "../../../contracts/routes/src/index.js";
 import { isAgentReadinessRouteOnlySuccession } from "../../agent-readiness-policy/src/index.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
 export function buildChanges(input) {
     const { parent, current, identities, parentRoutes } = input;
@@ -59,7 +60,7 @@ export function buildChanges(input) {
             const prior = priorPrograms.get(program.program_id);
             const projectionDigest = catalogProgramProjectionDigest(program);
             const reparent = prior && prior.entity.entity_id !== entity.entity_id
-                ? identities.program_reparents?.[program.program_id]
+                ? identities.program_reparents[program.program_id]
                 : undefined;
             if (!prior) {
                 candidates.push({
@@ -75,8 +76,7 @@ export function buildChanges(input) {
                 prior.entity.entity_id !== entity.entity_id) {
                 if (prior.entity.entity_id !== entity.entity_id &&
                     (!reparent ||
-                        (reparent.old_entity_id !== undefined &&
-                            reparent.old_entity_id !== prior.entity.entity_id) ||
+                        reparent.old_entity_id !== prior.entity.entity_id ||
                         reparent.new_entity_id !== entity.entity_id)) {
                     throw new Error(`Program ${program.program_id} changed entity without an exact reparent event.`);
                 }
@@ -123,7 +123,7 @@ export function buildChanges(input) {
             const prior = priorOffers.get(offer.offer_id);
             const projectionDigest = catalogOfferProjectionDigest(offer);
             const reparent = prior && prior.entity.entity_id !== entity.entity_id
-                ? identities.offer_reparents?.[offer.offer_id]
+                ? identities.offer_reparents[offer.offer_id]
                 : undefined;
             if (!prior) {
                 candidates.push({
@@ -139,8 +139,7 @@ export function buildChanges(input) {
                 prior.entity.entity_id !== entity.entity_id) {
                 if (prior.entity.entity_id !== entity.entity_id &&
                     (!reparent ||
-                        (reparent.old_entity_id !== undefined &&
-                            reparent.old_entity_id !== prior.entity.entity_id) ||
+                        reparent.old_entity_id !== prior.entity.entity_id ||
                         reparent.new_entity_id !== entity.entity_id)) {
                     throw new Error(`Offer ${offer.offer_id} changed Entity without an exact reparent event.`);
                 }
@@ -288,17 +287,10 @@ export function buildChanges(input) {
                     : [],
         });
     }
-    return candidates
-        .map((candidate) => releaseChangeSchema.parse({ ...candidate, change_id: digest(candidate) }))
-        .sort((left, right) => compareCanonicalStrings(left.subject_type, right.subject_type) ||
-        compareCanonicalStrings(left.subject_id, right.subject_id) ||
-        compareCanonicalStrings(left.kind, right.kind));
+    return orderPublicationChanges(candidates.map((candidate) => releaseChangeSchema.parse(sealPublicationChange(candidate))));
 }
 export function buildAgentReadinessChanges(input) {
-    return agentReadinessChangeCandidates(input)
-        .map((candidate) => releaseChangeSchema.parse({ ...candidate, change_id: digest(candidate) }))
-        .sort((left, right) => compareCanonicalStrings(left.subject_id, right.subject_id) ||
-        compareCanonicalStrings(left.kind, right.kind));
+    return orderPublicationChanges(agentReadinessChangeCandidates(input).map((candidate) => releaseChangeSchema.parse(sealPublicationChange(candidate))));
 }
 function agentReadinessChangeCandidates(input) {
     const candidates = [];

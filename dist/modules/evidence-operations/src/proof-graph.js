@@ -1,9 +1,11 @@
-import { entityRevisionSchema } from "../../../contracts/revisions/src/index.js";
-import { canonicalJson, digest, sha256Bytes } from "../../primitives/src/index.js";
+import { canonicalJson, digest, sha256Bytes } from "provenry/primitives";
+import { sourceyCaptureMethodRegistry } from "../../../contracts/capture/src/methods.js";
+import { catalogRevisionContracts, entityRevisionSchema, } from "../../../contracts/revisions/src/index.js";
 import { deriveSourceStanding, evidenceNormalizerForToolchainDigest, normalizeEvidenceCapture, verifyEvidenceAssertions, } from "./submission-verifier.js";
 /**
  * Verifies the complete public evidence graph from immutable local bytes.
  * Callers supply already-materialized objects; this kernel performs no I/O.
+ * Normalized bytes are proven by reproducing them from their capture.
  */
 export function verifyEvidenceObjectGraph(input) {
     const revisions = new Map(input.revisions.map((revision) => [revision.revision_digest, revision]));
@@ -28,16 +30,14 @@ export function verifyEvidenceObjectGraph(input) {
         const captureBytes = input.captures.get(capture.digest);
         if (!captureBytes ||
             captureBytes.byteLength !== capture.bytes ||
-            sha256Bytes(captureBytes) !== capture.digest) {
+            (!input.capturesProven && sha256Bytes(captureBytes) !== capture.digest)) {
             throw new Error(`Observation ${observation.observation_id} lacks its public capture bytes.`);
         }
         if (!capture.normalized_object) {
             throw new Error(`Observation ${observation.observation_id} lacks its normalized evidence declaration.`);
         }
         const normalizedBytes = input.normalizedObjects.get(capture.normalized_object.digest);
-        if (!normalizedBytes ||
-            normalizedBytes.byteLength !== capture.normalized_object.bytes ||
-            sha256Bytes(normalizedBytes) !== capture.normalized_object.digest) {
+        if (!normalizedBytes || normalizedBytes.byteLength !== capture.normalized_object.bytes) {
             throw new Error(`Observation ${observation.observation_id} lacks its normalized evidence bytes.`);
         }
         const normalizer = evidenceNormalizerForToolchainDigest(capture.normalized_object.toolchain_digest);
@@ -93,16 +93,16 @@ export function verifyEvidenceObjectGraph(input) {
         });
         const authorityRevisionDigest = requiredString(payload.authority_entity_revision_digest, "authority_entity_revision_digest");
         const authorityEntityRevision = revisions.get(authorityRevisionDigest);
-        if (authorityEntityRevision?.revision_contract !== "sourcey.entity-revision/v1alpha1" ||
+        if (authorityEntityRevision?.revision_contract !== catalogRevisionContracts.entity ||
             authorityEntityRevision.entity_id !== revision.entity_id) {
             throw new Error(`Evidence event ${event.event_id} lacks its authority entity revision.`);
         }
         const authorityProgramRevisionDigest = payload.authority_program_revision_digest;
-        if (revision.revision_contract === "sourcey.offer-revision/v1alpha1" &&
+        if (revision.revision_contract === catalogRevisionContracts.offer &&
             revision.program_id !== undefined) {
             const programDigest = requiredString(authorityProgramRevisionDigest, "authority_program_revision_digest");
             const authorityProgramRevision = revisions.get(programDigest);
-            if (authorityProgramRevision?.revision_contract !== "sourcey.program-revision/v1alpha1" ||
+            if (authorityProgramRevision?.revision_contract !== catalogRevisionContracts.program ||
                 authorityProgramRevision.entity_id !== revision.entity_id ||
                 authorityProgramRevision.program_id !== revision.program_id) {
                 throw new Error(`Evidence event ${event.event_id} lacks its authority Program revision.`);
@@ -138,9 +138,7 @@ export function verifyEvidenceObjectGraph(input) {
             throw new Error(`Evidence event ${event.event_id} has incomplete capture provenance.`);
         }
         const method = observation.method.name;
-        if (!["http", "headless", "archive", "manual"].includes(method)) {
-            throw new Error(`Evidence event ${event.event_id} uses an unsupported capture method.`);
-        }
+        sourceyCaptureMethodRegistry.require(method, observation.method.version);
         const sourceStanding = deriveSourceStanding({
             subject_source_url: observation.source_uri,
             final_url: observation.capture.final_uri,

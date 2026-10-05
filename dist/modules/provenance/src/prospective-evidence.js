@@ -1,6 +1,6 @@
+import { canonicalJson, digest } from "provenry/primitives";
 import { catalogEventIntentSchema } from "../../../contracts/events/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
-import { canonicalJson, digest } from "../../primitives/src/index.js";
 import { assertEvidenceBindingClosure } from "./evidence-bindings.js";
 export function buildProspectiveEvidenceStandingGraph(input) {
     const intents = input.eventIntents.map((intent) => catalogEventIntentSchema.parse(intent));

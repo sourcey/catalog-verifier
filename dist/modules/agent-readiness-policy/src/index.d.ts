@@ -12,7 +12,7 @@ import type { FreshnessPolicy } from "../../../contracts/policies/src/index.js";
 import type { EntityRevision } from "../../../contracts/revisions/src/index.js";
 import type { StandardEvidenceResult } from "../../../contracts/standards/src/index.js";
 import { type EvidenceStandingGraph } from "../../provenance/src/index.js";
-export { agentReadinessDeclarationPolicyGaps, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
+export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessDeclarationPolicyGaps, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
 type StageOutcome = z.infer<typeof agentReadinessStageOutcomeSchema>;
 export declare function agentReadinessValuesSupportedByStandardEvidence(input: {
     readonly policy: unknown;
@@ -41,38 +41,38 @@ export declare function deriveAgentReadinessAssessment(input: {
     readonly freshnessPolicy: FreshnessPolicy;
 }): {
     readonly stages: {
-        stage: "evaluate" | "sign_up" | "pay" | "provision" | "operate";
+        stage: "evaluate" | "operate" | "pay" | "provision" | "sign_up";
         stage_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         state_label: string;
         primary_finding: {
-            context?: string;
             signal_code: string;
             condition: string;
             finding: string;
+            context?: string;
         };
         secondary_context: {
-            context?: string;
             signal_code: string;
             condition: string;
             finding: string;
+            context?: string;
         }[];
         signals: ({
-            remediation?: {
-                code: string;
-                instruction: string;
-                signal_code: string;
-            };
-            blocker?: {
-                code: string;
-                explanation: string;
-                signal_code: string;
-            };
-            note?: string;
+            signal_code: string;
+            evaluation_role: "barrier" | "graded" | "informational";
+            required: boolean;
+            value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+            value_label: string;
+            outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+            public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+            condition: string;
+            finding: string;
+            evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+            freshness: "fresh" | "stale" | "unknown";
             observed_at: string;
             tested_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             }[];
             assessment_method: {
@@ -81,34 +81,40 @@ export declare function deriveAgentReadinessAssessment(input: {
                 method_digest: string;
             };
             determination_bases: ({
+                captures: {
+                    retained_capture_digest: string;
+                    capture_rung: "archive" | "headless" | "http" | "manual";
+                }[];
+                artifact_digests: string[];
+                kind: "direct_observation";
                 locators: {
                     artifact_digest: string;
                     start_byte: number;
                     end_byte: number;
                     value_digest: string;
                 }[];
-                captures: {
-                    retained_capture_digest: string;
-                    capture_rung: "http" | "headless" | "archive" | "manual";
-                }[];
-                artifact_digests: string[];
-                kind: "direct_observation";
             } | {
-                coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-                covered_surfaces: {
-                    node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                    node_id: string;
-                }[];
-                covered_branches: number;
                 captures: {
                     retained_capture_digest: string;
-                    capture_rung: "http" | "headless" | "archive" | "manual";
+                    capture_rung: "archive" | "headless" | "http" | "manual";
                 }[];
                 artifact_digests: string[];
                 kind: "bounded_absence";
+                coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+                covered_surfaces: {
+                    node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                    node_id: string;
+                }[];
+                covered_branches: number;
             } | {
+                captures: {
+                    retained_capture_digest: string;
+                    capture_rung: "archive" | "headless" | "http" | "manual";
+                }[];
+                artifact_digests: string[];
+                kind: "explicit_first_party_declaration";
                 source_surface: {
-                    node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                    node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                     node_id: string;
                 };
                 locators: {
@@ -117,12 +123,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                     end_byte: number;
                     value_digest: string;
                 }[];
-                captures: {
-                    retained_capture_digest: string;
-                    capture_rung: "http" | "headless" | "archive" | "manual";
-                }[];
-                artifact_digests: string[];
-                kind: "explicit_first_party_declaration";
             } | {
                 kind: "standard_requirement";
                 adapter_digest: string;
@@ -131,48 +131,48 @@ export declare function deriveAgentReadinessAssessment(input: {
                     namespace: string;
                     version: string;
                     requirement_id: string;
-                    relation: "tests" | "informational-reference";
+                    relation: "informational-reference" | "tests";
                 };
                 artifact_digests: string[];
             } | {
                 kind: "certification_receipt";
                 certification_receipt_digest: string;
             })[];
-            signal_code: string;
-            evaluation_role: "graded" | "barrier" | "informational";
-            required: boolean;
-            value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-            value_label: string;
-            outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-            public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-            condition: string;
-            finding: string;
-            evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-            freshness: "unknown" | "fresh" | "stale";
-        } | {
-            remediation?: {
-                code: string;
-                instruction: string;
-                signal_code: string;
-            };
+            note?: string;
             blocker?: {
                 code: string;
                 explanation: string;
                 signal_code: string;
             };
-            tested_surfaces: never[];
-            determination_bases: never[];
+            remediation?: {
+                code: string;
+                instruction: string;
+                signal_code: string;
+            };
+        } | {
             signal_code: string;
-            evaluation_role: "graded" | "barrier" | "informational";
+            evaluation_role: "barrier" | "graded" | "informational";
             required: boolean;
-            value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+            value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
             value_label: string;
-            outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-            public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+            outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+            public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
             condition: string;
             finding: string;
             evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-            freshness: "unknown" | "fresh" | "stale";
+            freshness: "fresh" | "stale" | "unknown";
+            tested_surfaces: never[];
+            determination_bases: never[];
+            blocker?: {
+                code: string;
+                explanation: string;
+                signal_code: string;
+            };
+            remediation?: {
+                code: string;
+                instruction: string;
+                signal_code: string;
+            };
         })[];
         blockers: {
             code: string;
@@ -186,20 +186,20 @@ export declare function deriveAgentReadinessAssessment(input: {
         }[];
     }[];
     readonly signals: ({
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
-        blocker?: {
-            code: string;
-            explanation: string;
-            signal_code: string;
-        };
-        note?: string;
+        signal_code: string;
+        evaluation_role: "barrier" | "graded" | "informational";
+        required: boolean;
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+        value_label: string;
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+        condition: string;
+        finding: string;
+        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+        freshness: "fresh" | "stale" | "unknown";
         observed_at: string;
         tested_surfaces: {
-            node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
             node_id: string;
         }[];
         assessment_method: {
@@ -208,34 +208,40 @@ export declare function deriveAgentReadinessAssessment(input: {
             method_digest: string;
         };
         determination_bases: ({
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "direct_observation";
             locators: {
                 artifact_digest: string;
                 start_byte: number;
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "direct_observation";
         } | {
-            coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-            covered_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                node_id: string;
-            }[];
-            covered_branches: number;
             captures: {
                 retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
+                capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
             kind: "bounded_absence";
+            coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+            covered_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
+            covered_branches: number;
         } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "explicit_first_party_declaration";
             source_surface: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             };
             locators: {
@@ -244,12 +250,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "explicit_first_party_declaration";
         } | {
             kind: "standard_requirement";
             adapter_digest: string;
@@ -258,64 +258,64 @@ export declare function deriveAgentReadinessAssessment(input: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             artifact_digests: string[];
         } | {
             kind: "certification_receipt";
             certification_receipt_digest: string;
         })[];
-        signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
-        required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-        value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-        condition: string;
-        finding: string;
-        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
-    } | {
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
+        note?: string;
         blocker?: {
             code: string;
             explanation: string;
             signal_code: string;
         };
-        tested_surfaces: never[];
-        determination_bases: never[];
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
+    } | {
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
         value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         condition: string;
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
+        freshness: "fresh" | "stale" | "unknown";
+        tested_surfaces: never[];
+        determination_bases: never[];
+        blocker?: {
+            code: string;
+            explanation: string;
+            signal_code: string;
+        };
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
     })[];
     readonly gradedSignals: ({
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
-        blocker?: {
-            code: string;
-            explanation: string;
-            signal_code: string;
-        };
-        note?: string;
+        signal_code: string;
+        evaluation_role: "barrier" | "graded" | "informational";
+        required: boolean;
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+        value_label: string;
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+        condition: string;
+        finding: string;
+        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+        freshness: "fresh" | "stale" | "unknown";
         observed_at: string;
         tested_surfaces: {
-            node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
             node_id: string;
         }[];
         assessment_method: {
@@ -324,34 +324,40 @@ export declare function deriveAgentReadinessAssessment(input: {
             method_digest: string;
         };
         determination_bases: ({
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "direct_observation";
             locators: {
                 artifact_digest: string;
                 start_byte: number;
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "direct_observation";
         } | {
-            coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-            covered_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                node_id: string;
-            }[];
-            covered_branches: number;
             captures: {
                 retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
+                capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
             kind: "bounded_absence";
+            coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+            covered_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
+            covered_branches: number;
         } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "explicit_first_party_declaration";
             source_surface: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             };
             locators: {
@@ -360,12 +366,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "explicit_first_party_declaration";
         } | {
             kind: "standard_requirement";
             adapter_digest: string;
@@ -374,64 +374,64 @@ export declare function deriveAgentReadinessAssessment(input: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             artifact_digests: string[];
         } | {
             kind: "certification_receipt";
             certification_receipt_digest: string;
         })[];
-        signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
-        required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-        value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-        condition: string;
-        finding: string;
-        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
-    } | {
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
+        note?: string;
         blocker?: {
             code: string;
             explanation: string;
             signal_code: string;
         };
-        tested_surfaces: never[];
-        determination_bases: never[];
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
+    } | {
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
         value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         condition: string;
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
+        freshness: "fresh" | "stale" | "unknown";
+        tested_surfaces: never[];
+        determination_bases: never[];
+        blocker?: {
+            code: string;
+            explanation: string;
+            signal_code: string;
+        };
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
     })[];
     readonly coveredSignals: ({
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
-        blocker?: {
-            code: string;
-            explanation: string;
-            signal_code: string;
-        };
-        note?: string;
+        signal_code: string;
+        evaluation_role: "barrier" | "graded" | "informational";
+        required: boolean;
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+        value_label: string;
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+        condition: string;
+        finding: string;
+        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+        freshness: "fresh" | "stale" | "unknown";
         observed_at: string;
         tested_surfaces: {
-            node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
             node_id: string;
         }[];
         assessment_method: {
@@ -440,34 +440,40 @@ export declare function deriveAgentReadinessAssessment(input: {
             method_digest: string;
         };
         determination_bases: ({
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "direct_observation";
             locators: {
                 artifact_digest: string;
                 start_byte: number;
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "direct_observation";
         } | {
-            coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-            covered_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                node_id: string;
-            }[];
-            covered_branches: number;
             captures: {
                 retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
+                capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
             kind: "bounded_absence";
+            coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+            covered_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
+            covered_branches: number;
         } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "explicit_first_party_declaration";
             source_surface: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             };
             locators: {
@@ -476,12 +482,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "explicit_first_party_declaration";
         } | {
             kind: "standard_requirement";
             adapter_digest: string;
@@ -490,66 +490,66 @@ export declare function deriveAgentReadinessAssessment(input: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             artifact_digests: string[];
         } | {
             kind: "certification_receipt";
             certification_receipt_digest: string;
         })[];
-        signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
-        required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-        value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-        condition: string;
-        finding: string;
-        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
-    } | {
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
+        note?: string;
         blocker?: {
             code: string;
             explanation: string;
             signal_code: string;
         };
-        tested_surfaces: never[];
-        determination_bases: never[];
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
+    } | {
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
         value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         condition: string;
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
+        freshness: "fresh" | "stale" | "unknown";
+        tested_surfaces: never[];
+        determination_bases: never[];
+        blocker?: {
+            code: string;
+            explanation: string;
+            signal_code: string;
+        };
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
     })[];
     readonly coverageRatio: number;
-    readonly coverageStatus: "incomplete" | "complete";
+    readonly coverageStatus: "complete" | "incomplete";
     readonly barrierSignals: ({
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
-        blocker?: {
-            code: string;
-            explanation: string;
-            signal_code: string;
-        };
-        note?: string;
+        signal_code: string;
+        evaluation_role: "barrier" | "graded" | "informational";
+        required: boolean;
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+        value_label: string;
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+        condition: string;
+        finding: string;
+        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+        freshness: "fresh" | "stale" | "unknown";
         observed_at: string;
         tested_surfaces: {
-            node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
             node_id: string;
         }[];
         assessment_method: {
@@ -558,34 +558,40 @@ export declare function deriveAgentReadinessAssessment(input: {
             method_digest: string;
         };
         determination_bases: ({
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "direct_observation";
             locators: {
                 artifact_digest: string;
                 start_byte: number;
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "direct_observation";
         } | {
-            coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-            covered_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                node_id: string;
-            }[];
-            covered_branches: number;
             captures: {
                 retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
+                capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
             kind: "bounded_absence";
+            coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+            covered_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
+            covered_branches: number;
         } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "explicit_first_party_declaration";
             source_surface: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             };
             locators: {
@@ -594,12 +600,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "explicit_first_party_declaration";
         } | {
             kind: "standard_requirement";
             adapter_digest: string;
@@ -608,64 +608,64 @@ export declare function deriveAgentReadinessAssessment(input: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             artifact_digests: string[];
         } | {
             kind: "certification_receipt";
             certification_receipt_digest: string;
         })[];
-        signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
-        required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-        value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-        condition: string;
-        finding: string;
-        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
-    } | {
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
+        note?: string;
         blocker?: {
             code: string;
             explanation: string;
             signal_code: string;
         };
-        tested_surfaces: never[];
-        determination_bases: never[];
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
+    } | {
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
         value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         condition: string;
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
+        freshness: "fresh" | "stale" | "unknown";
+        tested_surfaces: never[];
+        determination_bases: never[];
+        blocker?: {
+            code: string;
+            explanation: string;
+            signal_code: string;
+        };
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
     })[];
     readonly verifiedBarrierSignals: ({
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
-        blocker?: {
-            code: string;
-            explanation: string;
-            signal_code: string;
-        };
-        note?: string;
+        signal_code: string;
+        evaluation_role: "barrier" | "graded" | "informational";
+        required: boolean;
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
+        value_label: string;
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
+        condition: string;
+        finding: string;
+        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
+        freshness: "fresh" | "stale" | "unknown";
         observed_at: string;
         tested_surfaces: {
-            node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
             node_id: string;
         }[];
         assessment_method: {
@@ -674,34 +674,40 @@ export declare function deriveAgentReadinessAssessment(input: {
             method_digest: string;
         };
         determination_bases: ({
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "direct_observation";
             locators: {
                 artifact_digest: string;
                 start_byte: number;
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "direct_observation";
         } | {
-            coverage_scope: "exact_resource" | "tested_surfaces" | "exact_funnel";
-            covered_surfaces: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
-                node_id: string;
-            }[];
-            covered_branches: number;
             captures: {
                 retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
+                capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
             kind: "bounded_absence";
+            coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
+            covered_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
+            covered_branches: number;
         } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
+            kind: "explicit_first_party_declaration";
             source_surface: {
-                node_kind: "resource" | "endpoint" | "interface" | "surface_exclusion";
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
                 node_id: string;
             };
             locators: {
@@ -710,12 +716,6 @@ export declare function deriveAgentReadinessAssessment(input: {
                 end_byte: number;
                 value_digest: string;
             }[];
-            captures: {
-                retained_capture_digest: string;
-                capture_rung: "http" | "headless" | "archive" | "manual";
-            }[];
-            artifact_digests: string[];
-            kind: "explicit_first_party_declaration";
         } | {
             kind: "standard_requirement";
             adapter_digest: string;
@@ -724,53 +724,53 @@ export declare function deriveAgentReadinessAssessment(input: {
                 namespace: string;
                 version: string;
                 requirement_id: string;
-                relation: "tests" | "informational-reference";
+                relation: "informational-reference" | "tests";
             };
             artifact_digests: string[];
         } | {
             kind: "certification_receipt";
             certification_receipt_digest: string;
         })[];
-        signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
-        required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
-        value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
-        condition: string;
-        finding: string;
-        evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
-    } | {
-        remediation?: {
-            code: string;
-            instruction: string;
-            signal_code: string;
-        };
+        note?: string;
         blocker?: {
             code: string;
             explanation: string;
             signal_code: string;
         };
-        tested_surfaces: never[];
-        determination_bases: never[];
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
+    } | {
         signal_code: string;
-        evaluation_role: "graded" | "barrier" | "informational";
+        evaluation_role: "barrier" | "graded" | "informational";
         required: boolean;
-        value: "unknown" | "yes" | "no" | "partial" | "not_applicable";
+        value: "no" | "not_applicable" | "partial" | "unknown" | "yes";
         value_label: string;
-        outcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-        public_state: "unknown" | "not_applicable" | "ready" | "limited" | "blocked";
+        outcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+        public_state: "blocked" | "limited" | "not_applicable" | "ready" | "unknown";
         condition: string;
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
-        freshness: "unknown" | "fresh" | "stale";
+        freshness: "fresh" | "stale" | "unknown";
+        tested_surfaces: never[];
+        determination_bases: never[];
+        blocker?: {
+            code: string;
+            explanation: string;
+            signal_code: string;
+        };
+        remediation?: {
+            code: string;
+            instruction: string;
+            signal_code: string;
+        };
     })[];
     readonly barrierRatio: number;
-    readonly freshness: "unknown" | "fresh" | "stale";
-    readonly overallOutcome: "unknown" | "not_applicable" | "pass" | "constrained" | "fail";
-    readonly grade: "A+" | "A" | "B+" | "B" | "C+" | "C" | "D" | "F" | "unrated";
+    readonly freshness: "fresh" | "stale" | "unknown";
+    readonly overallOutcome: "constrained" | "fail" | "not_applicable" | "pass" | "unknown";
+    readonly grade: "A" | "A+" | "B" | "B+" | "C" | "C+" | "D" | "F" | "unrated";
 };
 export type AgentReadinessAssessment = ReturnType<typeof deriveAgentReadinessAssessment>;
 export declare function verifyAgentReadinessProjection(input: unknown): AgentReadinessProjection;

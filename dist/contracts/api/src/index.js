@@ -1,22 +1,24 @@
+import { publicationResourceDigestsSchema } from "provenry/contracts/publication";
+import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN, SLUG_PATTERN, } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_PROFILE_ID_PATTERN, DIGEST_PATTERN, ENTITY_ID_PATTERN, IDENTIFIER_PATTERN, OFFER_ID_PATTERN, OPERATION_ID_PATTERN, PROGRAM_ID_PATTERN, SLUG_PATTERN, } from "../../../modules/primitives/src/index.js";
-import { agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionLineageSchema, agentReadinessProjectionSchema, agentReadinessPublicationVisibilitySchema, agentReadinessPublicStateSchema, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
+import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
+import { agentReadinessAuthoringPathSchema, agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionSchema, agentReadinessDraftDiagnosticSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionLineageSchema, agentReadinessProjectionSchema, agentReadinessPublicationVisibilitySchema, agentReadinessPublicStateSchema, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
 import { canonicalArtifactSchema, compiledEntitySchema, compiledOfferSchema, compiledPolicySchema, compiledProgramSchema, provenanceEntrySchema, } from "../../artifact/src/index.js";
 import { assetBindingProjectionSchema, assetMediaTypeSchema, ENTITY_ICON_MAX_SOURCE_BYTES, entityAssetSubmissionSchema, entityAssetUploadHeadersSchema, entityAssetUploadReceiptSchema, } from "../../assets/src/index.js";
 import { entityIdentityAssuranceSchema } from "../../assurance/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
 import { commercialOrderIdSchema } from "../../billing/src/index.js";
 import { catalogAdmissionConflictLookupRequestSchema, catalogVerifierIdentityContextPacketSchema, } from "../../catalog-verifier/src/index.js";
-import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../commercial-work/src/index.js";
 import { agentReadinessDatasetSchema, companiesDatasetSchema, startupCreditsDatasetSchema, } from "../../datasets/src/index.js";
 import { catalogEventPayloadSchemas, eventSubjectSchema } from "../../events/src/index.js";
 import { captureReceiptSchema } from "../../evidence/src/index.js";
 import { changeFeedPageSchema } from "../../feed/src/index.js";
 import { observationSchema } from "../../observations/src/index.js";
 import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, PUBLICATION_STAGES, publicationDiagnosticSchema, publicationStageResultSchema, } from "../../publication/src/index.js";
-import { releaseDescriptorSchema, releaseResourceDigestsSchema } from "../../release/src/index.js";
+import { sourceyReleaseEnvelopeSchemas } from "../../release/src/index.js";
 import { eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
 import { agentReadinessJsonCanonicalPath, companiesJsonCanonicalPath, startupCreditsJsonCanonicalPath, } from "../../routes/src/index.js";
+import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../startup-credits-commercial/src/index.js";
 import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const nonEmpty = z.string().min(1);
@@ -28,7 +30,7 @@ const slug = z.string().regex(SLUG_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
-export const SOURCEY_PUBLIC_API_VERSION = "1.1.2";
+export const SOURCEY_PUBLIC_API_VERSION = "1.2.1";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -103,7 +105,7 @@ export const catalogReleaseSummarySchema = z
     policy_as_of: z.iso.datetime({ offset: true }),
     artifact_sha256: digest,
     admitted_input_digests: z.array(digest).min(1),
-    resource_digests: releaseResourceDigestsSchema,
+    resource_digests: publicationResourceDigestsSchema,
     bundle: z
         .object({
         digest,
@@ -120,7 +122,7 @@ export const catalogReleaseSummarySchema = z
 })
     .strict();
 const catalogReleaseReadObjectSchema = catalogReleaseSummarySchema
-    .extend({ descriptor: releaseDescriptorSchema })
+    .extend({ descriptor: sourceyReleaseEnvelopeSchemas.descriptor })
     .strict();
 export const catalogReleaseReadSchema = catalogReleaseReadObjectSchema.superRefine((value, context) => {
     if (value.release_id !== value.descriptor.release_id ||
@@ -187,6 +189,54 @@ export const catalogEntityListSummarySchema = z
         .strict()),
 })
     .strict();
+export const catalogSitemapShardSchema = z.string().regex(/^[a-f0-9]{2,3}$/);
+export const catalogSitemapEntrySchema = z
+    .object({
+    path: z
+        .string()
+        .startsWith("/")
+        .max(2_048)
+        .refine((value) => !/[?#]/u.test(value)),
+    lastmod: instant,
+})
+    .strict();
+export const catalogSitemapShardSummarySchema = z
+    .object({
+    shard: catalogSitemapShardSchema,
+    entry_count: z.number().int().positive().max(50_000),
+    lastmod: instant,
+})
+    .strict();
+export const catalogSitemapChangeSchema = z
+    .object({
+    operation: z.enum(["upsert", "delete"]),
+    path: catalogSitemapEntrySchema.shape.path,
+})
+    .strict();
+export const catalogSitemapShardListResponseSchema = apiEnvelope(z.array(catalogSitemapShardSummarySchema).max(4_096));
+export const catalogSitemapEntryListResponseSchema = pagedApiEnvelope(catalogSitemapEntrySchema).extend({ shard: catalogSitemapShardSchema });
+export const catalogSitemapChangeListResponseSchema = pagedApiEnvelope(catalogSitemapChangeSchema);
+export const eligibilityStructureStatisticSchema = z
+    .object({
+    statistic_id: digest,
+    method_digest: digest,
+    release_id: digest,
+    denominator: z.number().int().nonnegative(),
+    without_manual_review_node: z.number().int().nonnegative(),
+    with_manual_review_node: z.number().int().nonnegative(),
+    without_manual_review_basis_points: z.number().int().min(0).max(10_000),
+    result_digest: digest,
+})
+    .strict()
+    .superRefine((value, context) => {
+    if (value.without_manual_review_node + value.with_manual_review_node !== value.denominator) {
+        context.addIssue({
+            code: "custom",
+            message: "Eligibility-structure buckets must close over their denominator.",
+        });
+    }
+});
+export const eligibilityStructureStatisticResponseSchema = apiEnvelope(eligibilityStructureStatisticSchema);
 export const entityListResponseSchema = pagedApiEnvelope(compiledEntitySchema).extend({
     query: z.string(),
     category: slug.nullable(),
@@ -335,6 +385,7 @@ export const searchOffersResponseSchema = apiEnvelope(z.array(offerSearchResultS
 });
 export const entityAgentReadinessProfilesResponseSchema = apiEnvelope(z.array(agentReadinessProjectionSchema)).extend({
     entity_id: entityId,
+    next_cursor: z.string().min(1).nullable(),
 });
 export const agentReadinessProfileResponseSchema = apiEnvelope(z.union([agentReadinessProjectionSchema, agentReadinessProfileTombstoneSchema]));
 export const agentReadinessProjectionLineageResponseSchema = apiEnvelope(z.union([agentReadinessProjectionLineageSchema, agentReadinessProfileTombstoneSchema]));
@@ -365,7 +416,7 @@ export const offerAgentReadinessProfilesResponseSchema = apiEnvelope(z.array(z
         });
     }
 })))
-    .extend({ offer_id: offerId })
+    .extend({ offer_id: offerId, next_cursor: z.string().min(1).nullable() })
     .superRefine((value, context) => {
     if (value.data.some((item) => item.relation.offer_id !== value.offer_id)) {
         context.addIssue({
@@ -442,7 +493,7 @@ const catalogClosureRevisionSchema = z.union([
 ]);
 export const catalogClosureResponseSchema = apiEnvelope(z
     .object({
-    resource_digests: releaseResourceDigestsSchema,
+    resource_digests: publicationResourceDigestsSchema,
     current_revision_digests: z.array(digest),
     revisions: z.array(z
         .object({
@@ -495,6 +546,7 @@ export const publicDatasetEndpoints = [
 ];
 const idPath = z.object({ id: nonEmpty }).strict();
 const releaseIdPath = z.object({ release_id: digest }).strict();
+const sitemapShardPath = z.object({ shard: catalogSitemapShardSchema }).strict();
 const entityIdPath = z.object({ entity: entityId }).strict();
 const entitySlugPath = z.object({ entity: slug }).strict();
 const entityProgramPath = z.object({ entity: slug, program: slug }).strict();
@@ -574,6 +626,12 @@ const operationLookupQuery = z
     limit: z.coerce.number().int().min(1).max(100).optional(),
 })
     .strict();
+const sitemapPageQuery = z
+    .object({
+    cursor: z.string().min(1).optional(),
+    limit: z.coerce.number().int().min(1).max(1_000).default(1_000),
+})
+    .strict();
 const commonErrors = {
     400: catalogApiErrorResponseSchema,
     404: catalogApiErrorResponseSchema,
@@ -615,16 +673,13 @@ export const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
  * bytes and passes them to that validator without interpreting Entity, Program,
  * or Offer fields.
  */
-export const catalogSubmissionRequestSchema = z
-    .object({
+const catalogRecordChangeShape = {
     authoring_files: z.array(catalogSubmissionAuthoringFileSchema).default([]),
     remove_entity_ids: z.array(entityId).default([]),
     asset_submissions: z.array(entityAssetSubmissionSchema).default([]),
     expected_current_entities: z.array(expectedPublicationEntitySchema).max(100).optional(),
-    authority: catalogSubmissionAuthoritySchema,
-})
-    .strict()
-    .superRefine((value, context) => {
+};
+function uniqueExpectedEntities(value, context) {
     const ids = value.expected_current_entities?.map(({ entity_id: entityId }) => entityId) ?? [];
     if (new Set(ids).size !== ids.length) {
         context.addIssue({
@@ -633,10 +688,47 @@ export const catalogSubmissionRequestSchema = z
             message: "Expected current Entity preconditions must be unique.",
         });
     }
-})
-    .refine((value) => value.authoring_files.length > 0 ||
-    value.remove_entity_ids.length > 0 ||
-    value.asset_submissions.length > 0, "A submission must contain authoring, an Entity removal, or an Entity asset.");
+}
+function changesCatalogRecords(value) {
+    return (value.authoring_files.length > 0 ||
+        value.remove_entity_ids.length > 0 ||
+        value.asset_submissions.length > 0);
+}
+const CATALOG_RECORD_CHANGE_REQUIRED = "A submission must contain authoring, an Entity removal, or an Entity asset.";
+/** One Catalog record change: the existing Catalog proposal payload. */
+export const catalogRecordSubmissionPayloadSchema = z
+    .object(catalogRecordChangeShape)
+    .strict()
+    .superRefine(uniqueExpectedEntities)
+    .refine(changesCatalogRecords, CATALOG_RECORD_CHANGE_REQUIRED);
+/** The Catalog record request Catalog processes: one change and the authority that sent it. */
+export const catalogSubmissionRequestSchema = z
+    .object({ ...catalogRecordChangeShape, authority: catalogSubmissionAuthoritySchema })
+    .strict()
+    .superRefine(uniqueExpectedEntities)
+    .refine(changesCatalogRecords, CATALOG_RECORD_CHANGE_REQUIRED);
+/**
+ * One submission through the one transport, as a closed product union. The
+ * envelope owns identity (the idempotency key and the authenticated
+ * principal), origin (the authority) and status; each payload stays owned by
+ * its Catalog contract.
+ */
+export const submissionRequestSchema = z.discriminatedUnion("product", [
+    z
+        .object({
+        product: z.literal("catalog_record"),
+        payload: catalogRecordSubmissionPayloadSchema,
+        authority: catalogSubmissionAuthoritySchema,
+    })
+        .strict(),
+    z
+        .object({
+        product: z.literal("agent_readiness"),
+        payload: agentReadinessDeclarationDraftRequestSchema,
+        authority: catalogSubmissionAuthoritySchema,
+    })
+        .strict(),
+]);
 export const catalogSubmissionAuthorizationPolicySchema = z.enum(["proposal", "publication"]);
 export const catalogSubmissionOperatorAdmissionCoreSchema = z
     .object({
@@ -739,11 +831,17 @@ export const catalogSubmissionProcessingResultSchema = z.discriminatedUnion("sta
     })
         .strict(),
 ]);
+const submissionLinksSchema = z
+    .object({ self: z.string().regex(/^\/v1\/submissions\/sub_[a-f0-9]{64}$/) })
+    .strict();
+const submissionIngressSchema = z.enum(["authenticated_form", "paid_agent", "governed_ops"]);
 export const catalogSubmissionStatusSchema = z
     .object({
     submission_id: submissionId,
+    product: z.literal("catalog_record"),
+    links: submissionLinksSchema,
     state: catalogSubmissionStateSchema,
-    ingress: z.enum(["authenticated_form", "paid_agent", "governed_ops"]),
+    ingress: submissionIngressSchema,
     payload_digest: digest,
     authentication_digest: digest,
     proposal_digest: digest.nullable(),
@@ -756,7 +854,43 @@ export const catalogSubmissionStatusSchema = z
     updated_at: instant,
 })
     .strict();
-export const catalogSubmissionResponseSchema = apiEnvelope(catalogSubmissionStatusSchema);
+/**
+ * A hosted Agent Readiness declaration: queued until the evidence worker
+ * drafts it against the Entity's current authoring source, then admitted with
+ * its exact hosted bytes or refused with the draft's diagnostics.
+ */
+export const agentReadinessSubmissionStatusSchema = z
+    .object({
+    submission_id: submissionId,
+    product: z.literal("agent_readiness"),
+    links: submissionLinksSchema,
+    state: z.enum(["queued", "admitted", "refused"]),
+    ingress: submissionIngressSchema,
+    payload_digest: digest,
+    subject: z
+        .object({ entity_id: entityId, declaration_ids: z.array(identifier).min(1) })
+        .strict()
+        .nullable(),
+    authoring_blob_digest: digest.nullable(),
+    diagnostics: z.array(agentReadinessDraftDiagnosticSchema),
+    created_at: instant,
+    updated_at: instant,
+})
+    .strict();
+export const submissionStatusSchema = z.discriminatedUnion("product", [
+    catalogSubmissionStatusSchema,
+    agentReadinessSubmissionStatusSchema,
+]);
+export const submissionResponseSchema = apiEnvelope(submissionStatusSchema);
+/** The exact authoring bytes a published profile cites for a hosted declaration. */
+export const agentReadinessDeclarationBytesSchema = z
+    .object({
+    blob_digest: digest,
+    path: agentReadinessAuthoringPathSchema,
+    content: z.string().min(1),
+})
+    .strict();
+export const agentReadinessDeclarationBytesResponseSchema = apiEnvelope(agentReadinessDeclarationBytesSchema);
 export const entityAssetUploadResponseSchema = apiEnvelope(entityAssetUploadReceiptSchema);
 export const agentReadinessDeclarationDraftResponseSchema = apiEnvelope(agentReadinessDeclarationDraftResultSchema);
 const submissionIdPath = z.object({ submission_id: submissionId }).strict();
@@ -807,6 +941,40 @@ export const publicCatalogV1Endpoints = [
         summary: "Read the exact current Catalog taxonomy.",
         tags: ["Catalog"],
         responses: { 200: catalogTaxonomyResponseSchema },
+    },
+    {
+        operationId: "listCatalogSitemapShards",
+        method: "GET",
+        path: "/v1/discovery/sitemap-shards",
+        summary: "List the bounded non-empty shards of the current Catalog sitemap.",
+        tags: ["Catalog"],
+        responses: { 200: catalogSitemapShardListResponseSchema },
+    },
+    {
+        operationId: "listCatalogSitemapEntries",
+        method: "GET",
+        path: "/v1/discovery/sitemap-shards/{shard}",
+        summary: "List one release-bound Catalog sitemap shard.",
+        tags: ["Catalog"],
+        request: { path: sitemapShardPath, query: sitemapPageQuery },
+        responses: { 200: catalogSitemapEntryListResponseSchema, 400: catalogApiErrorResponseSchema },
+    },
+    {
+        operationId: "listCatalogSitemapChanges",
+        method: "GET",
+        path: "/v1/discovery/sitemap-changes",
+        summary: "List changed Catalog sitemap paths for the current release.",
+        tags: ["Catalog"],
+        request: { query: sitemapPageQuery },
+        responses: { 200: catalogSitemapChangeListResponseSchema, 400: catalogApiErrorResponseSchema },
+    },
+    {
+        operationId: "getActiveOfferEligibilityStructure",
+        method: "GET",
+        path: "/v1/statistics/active-offer-eligibility-structure",
+        summary: "Read the release-bound active Offer eligibility-structure statistic.",
+        tags: ["Catalog"],
+        responses: { 200: eligibilityStructureStatisticResponseSchema },
     },
     {
         operationId: "listEntities",
@@ -868,7 +1036,7 @@ export const publicCatalogV1Endpoints = [
         path: "/v1/entities/{entity}/agent-readiness-profiles",
         summary: "List published agent readiness profiles for an entity.",
         tags: ["Catalog"],
-        request: { path: entityIdPath },
+        request: { path: entityIdPath, query: pageQuery },
         responses: { 200: entityAgentReadinessProfilesResponseSchema, ...commonErrors },
     },
     {
@@ -1089,7 +1257,7 @@ export const publicCatalogV1Endpoints = [
         path: "/v1/agent-readiness-profiles/by-offer/{offer}",
         summary: "List published Agent Readiness profiles through exact released Offer relations.",
         tags: ["Catalog"],
-        request: { path: z.object({ offer: offerId }).strict() },
+        request: { path: z.object({ offer: offerId }).strict(), query: pageQuery },
         responses: { 200: offerAgentReadinessProfilesResponseSchema, ...commonErrors },
     },
 ];
@@ -1121,15 +1289,15 @@ export const catalogSubmissionV1Endpoints = [
         operationId: "createCatalogSubmission",
         method: "POST",
         path: "/v1/submissions",
-        summary: "Submit exact Catalog authoring bytes through an authenticated ingress.",
+        summary: "Submit a Catalog record change or an Agent Readiness declaration through the one authenticated submission transport.",
         tags: ["Catalog"],
         auth: "cookie_or_bearer",
         request: {
             headers: catalogSubmissionHeadersSchema,
-            body: catalogSubmissionRequestSchema,
+            body: submissionRequestSchema,
         },
         responses: {
-            202: catalogSubmissionResponseSchema,
+            202: submissionResponseSchema,
             400: catalogApiErrorResponseSchema,
             401: catalogApiErrorResponseSchema,
             403: catalogApiErrorResponseSchema,
@@ -1145,7 +1313,7 @@ export const catalogSubmissionV1Endpoints = [
         auth: "cookie_or_bearer",
         request: { path: submissionIdPath },
         responses: {
-            200: catalogSubmissionResponseSchema,
+            200: submissionResponseSchema,
             400: catalogApiErrorResponseSchema,
             401: catalogApiErrorResponseSchema,
             403: catalogApiErrorResponseSchema,
@@ -1159,7 +1327,7 @@ export const agentReadinessDeclarationDraftV1Endpoints = [
         operationId: "prepareAgentReadinessDeclaration",
         method: "POST",
         path: "/v1/agent-readiness/declaration-drafts",
-        summary: "Prepare canonical Agent Readiness vendor, service, API, authentication, payment, provisioning, operation, recovery, and agent-standard declaration YAML for a GitHub pull request.",
+        summary: "Prepare canonical Agent Readiness vendor, service, API, authentication, payment, provisioning, operation, recovery, and agent-standard declaration YAML to submit through POST /v1/submissions.",
         tags: ["Catalog"],
         request: { body: agentReadinessDeclarationDraftRequestSchema },
         responses: {
@@ -1167,6 +1335,22 @@ export const agentReadinessDeclarationDraftV1Endpoints = [
             400: catalogApiErrorResponseSchema,
             401: catalogApiErrorResponseSchema,
             403: catalogApiErrorResponseSchema,
+        },
+    },
+];
+/** Hosted declaration bytes, public once a published profile cites them. */
+export const agentReadinessHostedDeclarationV1Endpoints = [
+    {
+        operationId: "getAgentReadinessDeclaration",
+        method: "GET",
+        path: "/v1/agent-readiness/declarations/{blob_digest}",
+        summary: "Read the exact authoring bytes a published Agent Readiness profile cites for a declaration submitted without Git.",
+        tags: ["Catalog"],
+        request: { path: z.object({ blob_digest: digest }).strict() },
+        responses: {
+            200: agentReadinessDeclarationBytesResponseSchema,
+            400: catalogApiErrorResponseSchema,
+            404: catalogApiErrorResponseSchema,
         },
     },
 ];
@@ -1275,6 +1459,7 @@ export const catalogOpenApiV1Endpoints = [
     ...publicCatalogV1Endpoints,
     ...catalogSubmissionV1Endpoints,
     ...agentReadinessDeclarationDraftV1Endpoints,
+    ...agentReadinessHostedDeclarationV1Endpoints,
     ...catalogVerifierV1Endpoints,
     ...startupCreditsReviewV1Endpoints,
     ...publicDatasetEndpoints,
@@ -1287,4 +1472,49 @@ export const publicCatalogV1BoundaryErrors = {
     500: catalogApiErrorResponseSchema,
     503: catalogApiErrorResponseSchema,
 };
+const catalogOpenApiEndpointIndex = new Map(catalogOpenApiV1Endpoints.map((endpoint) => [endpoint.operationId, endpoint]));
+const publicCatalogReadOperationIds = new Set([...publicCatalogV1Endpoints, ...publicDatasetEndpoints]
+    .filter(({ method }) => method === "GET")
+    .map(({ operationId }) => operationId));
+const catalogOpenApiPathMatchers = catalogOpenApiV1Endpoints.map((endpoint) => ({
+    endpoint,
+    pattern: new RegExp(`^${endpoint.path
+        .split("/")
+        .map((segment) => segment.startsWith("{") && segment.endsWith("}")
+        ? "[^/]+"
+        : segment.replace(/[.*+?^${}()|[\]\\]/gu, "\\$&"))
+        .join("/")}$`, "u"),
+}));
+/** Resolve one HTTP operation from the canonical registry. */
+export function catalogOpenApiEndpoint(operationId) {
+    const endpoint = catalogOpenApiEndpointIndex.get(operationId);
+    if (!endpoint)
+        throw new Error(`Unknown Sourcey API operation: ${operationId}`);
+    return endpoint;
+}
+/**
+ * Build an exact API path from the canonical route template. Path parameter
+ * names and escaping remain owned by the API registry rather than consumers.
+ */
+export function catalogOpenApiPath(operationId, parameters = {}) {
+    const endpoint = catalogOpenApiEndpoint(operationId);
+    const required = [...endpoint.path.matchAll(/\{([^}]+)\}/gu)].map((match) => match[1]);
+    if (required.some((name) => name === undefined || parameters[name] === undefined) ||
+        Object.keys(parameters).some((name) => !required.includes(name))) {
+        throw new Error(`Path parameters do not match Sourcey API operation ${operationId}.`);
+    }
+    return endpoint.path.replace(/\{([^}]+)\}/gu, (_placeholder, name) => encodeURIComponent(parameters[name]));
+}
+/** Match a concrete request path to its stable operation identity. */
+export function matchCatalogOpenApiEndpoint(method, pathname) {
+    const normalizedMethod = method.toUpperCase() === "HEAD" ? "GET" : method.toUpperCase();
+    return (catalogOpenApiPathMatchers.find(({ endpoint, pattern }) => endpoint.method === normalizedMethod && pattern.test(pathname))?.endpoint ?? null);
+}
+/**
+ * Decide whether one matched operation is an anonymous public read. Consumers
+ * use this semantic boundary instead of rebuilding public-route allowlists.
+ */
+export function isPublicCatalogReadOperation(operationId) {
+    return publicCatalogReadOperationIds.has(operationId);
+}
 //# sourceMappingURL=index.js.map

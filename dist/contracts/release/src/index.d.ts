@@ -5,44 +5,177 @@ export declare const catalogReleaseDeliverySchema: z.ZodObject<{
     archive_url: z.ZodURL;
     checksum_url: z.ZodURL;
 }, z.core.$strict>;
-export declare function catalogReleaseDelivery(bundleDigest: string): CatalogReleaseDelivery;
-export declare const releaseObjectManifestSchema: z.ZodObject<{
-    manifest_contract: z.ZodLiteral<"sourcey.release-object-manifest/v1alpha1">;
-    objects: z.ZodRecord<z.ZodString, z.ZodObject<{
-        sha256: z.ZodString;
-        bytes: z.ZodNumber;
-    }, z.core.$strict>>;
-}, z.core.$strict>;
-/**
- * Stable content-addressed extension surface for release-owned sidecars.
- * Domain records stay strict; adjacent indexes, inputs, and policies bind here
- * so a new capability does not change the release envelope shape.
- */
-export declare const releaseResourceDigestsSchema: z.ZodRecord<z.ZodString, z.ZodString>;
-export declare const releasePolicyInputsSchema: z.ZodObject<{
-    input_contract: z.ZodLiteral<"sourcey.policy-inputs/v1alpha1">;
-    agent_readiness_policy_digest: z.ZodString;
-    assurance_method_policy_digest: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    freshness_policy_digest: z.ZodString;
-    public_policy_digests: z.ZodArray<z.ZodString>;
-}, z.core.$strict>;
-/** One immutable source of production policy paths shared by release and evidence runtimes. */
-export declare const productionReleaseConfigurationSchema: z.ZodObject<{
-    configuration_contract: z.ZodLiteral<"sourcey.production-release-configuration/v1alpha1">;
-    policy_as_of: z.ZodISODateTime;
-    paths: z.ZodObject<{
-        taxonomy: z.ZodString;
-        root_set: z.ZodString;
-        signer_registry: z.ZodString;
-        agent_readiness_policy: z.ZodString;
-        assurance_method_policy: z.ZodString;
-        coverage_policy: z.ZodString;
-        freshness_policy: z.ZodString;
-        public_policy_root: z.ZodString;
+/** Sourcey's signed release contract identifiers; the engine owns their envelope shapes. */
+export declare const SOURCEY_PUBLICATION_CONTRACTS: {
+    readonly manifest: "sourcey.release-object-manifest/v1alpha1";
+    readonly snapshot: "sourcey.snapshot-core/v1alpha1";
+    readonly artifact: "sourcey.canonical-artifact/v1alpha1";
+    readonly release: "sourcey.release-core/v1alpha1";
+    readonly descriptor: "sourcey.release-descriptor/v1alpha1";
+    readonly diff: "sourcey.release-diff/v1alpha1";
+    readonly bundle: "sourcey.catalog-release-bundle/v1alpha1";
+    readonly resourceTransition: "sourcey.projection-transition/v1alpha1";
+};
+/** The installed envelope schemas of Sourcey's publication instance. */
+export declare const sourceyReleaseEnvelopeSchemas: Readonly<{
+    contracts: {
+        readonly manifest: "sourcey.release-object-manifest/v1alpha1";
+        readonly snapshot: "sourcey.snapshot-core/v1alpha1";
+        readonly artifact: "sourcey.canonical-artifact/v1alpha1";
+        readonly release: "sourcey.release-core/v1alpha1";
+        readonly descriptor: "sourcey.release-descriptor/v1alpha1";
+        readonly diff: "sourcey.release-diff/v1alpha1";
+        readonly bundle: "sourcey.catalog-release-bundle/v1alpha1";
+        readonly resourceTransition: "sourcey.projection-transition/v1alpha1";
+    };
+    change: z.ZodObject<{
+        change_id: z.ZodString;
+        kind: z.ZodString;
+        subject_type: z.ZodEnum<{
+            agent_readiness_profile: "agent_readiness_profile";
+            asset_binding: "asset_binding";
+            entity: "entity";
+            offer: "offer";
+            policy: "policy";
+            program: "program";
+        }>;
+        subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
+        revision_digest: z.ZodOptional<z.ZodString>;
+        previous_revision_digest: z.ZodOptional<z.ZodString>;
+        projection_digest: z.ZodOptional<z.ZodString>;
+        previous_projection_digest: z.ZodOptional<z.ZodString>;
+        basis_event_ids: z.ZodArray<z.ZodString>;
+        tombstone: z.ZodOptional<z.ZodObject<{
+            reason: z.ZodEnum<{
+                ended: "ended";
+                retired: "retired";
+                withdrawn: "withdrawn";
+            }>;
+            canonical_route: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
-}, z.core.$strict>;
-export type ProductionReleaseConfiguration = z.infer<typeof productionReleaseConfigurationSchema>;
+    subjectTypes: readonly string[];
+    objectManifest: z.ZodObject<{
+        manifest_contract: z.ZodLiteral<string>;
+        objects: z.ZodRecord<z.ZodString, z.ZodObject<{
+            sha256: z.ZodString;
+            bytes: z.ZodNumber;
+        }, z.core.$strict>>;
+    }, z.core.$strict>;
+    snapshotCore: z.ZodObject<{
+        snapshot_contract: z.ZodLiteral<string>;
+        release_sequence: z.ZodNumber;
+        compiler_version: z.ZodString;
+        artifact_contract: z.ZodLiteral<string>;
+        input_set_digest: z.ZodString;
+        artifact_digest: z.ZodString;
+        resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+        root_set_digest: z.ZodString;
+        signer_registry_digest: z.ZodString;
+        trust_transition_digest: z.ZodNullable<z.ZodString>;
+        policy_as_of: z.ZodISODateTime;
+    }, z.core.$strict>;
+    releaseCore: z.ZodObject<{
+        release_contract: z.ZodLiteral<string>;
+        release_sequence: z.ZodNumber;
+        snapshot_id: z.ZodString;
+        parent_release_id: z.ZodNullable<z.ZodString>;
+        diff_digest: z.ZodString;
+    }, z.core.$strict>;
+    descriptor: z.ZodObject<{
+        descriptor_contract: z.ZodLiteral<string>;
+        snapshot_core: z.ZodObject<{
+            snapshot_contract: z.ZodLiteral<string>;
+            release_sequence: z.ZodNumber;
+            compiler_version: z.ZodString;
+            artifact_contract: z.ZodLiteral<string>;
+            input_set_digest: z.ZodString;
+            artifact_digest: z.ZodString;
+            resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+            root_set_digest: z.ZodString;
+            signer_registry_digest: z.ZodString;
+            trust_transition_digest: z.ZodNullable<z.ZodString>;
+            policy_as_of: z.ZodISODateTime;
+        }, z.core.$strict>;
+        snapshot_id: z.ZodString;
+        release_core: z.ZodObject<{
+            release_contract: z.ZodLiteral<string>;
+            release_sequence: z.ZodNumber;
+            snapshot_id: z.ZodString;
+            parent_release_id: z.ZodNullable<z.ZodString>;
+            diff_digest: z.ZodString;
+        }, z.core.$strict>;
+        release_id: z.ZodString;
+    }, z.core.$strict>;
+    diff: z.ZodObject<{
+        diff_contract: z.ZodLiteral<string>;
+        parent_snapshot_id: z.ZodNullable<z.ZodString>;
+        snapshot_id: z.ZodString;
+        changes: z.ZodArray<z.ZodObject<{
+            change_id: z.ZodString;
+            kind: z.ZodString;
+            subject_type: z.ZodEnum<{
+                agent_readiness_profile: "agent_readiness_profile";
+                asset_binding: "asset_binding";
+                entity: "entity";
+                offer: "offer";
+                policy: "policy";
+                program: "program";
+            }>;
+            subject_id: z.ZodUnion<readonly [z.ZodString, z.ZodString]>;
+            revision_digest: z.ZodOptional<z.ZodString>;
+            previous_revision_digest: z.ZodOptional<z.ZodString>;
+            projection_digest: z.ZodOptional<z.ZodString>;
+            previous_projection_digest: z.ZodOptional<z.ZodString>;
+            basis_event_ids: z.ZodArray<z.ZodString>;
+            tombstone: z.ZodOptional<z.ZodObject<{
+                reason: z.ZodEnum<{
+                    ended: "ended";
+                    retired: "retired";
+                    withdrawn: "withdrawn";
+                }>;
+                canonical_route: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>>;
+    }, z.core.$strict>;
+    bundle: z.ZodObject<{
+        bundle_contract: z.ZodLiteral<string>;
+        admitted_input_digests: z.ZodArray<z.ZodString>;
+        verifier_digest: z.ZodString;
+        object_manifest_digest: z.ZodString;
+        release: z.ZodObject<{
+            descriptor_contract: z.ZodLiteral<string>;
+            snapshot_core: z.ZodObject<{
+                snapshot_contract: z.ZodLiteral<string>;
+                release_sequence: z.ZodNumber;
+                compiler_version: z.ZodString;
+                artifact_contract: z.ZodLiteral<string>;
+                input_set_digest: z.ZodString;
+                artifact_digest: z.ZodString;
+                resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+                root_set_digest: z.ZodString;
+                signer_registry_digest: z.ZodString;
+                trust_transition_digest: z.ZodNullable<z.ZodString>;
+                policy_as_of: z.ZodISODateTime;
+            }, z.core.$strict>;
+            snapshot_id: z.ZodString;
+            release_core: z.ZodObject<{
+                release_contract: z.ZodLiteral<string>;
+                release_sequence: z.ZodNumber;
+                snapshot_id: z.ZodString;
+                parent_release_id: z.ZodNullable<z.ZodString>;
+                diff_digest: z.ZodString;
+            }, z.core.$strict>;
+            release_id: z.ZodString;
+        }, z.core.$strict>;
+        resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
+        files: z.ZodRecord<z.ZodString, z.ZodObject<{
+            sha256: z.ZodString;
+            bytes: z.ZodNumber;
+        }, z.core.$strict>>;
+        bundle_digest: z.ZodString;
+    }, z.core.$strict>;
+}>;
 export declare const RELEASE_RESOURCES: {
     readonly agentReadinessIndex: "agent-readiness-index";
     readonly agentReadinessInputs: "agent-readiness-inputs";
@@ -66,52 +199,10 @@ export declare const RELEASE_RESOURCES: {
 export declare function releaseResourceDigest(resources: Readonly<Record<string, string>>, name: (typeof RELEASE_RESOURCES)[keyof typeof RELEASE_RESOURCES]): `sha256:${string}`;
 export declare function releaseRootSetObjectPath(rootSetDigest: string): string;
 export declare function releaseSignerRegistryObjectPath(signerRegistryDigest: string): string;
+export declare function releaseTrustTransitionObjectPath(transitionDigest: string): string;
 export declare function releasePolicyObjectPath(policyDigest: string): string;
-export declare const snapshotCoreSchema: z.ZodObject<{
-    snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
-    release_sequence: z.ZodNumber;
-    compiler_version: z.ZodString;
-    artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
-    input_set_digest: z.ZodString;
-    artifact_digest: z.ZodString;
-    resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-    root_set_digest: z.ZodString;
-    signer_registry_digest: z.ZodString;
-    trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-    policy_as_of: z.ZodISODateTime;
-}, z.core.$strict>;
-export declare const releaseCoreSchema: z.ZodObject<{
-    release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
-    release_sequence: z.ZodNumber;
-    snapshot_id: z.ZodString;
-    parent_release_id: z.ZodNullable<z.ZodString>;
-    diff_digest: z.ZodString;
-}, z.core.$strict>;
-export declare const releaseDescriptorSchema: z.ZodObject<{
-    descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
-    snapshot_core: z.ZodObject<{
-        snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
-        release_sequence: z.ZodNumber;
-        compiler_version: z.ZodString;
-        artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
-        input_set_digest: z.ZodString;
-        artifact_digest: z.ZodString;
-        resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-        root_set_digest: z.ZodString;
-        signer_registry_digest: z.ZodString;
-        trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-        policy_as_of: z.ZodISODateTime;
-    }, z.core.$strict>;
-    snapshot_id: z.ZodString;
-    release_core: z.ZodObject<{
-        release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
-        release_sequence: z.ZodNumber;
-        snapshot_id: z.ZodString;
-        parent_release_id: z.ZodNullable<z.ZodString>;
-        diff_digest: z.ZodString;
-    }, z.core.$strict>;
-    release_id: z.ZodString;
-}, z.core.$strict>;
+export declare function releaseCaptureObjectPath(captureDigest: string): string;
+export declare function releaseNormalizedObjectPath(normalizedDigest: string): string;
 export declare const catalogDeltaEntityChangeSchema: z.ZodObject<{
     operation: z.ZodLiteral<"upsert">;
     entity_id: z.ZodString;
@@ -121,7 +212,7 @@ export declare const catalogDeltaEntityChangeSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
     state_contract: z.ZodLiteral<"sourcey.catalog-state-transition/v1alpha1">;
-    parent_state_digest: z.ZodNullable<z.ZodString>;
+    parent_state_digest: z.ZodString;
     policy_as_of: z.ZodISODateTime;
     artifact_core: z.ZodObject<{
         artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
@@ -172,8 +263,8 @@ export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
         routes: z.ZodRecord<z.ZodString, z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
                 tombstone: "tombstone";
             }>;
             entity_id: z.ZodString;
@@ -196,16 +287,16 @@ export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
         canonical_program_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_offer_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_agent_readiness_profile_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
-        program_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        program_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
-        offer_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>;
+        offer_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
         agent_readiness_profile_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
             old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
@@ -213,8 +304,8 @@ export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         asset_binding_dispositions: z.ZodRecord<z.ZodString, z.ZodObject<{
             disposition: z.ZodEnum<{
-                rebind: "rebind";
                 end: "end";
+                rebind: "rebind";
             }>;
             event_id: z.ZodString;
             replacement_binding_event_id: z.ZodOptional<z.ZodString>;
@@ -243,39 +334,39 @@ export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
             receipt_digest: z.ZodString;
             receipt_object_digest: z.ZodString;
             issuer_id: z.ZodString;
             operation_id: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     authority_set_digests: z.ZodArray<z.ZodString>;
     object_manifest_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const catalogDeltaCoreSchema: z.ZodObject<{
     delta_contract: z.ZodLiteral<"sourcey.catalog-delta/v1alpha1">;
-    base: z.ZodNullable<z.ZodObject<{
+    base: z.ZodObject<{
         release: z.ZodObject<{
-            descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
+            descriptor_contract: z.ZodLiteral<string>;
             snapshot_core: z.ZodObject<{
-                snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
+                snapshot_contract: z.ZodLiteral<string>;
                 release_sequence: z.ZodNumber;
                 compiler_version: z.ZodString;
-                artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
+                artifact_contract: z.ZodLiteral<string>;
                 input_set_digest: z.ZodString;
                 artifact_digest: z.ZodString;
                 resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
                 root_set_digest: z.ZodString;
                 signer_registry_digest: z.ZodString;
-                trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+                trust_transition_digest: z.ZodNullable<z.ZodString>;
                 policy_as_of: z.ZodISODateTime;
             }, z.core.$strict>;
             snapshot_id: z.ZodString;
             release_core: z.ZodObject<{
-                release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
+                release_contract: z.ZodLiteral<string>;
                 release_sequence: z.ZodNumber;
                 snapshot_id: z.ZodString;
                 parent_release_id: z.ZodNullable<z.ZodString>;
@@ -283,7 +374,7 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
             }, z.core.$strict>;
             release_id: z.ZodString;
         }, z.core.$strict>;
-    }, z.core.$strict>>;
+    }, z.core.$strict>;
     admitted_input_digests: z.ZodArray<z.ZodString>;
     policy_as_of: z.ZodISODateTime;
     artifact_core: z.ZodObject<{
@@ -335,8 +426,8 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
         routes: z.ZodRecord<z.ZodString, z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
                 tombstone: "tombstone";
             }>;
             entity_id: z.ZodString;
@@ -359,16 +450,16 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
         canonical_program_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_offer_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_agent_readiness_profile_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
-        program_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        program_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
-        offer_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>;
+        offer_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
         agent_readiness_profile_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
             old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
@@ -376,8 +467,8 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         asset_binding_dispositions: z.ZodRecord<z.ZodString, z.ZodObject<{
             disposition: z.ZodEnum<{
-                rebind: "rebind";
                 end: "end";
+                rebind: "rebind";
             }>;
             event_id: z.ZodString;
             replacement_binding_event_id: z.ZodOptional<z.ZodString>;
@@ -406,14 +497,14 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
             receipt_digest: z.ZodString;
             receipt_object_digest: z.ZodString;
             issuer_id: z.ZodString;
             operation_id: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     authority_set_digests: z.ZodArray<z.ZodString>;
     object_manifest_digest: z.ZodString;
@@ -421,25 +512,25 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const catalogDeltaSchema: z.ZodObject<{
     delta_contract: z.ZodLiteral<"sourcey.catalog-delta/v1alpha1">;
-    base: z.ZodNullable<z.ZodObject<{
+    base: z.ZodObject<{
         release: z.ZodObject<{
-            descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
+            descriptor_contract: z.ZodLiteral<string>;
             snapshot_core: z.ZodObject<{
-                snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
+                snapshot_contract: z.ZodLiteral<string>;
                 release_sequence: z.ZodNumber;
                 compiler_version: z.ZodString;
-                artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
+                artifact_contract: z.ZodLiteral<string>;
                 input_set_digest: z.ZodString;
                 artifact_digest: z.ZodString;
                 resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
                 root_set_digest: z.ZodString;
                 signer_registry_digest: z.ZodString;
-                trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+                trust_transition_digest: z.ZodNullable<z.ZodString>;
                 policy_as_of: z.ZodISODateTime;
             }, z.core.$strict>;
             snapshot_id: z.ZodString;
             release_core: z.ZodObject<{
-                release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
+                release_contract: z.ZodLiteral<string>;
                 release_sequence: z.ZodNumber;
                 snapshot_id: z.ZodString;
                 parent_release_id: z.ZodNullable<z.ZodString>;
@@ -447,7 +538,7 @@ export declare const catalogDeltaSchema: z.ZodObject<{
             }, z.core.$strict>;
             release_id: z.ZodString;
         }, z.core.$strict>;
-    }, z.core.$strict>>;
+    }, z.core.$strict>;
     admitted_input_digests: z.ZodArray<z.ZodString>;
     policy_as_of: z.ZodISODateTime;
     artifact_core: z.ZodObject<{
@@ -499,8 +590,8 @@ export declare const catalogDeltaSchema: z.ZodObject<{
         routes: z.ZodRecord<z.ZodString, z.ZodObject<{
             kind: z.ZodEnum<{
                 entity: "entity";
-                program: "program";
                 offer: "offer";
+                program: "program";
                 tombstone: "tombstone";
             }>;
             entity_id: z.ZodString;
@@ -523,16 +614,16 @@ export declare const catalogDeltaSchema: z.ZodObject<{
         canonical_program_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_offer_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
         canonical_agent_readiness_profile_resolutions: z.ZodRecord<z.ZodString, z.ZodString>;
-        program_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        program_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
-        offer_reparents: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
-            old_entity_id: z.ZodOptional<z.ZodString>;
+        }, z.core.$strict>>;
+        offer_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
+            old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
             event_id: z.ZodString;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
         agent_readiness_profile_reparents: z.ZodRecord<z.ZodString, z.ZodObject<{
             old_entity_id: z.ZodString;
             new_entity_id: z.ZodString;
@@ -540,8 +631,8 @@ export declare const catalogDeltaSchema: z.ZodObject<{
         }, z.core.$strict>>;
         asset_binding_dispositions: z.ZodRecord<z.ZodString, z.ZodObject<{
             disposition: z.ZodEnum<{
-                rebind: "rebind";
                 end: "end";
+                rebind: "rebind";
             }>;
             event_id: z.ZodString;
             replacement_binding_event_id: z.ZodOptional<z.ZodString>;
@@ -570,14 +661,14 @@ export declare const catalogDeltaSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodOptional<z.ZodRecord<z.ZodString, z.ZodObject<{
+        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
             receipt_digest: z.ZodString;
             receipt_object_digest: z.ZodString;
             issuer_id: z.ZodString;
             operation_id: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
-        }, z.core.$strict>>>;
+        }, z.core.$strict>>;
     }, z.core.$strict>;
     authority_set_digests: z.ZodArray<z.ZodString>;
     object_manifest_digest: z.ZodString;
@@ -598,9 +689,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
             dispute: z.ZodEnum<{
                 none: "none";
@@ -615,22 +706,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                 supporting_event_ids: z.ZodArray<z.ZodString>;
                 contradicting_event_ids: z.ZodArray<z.ZodString>;
                 accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
             }, z.core.$strict>>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -659,9 +750,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -676,22 +767,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -727,6 +818,8 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -767,9 +860,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -796,9 +889,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -858,14 +951,14 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -878,12 +971,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -895,19 +986,19 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -924,9 +1015,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -941,22 +1032,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -981,8 +1072,8 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                 rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
                 benefit_id: z.ZodString;
                 basis: z.ZodEnum<{
-                    typed: "typed";
                     described: "described";
+                    typed: "typed";
                 }>;
                 figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"credit">;
@@ -1144,9 +1235,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
         revision_digest: z.ZodString;
         provenance: z.ZodObject<{
             freshness: z.ZodEnum<{
-                unknown: "unknown";
                 fresh: "fresh";
                 stale: "stale";
+                unknown: "unknown";
             }>;
             dispute: z.ZodEnum<{
                 none: "none";
@@ -1161,22 +1252,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                 supporting_event_ids: z.ZodArray<z.ZodString>;
                 contradicting_event_ids: z.ZodArray<z.ZodString>;
                 accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                    observed: "observed";
+                    attested: "attested";
                     derived: "derived";
                     editorial: "editorial";
-                    attested: "attested";
+                    observed: "observed";
                 }>>;
                 latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
             }, z.core.$strict>>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1205,9 +1296,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -1222,22 +1313,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1273,6 +1364,8 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1313,9 +1406,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1342,9 +1435,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1404,14 +1497,14 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1424,12 +1517,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1441,19 +1532,19 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             }, z.core.$strict>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 url: z.ZodOptional<z.ZodURL>;
                 public_code: z.ZodOptional<z.ZodString>;
@@ -1470,9 +1561,9 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
             revision_digest: z.ZodString;
             provenance: z.ZodObject<{
                 freshness: z.ZodEnum<{
-                    unknown: "unknown";
                     fresh: "fresh";
                     stale: "stale";
+                    unknown: "unknown";
                 }>;
                 dispute: z.ZodEnum<{
                     none: "none";
@@ -1487,22 +1578,22 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     supporting_event_ids: z.ZodArray<z.ZodString>;
                     contradicting_event_ids: z.ZodArray<z.ZodString>;
                     accepted_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     evidence_proof_kinds: z.ZodArray<z.ZodEnum<{
-                        observed: "observed";
+                        attested: "attested";
                         derived: "derived";
                         editorial: "editorial";
-                        attested: "attested";
+                        observed: "observed";
                     }>>;
                     latest_observation_at: z.ZodOptional<z.ZodISODateTime>;
                     freshness: z.ZodEnum<{
-                        unknown: "unknown";
                         fresh: "fresh";
                         stale: "stale";
+                        unknown: "unknown";
                     }>;
                 }, z.core.$strict>>;
                 vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1527,8 +1618,8 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                 rule: z.ZodLiteral<"sourcey.offer-headline/v1">;
                 benefit_id: z.ZodString;
                 basis: z.ZodEnum<{
-                    typed: "typed";
                     described: "described";
+                    typed: "typed";
                 }>;
                 figure: z.ZodDiscriminatedUnion<[z.ZodObject<{
                     kind: z.ZodLiteral<"credit">;
@@ -1700,8 +1791,8 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -1754,6 +1845,8 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1794,9 +1887,9 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -1823,9 +1916,9 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -1885,14 +1978,14 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1905,12 +1998,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -1924,19 +2015,19 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -1963,8 +2054,8 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
             domains: z.ZodArray<z.ZodObject<{
                 value: z.ZodString;
                 role: z.ZodEnum<{
-                    primary: "primary";
                     alias: "alias";
+                    primary: "primary";
                 }>;
                 valid_from: z.ZodISODateTime;
                 valid_until: z.ZodOptional<z.ZodISODateTime>;
@@ -2017,6 +2108,8 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     description: z.ZodString;
                 }, z.core.$strict>], "kind">;
                 benefits: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                    benefit_id: z.ZodString;
+                    description: z.ZodString;
                     kind: z.ZodLiteral<"credit">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -2057,9 +2150,9 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
                     percentage: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"exact">;
@@ -2086,9 +2179,9 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
                     value: z.ZodDiscriminatedUnion<[z.ZodObject<{
                         kind: z.ZodLiteral<"money">;
@@ -2148,14 +2241,14 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
                     waived_item: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
                     description: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
                     service: z.ZodString;
                     duration: z.ZodOptional<z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -2168,12 +2261,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
                     }, z.core.$strict>], "kind">>;
-                    benefit_id: z.ZodString;
-                    description: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"other">;
                     benefit_id: z.ZodString;
                     description: z.ZodString;
+                    kind: z.ZodLiteral<"other">;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>;
             eligibility: z.ZodObject<{
@@ -2187,19 +2278,19 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
             declared: z.ZodOptional<z.ZodLiteral<true>>;
             access: z.ZodObject<{
                 availability: z.ZodEnum<{
-                    public: "public";
-                    other: "other";
-                    referral: "referral";
-                    membership: "membership";
-                    invite: "invite";
                     automatic: "automatic";
+                    invite: "invite";
+                    membership: "membership";
+                    other: "other";
+                    public: "public";
+                    referral: "referral";
                 }>;
                 method: z.ZodEnum<{
-                    code: "code";
-                    other: "other";
                     automatic: "automatic";
-                    form: "form";
+                    code: "code";
                     contact: "contact";
+                    form: "form";
+                    other: "other";
                 }>;
                 public_code: z.ZodOptional<z.ZodString>;
                 url: z.ZodOptional<z.ZodURL>;
@@ -2209,78 +2300,41 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
         }, z.core.$strict>>;
     }, z.core.$strict>>;
 }, z.core.$strict>;
-export declare const catalogReleaseBundleCoreSchema: z.ZodObject<{
-    bundle_contract: z.ZodLiteral<"sourcey.catalog-release-bundle/v1alpha1">;
-    admitted_input_digests: z.ZodArray<z.ZodString>;
-    verifier_digest: z.ZodString;
-    object_manifest_digest: z.ZodString;
-    release: z.ZodObject<{
-        descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
-        snapshot_core: z.ZodObject<{
-            snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
-            release_sequence: z.ZodNumber;
-            compiler_version: z.ZodString;
-            artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
-            input_set_digest: z.ZodString;
-            artifact_digest: z.ZodString;
-            resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-            root_set_digest: z.ZodString;
-            signer_registry_digest: z.ZodString;
-            trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-            policy_as_of: z.ZodISODateTime;
-        }, z.core.$strict>;
-        snapshot_id: z.ZodString;
-        release_core: z.ZodObject<{
-            release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
-            release_sequence: z.ZodNumber;
-            snapshot_id: z.ZodString;
-            parent_release_id: z.ZodNullable<z.ZodString>;
-            diff_digest: z.ZodString;
-        }, z.core.$strict>;
-        release_id: z.ZodString;
-    }, z.core.$strict>;
+/** Every input a full release closes over; each field is always present. */
+export declare const closedInputSetSchema: z.ZodObject<{
+    input_contract: z.ZodLiteral<"sourcey.closed-input-set/v1alpha1">;
+    environment: z.ZodEnum<{
+        dogfood: "dogfood";
+        production: "production";
+    }>;
+    authoring_revisions: z.ZodArray<z.ZodString>;
+    event_ids: z.ZodArray<z.ZodString>;
+    capture_receipt_digests: z.ZodArray<z.ZodString>;
+    evidence_authority_set_digest: z.ZodNullable<z.ZodString>;
+    evidence_authority_bundle_digests: z.ZodArray<z.ZodString>;
     resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-    files: z.ZodRecord<z.ZodString, z.ZodObject<{
-        sha256: z.ZodString;
-        bytes: z.ZodNumber;
-    }, z.core.$strict>>;
+    taxonomy_digest: z.ZodString;
+    root_set_digest: z.ZodString;
+    signer_registry_digest: z.ZodString;
+    trust_transition_digest: z.ZodNullable<z.ZodString>;
+    parent_release_id: z.ZodNullable<z.ZodString>;
 }, z.core.$strict>;
-export declare const catalogReleaseBundleSchema: z.ZodObject<{
-    bundle_contract: z.ZodLiteral<"sourcey.catalog-release-bundle/v1alpha1">;
-    admitted_input_digests: z.ZodArray<z.ZodString>;
-    verifier_digest: z.ZodString;
-    object_manifest_digest: z.ZodString;
-    release: z.ZodObject<{
-        descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
-        snapshot_core: z.ZodObject<{
-            snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
-            release_sequence: z.ZodNumber;
-            compiler_version: z.ZodString;
-            artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
-            input_set_digest: z.ZodString;
-            artifact_digest: z.ZodString;
-            resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-            root_set_digest: z.ZodString;
-            signer_registry_digest: z.ZodString;
-            trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
-            policy_as_of: z.ZodISODateTime;
-        }, z.core.$strict>;
-        snapshot_id: z.ZodString;
-        release_core: z.ZodObject<{
-            release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
-            release_sequence: z.ZodNumber;
-            snapshot_id: z.ZodString;
-            parent_release_id: z.ZodNullable<z.ZodString>;
-            diff_digest: z.ZodString;
-        }, z.core.$strict>;
-        release_id: z.ZodString;
-    }, z.core.$strict>;
-    resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
-    files: z.ZodRecord<z.ZodString, z.ZodObject<{
+/** The observation closure of a full release; each field is always present. */
+export declare const releaseObservationInputsSchema: z.ZodObject<{
+    input_contract: z.ZodLiteral<"sourcey.observation-inputs/v1alpha1">;
+    manifest_digest: z.ZodString;
+    pack_digest: z.ZodString;
+    observation_ids: z.ZodArray<z.ZodString>;
+    evidence_authority_set_digest: z.ZodNullable<z.ZodString>;
+    evidence_authority_bundle_digests: z.ZodArray<z.ZodString>;
+    captures: z.ZodRecord<z.ZodString, z.ZodObject<{
         sha256: z.ZodString;
         bytes: z.ZodNumber;
     }, z.core.$strict>>;
-    bundle_digest: z.ZodString;
+    normalized_objects: z.ZodRecord<z.ZodString, z.ZodObject<{
+        sha256: z.ZodString;
+        bytes: z.ZodNumber;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
 /** Verifies the immutable bundle envelope; evidence admission is separate. */
 export declare function verifyCatalogReleaseBundle(input: unknown): CatalogReleaseBundle;
@@ -2292,23 +2346,23 @@ export declare function verifyCatalogReleaseBundle(input: unknown): CatalogRelea
 export declare const catalogPublicationParentCoreSchema: z.ZodObject<{
     parent_contract: z.ZodLiteral<"sourcey.catalog-publication-parent/v1alpha1">;
     release: z.ZodObject<{
-        descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
+        descriptor_contract: z.ZodLiteral<string>;
         snapshot_core: z.ZodObject<{
-            snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
+            snapshot_contract: z.ZodLiteral<string>;
             release_sequence: z.ZodNumber;
             compiler_version: z.ZodString;
-            artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
+            artifact_contract: z.ZodLiteral<string>;
             input_set_digest: z.ZodString;
             artifact_digest: z.ZodString;
             resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
             root_set_digest: z.ZodString;
             signer_registry_digest: z.ZodString;
-            trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+            trust_transition_digest: z.ZodNullable<z.ZodString>;
             policy_as_of: z.ZodISODateTime;
         }, z.core.$strict>;
         snapshot_id: z.ZodString;
         release_core: z.ZodObject<{
-            release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
+            release_contract: z.ZodLiteral<string>;
             release_sequence: z.ZodNumber;
             snapshot_id: z.ZodString;
             parent_release_id: z.ZodNullable<z.ZodString>;
@@ -2323,23 +2377,23 @@ export declare const catalogPublicationParentCoreSchema: z.ZodObject<{
 export declare const catalogPublicationParentSchema: z.ZodObject<{
     parent_contract: z.ZodLiteral<"sourcey.catalog-publication-parent/v1alpha1">;
     release: z.ZodObject<{
-        descriptor_contract: z.ZodLiteral<"sourcey.release-descriptor/v1alpha1">;
+        descriptor_contract: z.ZodLiteral<string>;
         snapshot_core: z.ZodObject<{
-            snapshot_contract: z.ZodLiteral<"sourcey.snapshot-core/v1alpha1">;
+            snapshot_contract: z.ZodLiteral<string>;
             release_sequence: z.ZodNumber;
             compiler_version: z.ZodString;
-            artifact_contract: z.ZodLiteral<"sourcey.canonical-artifact/v1alpha1">;
+            artifact_contract: z.ZodLiteral<string>;
             input_set_digest: z.ZodString;
             artifact_digest: z.ZodString;
             resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
             root_set_digest: z.ZodString;
             signer_registry_digest: z.ZodString;
-            trust_transition_digest: z.ZodOptional<z.ZodNullable<z.ZodString>>;
+            trust_transition_digest: z.ZodNullable<z.ZodString>;
             policy_as_of: z.ZodISODateTime;
         }, z.core.$strict>;
         snapshot_id: z.ZodString;
         release_core: z.ZodObject<{
-            release_contract: z.ZodLiteral<"sourcey.release-core/v1alpha1">;
+            release_contract: z.ZodLiteral<string>;
             release_sequence: z.ZodNumber;
             snapshot_id: z.ZodString;
             parent_release_id: z.ZodNullable<z.ZodString>;
@@ -2372,16 +2426,16 @@ export declare const releasePublicationSchema: z.ZodObject<{
     publication_digest: z.ZodString;
     protected: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
-            "catalog-capture": "catalog-capture";
-            "catalog-evidence": "catalog-evidence";
-            "catalog-identity": "catalog-identity";
-            "catalog-authority": "catalog-authority";
             "catalog-attestation": "catalog-attestation";
-            "catalog-verification": "catalog-verification";
+            "catalog-authority": "catalog-authority";
+            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
+            "catalog-evidence": "catalog-evidence";
+            "catalog-feed": "catalog-feed";
+            "catalog-identity": "catalog-identity";
             "catalog-policy": "catalog-policy";
             "catalog-release": "catalog-release";
-            "catalog-feed": "catalog-feed";
+            "catalog-verification": "catalog-verification";
         }>;
         signer_registry_digest: z.ZodString;
         key_id: z.ZodString;
@@ -2389,15 +2443,16 @@ export declare const releasePublicationSchema: z.ZodObject<{
         signature: z.ZodString;
     }, z.core.$strict>;
 }, z.core.$strict>;
-export type SnapshotCore = z.infer<typeof snapshotCoreSchema>;
-export type ReleaseCore = z.infer<typeof releaseCoreSchema>;
-export type ReleaseDescriptor = z.infer<typeof releaseDescriptorSchema>;
-export type CatalogReleaseBundleCore = z.infer<typeof catalogReleaseBundleCoreSchema>;
-export type CatalogReleaseBundle = z.infer<typeof catalogReleaseBundleSchema>;
+export type SnapshotCore = z.infer<typeof sourceyReleaseEnvelopeSchemas.snapshotCore>;
+export type ReleaseDescriptor = z.infer<typeof sourceyReleaseEnvelopeSchemas.descriptor>;
+export type ReleaseDiff = z.infer<typeof sourceyReleaseEnvelopeSchemas.diff>;
+export type CatalogReleaseBundle = z.infer<typeof sourceyReleaseEnvelopeSchemas.bundle>;
 export type CatalogPublicationParent = z.infer<typeof catalogPublicationParentSchema>;
 export type ReleasePublicationCore = z.infer<typeof releasePublicationCoreSchema>;
 export type ReleasePublication = z.infer<typeof releasePublicationSchema>;
 export type CatalogReleaseDelivery = z.infer<typeof catalogReleaseDeliverySchema>;
+export type ClosedInputSet = z.infer<typeof closedInputSetSchema>;
+export type ReleaseObservationInputs = z.infer<typeof releaseObservationInputsSchema>;
 export type CatalogDelta = z.infer<typeof catalogDeltaSchema>;
 export type CatalogDeltaCore = z.infer<typeof catalogDeltaCoreSchema>;
 export type CatalogDeltaEntityChange = z.infer<typeof catalogDeltaEntityChangeSchema>;

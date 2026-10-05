@@ -1,5 +1,5 @@
+import { compareCanonicalStrings, digest } from "provenry/primitives";
 import { catalogPublicationDependencyKey, catalogSourceLocatorDigest, } from "../../catalog-admission/src/publication-dependencies.js";
-import { compareCanonicalStrings, digest } from "../../primitives/src/index.js";
 export function agentReadinessProfileDependencyKey(profileId) {
     return `agent-readiness:profile:${profileId}`;
 }
@@ -123,7 +123,6 @@ export function agentReadinessDependencySubject(profile) {
         profileRevisionDigest: profile.revision_digest,
         entityId: profile.entity_id,
         entityRevisionDigest: profile.catalog_binding.entity_revision_digest,
-        policyDigest: profile.policy_digest,
         evidenceEventIds: profile.provenance.basis_event_ids,
         declarationRevisionDigest: profile.declaration_revision_digest,
         sourceLocatorDigests: orderedUnique([
@@ -137,9 +136,8 @@ export function agentReadinessDependencyRegistration(subject) {
         catalogPublicationDependencyKey.revision(subject.profileRevisionDigest),
         catalogPublicationDependencyKey.subject("entity", subject.entityId),
         catalogPublicationDependencyKey.revision(subject.entityRevisionDigest),
-        catalogPublicationDependencyKey.policy("agent-readiness-policy"),
-        catalogPublicationDependencyKey.policy("freshness-policy"),
-        `agent-readiness:policy:${subject.policyDigest}`,
+        // No policy key: a profile records the policy it was graded under, and a
+        // pin change governs future grading without rewriting any profile.
         ...subject.evidenceEventIds.map(catalogPublicationDependencyKey.event),
         ...subject.sourceLocatorDigests.map(catalogPublicationDependencyKey.sourceLocator),
         `agent-readiness:declaration:${subject.declarationRevisionDigest}`,

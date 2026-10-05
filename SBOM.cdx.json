@@ -19,32 +19,32 @@
         {
           "type": "application",
           "name": "Node.js",
-          "version": "22.23.1"
+          "version": "22.23.3"
         },
         {
           "type": "application",
           "name": "npm",
-          "version": "11.19.1"
+          "version": "12.2.0"
         },
         {
           "type": "application",
           "name": "TypeScript",
-          "version": "6.0.3"
+          "version": "7.0.2"
         }
       ]
     },
     "properties": [
       {
         "name": "sourcey:distribution-definition-sha256",
-        "value": "sha256:6231c413cd7110a406519dc25f1212722069313dd7c4e670ad4527616626e56d"
+        "value": "sha256:2053aabb4a74f62a85c91ee911547f401127ca670adb8f363c485cce265ffa3c"
       },
       {
         "name": "sourcey:toolchain-sha256",
-        "value": "sha256:32c522e74f0c57b5de55b8be91fb24a67b8a040c0659f5df32e03445e5812bdc"
+        "value": "sha256:d76460572878b84bf4b0995c5db1d0aab911ebe94f67368be602a62624b43b28"
       },
       {
         "name": "sourcey:license-policy-sha256",
-        "value": "sha256:29c87d888815d60f2f693e7515f048116af31b9c084bae4c7afcec5edc47d761"
+        "value": "sha256:42d44b9a8c8da9f48c20a5f1f4da61b1826888cf4d56764757350cc993fc1730"
       }
     ]
   },
@@ -99,49 +99,121 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/yaml@2.9.0",
+      "bom-ref": "pkg:npm/provenry@0.1.5",
+      "name": "provenry",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "version": "0.1.5",
+      "purl": "pkg:npm/provenry@0.1.5",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "1707219e17d00581bd26d4dc5863388bc69749388a0578325fc6b341d559c9de1a9be699f3ec8f9f57a4a7854c8ce1b2017b65848cd6aa0c2c914c7b8938e6d7"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/provenry/-/provenry-0.1.5.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tldts@7.4.16",
+      "name": "tldts",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "version": "7.4.16",
+      "purl": "pkg:npm/tldts@7.4.16",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "43004447928c47ce88223a4888eec7fd9dc83093ec67503a44a3c0ab34d380ec944144adf4576729caa14da266918e8756b828b991d94749dc2b9431be69d07a"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tldts/-/tldts-7.4.16.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/tldts-core@7.4.16",
+      "name": "tldts-core",
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "version": "7.4.16",
+      "purl": "pkg:npm/tldts-core@7.4.16",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "303a257da489b6548ae58d00d71977dbbede92e6d9c286e9063ba09270e2cc8f4ee519bad1ad66f24e0808af8c46c083ccfca04fcd66a770417f944a0e51517c"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.16.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/yaml@2.9.1",
       "name": "yaml",
       "licenses": [
         {
           "expression": "ISC"
         }
       ],
-      "version": "2.9.0",
-      "purl": "pkg:npm/yaml@2.9.0",
+      "version": "2.9.1",
+      "purl": "pkg:npm/yaml@2.9.1",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "d80be1357de66fccdde99cbb20d4ed4a9975175e475ba5a7aa3d2cad696428b729625fe03083098b2b86ab629e236605c543e376507edcb735d2c78c2ed2f870"
+          "content": "dcdc4df3eefc39dcdb4fb0bf5a31acc9f3c0b4968ddc5343b16c6fed8ee6703b13fe83a6816f01a72410145067bd91378fd63649dcf550b14b7b32fb11bdb217"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/yaml/-/yaml-2.9.0.tgz"
+          "url": "https://registry.npmjs.org/yaml/-/yaml-2.9.1.tgz"
         }
       ]
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/zod@4.4.3",
+      "bom-ref": "pkg:npm/zod@4.6.5",
       "name": "zod",
       "licenses": [
         {
           "expression": "MIT"
         }
       ],
-      "version": "4.4.3",
-      "purl": "pkg:npm/zod@4.4.3",
+      "version": "4.6.5",
+      "purl": "pkg:npm/zod@4.6.5",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cad10d163209165d94c1882575eda37215b61f09b818914b0e249759d4eb25004837d15cca9ee7e0387124489634024c575fc1a967d6fe4920ef55037072724d"
+          "content": "bf997f6855d941e6a2e1ac0b6cea52a0779c13d52232b9dfc7be6d1172e33689d754047143998e7a2a538d1394721b3350d0aa9c4fa1a8032e8d1b111ecbadd9"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/zod/-/zod-4.4.3.tgz"
+          "url": "https://registry.npmjs.org/zod/-/zod-4.6.5.tgz"
         }
       ]
     }
@@ -151,8 +223,10 @@
       "ref": "urn:sourcey:code-distribution:catalog-verifier",
       "dependsOn": [
         "pkg:npm/parse5@8.0.1",
-        "pkg:npm/yaml@2.9.0",
-        "pkg:npm/zod@4.4.3"
+        "pkg:npm/provenry@0.1.5",
+        "pkg:npm/tldts@7.4.16",
+        "pkg:npm/yaml@2.9.1",
+        "pkg:npm/zod@4.6.5"
       ]
     },
     {
@@ -166,11 +240,27 @@
       ]
     },
     {
-      "ref": "pkg:npm/yaml@2.9.0",
+      "ref": "pkg:npm/provenry@0.1.5",
+      "dependsOn": [
+        "pkg:npm/zod@4.6.5"
+      ]
+    },
+    {
+      "ref": "pkg:npm/tldts@7.4.16",
+      "dependsOn": [
+        "pkg:npm/tldts-core@7.4.16"
+      ]
+    },
+    {
+      "ref": "pkg:npm/tldts-core@7.4.16",
       "dependsOn": []
     },
     {
-      "ref": "pkg:npm/zod@4.4.3",
+      "ref": "pkg:npm/yaml@2.9.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/zod@4.6.5",
       "dependsOn": []
     }
   ]

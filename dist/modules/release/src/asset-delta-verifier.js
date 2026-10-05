@@ -1,6 +1,5 @@
 import { eventDisposesAssetBinding } from "../../assets/src/disposition.js";
 import { eventMatchesEntityAssetProposal, verifyAssetDelta } from "../../assets/src/index.js";
-import { sha256Bytes } from "../../primitives/src/index.js";
 export function assertCatalogAssetDeltaClosure(input) {
     const proposals = input.publicationProposal.candidate_assets;
     const removals = new Set(input.publicationProposal.remove_entity_ids);
@@ -65,8 +64,7 @@ export function assertCatalogAssetDeltaClosure(input) {
             change.binding.width !== variant.width ||
             change.binding.height !== variant.height ||
             !bytes ||
-            bytes.byteLength !== variant.bytes ||
-            sha256Bytes(bytes) !== variant.digest) {
+            bytes.byteLength !== variant.bytes) {
             throw new Error(`Catalog asset delta ${key} lacks its exact safe derivative.`);
         }
         requiredSafeDigests.add(variant.digest);

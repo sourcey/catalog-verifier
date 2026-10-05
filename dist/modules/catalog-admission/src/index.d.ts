@@ -1,7 +1,9 @@
+import { type Digest } from "provenry/primitives";
 import type { AssetBindingProjection, EntityAssetProposal } from "../../../contracts/assets/src/index.js";
-import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
+import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
+import type { CatalogPublicationCurrentState } from "../../../contracts/publication/src/index.js";
 import { type CatalogTaxonomy } from "../../../contracts/taxonomy/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
+import { type CompiledCatalogFacts } from "../../compiler/src/index.js";
 import { type CatalogChangeAnalysis } from "./change-analysis.js";
 import { type CatalogPublicationImpactIndex, type CatalogPublicationPlanningInput, type CatalogPublicationPolicyReference } from "./publication.js";
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
@@ -33,10 +35,11 @@ export declare function validateCatalogPrTree(input: {
     readonly programs: number;
     readonly offers: number;
 }>;
+/** Enforce the public contribution policy over the one shared PR analysis. */
+export declare function assertCatalogContributionAnalysis(analysis: CatalogChangeAnalysis): void;
 /**
- * Validate explicit non-Git candidate bytes through the same compiler,
- * taxonomy, path, and role-closure rules used by changed-repository intake.
- * Transport-specific Git checks remain in validateCatalogPrTree.
+ * Validate strict changed-head authoring and Git scope for public PR intake.
+ * Historical Git supplies file identity only, never the semantic parent.
  */
 export declare function inspectCatalogPrTree(input: {
     readonly repositoryRoot: string;
@@ -46,49 +49,36 @@ export declare function inspectCatalogPrTree(input: {
 }): Promise<{
     readonly baseRevision: string;
     readonly entityFiles: readonly string[];
+    readonly identities: readonly EntityAuthoring["entity"][];
     readonly entities: number;
     readonly programs: number;
     readonly offers: number;
 }>;
-/**
- * The one exact pull-request analysis used by changed-closure validation,
- * private review preparation, and tree-bound admission. It reads only the
- * changed Entity files, their identity dependencies, and the corresponding
- * base versions of those same files.
- */
-export declare function analyzeCatalogPrTree(input: {
+/** Read the strict head authoring and its identity closure without interpreting old Git YAML. */
+export declare function inspectCatalogReleaseHead(input: {
     readonly repositoryRoot: string;
     readonly baseRevision: string;
     readonly headRevision: string;
     readonly taxonomy: CatalogTaxonomy;
-}): Promise<CatalogChangeAnalysis>;
+}): Promise<{
+    entityFiles: string[];
+    unsupportedChanges: string[];
+    changedAuthoring: CompiledCatalogFacts;
+    identityClosure: CompiledCatalogFacts;
+}>;
 /**
- * Release construction uses the same changed-file and revision analysis as PR
- * validation while permitting unrelated documentation and workflow commits
- * that do not belong to Catalog data.
+ * Private PR admission compares the strict head with the materialized live
+ * authoring slice. Git supplies scope and file identity, not the semantic parent.
  */
-export declare function analyzeCatalogReleaseTree(input: {
-    readonly repositoryRoot: string;
-    readonly baseRevision: string;
-    readonly headRevision: string;
-    readonly taxonomy: CatalogTaxonomy;
-}): Promise<CatalogChangeAnalysis>;
-/**
- * Analyze a data PR for admission against the release that is actually live.
- *
- * The PR comparison remains authoritative for its mutation boundary: it must
- * be data-only and identify every vendor the contributor changed. When main is
- * ahead of the live release, the release-relative comparison supplies the
- * complete final revisions that will be admitted. This permits a follow-up PR
- * to correct an unshipped version of the same vendor and permits independently
- * admitted vendor paths to advance without expanding this PR's authority.
- */
-export declare function analyzeCatalogPrAdmissionTree(input: {
+export declare function analyzeCatalogPrAgainstCurrent(input: {
+    readonly repositoryId: string;
     readonly repositoryRoot: string;
     readonly liveRevision: string;
+    readonly liveParentReleaseId: Digest;
     readonly pullRequestBaseRevision: string;
     readonly pullRequestHeadRevision: string;
     readonly taxonomy: CatalogTaxonomy;
+    readonly readCurrentState: (entityIds: readonly string[]) => Promise<CatalogPublicationCurrentState>;
 }): Promise<CatalogChangeAnalysis>;
 /**
  * Git is one immutable ingress adapter over the canonical publication port.
@@ -112,18 +102,22 @@ export declare function planCatalogGitPublication(input: {
     readonly targetContractAuthorityDigest: Digest;
     readonly impactIndex?: CatalogPublicationImpactIndex;
 }): Promise<{
+    proposal: import("../../../contracts/publication/src/index.js").CatalogPublicationProposal;
+    changeSet: import("../../../contracts/publication/src/index.js").CatalogPublicationChangeSet;
     analysis: CatalogChangeAnalysis;
     ingressReceipt: {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "git";
         repository_id: string;
         base_commit: string;
         head_commit: string;
         head_tree: string;
         changed_tree: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "authenticated_form";
         submission_work_item_digest: string;
         schema_digest: string;
@@ -132,10 +126,10 @@ export declare function planCatalogGitPublication(input: {
         authorization_digest: string;
         operator_admission_digest: string | null;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "paid_agent";
         submission_work_item_digest: string;
         schema_digest: string;
@@ -145,10 +139,10 @@ export declare function planCatalogGitPublication(input: {
         operator_admission_digest: string | null;
         request_id: string;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "governed_ops";
         submission_work_item_digest: string | null;
         command_digest: string;
@@ -158,37 +152,33 @@ export declare function planCatalogGitPublication(input: {
         authentication_digest: string;
         authorization_digest: string;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "scanner";
         inventory_digest: string;
         run_receipt_digest: string;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "operator_job";
         job_input_digest: string;
         authority_digest: string;
         run_receipt_digest: string;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "policy_transition";
         intent_digest: string;
         configuration_digest: string;
         idempotency_key: string;
-        proposal_digest: string;
-        semantic_input_digest: string;
         receipt_digest: string;
     };
-    proposal: import("../../../contracts/publication/src/index.js").CatalogPublicationProposal;
-    changeSet: import("../../../contracts/publication/src/index.js").CatalogPublicationChangeSet;
 }>;
 export declare function catalogPullRequestComparisonBase(input: {
     readonly repositoryRoot: string;

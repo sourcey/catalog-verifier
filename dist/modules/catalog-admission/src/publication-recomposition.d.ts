@@ -1,5 +1,5 @@
+import { type Digest } from "provenry/primitives";
 import type { CatalogPublicationChangeSet, PublicationRecompositionNode, PublicationRecompositionWorkCounts } from "../../../contracts/publication/src/index.js";
-import { type Digest } from "../../primitives/src/index.js";
 import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 export interface CatalogPublicationRecompositionAction {
     readonly dependent: {
