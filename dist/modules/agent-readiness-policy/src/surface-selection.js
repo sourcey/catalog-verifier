@@ -66,9 +66,7 @@ function preferredAgentReadinessSurfaces(group, catalog, allowNotApplicable) {
         const matches = matchingAgentReadinessSurfaces({ ...group, alternatives: [alternative] }, catalog);
         if (matches.length > 0)
             return [...matches];
-    }
-    if (allowNotApplicable) {
-        for (const alternative of group.alternatives) {
+        if (allowNotApplicable) {
             const exclusions = matchingAgentReadinessSurfaceExclusions({ ...group, alternatives: [alternative] }, catalog);
             if (exclusions.length > 0)
                 return [...exclusions];
@@ -78,7 +76,12 @@ function preferredAgentReadinessSurfaces(group, catalog, allowNotApplicable) {
 }
 export function matchingAgentReadinessSurfaceExclusions(group, catalog) {
     return catalog.surface_exclusions
-        .filter((exclusion) => group.alternatives.some((alternative) => alternative.selectors.some((selector) => selector.kind === "resource_role" && selector.roles.includes(exclusion.role))))
+        .filter((exclusion) => group.alternatives.some((alternative) => 
+    // The first resource role names the step whose absence is asserted;
+    // later roles qualify a present surface, not the absent step.
+    alternative.selectors
+        .find((selector) => selector.kind === "resource_role")
+        ?.roles.includes(exclusion.role) ?? false))
         .map((exclusion) => ({
         node_kind: "surface_exclusion",
         node_id: exclusion.exclusion_id,
@@ -122,37 +125,10 @@ export function agentReadinessAssessmentTargetIdsForSurface(input) {
         .map((target) => target.target_id)
         .sort(compareCanonicalStrings);
 }
-export function agentReadinessDeclarationPolicyGaps(input) {
-    const catalog = surfaceCatalogFromDeclarationGraph(input.declaration);
-    const surfaces = allDeclaredSurfaces(catalog);
-    const excludedRoles = new Set(input.declaration.surface_exclusions.map((item) => item.role));
-    const gaps = [];
-    for (const rule of input.policy.signal_rules.filter((candidate) => candidate.evaluation_role !== "informational")) {
-        const matchedGroups = rule.selector_groups.filter((group) => {
-            const matched = surfaces.some((surface) => group.alternatives.some((alternative) => alternative.selectors.every((selector) => selectorMatchesSurface(selector, surface, catalog))));
-            const excluded = rule.allow_not_applicable &&
-                group.alternatives.some((alternative) => alternative.selectors.some((selector) => selector.kind === "resource_role" &&
-                    selector.roles.some((role) => excludedRoles.has(role))));
-            return matched || excluded;
-        });
-        if (matchedGroups.length === 0) {
-            gaps.push({
-                stage: rule.stage,
-                signalCode: rule.signal_code,
-                selectorGroupIds: rule.selector_groups.map((group) => group.selector_group_id),
-            });
-        }
-    }
-    return gaps;
-}
-export function assertAgentReadinessDeclarationPolicyClosure(input) {
+export function assertAgentReadinessDeclarationPolicyScope(input) {
     const scopeIssue = agentReadinessDeclarationPolicyScopeIssue(input);
     if (scopeIssue)
         throw new Error(scopeIssue);
-    const gap = agentReadinessDeclarationPolicyGaps(input)[0];
-    if (gap) {
-        throw new Error(`Declaration ${input.declaration.declaration_id} cannot plan ${gap.stage}:${gap.signalCode} through any selector group (${gap.selectorGroupIds.join(", ")}).`);
-    }
 }
 export function agentReadinessDeclarationPolicyScopeIssue(input) {
     if (input.policy.assessment_basis.success.interface_coverage !== "one_selected_interface_per_target") {

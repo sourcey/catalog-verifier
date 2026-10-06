@@ -49,6 +49,18 @@ export const evidencePublicReadRequestSchema = z
     })
         .strict())
         .max(16),
+    // Operator-owned interpretation of a public, non-mutating service probe.
+    // These predicates are retained with the request, never sent over HTTP.
+    success_assertions: z
+        .array(z
+        .object({
+        pointer: pointer.max(256),
+        equals: z.union([z.string().max(512), z.number().finite(), z.boolean(), z.null()]),
+    })
+        .strict())
+        .min(1)
+        .max(8)
+        .optional(),
 })
     .strict()
     .superRefine((value, context) => {
@@ -86,21 +98,47 @@ export const evidencePublicReadRequestSchema = z
             });
         }
     }
+    const pointers = value.success_assertions?.map((assertion) => assertion.pointer) ?? [];
+    if (new Set(pointers).size !== pointers.length ||
+        pointers.some((item, index) => item !== [...pointers].sort()[index])) {
+        context.addIssue({
+            code: "custom",
+            path: ["success_assertions"],
+            message: "Public-read success assertions must have unique, ordered JSON pointers.",
+        });
+    }
 });
 /** The exact physical request retained for evidence replay. */
 export const evidenceCaptureRequestSchema = z.union([
     evidencePublicReadRequestSchema,
     standardObservationRequestSchema,
 ]);
+/** One operator-approved public read of one exact declared surface. */
+export const evidencePublicReadRequestEntrySchema = z
+    .object({
+    source_url: z.url({ protocol: /^https$/u }),
+    request: evidencePublicReadRequestSchema,
+})
+    .strict()
+    .superRefine((entry, context) => {
+    if (!entry.request.target_url)
+        return;
+    const source = new URL(entry.source_url);
+    const target = new URL(entry.request.target_url);
+    const sourcePath = source.pathname.endsWith("/") ? source.pathname : `${source.pathname}/`;
+    if (target.origin !== source.origin ||
+        (target.pathname !== source.pathname && !target.pathname.startsWith(sourcePath))) {
+        context.addIssue({
+            code: "custom",
+            path: ["request", "target_url"],
+            message: "A public-read target must remain on the declared source origin and path boundary.",
+        });
+    }
+});
 export const evidencePublicReadRequestSetSchema = z
     .object({
     request_set_contract: z.literal("sourcey.evidence-public-read-request-set/v1alpha1"),
-    requests: z.array(z
-        .object({
-        source_url: z.url({ protocol: /^https$/u }),
-        request: evidencePublicReadRequestSchema,
-    })
-        .strict()),
+    requests: z.array(evidencePublicReadRequestEntrySchema),
 })
     .strict()
     .superRefine((value, context) => {
@@ -112,21 +150,6 @@ export const evidencePublicReadRequestSetSchema = z
             path: ["requests"],
             message: "Public-read request surfaces must be canonical, ordered, and unique.",
         });
-    }
-    for (const [index, entry] of value.requests.entries()) {
-        if (!entry.request.target_url)
-            continue;
-        const source = new URL(entry.source_url);
-        const target = new URL(entry.request.target_url);
-        const sourcePath = source.pathname.endsWith("/") ? source.pathname : `${source.pathname}/`;
-        if (target.origin !== source.origin ||
-            (target.pathname !== source.pathname && !target.pathname.startsWith(sourcePath))) {
-            context.addIssue({
-                code: "custom",
-                path: ["requests", index, "request", "target_url"],
-                message: "A public-read target must remain on the declared source origin and path boundary.",
-            });
-        }
     }
 });
 export const evidenceProofKindSchema = z.enum(["observed", "derived", "editorial", "attested"]);

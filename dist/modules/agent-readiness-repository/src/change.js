@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import { gitComparisonBase } from "provenry/git";
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
-import { assertAgentReadinessDeclarationPolicyClosure } from "../../agent-readiness-policy/src/index.js";
+import { assertAgentReadinessDeclarationPolicyScope } from "../../agent-readiness-policy/src/index.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
 /**
@@ -220,7 +220,7 @@ export function assertAgentReadinessBlobPolicy(blob, policy) {
     if (!blob)
         return;
     for (const revision of Object.values(blob.declarationRevisions)) {
-        assertAgentReadinessDeclarationPolicyClosure({ declaration: revision.declaration, policy });
+        assertAgentReadinessDeclarationPolicyScope({ declaration: revision.declaration, policy });
     }
 }
 //# sourceMappingURL=change.js.map

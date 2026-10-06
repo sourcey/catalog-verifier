@@ -431,6 +431,16 @@ export const agentReadinessPolicySignalRuleSchema = z
     })
         .strict()
         .optional(),
+    fact_question: z.string().min(1).max(240),
+    fact_predicates: z
+        .object({
+        yes: z.string().min(1).max(800),
+        partial: z.string().min(1).max(800),
+        no: z.string().min(1).max(800),
+        unknown: z.string().min(1).max(800),
+        not_applicable: z.string().min(1).max(800),
+    })
+        .strict(),
     public_findings: publicFindingByValueSchema,
     external_references: z.array(standardRequirementReferenceSchema),
     standard_evidence: z.array(agentReadinessStandardEvidenceMappingSchema),
@@ -605,11 +615,13 @@ const agentReadinessGradingSchema = z
     })
         .strict(),
     unverified_barrier_grade_cap: z.literal("B+").optional(),
+    unobserved_operation_grade_cap: z.literal("B+"),
     not_applicable_signals: z.literal("excluded"),
     unrated_when: z
         .object({
         coverage: z.literal("not-complete"),
         freshness: z.literal("not-fresh"),
+        except: z.literal("fresh-supported-essential-failure"),
     })
         .strict(),
 })

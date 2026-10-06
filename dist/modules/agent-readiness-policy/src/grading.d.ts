@@ -17,6 +17,7 @@ export declare function deriveAgentReadinessGrade(input: {
     }[];
     readonly coverageStatus: AgentReadinessProjection["coverage"]["status"];
     readonly freshness: AgentReadinessProjection["freshness"];
+    readonly observedOperationCoverage: boolean;
 }): AgentReadinessProjection["grade"];
 export declare function isAgentReadinessVerifiedBarrierSignal(signal: {
     readonly evaluation_role: "graded" | "barrier" | "informational";

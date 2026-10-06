@@ -33,16 +33,7 @@ export declare function agentReadinessAssessmentTargetIdsForSurface(input: {
     readonly catalog: AgentReadinessProjection["surface_catalog"];
     readonly surface: AgentReadinessRevision["signals"][number]["tested_surfaces"][number];
 }): readonly string[];
-export interface AgentReadinessDeclarationPolicyGap {
-    readonly stage: AgentReadinessPolicy["signal_rules"][number]["stage"];
-    readonly signalCode: string;
-    readonly selectorGroupIds: readonly string[];
-}
-export declare function agentReadinessDeclarationPolicyGaps(input: {
-    readonly declaration: AgentReadinessDeclarationRevision["declaration"];
-    readonly policy: AgentReadinessPolicy;
-}): readonly AgentReadinessDeclarationPolicyGap[];
-export declare function assertAgentReadinessDeclarationPolicyClosure(input: {
+export declare function assertAgentReadinessDeclarationPolicyScope(input: {
     readonly declaration: AgentReadinessDeclarationRevision["declaration"];
     readonly policy: AgentReadinessPolicy;
 }): void;

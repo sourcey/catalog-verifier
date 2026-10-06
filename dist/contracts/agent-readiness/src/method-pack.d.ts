@@ -27,6 +27,7 @@ export declare const agentReadinessMethodCapabilitySchema: z.ZodObject<{
         certification_receipt: "certification_receipt";
         direct_observation: "direct_observation";
         explicit_first_party_declaration: "explicit_first_party_declaration";
+        service_exchange: "service_exchange";
         standard_requirement: "standard_requirement";
     }>>;
 }, z.core.$strict>;
@@ -72,6 +73,7 @@ export declare const agentReadinessAssessmentMethodPackCoreSchema: z.ZodObject<{
             certification_receipt: "certification_receipt";
             direct_observation: "direct_observation";
             explicit_first_party_declaration: "explicit_first_party_declaration";
+            service_exchange: "service_exchange";
             standard_requirement: "standard_requirement";
         }>>;
     }, z.core.$strict>>;
@@ -231,6 +233,7 @@ export declare const agentReadinessAssessmentMethodPackSchema: z.ZodObject<{
             certification_receipt: "certification_receipt";
             direct_observation: "direct_observation";
             explicit_first_party_declaration: "explicit_first_party_declaration";
+            service_exchange: "service_exchange";
             standard_requirement: "standard_requirement";
         }>>;
     }, z.core.$strict>>;

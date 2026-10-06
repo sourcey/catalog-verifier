@@ -11,12 +11,13 @@ import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationR
 import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index.js";
 import { deriveProvenance, evidenceStatusFor, } from "../../provenance/src/index.js";
 import { verifyStandardEvidenceResult } from "../../standard-evidence/src/index.js";
+import { agentReadinessAdmittedFactSupportsPolicy } from "./corroboration.js";
 import { deriveAgentReadinessGrade, isAgentReadinessGradingSignal, isAgentReadinessVerifiedBarrierSignal, } from "./grading.js";
 import { validateAgentReadinessPolicy } from "./policy-validation.js";
 import { priorAgentReadinessVisibility } from "./projection-lineage.js";
 import { agentReadinessValuesSupportedByStandardRequirementResults } from "./standard-mapping.js";
 import { assertAgentReadinessSignalSelectorCoverage, assertSignalSurfaceClosure, surfaceCatalogFromDeclaration, } from "./surface-selection.js";
-export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessDeclarationPolicyGaps, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
+export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyScope, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
 export function agentReadinessValuesSupportedByStandardEvidence(input) {
     const policy = validateAgentReadinessPolicy(input.policy);
     const rule = policy.signal_rules.find((candidate) => candidate.stage === input.stage && candidate.signal_code === input.signalCode);
@@ -178,20 +179,20 @@ function evaluateAgentReadinessProjection(input) {
             const fact = facts.get(`${stage}:${rule.signal_code}`);
             if (fact)
                 assertAllowedAssessmentMethod(fact.signal, rule, policy, input.surfaceCatalog);
-            const evidenceStatus = fact ? evidenceStatusFor(fact.field) : "missing";
+            const evidenceRule = rule.value_evidence.find((candidate) => candidate.value === fact?.signal.value);
+            const policySupported = !fact ||
+                fact.signal.value === "unknown" ||
+                (evidenceRule !== undefined &&
+                    agentReadinessAdmittedFactSupportsPolicy({ signal: fact.signal, rule: evidenceRule }));
+            const evidenceStatus = fact && policySupported ? evidenceStatusFor(fact.field) : "missing";
             const freshness = fact
                 ? assessmentFreshness(fact.signal, fact.field?.freshness ?? "unknown", policy)
                 : "unknown";
-            const currentBarrierEvidence = rule.evaluation_role !== "barrier" || freshness === "fresh";
-            const outcome = fact &&
-                evidenceStatus === "supported" &&
-                fact.signal.value !== "unknown" &&
-                currentBarrierEvidence
+            const currentEvidence = freshness === "fresh";
+            const outcome = fact && evidenceStatus === "supported" && fact.signal.value !== "unknown" && currentEvidence
                 ? agentReadinessSignalOutcome(rule, fact.signal.value)
                 : "unknown";
-            const value = fact && evidenceStatus === "supported" && currentBarrierEvidence
-                ? fact.signal.value
-                : "unknown";
+            const value = fact && evidenceStatus === "supported" && currentEvidence ? fact.signal.value : "unknown";
             const descriptor = rule.public_findings[value];
             const publicState = policy.public_states[outcome];
             const blocker = outcome === "fail" && rule.blocker
@@ -216,7 +217,7 @@ function evaluateAgentReadinessProjection(input) {
                     finding: descriptor.finding,
                     evidence_status: evidenceStatus,
                     freshness,
-                    ...(fact
+                    ...(fact && policySupported
                         ? {
                             observed_at: fact.signal.observed_at,
                             tested_surfaces: fact.signal.tested_surfaces,
@@ -224,7 +225,7 @@ function evaluateAgentReadinessProjection(input) {
                             determination_bases: fact.signal.determination_bases,
                             ...(fact.signal.note ? { note: fact.signal.note } : {}),
                         }
-                        : { tested_surfaces: [], determination_bases: [] }),
+                        : { tested_surfaces: fact?.signal.tested_surfaces ?? [], determination_bases: [] }),
                     ...(blocker ? { blocker } : {}),
                     ...(remediation ? { remediation } : {}),
                 },
@@ -278,11 +279,26 @@ function evaluateAgentReadinessProjection(input) {
             ? "stale"
             : "fresh";
     const overallOutcome = worstAgentReadinessOutcome(stages.map((stage) => stage.outcome), policy.aggregation.outcome_precedence);
+    // Only a signal whose method admits a service exchange can carry one, so the
+    // proof is found by kind; no signal is named here.
+    const supportedExchanges = signals.flatMap((signal) => signal.value === "yes" && signal.evidence_status === "supported" && signal.freshness === "fresh"
+        ? signal.determination_bases
+        : []);
+    const observedOperationCoverage = input.surfaceCatalog.assessment_targets.length > 0 &&
+        input.surfaceCatalog.assessment_targets.every((target) => {
+            const selectedInterfaceId = target.interface_ids[0];
+            const selectedInterface = input.surfaceCatalog.interfaces.find((candidate) => candidate.interface_id === selectedInterfaceId);
+            return supportedExchanges.some((proof) => proof.kind === "service_exchange" &&
+                proof.assessment_target_id === target.target_id &&
+                selectedInterface?.endpoint_ids.includes(proof.endpoint_id) &&
+                input.surfaceCatalog.endpoints.some((endpoint) => endpoint.endpoint_id === proof.endpoint_id && endpoint.roles.includes("service")));
+        });
     const grade = deriveAgentReadinessGrade({
         policy,
         stages,
         coverageStatus,
         freshness,
+        observedOperationCoverage,
     });
     return {
         stages,
@@ -427,13 +443,16 @@ function agentReadinessPublicationReasons(input) {
     const signals = input.stages.flatMap((stage) => stage.signals);
     if (input.revision.lifecycle !== "active")
         reasons.push("lifecycle_not_active");
-    if (input.coverageStatus !== "complete")
-        reasons.push("coverage_incomplete");
-    if (signals.some((signal) => signal.evaluation_role === "graded" && signal.evidence_status !== "supported")) {
-        reasons.push("required_evidence_not_supported");
+    const decisiveFailure = input.grade === "D" || input.grade === "F";
+    if (!decisiveFailure) {
+        if (input.coverageStatus !== "complete")
+            reasons.push("coverage_incomplete");
+        if (signals.some((signal) => signal.evaluation_role === "graded" && signal.evidence_status !== "supported")) {
+            reasons.push("required_evidence_not_supported");
+        }
+        if (input.freshness !== "fresh")
+            reasons.push("freshness_not_fresh");
     }
-    if (input.freshness !== "fresh")
-        reasons.push("freshness_not_fresh");
     if (input.grade === "unrated")
         reasons.push("unrated");
     if (!signals.some((signal) => signal.evidence_status === "supported")) {

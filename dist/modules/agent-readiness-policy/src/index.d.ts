@@ -12,7 +12,7 @@ import type { FreshnessPolicy } from "../../../contracts/policies/src/index.js";
 import type { EntityRevision } from "../../../contracts/revisions/src/index.js";
 import type { StandardEvidenceResult } from "../../../contracts/standards/src/index.js";
 import { type EvidenceStandingGraph } from "../../provenance/src/index.js";
-export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessDeclarationPolicyGaps, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyClosure, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
+export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyScope, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
 type StageOutcome = z.infer<typeof agentReadinessStageOutcomeSchema>;
 export declare function agentReadinessValuesSupportedByStandardEvidence(input: {
     readonly policy: unknown;
@@ -99,6 +99,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                     capture_rung: "archive" | "headless" | "http" | "manual";
                 }[];
                 artifact_digests: string[];
+                kind: "service_exchange";
+                endpoint_id: string;
+                assessment_target_id: string;
+                source_observation_digest: string;
+                approved_request: {
+                    source_url: string;
+                    request: {
+                        method: "GET";
+                        target_url?: string | undefined;
+                        headers: {
+                            name: string;
+                            value: string;
+                        }[];
+                        success_assertions?: {
+                            pointer: string;
+                            equals: string | number | boolean | null;
+                        }[] | undefined;
+                    };
+                };
+                response_status_code: number;
+                response_content_digest: string;
+            } | {
+                captures: {
+                    retained_capture_digest: string;
+                    capture_rung: "archive" | "headless" | "http" | "manual";
+                }[];
+                artifact_digests: string[];
                 kind: "bounded_absence";
                 coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
                 covered_surfaces: {
@@ -161,7 +188,10 @@ export declare function deriveAgentReadinessAssessment(input: {
             finding: string;
             evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
             freshness: "fresh" | "stale" | "unknown";
-            tested_surfaces: never[];
+            tested_surfaces: {
+                node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+                node_id: string;
+            }[];
             determination_bases: never[];
             blocker?: {
                 code: string;
@@ -226,6 +256,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                 capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
+            kind: "service_exchange";
+            endpoint_id: string;
+            assessment_target_id: string;
+            source_observation_digest: string;
+            approved_request: {
+                source_url: string;
+                request: {
+                    method: "GET";
+                    target_url?: string | undefined;
+                    headers: {
+                        name: string;
+                        value: string;
+                    }[];
+                    success_assertions?: {
+                        pointer: string;
+                        equals: string | number | boolean | null;
+                    }[] | undefined;
+                };
+            };
+            response_status_code: number;
+            response_content_digest: string;
+        } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
             kind: "bounded_absence";
             coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
             covered_surfaces: {
@@ -288,7 +345,10 @@ export declare function deriveAgentReadinessAssessment(input: {
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
         freshness: "fresh" | "stale" | "unknown";
-        tested_surfaces: never[];
+        tested_surfaces: {
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+            node_id: string;
+        }[];
         determination_bases: never[];
         blocker?: {
             code: string;
@@ -342,6 +402,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                 capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
+            kind: "service_exchange";
+            endpoint_id: string;
+            assessment_target_id: string;
+            source_observation_digest: string;
+            approved_request: {
+                source_url: string;
+                request: {
+                    method: "GET";
+                    target_url?: string | undefined;
+                    headers: {
+                        name: string;
+                        value: string;
+                    }[];
+                    success_assertions?: {
+                        pointer: string;
+                        equals: string | number | boolean | null;
+                    }[] | undefined;
+                };
+            };
+            response_status_code: number;
+            response_content_digest: string;
+        } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
             kind: "bounded_absence";
             coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
             covered_surfaces: {
@@ -404,7 +491,10 @@ export declare function deriveAgentReadinessAssessment(input: {
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
         freshness: "fresh" | "stale" | "unknown";
-        tested_surfaces: never[];
+        tested_surfaces: {
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+            node_id: string;
+        }[];
         determination_bases: never[];
         blocker?: {
             code: string;
@@ -458,6 +548,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                 capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
+            kind: "service_exchange";
+            endpoint_id: string;
+            assessment_target_id: string;
+            source_observation_digest: string;
+            approved_request: {
+                source_url: string;
+                request: {
+                    method: "GET";
+                    target_url?: string | undefined;
+                    headers: {
+                        name: string;
+                        value: string;
+                    }[];
+                    success_assertions?: {
+                        pointer: string;
+                        equals: string | number | boolean | null;
+                    }[] | undefined;
+                };
+            };
+            response_status_code: number;
+            response_content_digest: string;
+        } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
             kind: "bounded_absence";
             coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
             covered_surfaces: {
@@ -520,7 +637,10 @@ export declare function deriveAgentReadinessAssessment(input: {
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
         freshness: "fresh" | "stale" | "unknown";
-        tested_surfaces: never[];
+        tested_surfaces: {
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+            node_id: string;
+        }[];
         determination_bases: never[];
         blocker?: {
             code: string;
@@ -576,6 +696,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                 capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
+            kind: "service_exchange";
+            endpoint_id: string;
+            assessment_target_id: string;
+            source_observation_digest: string;
+            approved_request: {
+                source_url: string;
+                request: {
+                    method: "GET";
+                    target_url?: string | undefined;
+                    headers: {
+                        name: string;
+                        value: string;
+                    }[];
+                    success_assertions?: {
+                        pointer: string;
+                        equals: string | number | boolean | null;
+                    }[] | undefined;
+                };
+            };
+            response_status_code: number;
+            response_content_digest: string;
+        } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
             kind: "bounded_absence";
             coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
             covered_surfaces: {
@@ -638,7 +785,10 @@ export declare function deriveAgentReadinessAssessment(input: {
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
         freshness: "fresh" | "stale" | "unknown";
-        tested_surfaces: never[];
+        tested_surfaces: {
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+            node_id: string;
+        }[];
         determination_bases: never[];
         blocker?: {
             code: string;
@@ -692,6 +842,33 @@ export declare function deriveAgentReadinessAssessment(input: {
                 capture_rung: "archive" | "headless" | "http" | "manual";
             }[];
             artifact_digests: string[];
+            kind: "service_exchange";
+            endpoint_id: string;
+            assessment_target_id: string;
+            source_observation_digest: string;
+            approved_request: {
+                source_url: string;
+                request: {
+                    method: "GET";
+                    target_url?: string | undefined;
+                    headers: {
+                        name: string;
+                        value: string;
+                    }[];
+                    success_assertions?: {
+                        pointer: string;
+                        equals: string | number | boolean | null;
+                    }[] | undefined;
+                };
+            };
+            response_status_code: number;
+            response_content_digest: string;
+        } | {
+            captures: {
+                retained_capture_digest: string;
+                capture_rung: "archive" | "headless" | "http" | "manual";
+            }[];
+            artifact_digests: string[];
             kind: "bounded_absence";
             coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
             covered_surfaces: {
@@ -754,7 +931,10 @@ export declare function deriveAgentReadinessAssessment(input: {
         finding: string;
         evidence_status: import("../../provenance/src/index.js").EvidenceStanding;
         freshness: "fresh" | "stale" | "unknown";
-        tested_surfaces: never[];
+        tested_surfaces: {
+            node_kind: "endpoint" | "interface" | "resource" | "surface_exclusion";
+            node_id: string;
+        }[];
         determination_bases: never[];
         blocker?: {
             code: string;

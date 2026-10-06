@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { evidenceArtifactScopeSchema, evidenceCaptureMethodSchema, evidenceRedirectSchema, evidenceSourceContentSchema, } from "../../evidence/src/index.js";
+import { evidenceArtifactScopeSchema, evidenceCaptureMethodSchema, evidenceCaptureRequestSchema, evidencePublicReadRequestEntrySchema, evidenceRedirectSchema, evidenceSourceContentSchema, } from "../../evidence/src/index.js";
 import { standardRequirementReferenceSchema } from "../../standards/src/index.js";
 import { agentReadinessDigestSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessScopeKeySchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
 export const agentReadinessRetainedArtifactSchema = z.enum([
@@ -29,6 +29,7 @@ export const agentReadinessSourceObservationSchema = z
     final_url: z.url({ protocol: /^https$/u }),
     redirect_chain: z.array(evidenceRedirectSchema).max(5),
     response_status_code: z.number().int().min(100).max(599),
+    request: evidenceCaptureRequestSchema.optional(),
     capture_method: evidenceCaptureMethodSchema,
     captured_at: agentReadinessInstantSchema,
     capture_policy_digest: agentReadinessDigestSchema,
@@ -39,6 +40,7 @@ export const agentReadinessSourceObservationSchema = z
     .strict();
 export const agentReadinessDeterminationBasisKindSchema = z.enum([
     "direct_observation",
+    "service_exchange",
     "bounded_absence",
     "explicit_first_party_declaration",
     "standard_requirement",
@@ -79,6 +81,39 @@ const directObservationBasisSchema = z
     locators: z.array(agentReadinessEvidenceLocatorSchema).min(1),
 })
     .strict();
+/**
+ * A reviewed successful public read of one essential service operation. The
+ * operator-approved request it carries is the profile's standing approval:
+ * later cases for the same declared endpoint repeat exactly this read.
+ */
+const serviceExchangeBasisSchema = z
+    .object({
+    kind: z.literal("service_exchange"),
+    ...captureBoundEvidenceFields,
+    endpoint_id: agentReadinessIdentifierSchema,
+    assessment_target_id: agentReadinessScopeKeySchema,
+    source_observation_digest: agentReadinessDigestSchema,
+    approved_request: evidencePublicReadRequestEntrySchema,
+    response_status_code: z.number().int().min(200).max(299),
+    response_content_digest: agentReadinessDigestSchema,
+})
+    .strict()
+    .superRefine((value, context) => {
+    if (value.captures.length !== 1 ||
+        !value.artifact_digests.includes(value.source_observation_digest)) {
+        context.addIssue({
+            code: "custom",
+            message: "A service exchange binds one capture and its retained source observation.",
+        });
+    }
+    if (!value.approved_request.request.success_assertions) {
+        context.addIssue({
+            code: "custom",
+            path: ["approved_request", "request", "success_assertions"],
+            message: "A service exchange is proven only by an asserted public read.",
+        });
+    }
+});
 const boundedAbsenceBasisSchema = z
     .object({
     kind: z.literal("bounded_absence"),
@@ -114,6 +149,7 @@ const certificationReceiptBasisSchema = z
 export const agentReadinessDeterminationBasisSchema = z
     .discriminatedUnion("kind", [
     directObservationBasisSchema,
+    serviceExchangeBasisSchema,
     boundedAbsenceBasisSchema,
     explicitFirstPartyDeclarationBasisSchema,
     standardRequirementBasisSchema,

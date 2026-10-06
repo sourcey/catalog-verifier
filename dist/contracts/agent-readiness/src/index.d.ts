@@ -79,6 +79,38 @@ export declare const agentReadinessSignalInputSchema: z.ZodObject<{
             }>;
         }, z.core.$strict>>;
         artifact_digests: z.ZodArray<z.ZodString>;
+        kind: z.ZodLiteral<"service_exchange">;
+        endpoint_id: z.ZodString;
+        assessment_target_id: z.ZodString;
+        source_observation_digest: z.ZodString;
+        approved_request: z.ZodObject<{
+            source_url: z.ZodURL;
+            request: z.ZodObject<{
+                method: z.ZodLiteral<"GET">;
+                target_url: z.ZodOptional<z.ZodURL>;
+                headers: z.ZodArray<z.ZodObject<{
+                    name: z.ZodString;
+                    value: z.ZodString;
+                }, z.core.$strict>>;
+                success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    pointer: z.ZodString;
+                    equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                }, z.core.$strict>>>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        response_status_code: z.ZodNumber;
+        response_content_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        captures: z.ZodArray<z.ZodObject<{
+            retained_capture_digest: z.ZodString;
+            capture_rung: z.ZodEnum<{
+                archive: "archive";
+                headless: "headless";
+                http: "http";
+                manual: "manual";
+            }>;
+        }, z.core.$strict>>;
+        artifact_digests: z.ZodArray<z.ZodString>;
         kind: z.ZodLiteral<"bounded_absence">;
         coverage_scope: z.ZodEnum<{
             exact_funnel: "exact_funnel";
@@ -249,6 +281,38 @@ export declare const agentReadinessProfileInputSchema: z.ZodObject<{
                 end_byte: z.ZodNumber;
                 value_digest: z.ZodString;
             }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            captures: z.ZodArray<z.ZodObject<{
+                retained_capture_digest: z.ZodString;
+                capture_rung: z.ZodEnum<{
+                    archive: "archive";
+                    headless: "headless";
+                    http: "http";
+                    manual: "manual";
+                }>;
+            }, z.core.$strict>>;
+            artifact_digests: z.ZodArray<z.ZodString>;
+            kind: z.ZodLiteral<"service_exchange">;
+            endpoint_id: z.ZodString;
+            assessment_target_id: z.ZodString;
+            source_observation_digest: z.ZodString;
+            approved_request: z.ZodObject<{
+                source_url: z.ZodURL;
+                request: z.ZodObject<{
+                    method: z.ZodLiteral<"GET">;
+                    target_url: z.ZodOptional<z.ZodURL>;
+                    headers: z.ZodArray<z.ZodObject<{
+                        name: z.ZodString;
+                        value: z.ZodString;
+                    }, z.core.$strict>>;
+                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        pointer: z.ZodString;
+                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                    }, z.core.$strict>>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            response_status_code: z.ZodNumber;
+            response_content_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
             captures: z.ZodArray<z.ZodObject<{
                 retained_capture_digest: z.ZodString;
@@ -456,6 +520,38 @@ export declare const agentReadinessProfileReleaseInputSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"service_exchange">;
+                endpoint_id: z.ZodString;
+                assessment_target_id: z.ZodString;
+                source_observation_digest: z.ZodString;
+                approved_request: z.ZodObject<{
+                    source_url: z.ZodURL;
+                    request: z.ZodObject<{
+                        method: z.ZodLiteral<"GET">;
+                        target_url: z.ZodOptional<z.ZodURL>;
+                        headers: z.ZodArray<z.ZodObject<{
+                            name: z.ZodString;
+                            value: z.ZodString;
+                        }, z.core.$strict>>;
+                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                            pointer: z.ZodString;
+                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                        }, z.core.$strict>>>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                response_status_code: z.ZodNumber;
+                response_content_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
@@ -882,6 +978,38 @@ export declare const agentReadinessFactualInputSchema: z.ZodObject<{
                 }>;
             }, z.core.$strict>>;
             artifact_digests: z.ZodArray<z.ZodString>;
+            kind: z.ZodLiteral<"service_exchange">;
+            endpoint_id: z.ZodString;
+            assessment_target_id: z.ZodString;
+            source_observation_digest: z.ZodString;
+            approved_request: z.ZodObject<{
+                source_url: z.ZodURL;
+                request: z.ZodObject<{
+                    method: z.ZodLiteral<"GET">;
+                    target_url: z.ZodOptional<z.ZodURL>;
+                    headers: z.ZodArray<z.ZodObject<{
+                        name: z.ZodString;
+                        value: z.ZodString;
+                    }, z.core.$strict>>;
+                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        pointer: z.ZodString;
+                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                    }, z.core.$strict>>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            response_status_code: z.ZodNumber;
+            response_content_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            captures: z.ZodArray<z.ZodObject<{
+                retained_capture_digest: z.ZodString;
+                capture_rung: z.ZodEnum<{
+                    archive: "archive";
+                    headless: "headless";
+                    http: "http";
+                    manual: "manual";
+                }>;
+            }, z.core.$strict>>;
+            artifact_digests: z.ZodArray<z.ZodString>;
             kind: z.ZodLiteral<"bounded_absence">;
             coverage_scope: z.ZodEnum<{
                 exact_funnel: "exact_funnel";
@@ -1053,6 +1181,38 @@ export declare const agentReadinessRevisionCoreSchema: z.ZodObject<{
                 }>;
             }, z.core.$strict>>;
             artifact_digests: z.ZodArray<z.ZodString>;
+            kind: z.ZodLiteral<"service_exchange">;
+            endpoint_id: z.ZodString;
+            assessment_target_id: z.ZodString;
+            source_observation_digest: z.ZodString;
+            approved_request: z.ZodObject<{
+                source_url: z.ZodURL;
+                request: z.ZodObject<{
+                    method: z.ZodLiteral<"GET">;
+                    target_url: z.ZodOptional<z.ZodURL>;
+                    headers: z.ZodArray<z.ZodObject<{
+                        name: z.ZodString;
+                        value: z.ZodString;
+                    }, z.core.$strict>>;
+                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        pointer: z.ZodString;
+                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                    }, z.core.$strict>>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            response_status_code: z.ZodNumber;
+            response_content_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            captures: z.ZodArray<z.ZodObject<{
+                retained_capture_digest: z.ZodString;
+                capture_rung: z.ZodEnum<{
+                    archive: "archive";
+                    headless: "headless";
+                    http: "http";
+                    manual: "manual";
+                }>;
+            }, z.core.$strict>>;
+            artifact_digests: z.ZodArray<z.ZodString>;
             kind: z.ZodLiteral<"bounded_absence">;
             coverage_scope: z.ZodEnum<{
                 exact_funnel: "exact_funnel";
@@ -1213,6 +1373,38 @@ export declare const agentReadinessRevisionSchema: z.ZodObject<{
                 end_byte: z.ZodNumber;
                 value_digest: z.ZodString;
             }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            captures: z.ZodArray<z.ZodObject<{
+                retained_capture_digest: z.ZodString;
+                capture_rung: z.ZodEnum<{
+                    archive: "archive";
+                    headless: "headless";
+                    http: "http";
+                    manual: "manual";
+                }>;
+            }, z.core.$strict>>;
+            artifact_digests: z.ZodArray<z.ZodString>;
+            kind: z.ZodLiteral<"service_exchange">;
+            endpoint_id: z.ZodString;
+            assessment_target_id: z.ZodString;
+            source_observation_digest: z.ZodString;
+            approved_request: z.ZodObject<{
+                source_url: z.ZodURL;
+                request: z.ZodObject<{
+                    method: z.ZodLiteral<"GET">;
+                    target_url: z.ZodOptional<z.ZodURL>;
+                    headers: z.ZodArray<z.ZodObject<{
+                        name: z.ZodString;
+                        value: z.ZodString;
+                    }, z.core.$strict>>;
+                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        pointer: z.ZodString;
+                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                    }, z.core.$strict>>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            response_status_code: z.ZodNumber;
+            response_content_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
             captures: z.ZodArray<z.ZodObject<{
                 retained_capture_digest: z.ZodString;
@@ -1558,6 +1750,7 @@ export declare const agentReadinessPolicySignalRuleSchema: z.ZodObject<{
                 certification_receipt: "certification_receipt";
                 direct_observation: "direct_observation";
                 explicit_first_party_declaration: "explicit_first_party_declaration";
+                service_exchange: "service_exchange";
                 standard_requirement: "standard_requirement";
             }>>;
             minimum_distinct_captures: z.ZodNumber;
@@ -1584,6 +1777,14 @@ export declare const agentReadinessPolicySignalRuleSchema: z.ZodObject<{
         code: z.ZodString;
         instruction: z.ZodString;
     }, z.core.$strict>>;
+    fact_question: z.ZodString;
+    fact_predicates: z.ZodObject<{
+        yes: z.ZodString;
+        partial: z.ZodString;
+        no: z.ZodString;
+        unknown: z.ZodString;
+        not_applicable: z.ZodString;
+    }, z.core.$strict>;
     public_findings: z.ZodObject<{
         yes: z.ZodObject<{
             condition: z.ZodString;
@@ -1766,6 +1967,7 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                 certification_receipt: "certification_receipt";
                 direct_observation: "direct_observation";
                 explicit_first_party_declaration: "explicit_first_party_declaration";
+                service_exchange: "service_exchange";
                 standard_requirement: "standard_requirement";
             }>>;
         }, z.core.$strict>>;
@@ -2045,6 +2247,7 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                     certification_receipt: "certification_receipt";
                     direct_observation: "direct_observation";
                     explicit_first_party_declaration: "explicit_first_party_declaration";
+                    service_exchange: "service_exchange";
                     standard_requirement: "standard_requirement";
                 }>>;
                 minimum_distinct_captures: z.ZodNumber;
@@ -2071,6 +2274,14 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
             code: z.ZodString;
             instruction: z.ZodString;
         }, z.core.$strict>>;
+        fact_question: z.ZodString;
+        fact_predicates: z.ZodObject<{
+            yes: z.ZodString;
+            partial: z.ZodString;
+            no: z.ZodString;
+            unknown: z.ZodString;
+            not_applicable: z.ZodString;
+        }, z.core.$strict>;
         public_findings: z.ZodObject<{
             yes: z.ZodObject<{
                 condition: z.ZodString;
@@ -2221,10 +2432,12 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
             operate: z.ZodLiteral<"F">;
         }, z.core.$strict>;
         unverified_barrier_grade_cap: z.ZodOptional<z.ZodLiteral<"B+">>;
+        unobserved_operation_grade_cap: z.ZodLiteral<"B+">;
         not_applicable_signals: z.ZodLiteral<"excluded">;
         unrated_when: z.ZodObject<{
             coverage: z.ZodLiteral<"not-complete">;
             freshness: z.ZodLiteral<"not-fresh">;
+            except: z.ZodLiteral<"fresh-supported-essential-failure">;
         }, z.core.$strict>;
     }, z.core.$strict>;
     grade_derivation: z.ZodObject<{
@@ -2311,6 +2524,7 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                 certification_receipt: "certification_receipt";
                 direct_observation: "direct_observation";
                 explicit_first_party_declaration: "explicit_first_party_declaration";
+                service_exchange: "service_exchange";
                 standard_requirement: "standard_requirement";
             }>>;
         }, z.core.$strict>>;
@@ -2590,6 +2804,7 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                     certification_receipt: "certification_receipt";
                     direct_observation: "direct_observation";
                     explicit_first_party_declaration: "explicit_first_party_declaration";
+                    service_exchange: "service_exchange";
                     standard_requirement: "standard_requirement";
                 }>>;
                 minimum_distinct_captures: z.ZodNumber;
@@ -2616,6 +2831,14 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
             code: z.ZodString;
             instruction: z.ZodString;
         }, z.core.$strict>>;
+        fact_question: z.ZodString;
+        fact_predicates: z.ZodObject<{
+            yes: z.ZodString;
+            partial: z.ZodString;
+            no: z.ZodString;
+            unknown: z.ZodString;
+            not_applicable: z.ZodString;
+        }, z.core.$strict>;
         public_findings: z.ZodObject<{
             yes: z.ZodObject<{
                 condition: z.ZodString;
@@ -2766,10 +2989,12 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
             operate: z.ZodLiteral<"F">;
         }, z.core.$strict>;
         unverified_barrier_grade_cap: z.ZodOptional<z.ZodLiteral<"B+">>;
+        unobserved_operation_grade_cap: z.ZodLiteral<"B+">;
         not_applicable_signals: z.ZodLiteral<"excluded">;
         unrated_when: z.ZodObject<{
             coverage: z.ZodLiteral<"not-complete">;
             freshness: z.ZodLiteral<"not-fresh">;
+            except: z.ZodLiteral<"fresh-supported-essential-failure">;
         }, z.core.$strict>;
     }, z.core.$strict>;
     grade_derivation: z.ZodObject<{
@@ -2856,6 +3081,38 @@ export declare const agentReadinessProjectedSignalSchema: z.ZodObject<{
             end_byte: z.ZodNumber;
             value_digest: z.ZodString;
         }, z.core.$strict>>;
+    }, z.core.$strict>, z.ZodObject<{
+        captures: z.ZodArray<z.ZodObject<{
+            retained_capture_digest: z.ZodString;
+            capture_rung: z.ZodEnum<{
+                archive: "archive";
+                headless: "headless";
+                http: "http";
+                manual: "manual";
+            }>;
+        }, z.core.$strict>>;
+        artifact_digests: z.ZodArray<z.ZodString>;
+        kind: z.ZodLiteral<"service_exchange">;
+        endpoint_id: z.ZodString;
+        assessment_target_id: z.ZodString;
+        source_observation_digest: z.ZodString;
+        approved_request: z.ZodObject<{
+            source_url: z.ZodURL;
+            request: z.ZodObject<{
+                method: z.ZodLiteral<"GET">;
+                target_url: z.ZodOptional<z.ZodURL>;
+                headers: z.ZodArray<z.ZodObject<{
+                    name: z.ZodString;
+                    value: z.ZodString;
+                }, z.core.$strict>>;
+                success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    pointer: z.ZodString;
+                    equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                }, z.core.$strict>>>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        response_status_code: z.ZodNumber;
+        response_content_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
         captures: z.ZodArray<z.ZodObject<{
             retained_capture_digest: z.ZodString;
@@ -3052,6 +3309,38 @@ export declare const agentReadinessStageProjectionSchema: z.ZodObject<{
                 end_byte: z.ZodNumber;
                 value_digest: z.ZodString;
             }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            captures: z.ZodArray<z.ZodObject<{
+                retained_capture_digest: z.ZodString;
+                capture_rung: z.ZodEnum<{
+                    archive: "archive";
+                    headless: "headless";
+                    http: "http";
+                    manual: "manual";
+                }>;
+            }, z.core.$strict>>;
+            artifact_digests: z.ZodArray<z.ZodString>;
+            kind: z.ZodLiteral<"service_exchange">;
+            endpoint_id: z.ZodString;
+            assessment_target_id: z.ZodString;
+            source_observation_digest: z.ZodString;
+            approved_request: z.ZodObject<{
+                source_url: z.ZodURL;
+                request: z.ZodObject<{
+                    method: z.ZodLiteral<"GET">;
+                    target_url: z.ZodOptional<z.ZodURL>;
+                    headers: z.ZodArray<z.ZodObject<{
+                        name: z.ZodString;
+                        value: z.ZodString;
+                    }, z.core.$strict>>;
+                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        pointer: z.ZodString;
+                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                    }, z.core.$strict>>>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            response_status_code: z.ZodNumber;
+            response_content_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
             captures: z.ZodArray<z.ZodObject<{
                 retained_capture_digest: z.ZodString;
@@ -3645,6 +3934,38 @@ export declare const agentReadinessProjectionCoreSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"service_exchange">;
+                endpoint_id: z.ZodString;
+                assessment_target_id: z.ZodString;
+                source_observation_digest: z.ZodString;
+                approved_request: z.ZodObject<{
+                    source_url: z.ZodURL;
+                    request: z.ZodObject<{
+                        method: z.ZodLiteral<"GET">;
+                        target_url: z.ZodOptional<z.ZodURL>;
+                        headers: z.ZodArray<z.ZodObject<{
+                            name: z.ZodString;
+                            value: z.ZodString;
+                        }, z.core.$strict>>;
+                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                            pointer: z.ZodString;
+                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                        }, z.core.$strict>>>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                response_status_code: z.ZodNumber;
+                response_content_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
@@ -4298,6 +4619,38 @@ export declare const agentReadinessProjectionSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"service_exchange">;
+                endpoint_id: z.ZodString;
+                assessment_target_id: z.ZodString;
+                source_observation_digest: z.ZodString;
+                approved_request: z.ZodObject<{
+                    source_url: z.ZodURL;
+                    request: z.ZodObject<{
+                        method: z.ZodLiteral<"GET">;
+                        target_url: z.ZodOptional<z.ZodURL>;
+                        headers: z.ZodArray<z.ZodObject<{
+                            name: z.ZodString;
+                            value: z.ZodString;
+                        }, z.core.$strict>>;
+                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                            pointer: z.ZodString;
+                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                        }, z.core.$strict>>>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                response_status_code: z.ZodNumber;
+                response_content_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
@@ -5502,6 +5855,38 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                     }>;
                 }, z.core.$strict>>;
                 artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"service_exchange">;
+                endpoint_id: z.ZodString;
+                assessment_target_id: z.ZodString;
+                source_observation_digest: z.ZodString;
+                approved_request: z.ZodObject<{
+                    source_url: z.ZodURL;
+                    request: z.ZodObject<{
+                        method: z.ZodLiteral<"GET">;
+                        target_url: z.ZodOptional<z.ZodURL>;
+                        headers: z.ZodArray<z.ZodObject<{
+                            name: z.ZodString;
+                            value: z.ZodString;
+                        }, z.core.$strict>>;
+                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                            pointer: z.ZodString;
+                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                        }, z.core.$strict>>>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                response_status_code: z.ZodNumber;
+                response_content_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
                 kind: z.ZodLiteral<"bounded_absence">;
                 coverage_scope: z.ZodEnum<{
                     exact_funnel: "exact_funnel";
@@ -6072,6 +6457,38 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                         end_byte: z.ZodNumber;
                         value_digest: z.ZodString;
                     }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    captures: z.ZodArray<z.ZodObject<{
+                        retained_capture_digest: z.ZodString;
+                        capture_rung: z.ZodEnum<{
+                            archive: "archive";
+                            headless: "headless";
+                            http: "http";
+                            manual: "manual";
+                        }>;
+                    }, z.core.$strict>>;
+                    artifact_digests: z.ZodArray<z.ZodString>;
+                    kind: z.ZodLiteral<"service_exchange">;
+                    endpoint_id: z.ZodString;
+                    assessment_target_id: z.ZodString;
+                    source_observation_digest: z.ZodString;
+                    approved_request: z.ZodObject<{
+                        source_url: z.ZodURL;
+                        request: z.ZodObject<{
+                            method: z.ZodLiteral<"GET">;
+                            target_url: z.ZodOptional<z.ZodURL>;
+                            headers: z.ZodArray<z.ZodObject<{
+                                name: z.ZodString;
+                                value: z.ZodString;
+                            }, z.core.$strict>>;
+                            success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                pointer: z.ZodString;
+                                equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                            }, z.core.$strict>>>;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    response_status_code: z.ZodNumber;
+                    response_content_digest: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
                     captures: z.ZodArray<z.ZodObject<{
                         retained_capture_digest: z.ZodString;

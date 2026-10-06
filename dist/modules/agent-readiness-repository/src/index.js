@@ -5,7 +5,7 @@ import { promisify } from "node:util";
 import { compareCanonicalStrings } from "provenry/primitives";
 import { parse as parseYaml } from "yaml";
 import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadinessAuthoringSchema, } from "../../../contracts/agent-readiness/src/declaration.js";
-import { assertAgentReadinessDeclarationPolicyClosure } from "../../agent-readiness-policy/src/index.js";
+import { assertAgentReadinessDeclarationPolicyScope } from "../../agent-readiness-policy/src/index.js";
 import { compileAgentReadinessDeclarationRevision, compileAgentReadinessDeclarationSource, readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 export * from "./admission.js";
 export * from "./declaration-blob.js";
@@ -94,7 +94,7 @@ function assertRepositoryInspectionClosure(blobs, policy) {
     assertUnique(blobs.flatMap((blob) => blob.authoring.declarations.map((declaration) => declaration.declaration_id)), "Agent Readiness inspected declaration IDs");
     for (const blob of blobs) {
         for (const declaration of Object.values(blob.declarationRevisions)) {
-            assertAgentReadinessDeclarationPolicyClosure({
+            assertAgentReadinessDeclarationPolicyScope({
                 declaration: declaration.declaration,
                 policy,
             });
@@ -122,7 +122,7 @@ export function inspectAgentReadinessCandidateSources(input) {
     const revisions = compiled.flatMap(({ declarationRevisions }) => Object.values(declarationRevisions));
     assertUnique(revisions.map(({ declaration }) => declaration.declaration_id), "Agent Readiness candidate declaration IDs");
     for (const revision of revisions) {
-        assertAgentReadinessDeclarationPolicyClosure({
+        assertAgentReadinessDeclarationPolicyScope({
             declaration: revision.declaration,
             policy: input.policy,
         });
@@ -155,7 +155,7 @@ export async function validateAgentReadinessRepositoryTree(input) {
                 throw new Error(`Agent Readiness Entity ${parsed.entity.slug} must live at ${expected}.`);
             }
             for (const declaration of parsed.declarations) {
-                assertAgentReadinessDeclarationPolicyClosure({
+                assertAgentReadinessDeclarationPolicyScope({
                     declaration: compileAgentReadinessDeclarationRevision({
                         authoring: parsed,
                         declaration,

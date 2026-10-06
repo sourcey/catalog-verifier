@@ -21,10 +21,7 @@ function metricStandardEvidence(metric) {
         return [
             {
                 requirement: OPENAPI_REQUIREMENTS.responses,
-                support: [
-                    { result: "satisfied", values: ["partial"] },
-                    { result: "not_satisfied", values: ["no"] },
-                ],
+                support: [{ result: "satisfied", values: ["partial"] }],
             },
             {
                 requirement: MCP_REQUIREMENTS.toolInputSchema,
@@ -36,10 +33,7 @@ function metricStandardEvidence(metric) {
         return [
             {
                 requirement: OPENAPI_REQUIREMENTS.errorResponses,
-                support: [
-                    { result: "satisfied", values: ["partial"] },
-                    { result: "not_satisfied", values: ["no"] },
-                ],
+                support: [{ result: "satisfied", values: ["partial"] }],
             },
             {
                 requirement: MCP_REQUIREMENTS.errorResponse,
@@ -93,7 +87,6 @@ function oauthAuthenticationEvidence() {
 function buildMethod(input) {
     const determinationBases = input.determinationBases ?? [
         "direct_observation",
-        "bounded_absence",
         "explicit_first_party_declaration",
         "standard_requirement",
     ];
@@ -107,7 +100,9 @@ function buildMethod(input) {
             values: metric.allowNotApplicable
                 ? ["yes", "partial", "no", "not_applicable"]
                 : ["yes", "partial", "no"],
-            determination_bases: determinationBases,
+            determination_bases: metric.serviceExchange && input.observesServiceExchanges
+                ? [...determinationBases, "service_exchange"]
+                : determinationBases,
         })),
         surface_support: {
             node_kinds: ["resource", "endpoint", "interface"],
@@ -233,19 +228,24 @@ function alternative(id, kinds, input = {}) {
         minimum_branches: input.branches ?? (kinds.includes("bounded_absence") ? 1 : 0),
     };
 }
-function evidenceAlternatives(metric, value) {
+function evidenceAlternatives(metric, value, standardEvidence) {
+    const standardsCanSupportValue = standardEvidence.some((mapping) => mapping.support.some((support) => support.values.includes(value)));
+    const standardAlternative = standardsCanSupportValue
+        ? [alternative(`verified-standard-${value}`, ["standard_requirement"])]
+        : [];
+    if ((metric.code === "agent_protocol_interface" ||
+        metric.code === "structured_evaluation_discovery") &&
+        value === "yes") {
+        return [alternative("verified-standard-yes", ["standard_requirement"])];
+    }
     if (value === "not_applicable") {
-        return [
-            alternative("explicit-no-step", ["explicit_first_party_declaration"]),
-            alternative("bounded-exact-funnel", ["bounded_absence"], { captures: 2, branches: 1 }),
-            alternative("verified-standard-not-applicable", ["standard_requirement"]),
-        ];
+        return [alternative("explicit-no-step", ["explicit_first_party_declaration"])];
     }
     if (value === "partial") {
         return [
             alternative("located-partial-condition", ["direct_observation"]),
             alternative("declared-partial-condition", ["explicit_first_party_declaration"]),
-            alternative("verified-standard-partial", ["standard_requirement"]),
+            ...standardAlternative,
         ];
     }
     if (metric.evidence === "availability") {
@@ -253,53 +253,50 @@ function evidenceAlternatives(metric, value) {
             ? [
                 alternative("located-available-surface", ["direct_observation"]),
                 alternative("declared-available-surface", ["explicit_first_party_declaration"]),
-                alternative("verified-standard-available", ["standard_requirement"]),
+                ...standardAlternative,
             ]
             : [
-                alternative("bounded-unavailable-scope", ["bounded_absence"], {
-                    captures: 2,
-                    branches: 1,
-                }),
                 alternative("declared-unavailable-scope", ["explicit_first_party_declaration"]),
-                alternative("verified-standard-unavailable", ["standard_requirement"]),
+                ...standardAlternative,
             ];
     }
     if (metric.evidence === "compatible_absence") {
         return value === "yes"
             ? [
                 alternative("declared-compatible-alternative", ["explicit_first_party_declaration"]),
-                alternative("verified-standard-compatible", ["standard_requirement"]),
+                ...standardAlternative,
             ]
             : [
                 alternative("corroborated-mandatory-blocker", ["direct_observation"], { captures: 2 }),
                 alternative("declared-mandatory-blocker", ["explicit_first_party_declaration"]),
-                alternative("verified-standard-blocker", ["standard_requirement"]),
+                ...standardAlternative,
             ];
     }
     if (value === "no") {
         return [
             alternative("corroborated-blocker", ["direct_observation"], { captures: 2 }),
             alternative("declared-blocker", ["explicit_first_party_declaration"]),
-            alternative("verified-standard-blocker", ["standard_requirement"]),
+            ...standardAlternative,
         ];
     }
     return [
         alternative(`located-${value}-condition`, ["direct_observation"]),
         alternative(`declared-${value}-condition`, ["explicit_first_party_declaration"]),
-        alternative(`verified-standard-${value}`, ["standard_requirement"]),
+        ...standardAlternative,
     ];
 }
 export function buildCurrentAgentReadinessPolicy() {
     const methods = [
         buildMethod({
             name: "public-semantic-assessment",
-            version: "2026-09-29",
+            version: "2026-10-06",
             rungs: ["http", "headless"],
             maxActions: 20,
+            observesServiceExchanges: true,
         }),
         buildMethod({
             name: "operator-reviewed-public-document",
-            version: "2026-09-29",
+            version: "2026-10-06",
             rungs: ["manual"],
             maxActions: 0,
             determinationBases: ["direct_observation", "explicit_first_party_declaration"],
@@ -308,7 +305,7 @@ export function buildCurrentAgentReadinessPolicy() {
     const methodDigests = methods.map((method) => method.method_digest);
     const core = agentReadinessPolicyCoreSchema.parse({
         policy_contract: "sourcey.agent-readiness-policy/v1alpha1",
-        policy_version: "service-use-2026-10-05-decisive-core",
+        policy_version: "service-use-2026-10-06-reviewed-exchange",
         assessment_basis: {
             principal: "authorized_human_or_organization",
             initial_state: {
@@ -385,7 +382,7 @@ export function buildCurrentAgentReadinessPolicy() {
                 evidence_terms: [...metric.evidenceTerms],
                 value_evidence: assessableValues.map((value) => ({
                     value,
-                    alternatives: evidenceAlternatives(metric, value),
+                    alternatives: evidenceAlternatives(metric, value, standardEvidence),
                 })),
                 priority: index,
                 ...(metric.role !== "informational"
@@ -399,6 +396,16 @@ export function buildCurrentAgentReadinessPolicy() {
                         },
                     }
                     : {}),
+                fact_question: metric.condition,
+                fact_predicates: {
+                    yes: metric.factPredicates.yes,
+                    partial: metric.factPredicates.partial,
+                    no: metric.factPredicates.no,
+                    unknown: "The selected evidence does not resolve the exact assessed service and path.",
+                    not_applicable: metric.allowNotApplicable
+                        ? metric.factPredicates.not_applicable
+                        : "Not applicable is not an allowed result for this signal.",
+                },
                 public_findings: {
                     yes: { condition: metric.condition, finding: metric.ready },
                     partial: { condition: metric.condition, finding: metric.limited },
@@ -419,7 +426,7 @@ export function buildCurrentAgentReadinessPolicy() {
         aggregation: {
             stage: "worst-signal",
             overall: "worst-stage",
-            outcome_precedence: ["unknown", "fail", "constrained", "pass", "not_applicable"],
+            outcome_precedence: ["fail", "unknown", "constrained", "pass", "not_applicable"],
             blocker_precedence: "outcome-then-rule-priority",
             tie_breaker: "signal-code",
         },
@@ -450,14 +457,19 @@ export function buildCurrentAgentReadinessPolicy() {
                 operate: "F",
             },
             unverified_barrier_grade_cap: "B+",
+            unobserved_operation_grade_cap: "B+",
             not_applicable_signals: "excluded",
-            unrated_when: { coverage: "not-complete", freshness: "not-fresh" },
+            unrated_when: {
+                coverage: "not-complete",
+                freshness: "not-fresh",
+                except: "fresh-supported-essential-failure",
+            },
         },
         grade_derivation: {
             label: "Five-stage Agent Readiness report card",
             explanation: "A through C grades count Limited stages; D and F reflect Blocked stages by lifecycle severity.",
-            coverage_rule: "Every graded signal needs fresh, supported evidence. Unknown or stale barriers remain visible and cap A or A+ at B+. Only fresh, supported barriers affect stage outcomes.",
-            outcome_rule: "Each stage takes its worst graded signal or verified barrier. A fresh, supported mandatory barrier that passed its admission evidence rule can block that stage; incomplete or stale barrier evidence remains context only. The overall grade is derived from the five stage states.",
+            coverage_rule: "Positive grades need fresh support for every graded signal. A and A+ also need a reviewed service exchange for every essential target. A fresh essential blocker yields D or F despite unrelated unknowns.",
+            outcome_rule: "Each stage takes its worst current graded signal or verified barrier. A fresh, supported mandatory barrier that passed its admission evidence rule can block that stage; incomplete or stale evidence remains context only. The overall grade is derived from the five stage states.",
         },
     });
     return agentReadinessPolicySchema.parse({ ...core, policy_digest: digest(core) });

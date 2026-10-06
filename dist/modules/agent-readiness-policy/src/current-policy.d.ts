@@ -35,7 +35,7 @@ export declare const currentAgentReadinessPolicy: {
             stage: "evaluate" | "operate" | "pay" | "provision" | "sign_up";
             signal_code: string;
             values: ("no" | "not_applicable" | "partial" | "yes")[];
-            determination_bases: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "standard_requirement")[];
+            determination_bases: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "service_exchange" | "standard_requirement")[];
         }[];
         surface_support: {
             node_kinds: ("endpoint" | "interface" | "resource" | "surface_exclusion")[];
@@ -118,7 +118,7 @@ export declare const currentAgentReadinessPolicy: {
             value: "no" | "not_applicable" | "partial" | "yes";
             alternatives: {
                 alternative_id: string;
-                required_basis_kinds: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "standard_requirement")[];
+                required_basis_kinds: ("bounded_absence" | "certification_receipt" | "direct_observation" | "explicit_first_party_declaration" | "service_exchange" | "standard_requirement")[];
                 minimum_distinct_captures: number;
                 require_independent_capture_rungs: boolean;
                 required_artifacts: ("capture_interaction_trace" | "evidence_excerpt" | "interaction_trace" | "manual_review_note" | "screenshot" | "source_observation" | "standard_evidence_result")[];
@@ -135,6 +135,14 @@ export declare const currentAgentReadinessPolicy: {
             code: string;
             instruction: string;
         } | undefined;
+        fact_question: string;
+        fact_predicates: {
+            yes: string;
+            partial: string;
+            no: string;
+            unknown: string;
+            not_applicable: string;
+        };
         public_findings: {
             yes: {
                 condition: string;
@@ -231,10 +239,12 @@ export declare const currentAgentReadinessPolicy: {
             operate: "F";
         };
         unverified_barrier_grade_cap?: "B+" | undefined;
+        unobserved_operation_grade_cap: "B+";
         not_applicable_signals: "excluded";
         unrated_when: {
             coverage: "not-complete";
             freshness: "not-fresh";
+            except: "fresh-supported-essential-failure";
         };
     };
     grade_derivation: {

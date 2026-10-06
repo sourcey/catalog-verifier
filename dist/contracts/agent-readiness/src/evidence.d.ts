@@ -30,6 +30,27 @@ export declare const agentReadinessSourceObservationSchema: z.ZodObject<{
         to: z.ZodURL;
     }, z.core.$strict>>;
     response_status_code: z.ZodNumber;
+    request: z.ZodOptional<z.ZodUnion<readonly [z.ZodObject<{
+        method: z.ZodLiteral<"GET">;
+        target_url: z.ZodOptional<z.ZodURL>;
+        headers: z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            value: z.ZodString;
+        }, z.core.$strict>>;
+        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            pointer: z.ZodString;
+            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>, z.ZodObject<{
+        method: z.ZodLiteral<"STANDARD_OBSERVATION">;
+        observations: z.ZodArray<z.ZodObject<{
+            standard: z.ZodObject<{
+                namespace: z.ZodString;
+                version: z.ZodString;
+            }, z.core.$strict>;
+            probe_digest: z.ZodString;
+        }, z.core.$strict>>;
+    }, z.core.$strict>]>>;
     capture_method: z.ZodEnum<{
         archive: "archive";
         headless: "headless";
@@ -63,6 +84,7 @@ export declare const agentReadinessDeterminationBasisKindSchema: z.ZodEnum<{
     certification_receipt: "certification_receipt";
     direct_observation: "direct_observation";
     explicit_first_party_declaration: "explicit_first_party_declaration";
+    service_exchange: "service_exchange";
     standard_requirement: "standard_requirement";
 }>;
 export declare const agentReadinessEvidenceLocatorSchema: z.ZodObject<{
@@ -89,6 +111,38 @@ export declare const agentReadinessDeterminationBasisSchema: z.ZodDiscriminatedU
         end_byte: z.ZodNumber;
         value_digest: z.ZodString;
     }, z.core.$strict>>;
+}, z.core.$strict>, z.ZodObject<{
+    captures: z.ZodArray<z.ZodObject<{
+        retained_capture_digest: z.ZodString;
+        capture_rung: z.ZodEnum<{
+            archive: "archive";
+            headless: "headless";
+            http: "http";
+            manual: "manual";
+        }>;
+    }, z.core.$strict>>;
+    artifact_digests: z.ZodArray<z.ZodString>;
+    kind: z.ZodLiteral<"service_exchange">;
+    endpoint_id: z.ZodString;
+    assessment_target_id: z.ZodString;
+    source_observation_digest: z.ZodString;
+    approved_request: z.ZodObject<{
+        source_url: z.ZodURL;
+        request: z.ZodObject<{
+            method: z.ZodLiteral<"GET">;
+            target_url: z.ZodOptional<z.ZodURL>;
+            headers: z.ZodArray<z.ZodObject<{
+                name: z.ZodString;
+                value: z.ZodString;
+            }, z.core.$strict>>;
+            success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                pointer: z.ZodString;
+                equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+            }, z.core.$strict>>>;
+        }, z.core.$strict>;
+    }, z.core.$strict>;
+    response_status_code: z.ZodNumber;
+    response_content_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
     captures: z.ZodArray<z.ZodObject<{
         retained_capture_digest: z.ZodString;
@@ -168,6 +222,7 @@ export declare const agentReadinessCorroborationAlternativeSchema: z.ZodObject<{
         certification_receipt: "certification_receipt";
         direct_observation: "direct_observation";
         explicit_first_party_declaration: "explicit_first_party_declaration";
+        service_exchange: "service_exchange";
         standard_requirement: "standard_requirement";
     }>>;
     minimum_distinct_captures: z.ZodNumber;

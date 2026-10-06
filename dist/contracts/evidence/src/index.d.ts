@@ -32,6 +32,10 @@ export declare const evidencePublicReadRequestSchema: z.ZodObject<{
         name: z.ZodString;
         value: z.ZodString;
     }, z.core.$strict>>;
+    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        pointer: z.ZodString;
+        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+    }, z.core.$strict>>>;
 }, z.core.$strict>;
 /** The exact physical request retained for evidence replay. */
 export declare const evidenceCaptureRequestSchema: z.ZodUnion<readonly [z.ZodObject<{
@@ -41,6 +45,10 @@ export declare const evidenceCaptureRequestSchema: z.ZodUnion<readonly [z.ZodObj
         name: z.ZodString;
         value: z.ZodString;
     }, z.core.$strict>>;
+    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        pointer: z.ZodString;
+        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+    }, z.core.$strict>>>;
 }, z.core.$strict>, z.ZodObject<{
     method: z.ZodLiteral<"STANDARD_OBSERVATION">;
     observations: z.ZodArray<z.ZodObject<{
@@ -51,6 +59,22 @@ export declare const evidenceCaptureRequestSchema: z.ZodUnion<readonly [z.ZodObj
         probe_digest: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>]>;
+/** One operator-approved public read of one exact declared surface. */
+export declare const evidencePublicReadRequestEntrySchema: z.ZodObject<{
+    source_url: z.ZodURL;
+    request: z.ZodObject<{
+        method: z.ZodLiteral<"GET">;
+        target_url: z.ZodOptional<z.ZodURL>;
+        headers: z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            value: z.ZodString;
+        }, z.core.$strict>>;
+        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            pointer: z.ZodString;
+            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+        }, z.core.$strict>>>;
+    }, z.core.$strict>;
+}, z.core.$strict>;
 export declare const evidencePublicReadRequestSetSchema: z.ZodObject<{
     request_set_contract: z.ZodLiteral<"sourcey.evidence-public-read-request-set/v1alpha1">;
     requests: z.ZodArray<z.ZodObject<{
@@ -62,6 +86,10 @@ export declare const evidencePublicReadRequestSetSchema: z.ZodObject<{
                 name: z.ZodString;
                 value: z.ZodString;
             }, z.core.$strict>>;
+            success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                pointer: z.ZodString;
+                equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+            }, z.core.$strict>>>;
         }, z.core.$strict>;
     }, z.core.$strict>>;
 }, z.core.$strict>;

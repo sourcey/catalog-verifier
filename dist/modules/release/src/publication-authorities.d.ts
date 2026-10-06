@@ -77,6 +77,33 @@ export declare function agentReadinessPublicationInput(proposal: ReadinessPublic
                     capture_rung: "archive" | "headless" | "http" | "manual";
                 }[];
                 artifact_digests: string[];
+                kind: "service_exchange";
+                endpoint_id: string;
+                assessment_target_id: string;
+                source_observation_digest: string;
+                approved_request: {
+                    source_url: string;
+                    request: {
+                        method: "GET";
+                        target_url?: string | undefined;
+                        headers: {
+                            name: string;
+                            value: string;
+                        }[];
+                        success_assertions?: {
+                            pointer: string;
+                            equals: string | number | boolean | null;
+                        }[] | undefined;
+                    };
+                };
+                response_status_code: number;
+                response_content_digest: string;
+            } | {
+                captures: {
+                    retained_capture_digest: string;
+                    capture_rung: "archive" | "headless" | "http" | "manual";
+                }[];
+                artifact_digests: string[];
                 kind: "bounded_absence";
                 coverage_scope: "exact_funnel" | "exact_resource" | "tested_surfaces";
                 covered_surfaces: {

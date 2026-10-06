@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type PayableProductDescriptor } from "../../startup-credits-commercial/src/index.js";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.2";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.3";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -6912,6 +6912,38 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                         }>;
                     }, z.core.$strict>>;
                     artifact_digests: z.ZodArray<z.ZodString>;
+                    kind: z.ZodLiteral<"service_exchange">;
+                    endpoint_id: z.ZodString;
+                    assessment_target_id: z.ZodString;
+                    source_observation_digest: z.ZodString;
+                    approved_request: z.ZodObject<{
+                        source_url: z.ZodURL;
+                        request: z.ZodObject<{
+                            method: z.ZodLiteral<"GET">;
+                            target_url: z.ZodOptional<z.ZodURL>;
+                            headers: z.ZodArray<z.ZodObject<{
+                                name: z.ZodString;
+                                value: z.ZodString;
+                            }, z.core.$strict>>;
+                            success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                pointer: z.ZodString;
+                                equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                            }, z.core.$strict>>>;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    response_status_code: z.ZodNumber;
+                    response_content_digest: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    captures: z.ZodArray<z.ZodObject<{
+                        retained_capture_digest: z.ZodString;
+                        capture_rung: z.ZodEnum<{
+                            archive: "archive";
+                            headless: "headless";
+                            http: "http";
+                            manual: "manual";
+                        }>;
+                    }, z.core.$strict>>;
+                    artifact_digests: z.ZodArray<z.ZodString>;
                     kind: z.ZodLiteral<"bounded_absence">;
                     coverage_scope: z.ZodEnum<{
                         exact_funnel: "exact_funnel";
@@ -7562,6 +7594,38 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                         end_byte: z.ZodNumber;
                         value_digest: z.ZodString;
                     }, z.core.$strict>>;
+                }, z.core.$strict>, z.ZodObject<{
+                    captures: z.ZodArray<z.ZodObject<{
+                        retained_capture_digest: z.ZodString;
+                        capture_rung: z.ZodEnum<{
+                            archive: "archive";
+                            headless: "headless";
+                            http: "http";
+                            manual: "manual";
+                        }>;
+                    }, z.core.$strict>>;
+                    artifact_digests: z.ZodArray<z.ZodString>;
+                    kind: z.ZodLiteral<"service_exchange">;
+                    endpoint_id: z.ZodString;
+                    assessment_target_id: z.ZodString;
+                    source_observation_digest: z.ZodString;
+                    approved_request: z.ZodObject<{
+                        source_url: z.ZodURL;
+                        request: z.ZodObject<{
+                            method: z.ZodLiteral<"GET">;
+                            target_url: z.ZodOptional<z.ZodURL>;
+                            headers: z.ZodArray<z.ZodObject<{
+                                name: z.ZodString;
+                                value: z.ZodString;
+                            }, z.core.$strict>>;
+                            success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                pointer: z.ZodString;
+                                equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                            }, z.core.$strict>>>;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    response_status_code: z.ZodNumber;
+                    response_content_digest: z.ZodString;
                 }, z.core.$strict>, z.ZodObject<{
                     captures: z.ZodArray<z.ZodObject<{
                         retained_capture_digest: z.ZodString;
@@ -8634,6 +8698,38 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                             }>;
                         }, z.core.$strict>>;
                         artifact_digests: z.ZodArray<z.ZodString>;
+                        kind: z.ZodLiteral<"service_exchange">;
+                        endpoint_id: z.ZodString;
+                        assessment_target_id: z.ZodString;
+                        source_observation_digest: z.ZodString;
+                        approved_request: z.ZodObject<{
+                            source_url: z.ZodURL;
+                            request: z.ZodObject<{
+                                method: z.ZodLiteral<"GET">;
+                                target_url: z.ZodOptional<z.ZodURL>;
+                                headers: z.ZodArray<z.ZodObject<{
+                                    name: z.ZodString;
+                                    value: z.ZodString;
+                                }, z.core.$strict>>;
+                                success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                    pointer: z.ZodString;
+                                    equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                }, z.core.$strict>>>;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>;
+                        response_status_code: z.ZodNumber;
+                        response_content_digest: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        captures: z.ZodArray<z.ZodObject<{
+                            retained_capture_digest: z.ZodString;
+                            capture_rung: z.ZodEnum<{
+                                archive: "archive";
+                                headless: "headless";
+                                http: "http";
+                                manual: "manual";
+                            }>;
+                        }, z.core.$strict>>;
+                        artifact_digests: z.ZodArray<z.ZodString>;
                         kind: z.ZodLiteral<"bounded_absence">;
                         coverage_scope: z.ZodEnum<{
                             exact_funnel: "exact_funnel";
@@ -9176,6 +9272,38 @@ export declare const revisionResponseSchema: z.ZodObject<{
                     end_byte: z.ZodNumber;
                     value_digest: z.ZodString;
                 }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                captures: z.ZodArray<z.ZodObject<{
+                    retained_capture_digest: z.ZodString;
+                    capture_rung: z.ZodEnum<{
+                        archive: "archive";
+                        headless: "headless";
+                        http: "http";
+                        manual: "manual";
+                    }>;
+                }, z.core.$strict>>;
+                artifact_digests: z.ZodArray<z.ZodString>;
+                kind: z.ZodLiteral<"service_exchange">;
+                endpoint_id: z.ZodString;
+                assessment_target_id: z.ZodString;
+                source_observation_digest: z.ZodString;
+                approved_request: z.ZodObject<{
+                    source_url: z.ZodURL;
+                    request: z.ZodObject<{
+                        method: z.ZodLiteral<"GET">;
+                        target_url: z.ZodOptional<z.ZodURL>;
+                        headers: z.ZodArray<z.ZodObject<{
+                            name: z.ZodString;
+                            value: z.ZodString;
+                        }, z.core.$strict>>;
+                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                            pointer: z.ZodString;
+                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                        }, z.core.$strict>>>;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+                response_status_code: z.ZodNumber;
+                response_content_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
                 captures: z.ZodArray<z.ZodObject<{
                     retained_capture_digest: z.ZodString;
@@ -22967,6 +23095,38 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 }>;
                             }, z.core.$strict>>;
                             artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
                             kind: z.ZodLiteral<"bounded_absence">;
                             coverage_scope: z.ZodEnum<{
                                 exact_funnel: "exact_funnel";
@@ -23696,6 +23856,38 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 end_byte: z.ZodNumber;
                                 value_digest: z.ZodString;
                             }, z.core.$strict>>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
                         }, z.core.$strict>, z.ZodObject<{
                             captures: z.ZodArray<z.ZodObject<{
                                 retained_capture_digest: z.ZodString;
@@ -29770,6 +29962,38 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             end_byte: z.ZodNumber;
                             value_digest: z.ZodString;
                         }, z.core.$strict>>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        captures: z.ZodArray<z.ZodObject<{
+                            retained_capture_digest: z.ZodString;
+                            capture_rung: z.ZodEnum<{
+                                archive: "archive";
+                                headless: "headless";
+                                http: "http";
+                                manual: "manual";
+                            }>;
+                        }, z.core.$strict>>;
+                        artifact_digests: z.ZodArray<z.ZodString>;
+                        kind: z.ZodLiteral<"service_exchange">;
+                        endpoint_id: z.ZodString;
+                        assessment_target_id: z.ZodString;
+                        source_observation_digest: z.ZodString;
+                        approved_request: z.ZodObject<{
+                            source_url: z.ZodURL;
+                            request: z.ZodObject<{
+                                method: z.ZodLiteral<"GET">;
+                                target_url: z.ZodOptional<z.ZodURL>;
+                                headers: z.ZodArray<z.ZodObject<{
+                                    name: z.ZodString;
+                                    value: z.ZodString;
+                                }, z.core.$strict>>;
+                                success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                    pointer: z.ZodString;
+                                    equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                }, z.core.$strict>>>;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>;
+                        response_status_code: z.ZodNumber;
+                        response_content_digest: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
                         captures: z.ZodArray<z.ZodObject<{
                             retained_capture_digest: z.ZodString;
@@ -35995,6 +36219,38 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 }>;
                             }, z.core.$strict>>;
                             artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
                             kind: z.ZodLiteral<"bounded_absence">;
                             coverage_scope: z.ZodEnum<{
                                 exact_funnel: "exact_funnel";
@@ -36943,6 +37199,38 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                     end_byte: z.ZodNumber;
                                     value_digest: z.ZodString;
                                 }, z.core.$strict>>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                captures: z.ZodArray<z.ZodObject<{
+                                    retained_capture_digest: z.ZodString;
+                                    capture_rung: z.ZodEnum<{
+                                        archive: "archive";
+                                        headless: "headless";
+                                        http: "http";
+                                        manual: "manual";
+                                    }>;
+                                }, z.core.$strict>>;
+                                artifact_digests: z.ZodArray<z.ZodString>;
+                                kind: z.ZodLiteral<"service_exchange">;
+                                endpoint_id: z.ZodString;
+                                assessment_target_id: z.ZodString;
+                                source_observation_digest: z.ZodString;
+                                approved_request: z.ZodObject<{
+                                    source_url: z.ZodURL;
+                                    request: z.ZodObject<{
+                                        method: z.ZodLiteral<"GET">;
+                                        target_url: z.ZodOptional<z.ZodURL>;
+                                        headers: z.ZodArray<z.ZodObject<{
+                                            name: z.ZodString;
+                                            value: z.ZodString;
+                                        }, z.core.$strict>>;
+                                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                            pointer: z.ZodString;
+                                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                        }, z.core.$strict>>>;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>;
+                                response_status_code: z.ZodNumber;
+                                response_content_digest: z.ZodString;
                             }, z.core.$strict>, z.ZodObject<{
                                 captures: z.ZodArray<z.ZodObject<{
                                     retained_capture_digest: z.ZodString;
@@ -44022,6 +44310,38 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 }>;
                             }, z.core.$strict>>;
                             artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
                             kind: z.ZodLiteral<"bounded_absence">;
                             coverage_scope: z.ZodEnum<{
                                 exact_funnel: "exact_funnel";
@@ -44751,6 +45071,38 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 end_byte: z.ZodNumber;
                                 value_digest: z.ZodString;
                             }, z.core.$strict>>;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
                         }, z.core.$strict>, z.ZodObject<{
                             captures: z.ZodArray<z.ZodObject<{
                                 retained_capture_digest: z.ZodString;
@@ -50825,6 +51177,38 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             end_byte: z.ZodNumber;
                             value_digest: z.ZodString;
                         }, z.core.$strict>>;
+                    }, z.core.$strict>, z.ZodObject<{
+                        captures: z.ZodArray<z.ZodObject<{
+                            retained_capture_digest: z.ZodString;
+                            capture_rung: z.ZodEnum<{
+                                archive: "archive";
+                                headless: "headless";
+                                http: "http";
+                                manual: "manual";
+                            }>;
+                        }, z.core.$strict>>;
+                        artifact_digests: z.ZodArray<z.ZodString>;
+                        kind: z.ZodLiteral<"service_exchange">;
+                        endpoint_id: z.ZodString;
+                        assessment_target_id: z.ZodString;
+                        source_observation_digest: z.ZodString;
+                        approved_request: z.ZodObject<{
+                            source_url: z.ZodURL;
+                            request: z.ZodObject<{
+                                method: z.ZodLiteral<"GET">;
+                                target_url: z.ZodOptional<z.ZodURL>;
+                                headers: z.ZodArray<z.ZodObject<{
+                                    name: z.ZodString;
+                                    value: z.ZodString;
+                                }, z.core.$strict>>;
+                                success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                    pointer: z.ZodString;
+                                    equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                }, z.core.$strict>>>;
+                            }, z.core.$strict>;
+                        }, z.core.$strict>;
+                        response_status_code: z.ZodNumber;
+                        response_content_digest: z.ZodString;
                     }, z.core.$strict>, z.ZodObject<{
                         captures: z.ZodArray<z.ZodObject<{
                             retained_capture_digest: z.ZodString;
@@ -57050,6 +57434,38 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 }>;
                             }, z.core.$strict>>;
                             artifact_digests: z.ZodArray<z.ZodString>;
+                            kind: z.ZodLiteral<"service_exchange">;
+                            endpoint_id: z.ZodString;
+                            assessment_target_id: z.ZodString;
+                            source_observation_digest: z.ZodString;
+                            approved_request: z.ZodObject<{
+                                source_url: z.ZodURL;
+                                request: z.ZodObject<{
+                                    method: z.ZodLiteral<"GET">;
+                                    target_url: z.ZodOptional<z.ZodURL>;
+                                    headers: z.ZodArray<z.ZodObject<{
+                                        name: z.ZodString;
+                                        value: z.ZodString;
+                                    }, z.core.$strict>>;
+                                    success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                        pointer: z.ZodString;
+                                        equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                    }, z.core.$strict>>>;
+                                }, z.core.$strict>;
+                            }, z.core.$strict>;
+                            response_status_code: z.ZodNumber;
+                            response_content_digest: z.ZodString;
+                        }, z.core.$strict>, z.ZodObject<{
+                            captures: z.ZodArray<z.ZodObject<{
+                                retained_capture_digest: z.ZodString;
+                                capture_rung: z.ZodEnum<{
+                                    archive: "archive";
+                                    headless: "headless";
+                                    http: "http";
+                                    manual: "manual";
+                                }>;
+                            }, z.core.$strict>>;
+                            artifact_digests: z.ZodArray<z.ZodString>;
                             kind: z.ZodLiteral<"bounded_absence">;
                             coverage_scope: z.ZodEnum<{
                                 exact_funnel: "exact_funnel";
@@ -57998,6 +58414,38 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                     end_byte: z.ZodNumber;
                                     value_digest: z.ZodString;
                                 }, z.core.$strict>>;
+                            }, z.core.$strict>, z.ZodObject<{
+                                captures: z.ZodArray<z.ZodObject<{
+                                    retained_capture_digest: z.ZodString;
+                                    capture_rung: z.ZodEnum<{
+                                        archive: "archive";
+                                        headless: "headless";
+                                        http: "http";
+                                        manual: "manual";
+                                    }>;
+                                }, z.core.$strict>>;
+                                artifact_digests: z.ZodArray<z.ZodString>;
+                                kind: z.ZodLiteral<"service_exchange">;
+                                endpoint_id: z.ZodString;
+                                assessment_target_id: z.ZodString;
+                                source_observation_digest: z.ZodString;
+                                approved_request: z.ZodObject<{
+                                    source_url: z.ZodURL;
+                                    request: z.ZodObject<{
+                                        method: z.ZodLiteral<"GET">;
+                                        target_url: z.ZodOptional<z.ZodURL>;
+                                        headers: z.ZodArray<z.ZodObject<{
+                                            name: z.ZodString;
+                                            value: z.ZodString;
+                                        }, z.core.$strict>>;
+                                        success_assertions: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                                            pointer: z.ZodString;
+                                            equals: z.ZodUnion<readonly [z.ZodString, z.ZodNumber, z.ZodBoolean, z.ZodNull]>;
+                                        }, z.core.$strict>>>;
+                                    }, z.core.$strict>;
+                                }, z.core.$strict>;
+                                response_status_code: z.ZodNumber;
+                                response_content_digest: z.ZodString;
                             }, z.core.$strict>, z.ZodObject<{
                                 captures: z.ZodArray<z.ZodObject<{
                                     retained_capture_digest: z.ZodString;
