@@ -139,7 +139,7 @@ export declare function createCatalogVerifierIdentityContextPacket(input: {
         expires_at: string;
         context_digest: `sha256:${string}`;
         protected: {
-            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
+            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
             signer_registry_digest: string;
             key_id: string;
             algorithm: "ed25519";
@@ -238,7 +238,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
             expires_at: string;
             context_digest: `sha256:${string}`;
             protected: {
-                signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
+                signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
                 signer_registry_digest: string;
                 key_id: string;
                 algorithm: "ed25519";
@@ -329,7 +329,7 @@ export declare function verifyCatalogVerifierIdentityContextPacket(input: {
         expires_at: string;
         context_digest: `sha256:${string}`;
         protected: {
-            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
+            signature_purpose: "catalog-attestation" | "catalog-authority" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
             signer_registry_digest: string;
             key_id: string;
             algorithm: "ed25519";
@@ -409,7 +409,7 @@ export declare function createCatalogAdmissionConflictLookupRequest(input: {
     };
 };
 export type OpenPullRequestAdmissionCandidate = z.infer<typeof openPullRequestAdmissionCandidateSchema>;
-export type OpenPullRequestAdmissionKey = z.infer<typeof openPullRequestAdmissionKeySchema>;
+type OpenPullRequestAdmissionKey = z.infer<typeof openPullRequestAdmissionKeySchema>;
 /** Derive once at capture; pending lookups need neither YAML nor normalized offer text. */
 export declare function deriveOpenPullRequestAdmissionKeys(input: {
     readonly path: string;
@@ -421,7 +421,7 @@ export interface OpenPullRequestAdmissionCandidateReader {
 type DetachedCatalogAdmissionCandidate = Extract<CatalogAdmissionCandidate, {
     readonly kind: "detached";
 }>;
-export interface OpenPullRequestCatalogAdmissionConflictQueryConfiguration {
+interface OpenPullRequestCatalogAdmissionConflictQueryConfiguration {
     readonly reader: OpenPullRequestAdmissionCandidateReader;
     readonly maximumOpenPullRequests?: number;
     /**
@@ -453,8 +453,6 @@ export declare class CompositeCatalogAdmissionConflictQuery implements CatalogAd
  * redefine identity matching.
  */
 export declare function deriveCatalogEntityIdentityAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
-/** The one slug key an entity authoring path proves without a parseable document. */
-export declare function deriveOpenPullRequestPathAdmissionKeys(path: string): readonly CatalogAdmissionKey[];
 /** Derive all exact conflict keys once from the canonical compiled candidate. */
 export declare function deriveCatalogAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
 export declare function evaluateCatalogAdmissionConflicts(input: {

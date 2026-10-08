@@ -1,5 +1,5 @@
 import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
-import { domainIsPublicSuffix } from "../../evidence-comparison/src/values.js";
+import { domainIsPublicSuffix } from "../../evidence-comparison/src/domains.js";
 import { evidenceHttpAllowedHosts } from "./url-canonicalization.js";
 /**
  * Canonical-source authority for catalog evidence.

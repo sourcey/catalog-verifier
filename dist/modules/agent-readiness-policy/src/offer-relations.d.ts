@@ -8,11 +8,6 @@ export declare function agentReadinessOfferRelationRequiresWithdrawal(input: {
     readonly changedOfferRevisionDigest: string | null | undefined;
     readonly profileRetired: boolean;
 }): boolean;
-export declare function agentReadinessOfferRelationId(input: {
-    readonly agentReadinessProfileId: string;
-    readonly offerId: string;
-    readonly purpose: string;
-}): string;
 export declare function compileAgentReadinessOfferRelationRevision(input: AgentReadinessOfferRelationInput): AgentReadinessOfferRelationRevision;
 export declare function projectAgentReadinessOfferRelationIndex(input: {
     readonly relations: readonly AgentReadinessOfferRelationRevision[];

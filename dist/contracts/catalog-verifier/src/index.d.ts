@@ -290,7 +290,6 @@ export declare const catalogVerifierIdentityContextSchema: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
             "catalog-attestation": "catalog-attestation";
             "catalog-authority": "catalog-authority";
-            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
             "catalog-evidence": "catalog-evidence";
             "catalog-feed": "catalog-feed";
@@ -386,7 +385,6 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
             signature_purpose: z.ZodEnum<{
                 "catalog-attestation": "catalog-attestation";
                 "catalog-authority": "catalog-authority";
-                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
                 "catalog-evidence": "catalog-evidence";
                 "catalog-feed": "catalog-feed";
@@ -427,7 +425,6 @@ export declare const catalogVerifierIdentityContextPacketSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type CatalogVerifierIdentityContextCore = z.infer<typeof catalogVerifierIdentityContextCoreSchema>;
 export type CatalogVerifierIdentityContext = z.infer<typeof catalogVerifierIdentityContextSchema>;
-export type CatalogVerifierIdentityContextPacket = z.infer<typeof catalogVerifierIdentityContextPacketSchema>;
 /** Optional operation resolved only when recovering a retained submission.
  * Work remains opaque to the host; its bound verifier interprets it. Results
  * are internal application values, not another serialized release contract. */

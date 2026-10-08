@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { DecisionBasis } from "../../../contracts/authority/src/index.js";
+export declare const entityPathSchema: z.ZodString;
 export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
     policy_id: z.ZodString;
@@ -262,6 +262,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -291,6 +295,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -353,6 +361,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -373,6 +385,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -822,6 +838,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -851,6 +871,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -913,6 +937,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -933,6 +961,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1376,6 +1408,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1405,6 +1441,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1467,6 +1507,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1487,6 +1531,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1930,6 +1978,10 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1959,6 +2011,10 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2021,6 +2077,10 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2041,6 +2101,10 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2499,22 +2563,4 @@ export declare function createStartupCreditsMachineAdmissionInput(input: z.input
  * they never change this candidate's evidence, conflicts, policy or outcome.
  */
 export declare function createStartupCreditsAdmissionCandidateInput(input: z.input<typeof startupCreditsAdmissionCandidateInputCoreSchema>): StartupCreditsAdmissionCandidateInput;
-export declare function createStartupCreditsMachineAdmissionPolicy(input: z.input<typeof startupCreditsMachineAdmissionPolicyCoreSchema>): StartupCreditsMachineAdmissionPolicy;
-/** One total pure policy over exact, already verified domain results. */
-export declare function evaluateStartupCreditsMachineAdmission(input: unknown): {
-    readonly input: StartupCreditsMachineAdmissionInput;
-    readonly result: StartupCreditsMachineAdmissionResult;
-    readonly receipt: StartupCreditsMachineAdmissionReceipt;
-    readonly decisionBasis: DecisionBasis;
-};
-/**
- * The shared deterministic admission verdict used by transport-specific
- * applications. This emits no publication, payment, Git or reviewer authority.
- */
-export declare function evaluateStartupCreditsAdmissionCandidate(input: unknown): {
-    readonly input: StartupCreditsAdmissionCandidateInput;
-    readonly result: StartupCreditsAdmissionCandidateResult;
-    readonly receipt: StartupCreditsAdmissionCandidateReceipt;
-    readonly decisionBasis: DecisionBasis;
-};
 //# sourceMappingURL=machine-admission.d.ts.map

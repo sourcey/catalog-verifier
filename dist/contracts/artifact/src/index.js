@@ -13,7 +13,7 @@ const agentReadinessProfileId = z.string().regex(AGENT_READINESS_PROFILE_ID_PATT
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const slug = z.string().regex(SLUG_PATTERN);
 const instant = z.iso.datetime({ offset: true });
-export const fieldCoverageSchema = z
+const fieldCoverageSchema = z
     .object({
     path: z.string().startsWith("/"),
     supporting_event_ids: z.array(digest),
@@ -53,7 +53,7 @@ export const OFFER_HEADLINE_RULE = "sourcey.offer-headline/v1";
  * an already accepted claim. An offer whose benefits state no figure carries
  * no headline.
  */
-export const offerHeadlineFigureSchema = z.discriminatedUnion("kind", [
+const offerHeadlineFigureSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("credit"),
@@ -143,7 +143,7 @@ export const compiledEntitySchema = z
 })
     .strict();
 const sectionHeading = z.string().min(1);
-export const policySectionSchema = z.discriminatedUnion("kind", [
+const policySectionSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("prose"),
@@ -215,7 +215,7 @@ export const canonicalArtifactSchema = canonicalArtifactCoreSchema
     entities: z.array(compiledEntitySchema),
 })
     .strict();
-export const releaseChangeKindKnownValues = [
+const releaseChangeKindKnownValues = [
     "entity.added",
     "entity.updated",
     "entity.retired",
@@ -240,7 +240,7 @@ export const releaseChangeKindKnownValues = [
     "asset.updated",
     "asset.withdrawn",
 ];
-export const releaseChangeKindSchema = z
+const releaseChangeKindSchema = z
     .string()
     .regex(/^[a-z][a-z0-9-]*(?:\.[a-z][a-z0-9-]*)+$/)
     .meta({
@@ -275,7 +275,7 @@ export const provenanceEntrySchema = z
     freshness_policy_digest: digest,
 })
     .strict();
-export const eventInclusionSchema = z
+const eventInclusionSchema = z
     .object({
     event_id: digest,
     event_object_digest: digest,
@@ -285,12 +285,16 @@ export const eventInclusionSchema = z
     first_inclusion_sequence: z.number().int().positive(),
 })
     .strict();
-export const captureReceiptInclusionSchema = z
+/**
+ * Where a Provenry capture attestation was first included. The attestation
+ * digest leaves out its signature, so the object digest pins the exact bytes.
+ */
+const captureAttestationInclusionSchema = z
     .object({
-    receipt_digest: digest,
-    receipt_object_digest: digest,
-    issuer_id: identifier,
-    operation_id: identifier,
+    attestation_digest: digest,
+    attestation_object_digest: digest,
+    start_digest: digest,
+    attempt_digest: digest,
     signer_registry_digest: digest,
     first_inclusion_sequence: z.number().int().positive(),
 })
@@ -300,7 +304,7 @@ export const provenanceIndexSchema = z
     provenance_contract: z.literal("sourcey.provenance-index/v1alpha1"),
     revisions: z.record(z.string(), provenanceEntrySchema),
     events: z.record(z.string(), eventInclusionSchema),
-    capture_receipts: z.record(z.string(), captureReceiptInclusionSchema),
+    capture_attestations: z.record(z.string(), captureAttestationInclusionSchema),
 })
     .strict();
 /** One subject moved from its old owning Entity to a new one by one event. */

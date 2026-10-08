@@ -1,6 +1,6 @@
 import { type AssetDelta, type AssetIndex, type AssetInputs, type AssetManifest, type AssetNotices, type EntityAssetProposal, type RetainedAssetCapture, type SourceyOwnedEntityIconCandidate } from "../../../contracts/assets/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
-export interface MaterializedAssets {
+interface MaterializedAssets {
     readonly manifest: AssetManifest;
     readonly inputs: AssetInputs;
     readonly safeBytes: ReadonlyMap<string, Uint8Array>;

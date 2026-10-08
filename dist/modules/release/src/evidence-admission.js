@@ -1,18 +1,19 @@
 import { readdir, readFile } from "node:fs/promises";
 import { join, relative, sep } from "node:path";
+import { captureAttemptAttestationSchema, } from "provenry/capture/attestation";
 import { canonicalJson, compareCanonicalStrings, digest, digestPathSegment, sha256Bytes, } from "provenry/primitives";
-import { agentReadinessDeclarationRevisionSchema, agentReadinessRevisionContract, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
-import { captureReceiptSchema, evidenceAuthorityBundleCoreSchema, evidenceAuthorityBundleManifestSchema, evidenceAuthoritySetCoreSchema, evidenceAuthoritySetManifestSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
+import { evidenceAuthorityBundleCoreSchema, evidenceAuthorityBundleManifestSchema, evidenceAuthoritySetCoreSchema, evidenceAuthoritySetManifestSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
 import { RELEASE_RESOURCES, releaseResourceDigest } from "../../../contracts/release/src/index.js";
 import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-import { compileAgentReadinessRevision } from "../../agent-readiness-policy/src/revision.js";
-import { validateProtectedCaptureReceipt, validateProtectedEvent, } from "../../authority/src/index.js";
+import { validateProtectedEvent } from "../../authority/src/index.js";
+import { isReleasedCaptureRecordPath, mergeAttestedCaptures, verifyReleasedAttestedCaptures, } from "../../evidence-operations/src/attested-capture.js";
 import { capturePolicyDefinitionSchema } from "../../evidence-operations/src/configuration.js";
 import { evidenceCatalogProposalSchema, validateEvidenceCatalogProposal, } from "../../evidence-operations/src/evidence-authority.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
 import { assertOnlyObjectPaths, assertSafeObjectPath, filesUnder, verifyBundleTree, } from "./evidence-bundle-tree.js";
+const EVIDENCE_BUNDLE = "Evidence authority bundle";
 export async function loadEvidenceAuthorityProposals(input) {
     const proposals = new Map();
     for (const root of [...input.roots].sort(compareCanonicalStrings)) {
@@ -47,7 +48,6 @@ export function createEvidenceAdmissionBase(parent) {
         releaseId: parent.descriptor.release_id,
         releaseSequence: parent.descriptor.release_core.release_sequence,
         coveragePolicyDigest: releaseResourceDigest(parent.bundle.resource_digests, RELEASE_RESOURCES.coveragePolicy),
-        agentReadinessPolicyDigest: releaseResourceDigest(parent.bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy),
         currentRevisionDigests,
         currentAgentReadinessHeads: new Map(parent.agentReadinessProfiles.map((profile) => [
             profile.agent_readiness_profile_id,
@@ -62,7 +62,7 @@ export function createEvidenceAdmissionBase(parent) {
             entry[1].revision_contract === "sourcey.agent-readiness-declaration-revision/v1alpha1")),
         events: parent.events,
         observations: parent.observations,
-        captureReceipts: parent.captureReceipts,
+        captureAttestations: [...parent.attestedCaptures.values()].map(({ attestation }) => attestation),
     };
 }
 export function emptyAdmittedEvidence() {
@@ -73,7 +73,7 @@ export function emptyAdmittedEvidence() {
         revisions: [],
         events: [],
         observations: [],
-        captureReceipts: [],
+        attestedCaptures: new Map(),
         captures: new Map(),
         normalizedObjects: new Map(),
     };
@@ -132,7 +132,6 @@ export async function loadEvidenceAuthorityBundles(input) {
             base: input.base,
             targetReleaseSequence: input.targetReleaseSequence,
             targetCoveragePolicyDigest: input.targetCoveragePolicyDigest,
-            targetAgentReadinessPolicyDigest: input.targetAgentReadinessPolicyDigest,
             targetRegistry: input.targetRegistry,
         }));
     }
@@ -142,8 +141,7 @@ export async function loadEvidenceAuthorityBundles(input) {
     const events = new Map();
     const eventOperations = new Map();
     const observations = new Map();
-    const captureReceipts = new Map();
-    const captureOperations = new Map();
+    const attestedCaptures = new Map();
     const captures = new Map();
     const normalizedObjects = new Map();
     for (const bundle of bundles) {
@@ -164,16 +162,9 @@ export async function loadEvidenceAuthorityBundles(input) {
             events.set(event.event_id, event);
             eventOperations.set(event.operation_id, event.event_id);
         }
-        for (const receipt of bundle.captureReceipts) {
-            if (captureReceipts.has(receipt.receipt_digest)) {
-                throw new Error(`Evidence authority bundles repeat capture receipt ${receipt.receipt_digest}.`);
-            }
-            const priorOperation = captureOperations.get(receipt.operation_id);
-            if (priorOperation) {
-                throw new Error(`Capture operation ${receipt.operation_id} is already bound to ${priorOperation}.`);
-            }
-            captureReceipts.set(receipt.receipt_digest, receipt);
-            captureOperations.set(receipt.operation_id, receipt.receipt_digest);
+        // Subjects that cite one page share its attestation; one digest names one object.
+        for (const [attestationDigest, captured] of mergeAttestedCaptures(attestedCaptures, bundle.attestedCaptures)) {
+            attestedCaptures.set(attestationDigest, captured);
         }
         mergeCanonicalObjects(observations, bundle.observations, "observation", (value) => value.observation_id);
         mergeBytes(captures, bundle.captures, "capture");
@@ -189,7 +180,7 @@ export async function loadEvidenceAuthorityBundles(input) {
         revisions: [...revisionObjects.values()].sort((left, right) => compareCanonicalStrings(left.revision_digest, right.revision_digest)),
         events: [...events.values()].sort((left, right) => compareCanonicalStrings(left.event_id, right.event_id)),
         observations: [...observations.values()].sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id)),
-        captureReceipts: [...captureReceipts.values()].sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest)),
+        attestedCaptures,
         captures,
         normalizedObjects,
     };
@@ -207,10 +198,7 @@ async function loadBundle(input) {
     if (input.reader.address !== digestPathSegment(proposal.proposal_digest)) {
         throw new Error(`Evidence authority bundle ${bundleDigest} is stored under the wrong address.`);
     }
-    const targetCoveragePolicyDigest = proposal.subject_revision.revision_contract === agentReadinessRevisionContract
-        ? input.targetAgentReadinessPolicyDigest
-        : input.targetCoveragePolicyDigest;
-    if (proposal.review_proposal.coverage_policy_digest !== targetCoveragePolicyDigest) {
+    if (proposal.review_proposal.coverage_policy_digest !== input.targetCoveragePolicyDigest) {
         throw new Error(`Evidence authority bundle ${bundleDigest} uses a stale target coverage policy.`);
     }
     if (digest(capturePolicy) !== proposal.review_proposal.capture_policy_digest) {
@@ -223,11 +211,7 @@ async function loadBundle(input) {
             ? entityRevisionSchema.parse(value)
             : revisionContract === catalogRevisionContracts.program
                 ? programRevisionSchema.parse(value)
-                : revisionContract === catalogRevisionContracts.offer
-                    ? offerRevisionSchema.parse(value)
-                    : revisionContract === agentReadinessRevisionContract
-                        ? agentReadinessRevisionSchema.parse(value)
-                        : agentReadinessDeclarationRevisionSchema.parse(value);
+                : offerRevisionSchema.parse(value);
     }, (value) => value.revision_digest, (value) => digest(withoutKey(value, "revision_digest")));
     assertSameSet("revision", manifest.revision_digests, revisions.map((revision) => revision.revision_digest));
     const events = await readAddressedJsonObjects(input.reader, manifest.objects, "events/", (value) => catalogEventSchema.parse(value), (value) => value.event_id, (value) => digest(withoutKeys(value, ["event_id", "protected"])));
@@ -237,16 +221,31 @@ async function loadBundle(input) {
     }
     const observations = await readAddressedJsonObjects(input.reader, manifest.objects, "observations/", (value) => observationSchema.parse(value), (value) => value.observation_id, (value) => digest(withoutKey(value, "observation_id")));
     assertSameSet("observation", manifest.observation_ids, observations.map((observation) => observation.observation_id));
-    const captureReceipts = await readAddressedJsonObjects(input.reader, manifest.objects, "capture-receipts/", (value) => captureReceiptSchema.parse(value), (value) => value.receipt_digest, (value) => digest(withoutKeys(value, ["receipt_digest", "protected"])));
-    if (captureReceipts.length !== 1 ||
-        captureReceipts[0]?.receipt_digest !== manifest.capture_receipt_digest) {
-        throw new Error(`Evidence authority bundle ${bundleDigest} has the wrong capture receipt.`);
+    // The bundle proves exactly one capture, judged by the release it is admitted into.
+    const captureRecordPaths = Object.keys(manifest.objects).filter(isReleasedCaptureRecordPath);
+    const records = await Promise.all(captureRecordPaths.map(async (path) => ({
+        path,
+        value: JSON.parse((await input.reader.read(path)).toString("utf8")),
+    })));
+    const attestedCaptures = await verifyReleasedAttestedCaptures({
+        starts: records
+            .filter(({ path }) => path.startsWith("capture-starts/"))
+            .map(({ value }) => value),
+        attempts: records
+            .filter(({ path }) => path.startsWith("capture-attempts/"))
+            .map(({ value }) => value),
+        attestations: records
+            .filter(({ path }) => path.startsWith("capture-attestations/"))
+            .map(({ value }) => captureAttemptAttestationSchema.parse(value)),
+        judgedBy: () => ({ registry: input.targetRegistry, sequence: input.targetReleaseSequence }),
+    });
+    const attestedCapture = attestedCaptures.get(manifest.capture_attestation_digest);
+    if (attestedCaptures.size !== 1 ||
+        !attestedCapture ||
+        proposal.capture_attestation_digest !== manifest.capture_attestation_digest) {
+        throw new Error(`Evidence authority bundle ${bundleDigest} has the wrong capture attestation.`);
     }
-    const receipt = captureReceipts[0];
-    if (!receipt)
-        throw new Error(`Evidence authority bundle ${bundleDigest} lacks a receipt.`);
-    validateProtectedCaptureReceipt(receipt, input.targetRegistry, input.targetReleaseSequence);
-    const capturePath = `captures/${digestPathSegment(receipt.capture.digest)}`;
+    const capturePath = `captures/${digestPathSegment(proposal.review_proposal.submission.capture.digest)}`;
     const normalizedDigest = proposal.review_proposal.submission.normalization
         .object_digest;
     const normalizedPath = `evidence/normalized/${digestPathSegment(normalizedDigest)}`;
@@ -261,51 +260,44 @@ async function loadBundle(input) {
         ...revisions.map((revision) => `revisions/${digestPathSegment(revision.revision_digest)}.json`),
         ...events.map((event) => `events/${digestPathSegment(event.event_id)}.json`),
         ...observations.map((observation) => `observations/${digestPathSegment(observation.observation_id)}.json`),
-        `capture-receipts/${digestPathSegment(receipt.receipt_digest)}.json`,
+        ...captureRecordPaths,
     ]);
     const captureBytes = await input.reader.read(capturePath);
     const normalizedBytes = await input.reader.read(normalizedPath);
     const validated = validateEvidenceCatalogProposal({
         proposal,
+        attestedCapture,
         captureBytes,
         normalizedBytes,
         catalog: {
             releaseId: input.base.releaseId,
             coveragePolicyDigest: input.targetCoveragePolicyDigest,
-            agentReadinessPolicyDigest: input.targetAgentReadinessPolicyDigest,
             currentRevisionDigests: input.base.currentRevisionDigests,
             currentAgentReadinessHeads: input.base.currentAgentReadinessHeads,
             revisions: input.base.revisions,
             existingEvents: input.base.events,
             existingObservations: input.base.observations,
-            existingCaptureReceipts: input.base.captureReceipts,
+            existingCaptureAttestations: input.base.captureAttestations,
         },
         prospectiveRevisionDigests: input.prospectiveRevisionDigests,
-        policy: {
-            captureReceiptIssuerId: receipt.issuer_id,
-            evidenceEventIssuerId: events[0]?.issuer_id ?? "",
-        },
-        agentReadinessRevisionCompiler: compileAgentReadinessRevision,
+        policy: { evidenceEventIssuerId: events[0]?.issuer_id ?? "" },
     });
-    if (validated.newCaptureReceiptIntent === null && validated.newEventIntents.length === 0) {
+    if (validated.existingCaptureAttestation && validated.newEventIntents.length === 0) {
         throw new Error(`Evidence authority bundle ${bundleDigest} does not contain new authority.`);
-    }
-    const { protected: _receiptProtection, receipt_digest: _receiptDigest, ...receiptCore } = receipt;
-    if (canonicalJson(receiptCore) !== canonicalJson(proposal.capture_receipt_intent.core) ||
-        receipt.receipt_digest !== proposal.capture_receipt_intent.receipt_digest) {
-        throw new Error(`Evidence authority bundle ${bundleDigest} receipt differs from its intent.`);
     }
     assertMaterializedEvents(proposal.event_intents, events, bundleDigest);
     if (canonicalJson(proposal.observations) !== canonicalJson(observations)) {
         throw new Error(`Evidence authority bundle ${bundleDigest} observations differ from its proposal.`);
     }
-    const captures = new Map([[receipt.capture.digest, captureBytes]]);
+    const captures = new Map([
+        [proposal.review_proposal.submission.capture.digest, captureBytes],
+    ]);
     const normalizedObjects = new Map([[normalizedDigest, normalizedBytes]]);
     verifyEvidenceObjectGraph({
         revisions,
         events,
         observations,
-        captureReceipts,
+        attestedCaptures,
         captures,
         normalizedObjects,
     });
@@ -317,7 +309,7 @@ async function loadBundle(input) {
         revisions,
         events,
         observations,
-        captureReceipts,
+        attestedCaptures,
         captures,
         normalizedObjects,
     };
@@ -354,7 +346,7 @@ async function loadDirectoryBundleReaders(root) {
             label: directory,
             manifest,
             read: (path) => readFile(join(directory, path)),
-            verifyTree: (declarations) => verifyBundleTree(directory, declarations),
+            verifyTree: (declarations) => verifyBundleTree(directory, declarations, EVIDENCE_BUNDLE),
         };
     }));
 }
@@ -406,7 +398,7 @@ async function loadAuthoritySetReaders(input) {
             throw new Error(`Evidence authority set bundle ${declaration.bundle_digest} is not content-addressed.`);
         }
         for (const [path, object] of Object.entries(bundle.objects)) {
-            assertSafeObjectPath(path);
+            assertSafeObjectPath(path, EVIDENCE_BUNDLE);
             referencedObjects.add(object.sha256);
             const value = objectBytes.get(object.sha256);
             if (!value || value.byteLength !== object.bytes || sha256Bytes(value) !== object.sha256) {
@@ -445,7 +437,7 @@ async function loadAuthoritySetReaders(input) {
         ...manifest.bundles.map((bundle) => `bundles/${digestPathSegment(bundle.proposal_digest)}.json`),
         ...manifest.objects.map((object) => `objects/${digestPathSegment(object.digest)}`),
     ].sort(compareCanonicalStrings);
-    const actualPaths = (await filesUnder(input.root))
+    const actualPaths = (await filesUnder(input.root, EVIDENCE_BUNDLE))
         .map((path) => relative(input.root, path).split(sep).join("/"))
         .sort(compareCanonicalStrings);
     if (canonicalJson(actualPaths) !== canonicalJson(expectedPaths)) {

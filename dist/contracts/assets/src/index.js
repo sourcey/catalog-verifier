@@ -26,7 +26,7 @@ export const assetMediaTypeSchema = z.enum([
     "image/webp",
     "image/svg+xml",
 ]);
-export const entityIconRoleSchema = z.literal("icon");
+const entityIconRoleSchema = z.literal("icon");
 export const assetRedistributionSchema = z
     .object({
     basis: z.enum([
@@ -158,7 +158,7 @@ export const retainedAssetCaptureCoreSchema = z
 export const retainedAssetCaptureSchema = retainedAssetCaptureCoreSchema
     .extend({ capture_digest: digest })
     .strict();
-export const assetByteReferenceSchema = z
+const assetByteReferenceSchema = z
     .object({
     digest,
     bytes: z.number().int().nonnegative(),
@@ -194,7 +194,7 @@ export const assetTransformReceiptCoreSchema = z
 export const assetTransformReceiptSchema = assetTransformReceiptCoreSchema
     .extend({ receipt_digest: digest })
     .strict();
-export const assetSafeVariantSchema = assetByteReferenceSchema
+const assetSafeVariantSchema = assetByteReferenceSchema
     .extend({
     served_path: relativePath,
     width: z.number().int().positive(),
@@ -497,7 +497,7 @@ const assetDeltaRemoveChangeSchema = z
     disposition_event_id: digest,
 })
     .strict();
-export const assetDeltaChangeSchema = z.discriminatedUnion("operation", [
+const assetDeltaChangeSchema = z.discriminatedUnion("operation", [
     assetDeltaUpsertChangeSchema,
     assetDeltaRemoveChangeSchema,
 ]);

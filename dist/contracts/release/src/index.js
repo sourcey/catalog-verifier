@@ -71,6 +71,18 @@ export function releasePolicyObjectPath(policyDigest) {
 export function releaseCaptureObjectPath(captureDigest) {
     return `captures/${releaseDigestPath(captureDigest)}`;
 }
+/** A Provenry capture start, the reservation made before the fetch. */
+export function releaseCaptureStartObjectPath(startDigest) {
+    return `capture-starts/${releaseDigestPath(startDigest)}.json`;
+}
+/** A Provenry capture attempt, what the fetch returned. */
+export function releaseCaptureAttemptObjectPath(attemptDigest) {
+    return `capture-attempts/${releaseDigestPath(attemptDigest)}.json`;
+}
+/** A Provenry capture attestation, the signature that proves a start and its attempt. */
+export function releaseCaptureAttestationObjectPath(attestationDigest) {
+    return `capture-attestations/${releaseDigestPath(attestationDigest)}.json`;
+}
 export function releaseNormalizedObjectPath(normalizedDigest) {
     return `evidence/normalized/${releaseDigestPath(normalizedDigest)}`;
 }
@@ -79,7 +91,7 @@ const catalogDeltaBaseSchema = z
     release: sourceyReleaseEnvelopeSchemas.descriptor,
 })
     .strict();
-export const catalogDeltaEntityChangeSchema = z
+const catalogDeltaEntityChangeSchema = z
     .object({
     operation: z.literal("upsert"),
     entity_id: z.string().regex(/^ent_[0-9a-z]+$/),
@@ -166,7 +178,7 @@ export const closedInputSetSchema = z
     environment: z.enum(["production", "dogfood"]),
     authoring_revisions: z.array(digest),
     event_ids: z.array(digest),
-    capture_receipt_digests: z.array(digest),
+    capture_attestation_digests: z.array(digest),
     evidence_authority_set_digest: digest.nullable(),
     evidence_authority_bundle_digests: z.array(digest),
     resource_digests: publicationResourceDigestsSchema,

@@ -1,80 +1,8 @@
 import { type Digest } from "provenry/primitives";
 import { z } from "zod";
 import type { CoverageRequirement } from "../../../contracts/policies/src/index.js";
-import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
-export declare const materialClaimSemanticTypeSchema: z.ZodEnum<{
-    access: "access";
-    boolean: "boolean";
-    composition: "composition";
-    currency: "currency";
-    domain: "domain";
-    duration: "duration";
-    editorial_text: "editorial_text";
-    eligibility_composition: "eligibility_composition";
-    eligibility_value: "eligibility_value";
-    exact_text: "exact_text";
-    lifecycle_state: "lifecycle_state";
-    money_amount: "money_amount";
-    number: "number";
-    percentage: "percentage";
-    qualifier: "qualifier";
-    source_authority: "source_authority";
-    structured_value: "structured_value";
-    taxonomy: "taxonomy";
-    url: "url";
-}>;
-export declare const materialClaimSubjectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    subject_type: z.ZodLiteral<"entity">;
-    entity_id: z.ZodString;
-    revision_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    subject_type: z.ZodLiteral<"program">;
-    entity_id: z.ZodString;
-    program_id: z.ZodString;
-    revision_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    subject_type: z.ZodLiteral<"offer">;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    offer_id: z.ZodString;
-    revision_digest: z.ZodString;
-}, z.core.$strict>], "subject_type">;
-export declare const materialClaimCoreSchema: z.ZodObject<{
-    policy_path: z.ZodString;
-    path: z.ZodString;
-    value_digest: z.ZodString;
-    semantic_type: z.ZodEnum<{
-        access: "access";
-        boolean: "boolean";
-        composition: "composition";
-        currency: "currency";
-        domain: "domain";
-        duration: "duration";
-        editorial_text: "editorial_text";
-        eligibility_composition: "eligibility_composition";
-        eligibility_value: "eligibility_value";
-        exact_text: "exact_text";
-        lifecycle_state: "lifecycle_state";
-        money_amount: "money_amount";
-        number: "number";
-        percentage: "percentage";
-        qualifier: "qualifier";
-        source_authority: "source_authority";
-        structured_value: "structured_value";
-        taxonomy: "taxonomy";
-        url: "url";
-    }>;
-    proof_kinds: z.ZodArray<z.ZodEnum<{
-        attested: "attested";
-        derived: "derived";
-        editorial: "editorial";
-        observed: "observed";
-    }>>;
-    derivation_rules: z.ZodArray<z.ZodString>;
-    guidance: z.ZodString;
-    depends_on: z.ZodArray<z.ZodString>;
-}, z.core.$strict>;
-export declare const materialClaimSchema: z.ZodObject<{
+import { type ListingRevision } from "../../../contracts/revisions/src/index.js";
+declare const materialClaimSchema: z.ZodObject<{
     policy_path: z.ZodString;
     path: z.ZodString;
     value_digest: z.ZodString;
@@ -109,62 +37,6 @@ export declare const materialClaimSchema: z.ZodObject<{
     guidance: z.ZodString;
     depends_on: z.ZodArray<z.ZodString>;
     claim_id: z.ZodString;
-}, z.core.$strict>;
-export declare const materialClaimPlanCoreSchema: z.ZodObject<{
-    plan_contract: z.ZodLiteral<"sourcey.material-claim-plan/v1alpha1">;
-    coverage_policy_digest: z.ZodString;
-    subject: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        subject_type: z.ZodLiteral<"entity">;
-        entity_id: z.ZodString;
-        revision_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        subject_type: z.ZodLiteral<"program">;
-        entity_id: z.ZodString;
-        program_id: z.ZodString;
-        revision_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        subject_type: z.ZodLiteral<"offer">;
-        entity_id: z.ZodString;
-        program_id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
-        revision_digest: z.ZodString;
-    }, z.core.$strict>], "subject_type">;
-    claims: z.ZodArray<z.ZodObject<{
-        policy_path: z.ZodString;
-        path: z.ZodString;
-        value_digest: z.ZodString;
-        semantic_type: z.ZodEnum<{
-            access: "access";
-            boolean: "boolean";
-            composition: "composition";
-            currency: "currency";
-            domain: "domain";
-            duration: "duration";
-            editorial_text: "editorial_text";
-            eligibility_composition: "eligibility_composition";
-            eligibility_value: "eligibility_value";
-            exact_text: "exact_text";
-            lifecycle_state: "lifecycle_state";
-            money_amount: "money_amount";
-            number: "number";
-            percentage: "percentage";
-            qualifier: "qualifier";
-            source_authority: "source_authority";
-            structured_value: "structured_value";
-            taxonomy: "taxonomy";
-            url: "url";
-        }>;
-        proof_kinds: z.ZodArray<z.ZodEnum<{
-            attested: "attested";
-            derived: "derived";
-            editorial: "editorial";
-            observed: "observed";
-        }>>;
-        derivation_rules: z.ZodArray<z.ZodString>;
-        guidance: z.ZodString;
-        depends_on: z.ZodArray<z.ZodString>;
-        claim_id: z.ZodString;
-    }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const materialClaimPlanSchema: z.ZodObject<{
     plan_contract: z.ZodLiteral<"sourcey.material-claim-plan/v1alpha1">;
@@ -223,7 +95,7 @@ export declare const materialClaimPlanSchema: z.ZodObject<{
     }, z.core.$strict>>;
     plan_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const materialClaimMatchBindingCoreSchema: z.ZodObject<{
+declare const materialClaimMatchBindingCoreSchema: z.ZodObject<{
     source_id: z.ZodString;
     capture_digest: z.ZodString;
     normalized_object_digest: z.ZodString;
@@ -250,7 +122,7 @@ export declare const materialClaimMatchBindingCoreSchema: z.ZodObject<{
         value_digest: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>;
-export declare const materialClaimMatchBindingSchema: z.ZodObject<{
+declare const materialClaimMatchBindingSchema: z.ZodObject<{
     source_id: z.ZodString;
     capture_digest: z.ZodString;
     normalized_object_digest: z.ZodString;
@@ -278,7 +150,7 @@ export declare const materialClaimMatchBindingSchema: z.ZodObject<{
     }, z.core.$strict>>;
     binding_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const materialClaimResultCoreSchema: z.ZodObject<{
+declare const materialClaimResultCoreSchema: z.ZodObject<{
     result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
     claim_id: z.ZodString;
     status: z.ZodEnum<{
@@ -367,12 +239,11 @@ export declare const materialClaimResultSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type MaterialClaim = z.infer<typeof materialClaimSchema>;
 export type MaterialClaimPlan = z.infer<typeof materialClaimPlanSchema>;
-export type MaterialClaimMatchBinding = z.infer<typeof materialClaimMatchBindingSchema>;
+type MaterialClaimMatchBinding = z.infer<typeof materialClaimMatchBindingSchema>;
 export type MaterialClaimResult = z.infer<typeof materialClaimResultSchema>;
-type CatalogRevision = EntityRevision | ProgramRevision | OfferRevision;
 /** Compile every applicable policy root into exact material leaves. */
 export declare function deriveMaterialClaimPlan(input: {
-    readonly revision: CatalogRevision;
+    readonly revision: ListingRevision;
     readonly requirements: readonly CoverageRequirement[];
     readonly coveragePolicyDigest: Digest;
 }): MaterialClaimPlan;

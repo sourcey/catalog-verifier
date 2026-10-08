@@ -2,8 +2,9 @@ import { z } from "zod";
 import { authoringSourceSchema, entityIdentityAuthoringSchema } from "../../authoring/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { standardImplementationBindingSchema } from "../../standards/src/index.js";
+import { agentReadinessBindingCalls, agentReadinessJobBindingSchema } from "./binding.js";
 export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadinessDeclarationProvenanceSchema, agentReadinessDeclarationReferenceSchema, } from "./declaration-reference.js";
-import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessHostnameSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessResourceRoleSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessStageSchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
+import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessHostnameSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessResourceRoleSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
 export const agentReadinessParticipantRoleSchema = z.enum([
     "subject",
     "access_operator",
@@ -12,7 +13,7 @@ export const agentReadinessParticipantRoleSchema = z.enum([
     "provisioning_provider",
     "operations_provider",
 ]);
-export const agentReadinessParticipantIdentitySchema = z.union([
+const agentReadinessParticipantIdentitySchema = z.union([
     z.object({ entity_id: agentReadinessEntityIdSchema }).strict(),
     z.object({ origin_source_id: agentReadinessIdentifierSchema }).strict(),
 ]);
@@ -41,8 +42,8 @@ export const agentReadinessResourceSchema = z
     assertUniqueStandardBindings(value.standard_bindings, context, ["standard_bindings"]);
     assertCanonicalOptionalHosts(value.allowed_redirect_hosts, context);
 });
-export const agentReadinessEndpointTransportSchema = z.enum(["http", "websocket", "grpc"]);
-export const agentReadinessEndpointRoleSchema = z.enum([
+const agentReadinessEndpointTransportSchema = z.enum(["http", "websocket", "grpc"]);
+const agentReadinessEndpointRoleSchema = z.enum([
     "service",
     "authorization",
     "token",
@@ -69,7 +70,7 @@ export const agentReadinessEndpointSchema = z
     assertUniqueStandardBindings(value.standard_bindings, context, ["standard_bindings"]);
     assertCanonicalOptionalHosts(value.allowed_redirect_hosts, context);
 });
-export const agentReadinessInterfaceModalitySchema = z.enum([
+const agentReadinessInterfaceModalitySchema = z.enum([
     "web_application",
     "network_api",
     "command_line",
@@ -77,7 +78,7 @@ export const agentReadinessInterfaceModalitySchema = z.enum([
     "tool_server",
     "agent_service",
 ]);
-export const agentReadinessInterfaceFunctionSchema = z.enum([
+const agentReadinessInterfaceFunctionSchema = z.enum([
     "service_operation",
     "authentication",
     "commerce",
@@ -108,19 +109,7 @@ export const agentReadinessDeclaredInterfaceSchema = z
         });
     }
 });
-export const agentReadinessAssessmentTargetSchema = z
-    .object({
-    target_id: agentReadinessScopeKeySchema,
-    name: z.string().trim().min(1).max(240),
-    interface_ids: z
-        .array(agentReadinessScopeKeySchema)
-        .min(1, "An assessment target must reference at least one interface."),
-})
-    .strict()
-    .superRefine((value, context) => {
-    assertUnique(value.interface_ids, context, ["interface_ids"], "Assessment target interface IDs must be unique.");
-});
-export const agentReadinessSurfaceRelationKindSchema = z.enum([
+const agentReadinessSurfaceRelationKindSchema = z.enum([
     "describes",
     "authenticates",
     "requires",
@@ -145,13 +134,9 @@ export const agentReadinessOfferRelationProposalSchema = z
     offer_relation_proposal_id: agentReadinessIdentifierSchema,
     offer_id: agentReadinessOfferIdSchema,
     purpose: agentReadinessOfferRelationPurposeSchema,
-    applicable_stages: z.array(agentReadinessStageSchema).min(1),
 })
-    .strict()
-    .superRefine((value, context) => {
-    assertUnique(value.applicable_stages, context, ["applicable_stages"], "Offer relation stages must be unique.");
-});
-export const agentReadinessDeclarationSourceTargetSchema = z
+    .strict();
+const agentReadinessDeclarationSourceTargetSchema = z
     .object({
     node_kind: z.enum([
         "declaration",
@@ -161,7 +146,7 @@ export const agentReadinessDeclarationSourceTargetSchema = z
         "interface",
         "relation",
         "offer_relation",
-        "assessment_target",
+        "job_binding",
         "surface_exclusion",
     ]),
     node_id: agentReadinessIdentifierSchema,
@@ -173,7 +158,7 @@ const agentReadinessDeclarationSourceBindingFields = {
     source_id: agentReadinessIdentifierSchema,
     field_paths: z.array(canonicalJsonPointerSchema).min(1),
 };
-export const agentReadinessDeclarationSourceBindingSchema = z
+const agentReadinessDeclarationSourceBindingSchema = z
     .object({
     ...agentReadinessDeclarationSourceBindingFields,
     target: agentReadinessDeclarationSourceTargetSchema,
@@ -191,7 +176,7 @@ const agentReadinessDeclarationGraphSourceTargetSchema = z
         "endpoint",
         "interface",
         "relation",
-        "assessment_target",
+        "job_binding",
         "surface_exclusion",
     ]),
     node_id: agentReadinessIdentifierSchema,
@@ -217,7 +202,12 @@ const agentReadinessDeclarationCoreSchema = z
     .object({
     declaration_id: agentReadinessIdentifierSchema,
     scope: agentReadinessScopeSchema,
-    assessment_targets: z.array(agentReadinessAssessmentTargetSchema).min(1),
+    /**
+     * How a declared interface performs the scope's library job. A listing
+     * needs none: it is what a person knows, and the vendor or Sourcey adds a
+     * binding when the job is run.
+     */
+    job_bindings: z.array(agentReadinessJobBindingSchema).max(8),
     participants: z.array(agentReadinessParticipantSchema).min(1),
     resources: z.array(agentReadinessResourceSchema).min(1),
     endpoints: z.array(agentReadinessEndpointSchema),
@@ -252,7 +242,7 @@ function validateSurfaceExclusions(value, context) {
         }
     }
 }
-export const agentReadinessDeclarationSchema = agentReadinessDeclarationCoreSchema
+const agentReadinessDeclarationSchema = agentReadinessDeclarationCoreSchema
     .superRefine(validateDeclarationGraph)
     .superRefine(validateSurfaceExclusions);
 const agentReadinessDeclarationGraphCoreSchema = agentReadinessDeclarationCoreSchema
@@ -261,13 +251,14 @@ const agentReadinessDeclarationGraphCoreSchema = agentReadinessDeclarationCoreSc
     source_bindings: z.array(agentReadinessDeclarationGraphSourceBindingSchema).min(1),
 })
     .strict();
-export const agentReadinessDeclarationGraphSchema = agentReadinessDeclarationGraphCoreSchema.superRefine((value, context) => {
+const agentReadinessDeclarationGraphSchema = agentReadinessDeclarationGraphCoreSchema.superRefine((value, context) => {
     validateDeclarationGraph({ ...value, offer_relations: [] }, context);
     validateSurfaceExclusions(value, context);
 });
+export const agentReadinessDeclarationRevisionContract = "sourcey.agent-readiness-declaration-revision/v1alpha1";
 const agentReadinessDeclarationRevisionFieldsSchema = z
     .object({
-    revision_contract: z.literal("sourcey.agent-readiness-declaration-revision/v1alpha1"),
+    revision_contract: z.literal(agentReadinessDeclarationRevisionContract),
     entity_id: agentReadinessEntityIdSchema,
     declaration: agentReadinessDeclarationGraphSchema,
     sources: z.array(authoringSourceSchema).min(1),
@@ -323,7 +314,7 @@ export const agentReadinessAuthoringSchema = z
     .strict()
     .superRefine((value, context) => {
     assertUnique(value.declarations.map((declaration) => declaration.declaration_id), context, ["declarations"], "Readiness declaration IDs must be unique inside an Entity declaration.");
-    assertUnique(value.declarations.map(({ scope }) => `${scope.product.key}\0${scope.funnel.key}`), context, ["declarations"], "An Entity can declare each product and funnel scope only once.");
+    assertUnique(value.declarations.map(({ scope }) => `${scope.product.key}\0${scope.job.key}`), context, ["declarations"], "An Entity can declare each product and job scope only once.");
     const sourceIds = new Set(value.sources.map((source) => source.source_id));
     for (const [declarationIndex, declaration] of value.declarations.entries()) {
         const subjectParticipants = declaration.participants.filter((participant) => participant.roles.includes("subject"));
@@ -360,7 +351,7 @@ export const agentReadinessAuthoringSchema = z
     }
 });
 function validateDeclarationGraph(value, context) {
-    assertUnique(value.assessment_targets.map((target) => target.target_id), context, ["assessment_targets"], "Assessment target IDs must be unique.");
+    assertUnique(value.job_bindings.map((binding) => binding.binding_id), context, ["job_bindings"], "Job binding IDs must be unique.");
     assertUnique(value.participants.map((participant) => participant.participant_id), context, ["participants"], "Participant IDs must be unique.");
     assertUnique(value.resources.map((resource) => resource.resource_id), context, ["resources"], "Resource IDs must be unique.");
     assertUnique(value.resources.map((resource) => resource.uri), context, ["resources"], "A resource URI must appear once and carry every applicable role.");
@@ -377,18 +368,7 @@ function validateDeclarationGraph(value, context) {
     assertSurfaceOperators(value.interfaces, "interfaces", participants, context);
     const resourceIds = new Set(value.resources.map((resource) => resource.resource_id));
     const endpointIds = new Set(value.endpoints.map((endpoint) => endpoint.endpoint_id));
-    const interfaceIds = new Set(value.interfaces.map((declaredInterface) => declaredInterface.interface_id));
-    for (const [index, target] of value.assessment_targets.entries()) {
-        for (const interfaceId of target.interface_ids) {
-            if (!interfaceIds.has(interfaceId)) {
-                context.addIssue({
-                    code: "custom",
-                    path: ["assessment_targets", index, "interface_ids"],
-                    message: `Assessment target references unknown interface '${interfaceId}'.`,
-                });
-            }
-        }
-    }
+    validateJobBindings(value, context);
     for (const [index, declaredInterface] of value.interfaces.entries()) {
         for (const endpointId of declaredInterface.endpoint_ids) {
             if (!endpointIds.has(endpointId)) {
@@ -457,37 +437,56 @@ function validateDeclarationGraph(value, context) {
     }
     assertAcyclic(value.relations, "requires", context);
     assertAcyclic(value.relations, "precedes", context);
-    assertInterfaceTargetClosure(value, context);
     validateSourceBindings(value, context);
 }
-function assertInterfaceTargetClosure(value, context) {
-    const reachable = new Set(value.assessment_targets.flatMap((target) => target.interface_ids));
-    let changed = true;
-    while (changed) {
-        changed = false;
-        for (const relation of value.relations) {
-            if (relation.from.node_kind !== "interface" || relation.to.node_kind !== "interface") {
+/**
+ * Each binding performs the job through its own interface: that interface is
+ * declared, every call it makes uses one of the interface's HTTP endpoints and
+ * keeps that endpoint's origin, and every credential reaches only declared
+ * endpoints. Whether it performs the right job is checked against the job
+ * library, which a declaration does not carry.
+ */
+function validateJobBindings(value, context) {
+    const endpoints = new Map(value.endpoints.map((endpoint) => [endpoint.endpoint_id, endpoint]));
+    const interfaces = new Map(value.interfaces.map((declared) => [declared.interface_id, declared.endpoint_ids]));
+    for (const [index, binding] of value.job_bindings.entries()) {
+        const issue = (message) => context.addIssue({ code: "custom", path: ["job_bindings", index], message });
+        const reachable = interfaces.get(binding.interface_id);
+        if (!reachable)
+            issue(`Job binding references unknown interface '${binding.interface_id}'.`);
+        for (const { call } of agentReadinessBindingCalls(binding)) {
+            const endpoint = endpoints.get(call.endpoint_id);
+            if (!endpoint) {
+                issue(`Call '${call.call_id}' uses unknown endpoint '${call.endpoint_id}'.`);
                 continue;
             }
-            if (reachable.has(relation.from.node_id) && !reachable.has(relation.to.node_id)) {
-                reachable.add(relation.to.node_id);
-                changed = true;
+            if (reachable && !reachable.includes(call.endpoint_id)) {
+                issue(`Call '${call.call_id}' uses '${call.endpoint_id}', outside its interface.`);
             }
-            if (reachable.has(relation.to.node_id) && !reachable.has(relation.from.node_id)) {
-                reachable.add(relation.from.node_id);
-                changed = true;
+            if (endpoint.transport !== "http") {
+                issue(`Call '${call.call_id}' needs an HTTP endpoint.`);
+            }
+            if (call.kind === "http" &&
+                call.url.match(/^https:\/\/[^/?#]+/u)?.[0] !== new URL(endpoint.uri).origin) {
+                issue(`Call '${call.call_id}' leaves the origin of '${call.endpoint_id}'.`);
             }
         }
-    }
-    const orphaned = value.interfaces
-        .map((declaredInterface) => declaredInterface.interface_id)
-        .filter((interfaceId) => !reachable.has(interfaceId));
-    if (orphaned.length > 0) {
-        context.addIssue({
-            code: "custom",
-            path: ["interfaces"],
-            message: `Interfaces must close from an assessment target: ${orphaned.sort().join(", ")}.`,
-        });
+        const { delegation, sustain } = binding;
+        const credentialEndpoints = [
+            ...(delegation.kind === "entered" ? delegation.credentials : []),
+            ...(delegation.kind === "oauth" ? delegation.keep : []),
+            ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
+            ...(sustain.rotation.kind === "refresh" || sustain.rotation.kind === "mint"
+                ? sustain.rotation.keep
+                : []),
+        ].flatMap(({ endpoint_ids }) => endpoint_ids);
+        if (delegation.kind === "oauth") {
+            credentialEndpoints.push(delegation.authorization_endpoint_id, delegation.token_endpoint_id);
+        }
+        for (const id of new Set(credentialEndpoints)) {
+            if (!endpoints.has(id))
+                issue(`Credentials reach unknown endpoint '${id}'.`);
+        }
     }
 }
 function validateSourceBindings(value, context) {
@@ -498,9 +497,9 @@ function validateSourceBindings(value, context) {
         for (const path of paths)
             required.add(`${kind}:${id}:${path}`);
     };
-    addTarget("declaration", value.declaration_id, ["/scope/product/name", "/scope/funnel/name"]);
-    for (const target of value.assessment_targets) {
-        addTarget("assessment_target", target.target_id, ["/name", "/interface_ids"]);
+    addTarget("declaration", value.declaration_id, ["/scope/product/name", "/scope/job/name"]);
+    for (const binding of value.job_bindings) {
+        addTarget("job_binding", binding.binding_id, ["/interface_id", "/calls"]);
     }
     for (const participant of value.participants) {
         addTarget("participant", participant.participant_id, ["/roles", "/identity"]);
@@ -538,11 +537,7 @@ function validateSourceBindings(value, context) {
         addTarget("relation", relation.relation_id, ["/kind", "/from", "/to"]);
     }
     for (const relation of value.offer_relations) {
-        addTarget("offer_relation", relation.offer_relation_proposal_id, [
-            "/offer_id",
-            "/purpose",
-            "/applicable_stages",
-        ]);
+        addTarget("offer_relation", relation.offer_relation_proposal_id, ["/offer_id", "/purpose"]);
     }
     for (const exclusion of value.surface_exclusions) {
         addTarget("surface_exclusion", exclusion.exclusion_id, ["/role", "/rationale"]);

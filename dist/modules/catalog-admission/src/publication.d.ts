@@ -5,7 +5,6 @@ import { type CatalogPublicationChangeSet, type CatalogPublicationProposal, type
 import { type CatalogPublicationImpactQuery } from "./publication-dependencies.js";
 export * from "./publication-dependencies.js";
 export * from "./publication-entities.js";
-export * from "./publication-recomposition.js";
 export interface CatalogPublicationPolicyReference {
     readonly key: string;
     readonly digest: Digest;
@@ -24,16 +23,16 @@ export interface CatalogPublicationPlanningInput {
     readonly targetContractAuthorityDigest: Digest;
     readonly impactIndex?: CatalogPublicationImpactQuery;
 }
-export type CatalogPublicationAuthorityProposal = CatalogPublicationProposal["authority_proposals"][number];
+type CatalogPublicationAuthorityProposal = CatalogPublicationProposal["authority_proposals"][number];
 export interface PlannedCatalogPublication {
     readonly proposal: CatalogPublicationProposal;
     readonly changeSet: CatalogPublicationChangeSet;
 }
-export interface PlannedCatalogPublicationIngress extends PlannedCatalogPublication {
+interface PlannedCatalogPublicationIngress extends PlannedCatalogPublication {
     readonly ingressReceipt: PublicationIngressReceipt;
 }
 export { verifyCatalogPublicationCurrentState } from "./publication-state.js";
-export interface CatalogCandidateChanges {
+interface CatalogCandidateChanges {
     readonly revisionChanges: CatalogPublicationChangeSet["revision_changes"];
     readonly sourceChanges: CatalogPublicationChangeSet["source_changes"];
     readonly routeChanges: CatalogPublicationChangeSet["route_changes"];
@@ -70,10 +69,6 @@ export declare function analyzeCatalogCandidateChanges(input: {
 export declare function publicationSemanticInputDigest(proposal: CatalogPublicationProposal): Digest;
 export declare function buildPublicationIngressReceipt(proposal: CatalogPublicationProposal, input: IngressReceiptDetails<PublicationIngressReceiptCore["kind"]>): PublicationIngressReceipt;
 export declare function verifyPublicationIngressReceipt(input: unknown): PublicationIngressReceipt;
-export declare function planAuthenticatedFormCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"authenticated_form">): PlannedCatalogPublicationIngress;
-export declare function planPaidAgentCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"paid_agent">): PlannedCatalogPublicationIngress;
-export declare function planGovernedOpsCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"governed_ops">): PlannedCatalogPublicationIngress;
-export declare function planScannerCatalogPublication(input: CatalogPublicationPlanningInput, receipt: IngressReceiptDetails<"scanner">): PlannedCatalogPublicationIngress;
 export declare function planOperatorJobCatalogPublication(input: CatalogPublicationPlanningInput & {
     /** Operator jobs plan against an exact retained state, including assets. */
     readonly currentAssetBindings: readonly AssetBindingProjection[];

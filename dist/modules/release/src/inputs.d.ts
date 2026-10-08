@@ -1,13 +1,12 @@
 import { type Digest } from "provenry/primitives";
-import { type AgentReadinessDeclarationRevision, type AgentReadinessIndex, type AgentReadinessOfferRelationInput, type AgentReadinessOfferRelationRevision, type AgentReadinessPolicy, type AgentReadinessProfileInput, type AgentReadinessProjection, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessDeclarationRevision, type AgentReadinessIndex, type AgentReadinessOfferRelationInput, type AgentReadinessOfferRelationRevision, type AgentReadinessPolicy, type AgentReadinessProfileInput, type AgentReadinessProfileReleaseInput, type AgentReadinessProjection, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { AssetManifest } from "../../../contracts/assets/src/index.js";
 import { type CatalogEvent } from "../../../contracts/events/src/index.js";
-import { type CaptureReceipt } from "../../../contracts/evidence/src/index.js";
 import type { Observation } from "../../../contracts/observations/src/index.js";
 import { type OfferRevision } from "../../../contracts/revisions/src/index.js";
-import { type RetainedCaptureReceipt, type validateSignerRegistry } from "../../authority/src/index.js";
+import { type validateSignerRegistry } from "../../authority/src/index.js";
 import type { CompiledCatalogFacts } from "../../compiler/src/index.js";
-import { type RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
+import type { RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
 import type { RevisionHistory } from "./identity.js";
 export interface LoadedAgentReadinessProfile {
     readonly input: AgentReadinessProfileInput;
@@ -16,9 +15,9 @@ export interface LoadedAgentReadinessProfile {
     readonly offerRelationInputs: readonly AgentReadinessOfferRelationInput[];
     readonly offerRelations: readonly AgentReadinessOfferRelationRevision[];
 }
-export declare function loadCheckpointRevisions(directory: string): Promise<Map<Digest, RetainedCatalogRevision>>;
-export interface ParentInputState {
-    readonly captureReceipts: readonly RetainedCaptureReceipt[];
+/** One released profile as every lane loads it: its input, the revision it compiles to and its relations. */
+export declare function loadedAgentReadinessProfile(releaseInput: AgentReadinessProfileReleaseInput): LoadedAgentReadinessProfile;
+interface ParentInputState {
     readonly events: readonly CatalogEvent[];
     readonly observations: readonly Observation[];
     readonly revisions: ReadonlyMap<Digest, RetainedCatalogRevision>;
@@ -26,13 +25,16 @@ export interface ParentInputState {
 export declare function loadAssetSourceBytes(manifest: AssetManifest, assetRoot: string): Promise<Map<string, Buffer>>;
 export declare function missingAssetBytes(path: string): never;
 export declare function loadAgentReadinessRevisions(directory: string): Promise<LoadedAgentReadinessProfile[]>;
+/**
+ * Every profile names a released Entity, binds its exact declaration revision,
+ * and rates exactly what the engine derives from its run records under the
+ * pinned policy; every Offer relation binds its same-Entity profile.
+ */
 export declare function validateAgentReadinessClosure(input: {
     readonly profiles: readonly LoadedAgentReadinessProfile[];
     readonly policy: AgentReadinessPolicy;
     readonly entityIds: ReadonlySet<string>;
     readonly offers: ReadonlyMap<string, OfferRevision>;
-    readonly events: readonly CatalogEvent[];
-    readonly observations: readonly Observation[];
 }): void;
 export declare function assertAgentReadinessOfferRelationAdmission(input: {
     readonly profiles: readonly {
@@ -52,7 +54,6 @@ export declare function loadEvents(directory: string, registry: ReturnType<typeo
  * events instead.
  */
 export declare function assertNoRetiredVerificationIntroductions(events: readonly CatalogEvent[]): void;
-export declare function loadCaptureReceipts(directory: string, registry: ReturnType<typeof validateSignerRegistry>, sequence: number): Promise<CaptureReceipt[]>;
 export declare function loadPublicPolicies(directory: string): Promise<{
     schema_version: "sourcey.policy/v1alpha1";
     slug: string;
@@ -88,10 +89,10 @@ export declare function validateCaptures(observations: readonly Observation[], c
 }>;
 export declare function unionHistoricalEvents(parent: ParentInputState | null, current: readonly CatalogEvent[]): CatalogEvent[];
 export declare function unionHistoricalObservations(parent: ParentInputState | null, current: readonly Observation[]): Observation[];
-export declare function unionHistoricalCaptureReceipts(parent: ParentInputState | null, current: readonly CaptureReceipt[]): RetainedCaptureReceipt[];
 export declare function unionHistoricalRevisions(parent: ParentInputState | null, facts: CompiledCatalogFacts, agentReadinessRevisions: readonly AgentReadinessRevision[], agentReadinessDeclarationRevisions: readonly AgentReadinessDeclarationRevision[]): {
     readonly all: Map<Digest, RetainedCatalogRevision>;
     readonly currentRevisionDigests: Digest[];
 };
 export declare function assertEventClosure(revisions: RevisionHistory, events: readonly CatalogEvent[], observations: readonly Observation[]): void;
+export {};
 //# sourceMappingURL=inputs.d.ts.map

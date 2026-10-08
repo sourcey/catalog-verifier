@@ -8,7 +8,6 @@ import { catalogPublicationEntityMap as entityMap, catalogPublicationTargetAutho
 import { assertCatalogPublicationPreconditions } from "./publication-state.js";
 export * from "./publication-dependencies.js";
 export * from "./publication-entities.js";
-export * from "./publication-recomposition.js";
 export { verifyCatalogPublicationCurrentState } from "./publication-state.js";
 export function buildCatalogPublicationProposal(input) {
     const current = entityMap(input.currentEntities);
@@ -397,18 +396,6 @@ export function verifyPublicationIngressReceipt(input) {
         throw new Error("Publication ingress receipt digest does not match its immutable input.");
     }
     return receipt;
-}
-export function planAuthenticatedFormCatalogPublication(input, receipt) {
-    return planCatalogPublicationWithIngress(input, receipt);
-}
-export function planPaidAgentCatalogPublication(input, receipt) {
-    return planCatalogPublicationWithIngress(input, receipt);
-}
-export function planGovernedOpsCatalogPublication(input, receipt) {
-    return planCatalogPublicationWithIngress(input, receipt);
-}
-export function planScannerCatalogPublication(input, receipt) {
-    return planCatalogPublicationWithIngress(input, receipt);
 }
 export function planOperatorJobCatalogPublication(input, receipt) {
     return planCatalogPublicationWithIngress(input, receipt);

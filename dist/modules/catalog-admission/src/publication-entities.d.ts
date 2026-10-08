@@ -1,5 +1,4 @@
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
-export declare function normalizeCatalogEntityAuthoring(authoring: EntityAuthoring): EntityAuthoring;
 export declare function catalogPublicationEntityMap(authoring: readonly EntityAuthoring[]): Map<string, EntityAuthoring>;
 export declare function catalogPublicationTargetAuthoring(input: {
     readonly current: readonly EntityAuthoring[];

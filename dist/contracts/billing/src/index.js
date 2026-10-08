@@ -5,7 +5,7 @@ const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
 const instantSchema = z.iso.datetime({ offset: true });
 export const commercialOrderIdSchema = z.string().regex(/^ord_[a-f0-9]{64}$/u);
 const paymentAttemptIdSchema = z.string().regex(/^pat_[a-f0-9]{64}$/u);
-export const paymentRailSchema = z.enum(["stripe", "x402"]);
+const paymentRailSchema = z.enum(["stripe", "x402"]);
 export const commercialProductDefinitionSchema = z
     .object({
     product_code: commercialProductCodeSchema,
@@ -141,7 +141,7 @@ export const x402PaymentAttemptSchema = paymentAttemptCoreSchema
         });
     }
 });
-export const paymentAttemptSchema = z.discriminatedUnion("rail", [
+const paymentAttemptSchema = z.discriminatedUnion("rail", [
     stripePaymentAttemptSchema,
     x402PaymentAttemptSchema,
 ]);
@@ -234,65 +234,9 @@ export const commercialOrderProjectionSchema = z
         });
     }
 });
-/**
- * The rail-neutral order state a product may return to its purchaser. Internal
- * payment-attempt identities and provider reconciliation evidence remain in
- * Billing; callers retain the exact product, intent, money, work, SLA, refund,
- * receipt, and revision bindings needed to understand their purchase.
- */
-export const commercialOrderStatusSchema = z
-    .object({
-    status_contract: z.literal("sourcey.commercial-order-status/v1alpha1"),
-    order_id: commercialOrderSchema.shape.order_id,
-    product_code: commercialOrderSchema.shape.product_code,
-    purchase_kind: commercialOrderSchema.shape.purchase_kind,
-    product_definition_digest: commercialOrderSchema.shape.product_definition_digest,
-    funded_work_intent_digest: commercialOrderSchema.shape.funded_work_intent_digest,
-    amount: commercialOrderSchema.shape.amount,
-    payment_rail: paymentRailSchema,
-    payment_state: commercialOrderSchema.shape.payment_state,
-    work_state: commercialOrderSchema.shape.work_state,
-    paid_at: commercialOrderSchema.shape.paid_at,
-    sla_due_at: commercialOrderSchema.shape.sla_due_at,
-    refund_reason: commercialOrderSchema.shape.refund_reason,
-    refund_requested_at: commercialOrderSchema.shape.refund_requested_at,
-    refunded_at: commercialOrderSchema.shape.refunded_at,
-    fulfilment_receipt_digest: commercialOrderSchema.shape.fulfilment_receipt_digest,
-    failure_receipt_digest: commercialOrderSchema.shape.failure_receipt_digest,
-    created_at: commercialOrderSchema.shape.created_at,
-    updated_at: commercialOrderSchema.shape.updated_at,
-})
-    .strict();
 export const createCommercialOrderResponseSchema = commercialOrderProjectionSchema;
 export const commercialOrderResponseSchema = commercialOrderProjectionSchema;
-export const fulfilCommercialOrderRequestSchema = z
-    .object({ receipt_digest: digestSchema })
-    .strict();
 export function commercialProductDefinitionDigest(definition) {
     return digest(commercialProductDefinitionSchema.parse(definition));
-}
-export function projectCommercialOrderStatus(projection) {
-    const { order, payment_attempt: paymentAttempt } = commercialOrderProjectionSchema.parse(projection);
-    return commercialOrderStatusSchema.parse({
-        status_contract: "sourcey.commercial-order-status/v1alpha1",
-        order_id: order.order_id,
-        product_code: order.product_code,
-        purchase_kind: order.purchase_kind,
-        product_definition_digest: order.product_definition_digest,
-        funded_work_intent_digest: order.funded_work_intent_digest,
-        amount: order.amount,
-        payment_rail: paymentAttempt.rail,
-        payment_state: order.payment_state,
-        work_state: order.work_state,
-        paid_at: order.paid_at,
-        sla_due_at: order.sla_due_at,
-        refund_reason: order.refund_reason,
-        refund_requested_at: order.refund_requested_at,
-        refunded_at: order.refunded_at,
-        fulfilment_receipt_digest: order.fulfilment_receipt_digest,
-        failure_receipt_digest: order.failure_receipt_digest,
-        created_at: order.created_at,
-        updated_at: order.updated_at,
-    });
 }
 //# sourceMappingURL=index.js.map

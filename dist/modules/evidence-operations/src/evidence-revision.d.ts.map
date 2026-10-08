@@ -1,0 +1,1 @@
+{"version":3,"file":"evidence-revision.d.ts","sourceRoot":"","sources":["../../../../modules/evidence-operations/src/evidence-revision.ts"],"names":[],"mappings":"AAAA,OAAO,EAEL,KAAK,cAAc,EAEnB,KAAK,aAAa,EAElB,KAAK,eAAe,EAErB,MAAM,2CAA2C,CAAC;AAEnD,6FAA6F;AAC7F,MAAM,MAAM,gBAAgB,GAAG,cAAc,GAAG,eAAe,GAAG,aAAa,CAAC;AAEhF,wBAAgB,qBAAqB,CAAC,KAAK,EAAE,OAAO,GAAG,gBAAgB,CAMtE"}

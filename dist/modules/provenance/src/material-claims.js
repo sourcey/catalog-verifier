@@ -7,7 +7,7 @@ import { applicableEvidenceCoverageRequirements, evidenceCoverageCandidateRequir
 const digestSchema = z.string().regex(DIGEST_PATTERN);
 const identifierSchema = z.string().regex(IDENTIFIER_PATTERN);
 const pointerSchema = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/u);
-export const materialClaimSemanticTypeSchema = z.enum([
+const materialClaimSemanticTypeSchema = z.enum([
     "exact_text",
     "editorial_text",
     "domain",
@@ -28,7 +28,7 @@ export const materialClaimSemanticTypeSchema = z.enum([
     "composition",
     "structured_value",
 ]);
-export const materialClaimSubjectSchema = z.discriminatedUnion("subject_type", [
+const materialClaimSubjectSchema = z.discriminatedUnion("subject_type", [
     z
         .object({
         subject_type: z.literal("entity"),
@@ -54,7 +54,7 @@ export const materialClaimSubjectSchema = z.discriminatedUnion("subject_type", [
     })
         .strict(),
 ]);
-export const materialClaimCoreSchema = z
+const materialClaimCoreSchema = z
     .object({
     policy_path: pointerSchema,
     path: pointerSchema,
@@ -66,10 +66,8 @@ export const materialClaimCoreSchema = z
     depends_on: z.array(digestSchema),
 })
     .strict();
-export const materialClaimSchema = materialClaimCoreSchema
-    .extend({ claim_id: digestSchema })
-    .strict();
-export const materialClaimPlanCoreSchema = z
+const materialClaimSchema = materialClaimCoreSchema.extend({ claim_id: digestSchema }).strict();
+const materialClaimPlanCoreSchema = z
     .object({
     plan_contract: z.literal("sourcey.material-claim-plan/v1alpha1"),
     coverage_policy_digest: digestSchema,
@@ -80,7 +78,7 @@ export const materialClaimPlanCoreSchema = z
 export const materialClaimPlanSchema = materialClaimPlanCoreSchema
     .extend({ plan_digest: digestSchema })
     .strict();
-export const materialClaimMatchBindingCoreSchema = z
+const materialClaimMatchBindingCoreSchema = z
     .object({
     source_id: identifierSchema,
     capture_digest: digestSchema,
@@ -101,10 +99,10 @@ export const materialClaimMatchBindingCoreSchema = z
         });
     }
 });
-export const materialClaimMatchBindingSchema = materialClaimMatchBindingCoreSchema
+const materialClaimMatchBindingSchema = materialClaimMatchBindingCoreSchema
     .extend({ binding_digest: digestSchema })
     .strict();
-export const materialClaimResultCoreSchema = z
+const materialClaimResultCoreSchema = z
     .object({
     result_contract: z.literal("sourcey.material-claim-result/v1alpha1"),
     claim_id: digestSchema,

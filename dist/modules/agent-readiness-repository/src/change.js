@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import { gitComparisonBase } from "provenry/git";
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
-import { assertAgentReadinessDeclarationPolicyScope } from "../../agent-readiness-policy/src/index.js";
+import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
 /**
@@ -150,7 +150,7 @@ function revisionNodes(revision) {
         ["declaration.scope", digest(declaration.scope)],
         ["declaration.authority_intent", digest(declaration.authority_intent)],
         ["declaration.declared_at", digest(declaration.declared_at)],
-        ...keyedNodes("assessment_target", declaration.assessment_targets, "target_id"),
+        ...keyedNodes("job_binding", declaration.job_bindings, "binding_id"),
         ...keyedNodes("participant", declaration.participants, "participant_id"),
         ...keyedNodes("resource", declaration.resources, "resource_id"),
         ...keyedNodes("endpoint", declaration.endpoints, "endpoint_id"),
@@ -216,11 +216,11 @@ async function resolveOptionalGitObject(repositoryRoot, revision) {
     }
 }
 /** Every declaration in the bytes closes over the installed readiness policy. */
-export function assertAgentReadinessBlobPolicy(blob, policy) {
+function assertAgentReadinessBlobPolicy(blob, policy) {
     if (!blob)
         return;
     for (const revision of Object.values(blob.declarationRevisions)) {
-        assertAgentReadinessDeclarationPolicyScope({ declaration: revision.declaration, policy });
+        assertAgentReadinessDeclarationJobs({ declaration: revision.declaration, policy });
     }
 }
 //# sourceMappingURL=change.js.map

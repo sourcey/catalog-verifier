@@ -34,17 +34,7 @@ export declare function currentEntityPrimaryDomainValue(domains: readonly Entity
 /** True only for the canonical domain itself or one of its DNS subdomains. */
 export declare function hostnameIsWithinDomain(hostname: string, domain: string): boolean;
 export declare function entityOfficialSiteProblem(domains: readonly EntityDomain[], site: string): "primary-domain-count" | "site-outside-current-domains" | undefined;
-/**
- * An Entity's official site participates in identity and outbound-link trust,
- * so it must remain inside one of the identity epoch's current domain boundaries.
- */
-export declare function entityOfficialSiteInvariant(value: {
-    readonly domains: readonly EntityDomain[];
-    readonly links: {
-        readonly site: string;
-    };
-}, context: z.core.$RefinementCtx): void;
-export declare const moneySchema: z.ZodObject<{
+declare const moneySchema: z.ZodObject<{
     currency: z.ZodString;
     minor_units: z.ZodNumber;
 }, z.core.$strict>;
@@ -100,6 +90,10 @@ export declare const durationValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
 }, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"at-least">;
     value: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"range">;
+    minimum: z.ZodString;
+    maximum: z.ZodString;
 }, z.core.$strict>], "kind">;
 /** A benefit's named scope: the plan a discount applies to, the item waived, the free service. */
 export declare const benefitTextSchema: z.ZodString;
@@ -193,6 +187,10 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum: z.ZodString;
+        maximum: z.ZodString;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
@@ -222,6 +220,10 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum: z.ZodString;
+        maximum: z.ZodString;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
@@ -284,6 +286,10 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum: z.ZodString;
+        maximum: z.ZodString;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
@@ -304,6 +310,10 @@ export declare const benefitSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"at-least">;
         value: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"range">;
+        minimum: z.ZodString;
+        maximum: z.ZodString;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>, z.ZodObject<{
     benefit_id: z.ZodString;
@@ -383,6 +393,10 @@ export declare const economicsSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"range">;
+            minimum: z.ZodString;
+            maximum: z.ZodString;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
@@ -412,6 +426,10 @@ export declare const economicsSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"range">;
+            minimum: z.ZodString;
+            maximum: z.ZodString;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
@@ -474,6 +492,10 @@ export declare const economicsSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"range">;
+            minimum: z.ZodString;
+            maximum: z.ZodString;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
@@ -494,6 +516,10 @@ export declare const economicsSchema: z.ZodObject<{
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"at-least">;
             value: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"range">;
+            minimum: z.ZodString;
+            maximum: z.ZodString;
         }, z.core.$strict>], "kind">>;
     }, z.core.$strict>, z.ZodObject<{
         benefit_id: z.ZodString;
@@ -501,7 +527,7 @@ export declare const economicsSchema: z.ZodObject<{
         kind: z.ZodLiteral<"other">;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>;
-export declare const eligibilityFactValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+declare const eligibilityFactValueSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     type: z.ZodLiteral<"null">;
 }, z.core.$strict>, z.ZodObject<{
     type: z.ZodLiteral<"string">;
@@ -543,59 +569,24 @@ export declare const eligibilityFactsSchema: z.ZodRecord<z.ZodString, z.ZodDiscr
     type: z.ZodLiteral<"number-set">;
     values: z.ZodArray<z.ZodNumber>;
 }, z.core.$strict>], "type">>;
-/** A fact, an operator and its value: what evidence extraction reports for a page threshold. */
-export declare const eligibilityConditionSchema: z.ZodUnion<readonly [z.ZodObject<{
-    fact: z.ZodString;
-    operator: z.ZodEnum<{
-        absent: "absent";
-        present: "present";
-    }>;
-}, z.core.$strict>, z.ZodObject<{
-    fact: z.ZodString;
-    operator: z.ZodEnum<{
-        contains: "contains";
-        eq: "eq";
-        neq: "neq";
-    }>;
-    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        type: z.ZodLiteral<"string">;
-        value: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"number">;
-        value: z.ZodNumber;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"boolean">;
-        value: z.ZodBoolean;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"date">;
-        value: z.ZodISODate;
-    }, z.core.$strict>], "type">;
-}, z.core.$strict>, z.ZodObject<{
-    fact: z.ZodString;
-    operator: z.ZodLiteral<"in">;
-    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        type: z.ZodLiteral<"string-set">;
-        values: z.ZodArray<z.ZodString>;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"number-set">;
-        values: z.ZodArray<z.ZodNumber>;
-    }, z.core.$strict>], "type">;
-}, z.core.$strict>, z.ZodObject<{
-    fact: z.ZodString;
-    operator: z.ZodEnum<{
-        gt: "gt";
-        gte: "gte";
-        lt: "lt";
-        lte: "lte";
-    }>;
-    value: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        type: z.ZodLiteral<"number">;
-        value: z.ZodNumber;
-    }, z.core.$strict>, z.ZodObject<{
-        type: z.ZodLiteral<"date">;
-        value: z.ZodISODate;
-    }, z.core.$strict>], "type">;
-}, z.core.$strict>]>;
+/**
+ * The eligibility facts a page requirement is read into, one key per
+ * quantity, each with what it means. A requirement none of them states
+ * exactly is a statement, never a typed condition.
+ */
+export declare const ELIGIBILITY_FACT_VOCABULARY: {
+    readonly "company.age_months": "number: months since the company was founded or incorporated";
+    readonly "company.employee_count": "number: people the company employs";
+    readonly "company.funding_raised_usd": "number: total outside funding the company has raised, in US dollars";
+    readonly "company.annual_revenue_usd": "number: the company's revenue over a year, in US dollars";
+    readonly "company.is_current_customer": "boolean: whether the company is a paying customer of the vendor now";
+    readonly "company.is_incorporated": "boolean: whether the company is a registered legal entity";
+    readonly "company.website_url": "presence: the company has a public website";
+    readonly "company.stage": "string: the company's funding stage, as the page names it";
+    readonly "company.industry": "string: the company's industry or kind of business, as the page names it";
+    readonly "company.partner_memberships": "string-set: accelerators, programs, investors or partners the company belongs to, as the page names them";
+    readonly "company.country_code": "string: ISO 3166-1 alpha-3 code of the country the company is in";
+};
 /** One typed eligibility condition, with its criterion identity and statement. */
 export declare const eligibilityPredicateSchema: z.ZodUnion<readonly [z.ZodObject<{
     criterion_id: z.ZodString;
@@ -689,11 +680,10 @@ export type EligibilityRule = z.infer<typeof eligibilityPredicateSchema> | z.inf
     readonly kind: "not";
     readonly rule: EligibilityRule;
 };
-export declare const eligibilityRuleSchema: z.ZodType<EligibilityRule>;
 export declare const eligibilitySchema: z.ZodObject<{
     rule: z.ZodType<EligibilityRule, unknown, z.core.$ZodTypeInternals<EligibilityRule, unknown>>;
 }, z.core.$strict>;
-export declare const eligibilityOutcomeSchema: z.ZodEnum<{
+declare const eligibilityOutcomeSchema: z.ZodEnum<{
     met: "met";
     unknown: "unknown";
     unmet: "unmet";
@@ -713,7 +703,6 @@ export type EligibilityTrace = {
     readonly statement: string;
     readonly outcome: EligibilityOutcome;
 };
-export declare const eligibilityTraceSchema: z.ZodType<EligibilityTrace>;
 export declare const eligibilityEvaluationSchema: z.ZodObject<{
     eligible: z.ZodNullable<z.ZodBoolean>;
     trace: z.ZodType<EligibilityTrace, unknown, z.core.$ZodTypeInternals<EligibilityTrace, unknown>>;
@@ -916,6 +905,10 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"range">;
+                minimum: z.ZodString;
+                maximum: z.ZodString;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
@@ -945,6 +938,10 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"range">;
+                minimum: z.ZodString;
+                maximum: z.ZodString;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
@@ -1007,6 +1004,10 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"range">;
+                minimum: z.ZodString;
+                maximum: z.ZodString;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
@@ -1027,6 +1028,10 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"at-least">;
                 value: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"range">;
+                minimum: z.ZodString;
+                maximum: z.ZodString;
             }, z.core.$strict>], "kind">>;
         }, z.core.$strict>, z.ZodObject<{
             benefit_id: z.ZodString;
@@ -1139,6 +1144,10 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1168,6 +1177,10 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1230,6 +1243,10 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1250,6 +1267,10 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1363,6 +1384,10 @@ export declare const offerRevisionSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1392,6 +1417,10 @@ export declare const offerRevisionSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1454,6 +1483,10 @@ export declare const offerRevisionSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1474,6 +1507,10 @@ export declare const offerRevisionSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"at-least">;
                     value: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    kind: z.ZodLiteral<"range">;
+                    minimum: z.ZodString;
+                    maximum: z.ZodString;
                 }, z.core.$strict>], "kind">>;
             }, z.core.$strict>, z.ZodObject<{
                 benefit_id: z.ZodString;
@@ -1522,7 +1559,6 @@ export type Consideration = z.infer<typeof considerationSchema>;
 export type Economics = z.infer<typeof economicsSchema>;
 export type Eligibility = z.infer<typeof eligibilitySchema>;
 export type EligibilityEvaluation = z.infer<typeof eligibilityEvaluationSchema>;
-export type OfferRoles = z.infer<typeof offerRolesSchema>;
 export type Access = z.infer<typeof accessSchema>;
 export type EntityRevisionCore = z.infer<typeof entityRevisionCoreSchema>;
 export type EntityRevision = z.infer<typeof entityRevisionSchema>;
@@ -1530,5 +1566,7 @@ export type ProgramRevisionCore = z.infer<typeof programRevisionCoreSchema>;
 export type ProgramRevision = z.infer<typeof programRevisionSchema>;
 export type OfferRevisionCore = z.infer<typeof offerRevisionCoreSchema>;
 export type OfferRevision = z.infer<typeof offerRevisionSchema>;
+/** A revision of a listing: the Entity, Program or Offer records evidence can bind. */
+export type ListingRevision = EntityRevision | ProgramRevision | OfferRevision;
 export {};
 //# sourceMappingURL=index.d.ts.map

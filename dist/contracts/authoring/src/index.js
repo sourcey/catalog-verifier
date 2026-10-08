@@ -12,7 +12,7 @@ const authoringAccessSchema = accessSchema.safeExtend({
     url: catalogAccessUrlSchema.optional(),
     instructions: publicAccessInstructions,
 });
-export const retainedAuthoringSourceSchema = z
+const retainedAuthoringSourceSchema = z
     .object({
     source_id: identifier,
     url: catalogUrlSchema,
@@ -46,7 +46,7 @@ export const retainedEntityIdentityAuthoringSchema = z
     .strict()
     .superRefine(validateEntityIdentity);
 export const entityIdentityAuthoringSchema = retainedEntityIdentityAuthoringSchema;
-export const retainedEntityProfileAuthoringSchema = z
+const retainedEntityProfileAuthoringSchema = z
     .object({
     summary: entityRevisionContentSchema.shape.summary,
     description: entityRevisionContentSchema.shape.description,
@@ -105,13 +105,13 @@ const retainedAuthoringOfferObject = z
 })
     .strict();
 const retainedAuthoringOfferSchema = retainedAuthoringOfferObject.superRefine(offerEvidenceBasisInvariant);
-export const authoringOfferSchema = retainedAuthoringOfferObject
+const authoringOfferSchema = retainedAuthoringOfferObject
     .safeExtend({
     access: authoringAccessSchema,
     terms_url: catalogAuthoringUrlSchema.optional(),
 })
     .superRefine(offerEvidenceBasisInvariant);
-export const authoringProgramSchema = z
+const authoringProgramSchema = z
     .object({
     program_id: programId,
     program_slug: slug,
@@ -198,9 +198,6 @@ export const contributionEntityAuthoringSchema = entityAuthoringSchema.superRefi
         }
     }
 });
-export function parseEntityAuthoring(input) {
-    return entityAuthoringSchema.parse(input);
-}
 /**
  * The one canonical order of an Entity's domains. Authoring order carries no
  * meaning (the primary is marked by role), so every compiled revision and every

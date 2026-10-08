@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import { digest } from "provenry/primitives";
 import { z } from "zod";
 import { verifierRepositoryKindSchema, } from "../../../contracts/catalog-verifier/src/index.js";
-import { readCatalogTaxonomy } from "../../../modules/catalog-admission/src/index.js";
+import { readCatalogTaxonomy } from "../../../modules/catalog-admission/src/taxonomy.js";
 import { requiredFlag, requiredPath } from "../../../modules/cli/src/index.js";
 import { CatalogVerifierApplication } from "./application.js";
 const execFileAsync = promisify(execFile);

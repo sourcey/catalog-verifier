@@ -1,20 +1,19 @@
 import { z } from "zod";
 export * from "../../funded-work/src/index.js";
-export declare const domainNameSchema: z.ZodString;
 export declare const startupCreditsProductCode: "startup-offer-human-verification";
 export declare const startupCreditsPrice: {
     readonly currency: "usd";
-    readonly minor_units: 4900;
+    readonly minor_units: 2900;
 };
-export declare const startupCreditsPriceLookupKey: "startup-offer-human-verification-usd-49";
+export declare const startupCreditsPriceLookupKey: "startup-offer-human-verification-usd-29";
 export declare const startupCreditsPurchaseDisclosureStatement: "Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.";
 export declare const startupCreditsServicePolicySchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.startup-credits-verification-service-policy/v1alpha1">;
     product_code: z.ZodLiteral<"startup-offer-human-verification">;
-    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
     price: z.ZodObject<{
         currency: z.ZodLiteral<"usd">;
-        minor_units: z.ZodLiteral<4900>;
+        minor_units: z.ZodLiteral<2900>;
     }, z.core.$strict>;
     service_calendar: z.ZodObject<{
         time_zone: z.ZodLiteral<"Australia/Sydney">;
@@ -54,10 +53,10 @@ export declare const startupCreditsPurchasePreviewSchema: z.ZodObject<{
     preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
     product_code: z.ZodLiteral<"startup-offer-human-verification">;
     purchase_kind: z.ZodLiteral<"one_off">;
-    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
     price: z.ZodObject<{
         currency: z.ZodLiteral<"usd">;
-        minor_units: z.ZodLiteral<4900>;
+        minor_units: z.ZodLiteral<2900>;
     }, z.core.$strict>;
     work_scope: z.ZodLiteral<"one-entity-one-offer">;
     passing_results: z.ZodObject<{
@@ -87,116 +86,6 @@ export declare const startupCreditsPurchasePreviewSchema: z.ZodObject<{
         service: z.ZodString;
     }, z.core.$strict>;
     preview_digest: z.ZodString;
-}, z.core.$strict>;
-export declare const standingRouteSchema: z.ZodEnum<{
-    correction_required: "correction_required";
-    free_machine_review: "free_machine_review";
-    human_verification_required: "human_verification_required";
-    repair_required: "repair_required";
-    temporarily_unavailable: "temporarily_unavailable";
-}>;
-export declare const standingPolicySchema: z.ZodObject<{
-    policy_contract: z.ZodLiteral<"sourcey.standing-policy/v1alpha1">;
-    reach_provider: z.ZodLiteral<"ahrefs-domain-rating">;
-    reach_threshold_exclusive: z.ZodNumber;
-    fallback_domain_age_days: z.ZodNumber;
-    fallback_certificate_age_days: z.ZodNumber;
-    cache_ttl_seconds: z.ZodNumber;
-}, z.core.$strict>;
-export declare const standingEvidenceSchema: z.ZodObject<{
-    registrable_domain: z.ZodString;
-    official_source_url: z.ZodURL;
-    source: z.ZodObject<{
-        status: z.ZodEnum<{
-            invalid: "invalid";
-            reachable: "reachable";
-            unreachable: "unreachable";
-        }>;
-        first_party: z.ZodBoolean;
-        observed_at: z.ZodISODateTime;
-        observation_digest: z.ZodString;
-    }, z.core.$strict>;
-    catalog_identity: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        status: z.ZodLiteral<"unresolved">;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"existing">;
-        entity_id: z.ZodString;
-        entity_revision_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"ambiguous">;
-        entity_ids: z.ZodArray<z.ZodString>;
-    }, z.core.$strict>], "status">;
-    reach: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        status: z.ZodLiteral<"available">;
-        rating: z.ZodNumber;
-        observed_at: z.ZodISODateTime;
-        observation_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"unavailable">;
-        reason: z.ZodEnum<{
-            not_found: "not_found";
-            provider_rejected: "provider_rejected";
-            provider_unavailable: "provider_unavailable";
-        }>;
-        observed_at: z.ZodISODateTime;
-    }, z.core.$strict>], "status">;
-    domain_age: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        status: z.ZodLiteral<"available">;
-        age_days: z.ZodNumber;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"unavailable">;
-    }, z.core.$strict>], "status">;
-    certificate_age: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        status: z.ZodLiteral<"available">;
-        age_days: z.ZodNumber;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"unavailable">;
-    }, z.core.$strict>], "status">;
-    mx: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        status: z.ZodLiteral<"available">;
-        present: z.ZodBoolean;
-    }, z.core.$strict>, z.ZodObject<{
-        status: z.ZodLiteral<"unavailable">;
-    }, z.core.$strict>], "status">;
-}, z.core.$strict>;
-export declare const standingResultCoreSchema: z.ZodObject<{
-    result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-    policy_digest: z.ZodString;
-    evidence_digest: z.ZodString;
-    registrable_domain: z.ZodString;
-    official_source_url: z.ZodURL;
-    route: z.ZodEnum<{
-        correction_required: "correction_required";
-        free_machine_review: "free_machine_review";
-        human_verification_required: "human_verification_required";
-        repair_required: "repair_required";
-        temporarily_unavailable: "temporarily_unavailable";
-    }>;
-    reasons: z.ZodArray<z.ZodString>;
-    evaluated_at: z.ZodISODateTime;
-    expires_at: z.ZodISODateTime;
-}, z.core.$strict>;
-export declare const standingResultSchema: z.ZodObject<{
-    result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-    policy_digest: z.ZodString;
-    evidence_digest: z.ZodString;
-    registrable_domain: z.ZodString;
-    official_source_url: z.ZodURL;
-    route: z.ZodEnum<{
-        correction_required: "correction_required";
-        free_machine_review: "free_machine_review";
-        human_verification_required: "human_verification_required";
-        repair_required: "repair_required";
-        temporarily_unavailable: "temporarily_unavailable";
-    }>;
-    reasons: z.ZodArray<z.ZodString>;
-    evaluated_at: z.ZodISODateTime;
-    expires_at: z.ZodISODateTime;
-    result_digest: z.ZodString;
-}, z.core.$strict>;
-export declare const startupCreditsExistingEntityDraftBaseSchema: z.ZodObject<{
-    entity_id: z.ZodString;
-    entity_revision_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const startupCreditsDraftRequestSchema: z.ZodObject<{
     standing_result: z.ZodObject<{
@@ -273,10 +162,10 @@ export declare const startupCreditsDraftResultSchema: z.ZodDiscriminatedUnion<[z
         preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
         product_code: z.ZodLiteral<"startup-offer-human-verification">;
         purchase_kind: z.ZodLiteral<"one_off">;
-        price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+        price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
         price: z.ZodObject<{
             currency: z.ZodLiteral<"usd">;
-            minor_units: z.ZodLiteral<4900>;
+            minor_units: z.ZodLiteral<2900>;
         }, z.core.$strict>;
         work_scope: z.ZodLiteral<"one-entity-one-offer">;
         passing_results: z.ZodObject<{
@@ -327,7 +216,6 @@ export declare const startupCreditsDraftResultSchema: z.ZodDiscriminatedUnion<[z
         message: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>], "status">;
-export declare const startupCreditsVerificationCaseIdSchema: z.ZodString;
 export declare const startupCreditsExistingRecordTargetSchema: z.ZodObject<{
     kind: z.ZodLiteral<"existing_record">;
     base_release_id: z.ZodString;
@@ -344,7 +232,7 @@ export declare const startupCreditsExistingRecordTargetSchema: z.ZodObject<{
  * not invalidate checkout for this exact record. The product resolver adds the
  * current base release only after proving both revision digests still match.
  */
-export declare const startupCreditsExistingRecordReferenceSchema: z.ZodObject<{
+declare const startupCreditsExistingRecordReferenceSchema: z.ZodObject<{
     kind: z.ZodLiteral<"existing_record">;
     entity_id: z.ZodString;
     program_id: z.ZodOptional<z.ZodString>;
@@ -352,45 +240,6 @@ export declare const startupCreditsExistingRecordReferenceSchema: z.ZodObject<{
     offer_id: z.ZodString;
     offer_revision_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const startupCreditsVerificationIntentTargetSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    kind: z.ZodLiteral<"new_listing">;
-    base_release_id: z.ZodString;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    offer_id: z.ZodString;
-    submission: z.ZodObject<{
-        submission_id: z.ZodString;
-        payload_digest: z.ZodString;
-        authorization_policy: z.ZodLiteral<"proposal">;
-    }, z.core.$strict>;
-    standing_result: z.ZodObject<{
-        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-        policy_digest: z.ZodString;
-        evidence_digest: z.ZodString;
-        registrable_domain: z.ZodString;
-        official_source_url: z.ZodURL;
-        route: z.ZodEnum<{
-            correction_required: "correction_required";
-            free_machine_review: "free_machine_review";
-            human_verification_required: "human_verification_required";
-            repair_required: "repair_required";
-            temporarily_unavailable: "temporarily_unavailable";
-        }>;
-        reasons: z.ZodArray<z.ZodString>;
-        evaluated_at: z.ZodISODateTime;
-        expires_at: z.ZodISODateTime;
-        result_digest: z.ZodString;
-    }, z.core.$strict>;
-    authoring_file_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    kind: z.ZodLiteral<"existing_record">;
-    base_release_id: z.ZodString;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    entity_revision_digest: z.ZodString;
-    offer_id: z.ZodString;
-    offer_revision_digest: z.ZodString;
-}, z.core.$strict>], "kind">;
 export declare const startupCreditsFundedWorkIntentSchema: z.ZodObject<{
     product_intent_contract: z.ZodLiteral<"sourcey.startup-offer-human-verification-intent/v1alpha1">;
     verification_case_id: z.ZodString;
@@ -467,58 +316,6 @@ export declare const startupCreditsFundedWorkIntentSchema: z.ZodObject<{
     disclosure_digest: z.ZodString;
     product_intent_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const startupCreditsCompletedReviewBasisSchema: z.ZodObject<{
-    evidence_event_ids: z.ZodArray<z.ZodString>;
-    observation_ids: z.ZodArray<z.ZodString>;
-    retained_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
-}, z.core.$strict>;
-export declare const startupCreditsEntityIdentityFailureReasonSchema: z.ZodEnum<{
-    identity_mismatch: "identity_mismatch";
-    identity_unresolved: "identity_unresolved";
-    insufficient_evidence: "insufficient_evidence";
-}>;
-export declare const startupCreditsOfferTermsFailureReasonSchema: z.ZodEnum<{
-    insufficient_evidence: "insufficient_evidence";
-    source_unavailable: "source_unavailable";
-    terms_mismatch: "terms_mismatch";
-}>;
-export declare const startupCreditsEntityIdentityReviewDecisionSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    status: z.ZodLiteral<"passed">;
-    rationale: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    status: z.ZodLiteral<"failed">;
-    reason_code: z.ZodEnum<{
-        identity_mismatch: "identity_mismatch";
-        identity_unresolved: "identity_unresolved";
-        insufficient_evidence: "insufficient_evidence";
-    }>;
-    rationale: z.ZodString;
-    basis: z.ZodObject<{
-        evidence_event_ids: z.ZodArray<z.ZodString>;
-        observation_ids: z.ZodArray<z.ZodString>;
-        retained_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
-    }, z.core.$strict>;
-}, z.core.$strict>], "status">;
-export declare const startupCreditsOfferTermsReviewDecisionSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    status: z.ZodLiteral<"passed">;
-    rationale: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    status: z.ZodLiteral<"failed">;
-    reason_code: z.ZodEnum<{
-        insufficient_evidence: "insufficient_evidence";
-        source_unavailable: "source_unavailable";
-        terms_mismatch: "terms_mismatch";
-    }>;
-    rationale: z.ZodString;
-    basis: z.ZodObject<{
-        evidence_event_ids: z.ZodArray<z.ZodString>;
-        observation_ids: z.ZodArray<z.ZodString>;
-        retained_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    status: z.ZodLiteral<"not_evaluated">;
-    reason_code: z.ZodLiteral<"identity_unresolved">;
-}, z.core.$strict>], "status">;
 /** The reviewer records two factual decisions. Their dependency is explicit:
  * Offer terms are skipped exactly when company identity cannot be established. */
 export declare const startupCreditsReviewDecisionSchema: z.ZodObject<{
@@ -560,46 +357,11 @@ export declare const startupCreditsReviewDecisionSchema: z.ZodObject<{
         reason_code: z.ZodLiteral<"identity_unresolved">;
     }, z.core.$strict>], "status">;
 }, z.core.$strict>;
-export declare const startupCreditsReviewCompletionTargetSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    kind: z.ZodLiteral<"new_listing">;
-    base_release_id: z.ZodString;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    offer_id: z.ZodString;
-    submission_id: z.ZodString;
-    submission_payload_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    kind: z.ZodLiteral<"existing_record">;
-    base_release_id: z.ZodString;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    entity_revision_digest: z.ZodString;
-    offer_id: z.ZodString;
-    offer_revision_digest: z.ZodString;
-}, z.core.$strict>], "kind">;
 export declare const startupCreditsReviewCompletionReceiptCoreSchema: z.ZodObject<{
-    receipt_contract: z.ZodLiteral<"sourcey.startup-credits-review-completion/v1alpha1">;
     order_id: z.ZodString;
     funded_work_intent_id: z.ZodString;
     funded_work_intent_digest: z.ZodString;
     verification_case_id: z.ZodString;
-    target: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        kind: z.ZodLiteral<"new_listing">;
-        base_release_id: z.ZodString;
-        entity_id: z.ZodString;
-        program_id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
-        submission_id: z.ZodString;
-        submission_payload_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        kind: z.ZodLiteral<"existing_record">;
-        base_release_id: z.ZodString;
-        entity_id: z.ZodString;
-        program_id: z.ZodOptional<z.ZodString>;
-        entity_revision_digest: z.ZodString;
-        offer_id: z.ZodString;
-        offer_revision_digest: z.ZodString;
-    }, z.core.$strict>], "kind">;
     method_policy_digest: z.ZodString;
     reviewer_id: z.ZodString;
     reviewed_at: z.ZodISODateTime;
@@ -646,6 +408,24 @@ export declare const startupCreditsReviewCompletionReceiptCoreSchema: z.ZodObjec
             retained_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
         }, z.core.$strict>;
     }, z.core.$strict>], "status">;
+    receipt_contract: z.ZodLiteral<"sourcey.startup-credits-review-completion/v1alpha1">;
+    target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        kind: z.ZodLiteral<"new_listing">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        submission_id: z.ZodString;
+        submission_payload_digest: z.ZodString;
+        program_id: z.ZodOptional<z.ZodString>;
+        offer_id: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"existing_record">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        program_id: z.ZodOptional<z.ZodString>;
+        entity_revision_digest: z.ZodString;
+        offer_id: z.ZodString;
+        offer_revision_digest: z.ZodString;
+    }, z.core.$strict>], "kind">;
     offer_terms: z.ZodDiscriminatedUnion<[z.ZodObject<{
         status: z.ZodLiteral<"passed">;
         entity_id: z.ZodString;
@@ -698,28 +478,10 @@ export declare const startupCreditsReviewCompletionReceiptCoreSchema: z.ZodObjec
     }, z.core.$strict>], "status">;
 }, z.core.$strict>;
 export declare const startupCreditsReviewCompletionReceiptSchema: z.ZodObject<{
-    receipt_contract: z.ZodLiteral<"sourcey.startup-credits-review-completion/v1alpha1">;
     order_id: z.ZodString;
     funded_work_intent_id: z.ZodString;
     funded_work_intent_digest: z.ZodString;
     verification_case_id: z.ZodString;
-    target: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        kind: z.ZodLiteral<"new_listing">;
-        base_release_id: z.ZodString;
-        entity_id: z.ZodString;
-        program_id: z.ZodOptional<z.ZodString>;
-        offer_id: z.ZodString;
-        submission_id: z.ZodString;
-        submission_payload_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        kind: z.ZodLiteral<"existing_record">;
-        base_release_id: z.ZodString;
-        entity_id: z.ZodString;
-        program_id: z.ZodOptional<z.ZodString>;
-        entity_revision_digest: z.ZodString;
-        offer_id: z.ZodString;
-        offer_revision_digest: z.ZodString;
-    }, z.core.$strict>], "kind">;
     method_policy_digest: z.ZodString;
     reviewer_id: z.ZodString;
     reviewed_at: z.ZodISODateTime;
@@ -766,6 +528,24 @@ export declare const startupCreditsReviewCompletionReceiptSchema: z.ZodObject<{
             retained_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
         }, z.core.$strict>;
     }, z.core.$strict>], "status">;
+    receipt_contract: z.ZodLiteral<"sourcey.startup-credits-review-completion/v1alpha1">;
+    target: z.ZodDiscriminatedUnion<[z.ZodObject<{
+        kind: z.ZodLiteral<"new_listing">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        submission_id: z.ZodString;
+        submission_payload_digest: z.ZodString;
+        program_id: z.ZodOptional<z.ZodString>;
+        offer_id: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"existing_record">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        program_id: z.ZodOptional<z.ZodString>;
+        entity_revision_digest: z.ZodString;
+        offer_id: z.ZodString;
+        offer_revision_digest: z.ZodString;
+    }, z.core.$strict>], "kind">;
     offer_terms: z.ZodDiscriminatedUnion<[z.ZodObject<{
         status: z.ZodLiteral<"passed">;
         entity_id: z.ZodString;
@@ -819,7 +599,7 @@ export declare const startupCreditsReviewCompletionReceiptSchema: z.ZodObject<{
     receipt_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const startupCreditsReviewRequestIdSchema: z.ZodString;
-export declare const startupCreditsEntityIconInputSchema: z.ZodObject<{
+declare const startupCreditsEntityIconInputSchema: z.ZodObject<{
     source: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"upload">;
         upload_receipt_digest: z.ZodString;
@@ -841,20 +621,6 @@ export declare const startupCreditsEntityIconInputSchema: z.ZodObject<{
         "vendor-representative": "vendor-representative";
     }>;
 }, z.core.$strict>;
-export declare const startupCreditsExpectedDraftSchema: z.ZodObject<{
-    base_release_id: z.ZodString;
-    content_digest: z.ZodString;
-    purchase_preview_digest: z.ZodString;
-}, z.core.$strict>;
-export declare const startupCreditsExistingRecordReviewTargetSchema: z.ZodObject<{
-    kind: z.ZodLiteral<"existing_record">;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    entity_revision_digest: z.ZodString;
-    offer_id: z.ZodString;
-    offer_revision_digest: z.ZodString;
-    expected_purchase_preview_digest: z.ZodString;
-}, z.core.$strict>;
 export declare const startupCreditsExistingRecordReviewPreparationRequestSchema: z.ZodObject<{
     target: z.ZodObject<{
         kind: z.ZodLiteral<"existing_record">;
@@ -865,7 +631,7 @@ export declare const startupCreditsExistingRecordReviewPreparationRequestSchema:
         offer_revision_digest: z.ZodString;
     }, z.core.$strict>;
 }, z.core.$strict>;
-export declare const startupCreditsExistingRecordReviewPreparationSchema: z.ZodObject<{
+declare const startupCreditsExistingRecordReviewPreparationSchema: z.ZodObject<{
     target: z.ZodObject<{
         kind: z.ZodLiteral<"existing_record">;
         entity_id: z.ZodString;
@@ -879,10 +645,10 @@ export declare const startupCreditsExistingRecordReviewPreparationSchema: z.ZodO
         preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
         product_code: z.ZodLiteral<"startup-offer-human-verification">;
         purchase_kind: z.ZodLiteral<"one_off">;
-        price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+        price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
         price: z.ZodObject<{
             currency: z.ZodLiteral<"usd">;
-            minor_units: z.ZodLiteral<4900>;
+            minor_units: z.ZodLiteral<2900>;
         }, z.core.$strict>;
         work_scope: z.ZodLiteral<"one-entity-one-offer">;
         passing_results: z.ZodObject<{
@@ -939,10 +705,10 @@ export declare const startupCreditsExistingRecordReviewPreparationResponseSchema
             preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
             product_code: z.ZodLiteral<"startup-offer-human-verification">;
             purchase_kind: z.ZodLiteral<"one_off">;
-            price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-49">;
+            price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
             price: z.ZodObject<{
                 currency: z.ZodLiteral<"usd">;
-                minor_units: z.ZodLiteral<4900>;
+                minor_units: z.ZodLiteral<2900>;
             }, z.core.$strict>;
             work_scope: z.ZodLiteral<"one-entity-one-offer">;
             passing_results: z.ZodObject<{
@@ -985,87 +751,6 @@ export declare const startupCreditsExistingRecordReviewPreparationResponseSchema
         }, z.core.$strict>;
     }, z.core.$strict>;
 }, z.core.$strict>;
-export declare const startupCreditsReviewTargetSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    kind: z.ZodLiteral<"new_listing">;
-    draft: z.ZodObject<{
-        standing_result: z.ZodObject<{
-            result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
-            policy_digest: z.ZodString;
-            evidence_digest: z.ZodString;
-            registrable_domain: z.ZodString;
-            official_source_url: z.ZodURL;
-            route: z.ZodEnum<{
-                correction_required: "correction_required";
-                free_machine_review: "free_machine_review";
-                human_verification_required: "human_verification_required";
-                repair_required: "repair_required";
-                temporarily_unavailable: "temporarily_unavailable";
-            }>;
-            reasons: z.ZodArray<z.ZodString>;
-            evaluated_at: z.ZodISODateTime;
-            expires_at: z.ZodISODateTime;
-            result_digest: z.ZodString;
-        }, z.core.$strict>;
-        existing_entity: z.ZodOptional<z.ZodObject<{
-            entity_id: z.ZodString;
-            entity_revision_digest: z.ZodString;
-        }, z.core.$strict>>;
-        company: z.ZodObject<{
-            name: z.ZodString;
-            domain: z.ZodString;
-            category: z.ZodString;
-            summary: z.ZodString;
-            site_url: z.ZodURL;
-        }, z.core.$strict>;
-        program: z.ZodOptional<z.ZodObject<{
-            title: z.ZodString;
-            summary: z.ZodString;
-        }, z.core.$strict>>;
-        offer: z.ZodObject<{
-            title: z.ZodString;
-            summary: z.ZodString;
-            benefit: z.ZodString;
-            eligibility: z.ZodString;
-            access_method: z.ZodEnum<{
-                automatic: "automatic";
-                contact: "contact";
-                form: "form";
-                other: "other";
-            }>;
-            access_url: z.ZodOptional<z.ZodURL>;
-        }, z.core.$strict>;
-    }, z.core.$strict>;
-    entity_icon: z.ZodOptional<z.ZodObject<{
-        source: z.ZodDiscriminatedUnion<[z.ZodObject<{
-            kind: z.ZodLiteral<"upload">;
-            upload_receipt_digest: z.ZodString;
-            original_digest: z.ZodString;
-            bytes: z.ZodNumber;
-            media_type: z.ZodEnum<{
-                "image/jpeg": "image/jpeg";
-                "image/png": "image/png";
-                "image/svg+xml": "image/svg+xml";
-                "image/webp": "image/webp";
-            }>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"official_url">;
-            url: z.ZodURL;
-        }, z.core.$strict>], "kind">;
-        trademark_owner: z.ZodString;
-        relationship: z.ZodEnum<{
-            "community-contributor": "community-contributor";
-            "vendor-representative": "vendor-representative";
-        }>;
-    }, z.core.$strict>>;
-}, z.core.$strict>, z.ZodObject<{
-    kind: z.ZodLiteral<"existing_record">;
-    entity_id: z.ZodString;
-    program_id: z.ZodOptional<z.ZodString>;
-    entity_revision_digest: z.ZodString;
-    offer_id: z.ZodString;
-    offer_revision_digest: z.ZodString;
-    expected_purchase_preview_digest: z.ZodString;
-}, z.core.$strict>], "kind">;
 export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     request_id: z.ZodString;
     payment_rail: z.ZodLiteral<"x402">;
@@ -1244,14 +929,6 @@ export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<
         intent_digest: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>], "payment_rail">;
-export declare const startupCreditsVerificationPublicStateSchema: z.ZodEnum<{
-    awaiting_payment: "awaiting_payment";
-    input_needed: "input_needed";
-    live: "live";
-    publishing: "publishing";
-    refused: "refused";
-    verifying: "verifying";
-}>;
 export declare const startupCreditsVerificationRequiredInputSchema: z.ZodObject<{
     code: z.ZodEnum<{
         access_instructions: "access_instructions";
@@ -1348,7 +1025,7 @@ export declare const payableProductDescriptorSchema: z.ZodObject<{
     tags: z.ZodTuple<[z.ZodString, z.ZodString, z.ZodString, z.ZodString, z.ZodString], null>;
     floor_price: z.ZodObject<{
         currency: z.ZodLiteral<"usd">;
-        minor_units: z.ZodLiteral<4900>;
+        minor_units: z.ZodLiteral<2900>;
     }, z.core.$strict>;
     service_policy_url: z.ZodURL;
     refund_policy_url: z.ZodURL;
@@ -1582,7 +1259,7 @@ export declare const startupCreditsReviewProductDescriptor: {
     tags: [string, string, string, string, string];
     floor_price: {
         currency: "usd";
-        minor_units: 4900;
+        minor_units: 2900;
     };
     service_policy_url: string;
     refund_policy_url: string;
@@ -1748,20 +1425,15 @@ export declare const startupCreditsReviewProductDescriptor: {
         };
     };
 };
-export type StandingPolicy = z.infer<typeof standingPolicySchema>;
-export type StandingEvidence = z.infer<typeof standingEvidenceSchema>;
-export type StandingResult = z.infer<typeof standingResultSchema>;
 export type StartupCreditsDraftRequest = z.infer<typeof startupCreditsDraftRequestSchema>;
 export type StartupCreditsDraftResult = z.infer<typeof startupCreditsDraftResultSchema>;
 export type StartupCreditsEntityIconInput = z.infer<typeof startupCreditsEntityIconInputSchema>;
 export type StartupCreditsFundedWorkIntent = z.infer<typeof startupCreditsFundedWorkIntentSchema>;
 export type StartupCreditsReviewCompletionReceipt = z.infer<typeof startupCreditsReviewCompletionReceiptSchema>;
-export type StartupCreditsCompletedReviewBasis = z.infer<typeof startupCreditsCompletedReviewBasisSchema>;
 export type StartupCreditsReviewDecision = z.infer<typeof startupCreditsReviewDecisionSchema>;
 export type StartupCreditsPurchasePreview = z.infer<typeof startupCreditsPurchasePreviewSchema>;
 export type StartupCreditsServicePolicy = z.infer<typeof startupCreditsServicePolicySchema>;
 export type StartupCreditsReviewRequest = z.infer<typeof startupCreditsReviewRequestSchema>;
-export type StartupCreditsReviewTarget = z.infer<typeof startupCreditsReviewTargetSchema>;
 export type StartupCreditsExistingRecordTarget = z.infer<typeof startupCreditsExistingRecordTargetSchema>;
 export type StartupCreditsExistingRecordReference = z.infer<typeof startupCreditsExistingRecordReferenceSchema>;
 export type StartupCreditsExistingRecordReviewPreparationRequest = z.infer<typeof startupCreditsExistingRecordReviewPreparationRequestSchema>;
@@ -1769,5 +1441,4 @@ export type StartupCreditsExistingRecordReviewPreparation = z.infer<typeof start
 export type StartupCreditsReviewResponse = z.infer<typeof startupCreditsReviewResponseSchema>;
 export type StartupCreditsVerificationStatus = z.infer<typeof startupCreditsVerificationStatusSchema>;
 export type PayableProductDescriptor = z.infer<typeof payableProductDescriptorSchema>;
-export declare function isFirstPartyUrlForDomain(value: string, domain: string): boolean;
 //# sourceMappingURL=index.d.ts.map

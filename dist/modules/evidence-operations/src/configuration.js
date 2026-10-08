@@ -4,7 +4,7 @@ import { capturePolicyDefinitionSchema } from "../../../contracts/capture/src/in
 import { evidenceSubjectSchema } from "../../../contracts/evidence/src/index.js";
 export { capturePolicyDefinitionSchema, } from "../../../contracts/capture/src/index.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
-export const evidenceTargetSchema = z
+const evidenceTargetSchema = z
     .object({
     target_contract: z.literal("sourcey.evidence-target/v1alpha1"),
     target_id: z.string().regex(IDENTIFIER_PATTERN),
@@ -17,7 +17,7 @@ export const evidenceTargetSchema = z
     prompt_id: z.string().min(1).nullable(),
 })
     .strict();
-export const evidenceScheduleSchema = z
+const evidenceScheduleSchema = z
     .object({
     schedule_contract: z.literal("sourcey.evidence-schedule/v1alpha1"),
     schedule_id: z.string().regex(/^[a-z0-9]+(?:[._-][a-z0-9]+)*$/),
@@ -27,7 +27,7 @@ export const evidenceScheduleSchema = z
     enabled: z.boolean(),
 })
     .strict();
-export const retryPolicyDefinitionSchema = z
+const retryPolicyDefinitionSchema = z
     .object({
     policy_contract: z.literal("sourcey.retry-policy/v1alpha1"),
     policy_id: z.string().min(1),
@@ -46,7 +46,7 @@ export const retryPolicyDefinitionSchema = z
         });
     }
 });
-export const extractorDefinitionSchema = z
+const extractorDefinitionSchema = z
     .object({
     extractor_contract: z.literal("sourcey.extractor-definition/v1alpha1"),
     extractor_id: z.string().min(1),
@@ -56,7 +56,7 @@ export const extractorDefinitionSchema = z
     output_contract: z.string().min(1),
 })
     .strict();
-export const promptDefinitionSchema = z
+const promptDefinitionSchema = z
     .object({
     prompt_contract: z.literal("sourcey.prompt-definition/v1alpha1"),
     prompt_id: z.string().min(1),
@@ -65,7 +65,7 @@ export const promptDefinitionSchema = z
     output_contract: z.string().min(1),
 })
     .strict();
-export const evidenceOpsBundleCoreSchema = z
+const evidenceOpsBundleCoreSchema = z
     .object({
     bundle_contract: z.literal("sourcey.evidence-ops-bundle/v1"),
     targets: z.array(evidenceTargetSchema),
@@ -91,7 +91,7 @@ export const evidenceOpsBundleCoreSchema = z
         .strict()),
 })
     .strict();
-export const evidenceOpsBundleSchema = evidenceOpsBundleCoreSchema
+const evidenceOpsBundleSchema = evidenceOpsBundleCoreSchema
     .extend({ bundle_digest: digestSchema })
     .strict();
 export function compileEvidenceOpsBundle(input) {

@@ -66,21 +66,14 @@ export async function readAgentReadinessDeclarationBlobAtRevision(repositoryRoot
         declarationRevisions: compiled.declarationRevisions,
     };
 }
-export function agentReadinessDeclarationRevisionDigest(input) {
-    return compileAgentReadinessDeclarationRevision(input).revision_digest;
-}
 export function compileAgentReadinessDeclarationRevision(input) {
     const authoring = agentReadinessAuthoringSchema.parse(input.authoring);
     const parsed = agentReadinessAuthoringSchema.shape.declarations.element.parse(input.declaration);
     const standardBindings = (values) => [...values].sort((left, right) => compareCanonicalStrings(`${left.namespace}:${left.version}:${left.relation}`, `${right.namespace}:${right.version}:${right.relation}`));
     const canonicalDeclaration = {
         ...parsed,
-        assessment_targets: [...parsed.assessment_targets]
-            .map((target) => ({
-            ...target,
-            interface_ids: [...target.interface_ids].sort(compareCanonicalStrings),
-        }))
-            .sort((left, right) => compareCanonicalStrings(left.target_id, right.target_id)),
+        // Calls run in their authored order; only the bindings themselves are a set.
+        job_bindings: [...parsed.job_bindings].sort((left, right) => compareCanonicalStrings(left.binding_id, right.binding_id)),
         participants: [...parsed.participants]
             .map((participant) => ({
             ...participant,

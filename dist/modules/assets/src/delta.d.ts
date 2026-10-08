@@ -41,10 +41,5 @@ export declare function assetIndexTransitionChanges(delta: AssetDelta): ({
     prior_binding_digest: string;
     disposition_event_id: string;
 })[];
-export declare function applyAssetDelta(input: {
-    readonly currentBindings: readonly AssetBindingProjection[];
-    readonly delta: AssetDelta;
-    readonly requiredEntityIds?: ReadonlySet<string>;
-}): readonly AssetBindingProjection[];
 export declare function eventMatchesEntityAssetProposal(event: CatalogEvent, proposal: EntityAssetProposal): boolean;
 //# sourceMappingURL=delta.d.ts.map

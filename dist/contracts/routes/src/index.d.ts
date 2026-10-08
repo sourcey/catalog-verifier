@@ -1,23 +1,7 @@
 import { z } from "zod";
-export declare const publicRouteSlugSchema: z.ZodString;
-export declare const entityCanonicalPathInputSchema: z.ZodObject<{
-    entity_slug: z.ZodString;
-}, z.core.$strict>;
-export declare const programCanonicalPathInputSchema: z.ZodObject<{
-    entity_slug: z.ZodString;
-    program_slug: z.ZodString;
-}, z.core.$strict>;
 export declare const offerCanonicalPathInputSchema: z.ZodObject<{
     entity_slug: z.ZodString;
     offer_slug: z.ZodString;
-}, z.core.$strict>;
-export declare const agentReadinessCanonicalPathInputSchema: z.ZodObject<{
-    entity_slug: z.ZodString;
-    product_key: z.ZodString;
-    funnel_key: z.ZodString;
-}, z.core.$strict>;
-export declare const entityIconCurrentPathInputSchema: z.ZodObject<{
-    entity_id: z.ZodString;
 }, z.core.$strict>;
 export declare function catalogCanonicalPath(): string;
 export declare function companiesJsonCanonicalPath(): string;
@@ -99,7 +83,7 @@ export declare function parseOfferCanonicalPath(path: string): {
 export declare function agentReadinessCanonicalPath(input: {
     readonly entity_slug: string;
     readonly product_key: string;
-    readonly funnel_key: string;
+    readonly job_key: string;
 }): string;
 /**
  * Stable public delivery route for the current icon binding. The transport

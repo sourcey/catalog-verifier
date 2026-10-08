@@ -1,28 +1,58 @@
-import { canonicalJson, digest, sha256Bytes } from "provenry/primitives";
+import { compareInstants, digest, sha256Bytes } from "provenry/primitives";
 import { sourceyCaptureMethodRegistry } from "../../../contracts/capture/src/methods.js";
+import { evidenceReviewDecisionCoreSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
 import { catalogRevisionContracts, entityRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-import { deriveSourceStanding, evidenceNormalizerForToolchainDigest, normalizeEvidenceCapture, verifyEvidenceAssertions, } from "./submission-verifier.js";
+import { assertAttestedObservationCapture } from "./attested-capture.js";
+import { EVIDENCE_NORMALIZER } from "./evidence-normalization.js";
+import { currentListingRevision } from "./retained-revision.js";
+import { deriveSourceStanding, normalizeEvidenceCapture, verifyEvidenceAssertions, } from "./submission-verifier.js";
 /**
- * Verifies the complete public evidence graph from immutable local bytes.
- * Callers supply already-materialized objects; this kernel performs no I/O.
- * Normalized bytes are proven by reproducing them from their capture.
+ * Verifies the public evidence graph a release holds, from immutable local
+ * bytes; this kernel performs no I/O. Evidence the release first includes is
+ * proved: its normalized bytes reproduce from its capture with the current
+ * profile, its assertions locate in them, and its capture is the one a Provenry
+ * attestation the caller has verified (`verifyAttestedCaptures`) proves.
+ * Evidence an earlier release first included is carried: that release proved
+ * it, so here only its citations must resolve (lean-release-chain §3.1).
  */
 export function verifyEvidenceObjectGraph(input) {
     const revisions = new Map(input.revisions.map((revision) => [revision.revision_digest, revision]));
     const observations = new Map(input.observations.map((observation) => [observation.observation_id, observation]));
-    const captureReceipts = new Map();
-    const captureReceiptOperations = new Set();
-    for (const receipt of input.captureReceipts) {
-        const { receipt_digest: receiptDigest, protected: _, ...core } = receipt;
-        if (digest(core) !== receiptDigest ||
-            captureReceipts.has(receiptDigest) ||
-            captureReceiptOperations.has(receipt.operation_id)) {
-            throw new Error(`Capture receipt ${receiptDigest} is not uniquely content-addressed.`);
+    const carriedEventIds = input.carriedEventIds ?? new Set();
+    const usedAttestations = new Set();
+    // Carried evidence resolves its citations; nothing it rests on is proved again.
+    const carriedObservationIds = new Set();
+    for (const event of input.events) {
+        if (event.kind !== "evidence.bound" || !carriedEventIds.has(event.event_id))
+            continue;
+        const payload = event.payload;
+        for (const revisionDigest of [
+            event.subject.revision_digest,
+            payload.authority_entity_revision_digest,
+            payload.authority_program_revision_digest,
+        ]) {
+            if (typeof revisionDigest === "string" && !revisions.has(revisionDigest)) {
+                throw new Error(`Carried evidence event ${event.event_id} lacks its revision ${revisionDigest}.`);
+            }
         }
-        captureReceipts.set(receiptDigest, receipt);
-        captureReceiptOperations.add(receipt.operation_id);
+        const observationId = requiredString(payload.observation_id, "observation_id");
+        const observation = observations.get(observationId);
+        if (!observation) {
+            throw new Error(`Carried evidence event ${event.event_id} lacks its observation.`);
+        }
+        if (payload.normalized_object_digest !== undefined &&
+            payload.normalized_object_digest !== observation.capture?.normalized_object?.digest) {
+            throw new Error(`Carried evidence event ${event.event_id} names the wrong normalized object.`);
+        }
+        carriedObservationIds.add(observationId);
+        if (payload.capture_attestation_digest !== undefined) {
+            const attestationDigest = requiredString(payload.capture_attestation_digest, "capture_attestation_digest");
+            if (!input.attestedCaptures.has(attestationDigest)) {
+                throw new Error(`Carried evidence event ${event.event_id} lacks its capture attestation.`);
+            }
+            usedAttestations.add(attestationDigest);
+        }
     }
-    const usedCaptureReceipts = new Set();
     for (const observation of input.observations) {
         const capture = observation.capture;
         if (capture?.availability !== "public")
@@ -37,19 +67,23 @@ export function verifyEvidenceObjectGraph(input) {
             throw new Error(`Observation ${observation.observation_id} lacks its normalized evidence declaration.`);
         }
         const normalizedBytes = input.normalizedObjects.get(capture.normalized_object.digest);
-        if (!normalizedBytes || normalizedBytes.byteLength !== capture.normalized_object.bytes) {
+        if (!normalizedBytes ||
+            normalizedBytes.byteLength !== capture.normalized_object.bytes ||
+            (!input.capturesProven && sha256Bytes(normalizedBytes) !== capture.normalized_object.digest)) {
             throw new Error(`Observation ${observation.observation_id} lacks its normalized evidence bytes.`);
         }
-        const normalizer = evidenceNormalizerForToolchainDigest(capture.normalized_object.toolchain_digest);
-        if (capture.normalized_object.normalizer_contract !== normalizer.normalizer_contract ||
-            capture.normalized_object.normalizer_id !== normalizer.normalizer_id ||
-            capture.normalized_object.version !== normalizer.version) {
-            throw new Error(`Observation ${observation.observation_id} uses an unsupported evidence normalizer.`);
+        // The release that first included carried evidence normalized it.
+        if (carriedObservationIds.has(observation.observation_id))
+            continue;
+        if (capture.normalized_object.normalizer_contract !== EVIDENCE_NORMALIZER.normalizer_contract ||
+            capture.normalized_object.normalizer_id !== EVIDENCE_NORMALIZER.normalizer_id ||
+            capture.normalized_object.version !== EVIDENCE_NORMALIZER.version ||
+            capture.normalized_object.toolchain_digest !== EVIDENCE_NORMALIZER.toolchain_digest) {
+            throw new Error(`Observation ${observation.observation_id} is not normalized with the current profile.`);
         }
         const reproduced = normalizeEvidenceCapture({
             bytes: captureBytes,
             mediaType: capture.media_type,
-            normalizerToolchainDigest: normalizer.toolchain_digest,
         });
         if (reproduced.digest !== capture.normalized_object.digest ||
             !bytesEqual(reproduced.bytes, normalizedBytes)) {
@@ -57,15 +91,13 @@ export function verifyEvidenceObjectGraph(input) {
         }
     }
     for (const event of input.events) {
-        if (event.kind !== "evidence.bound")
+        if (event.kind !== "evidence.bound" || carriedEventIds.has(event.event_id))
             continue;
         const revisionDigest = event.subject.revision_digest;
-        const revision = revisionDigest ? revisions.get(revisionDigest) : undefined;
-        if (!revision)
+        const retained = revisionDigest ? revisions.get(revisionDigest) : undefined;
+        if (!retained)
             throw new Error(`Evidence event ${event.event_id} lacks its exact revision.`);
-        if (revision.revision_contract === "sourcey.agent-readiness-declaration-revision/v1alpha1") {
-            throw new Error(`Evidence event ${event.event_id} cannot target a declaration revision.`);
-        }
+        const revision = currentListingRevision(retained);
         const payload = event.payload;
         const observationId = requiredString(payload.observation_id, "observation_id");
         const observation = observations.get(observationId);
@@ -119,18 +151,6 @@ export function verifyEvidenceObjectGraph(input) {
             }
             continue;
         }
-        const captureReceiptDigest = requiredString(payload.capture_receipt_digest, "capture_receipt_digest");
-        const captureReceipt = captureReceipts.get(captureReceiptDigest);
-        if (!captureReceipt) {
-            throw new Error(`Evidence event ${event.event_id} lacks its capture receipt.`);
-        }
-        usedCaptureReceipts.add(captureReceiptDigest);
-        if (canonicalJson(captureReceipt.subject) !== canonicalJson(event.subject) ||
-            captureReceipt.authority_entity_revision_digest !== authorityRevisionDigest ||
-            captureReceipt.authority_program_revision_digest !== authorityProgramRevisionDigest ||
-            captureReceipt.issued_at > event.occurred_at) {
-            throw new Error(`Evidence event ${event.event_id} disagrees with its capture receipt.`);
-        }
         if (!observation.capture.requested_uri ||
             !observation.capture.final_uri ||
             !observation.capture.redirect_chain ||
@@ -152,25 +172,28 @@ export function verifyEvidenceObjectGraph(input) {
         if (sourceStanding !== observation.capture.source_standing) {
             throw new Error(`Evidence event ${event.event_id} has incorrect source standing.`);
         }
-        const receiptCapture = captureReceipt.capture;
-        if (receiptCapture.subject_source_url !== observation.source_uri ||
-            receiptCapture.requested_url !== observation.capture.requested_uri ||
-            receiptCapture.final_url !== observation.capture.final_uri ||
-            canonicalJson(receiptCapture.redirect_chain) !==
-                canonicalJson(observation.capture.redirect_chain) ||
-            receiptCapture.retrieved_at !== observation.retrieved_at ||
-            receiptCapture.method !== observation.method.name ||
-            receiptCapture.media_type !== observation.capture.media_type ||
-            receiptCapture.digest !== observation.capture.digest ||
-            receiptCapture.bytes !== observation.capture.bytes ||
-            receiptCapture.availability !==
-                (observation.capture.availability === "public" ? "public" : "restricted")) {
-            throw new Error(`Evidence event ${event.event_id} capture receipt binds different bytes.`);
+        const attestationDigest = requiredString(payload.capture_attestation_digest, "capture_attestation_digest");
+        const captured = input.attestedCaptures.get(attestationDigest);
+        if (!captured) {
+            throw new Error(`Evidence event ${event.event_id} lacks its capture attestation.`);
         }
+        usedAttestations.add(attestationDigest);
+        const decision = evidenceReviewDecisionSchema.parse(payload.review_decision);
+        const { decision_digest: decisionDigest, ...decisionCore } = decision;
+        if (digest(evidenceReviewDecisionCoreSchema.parse(decisionCore)) !== decisionDigest ||
+            decision.decision !== "approved" ||
+            compareInstants(decision.decided_at, event.occurred_at) > 0) {
+            throw new Error(`Evidence event ${event.event_id} lacks its exact approved review.`);
+        }
+        if (observation.capture.availability !== "public" ||
+            compareInstants(captured.attestation.signed_at, event.occurred_at) > 0) {
+            throw new Error(`Evidence event ${event.event_id} disagrees with its capture attestation.`);
+        }
+        assertAttestedObservationCapture(observation, captured);
     }
-    for (const receipt of input.captureReceipts) {
-        if (!usedCaptureReceipts.has(receipt.receipt_digest)) {
-            throw new Error(`Capture receipt ${receipt.receipt_digest} is not bound by an evidence event.`);
+    for (const attestationDigest of input.attestedCaptures.keys()) {
+        if (!usedAttestations.has(attestationDigest)) {
+            throw new Error(`Capture attestation ${attestationDigest} is not bound by an evidence event.`);
         }
     }
 }

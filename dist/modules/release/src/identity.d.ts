@@ -9,9 +9,10 @@ export interface RevisionHistory {
     readonly all: ReadonlyMap<Digest, RetainedCatalogRevision>;
     readonly currentRevisionDigests: readonly Digest[];
 }
-export type ParentIdentityState = Pick<VerifiedCatalogRelease, "artifact" | "agentReadinessProfiles">;
+type ParentIdentityState = Pick<VerifiedCatalogRelease, "artifact" | "agentReadinessProfiles">;
 export declare function projectIdentities(graph: EventGraph, prior?: IdentityIndex): IdentityIndex;
 /** Release projection cannot admit two active claims across connected Entity identities. */
 export declare function projectAuthorityClosedIdentities(graph: EventGraph, prior?: IdentityIndex): IdentityIndex;
 export declare function validateIdentityClosure(identities: IdentityIndex, revisions: RevisionHistory, facts: CompiledCatalogFacts, agentReadinessProfiles: readonly AgentReadinessProjection[], parent: ParentIdentityState | null, retainedIdentityFloor?: IdentityIndex): void;
+export {};
 //# sourceMappingURL=identity.d.ts.map

@@ -19,7 +19,6 @@ export declare const changeCursorSchema: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
             "catalog-attestation": "catalog-attestation";
             "catalog-authority": "catalog-authority";
-            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
             "catalog-evidence": "catalog-evidence";
             "catalog-feed": "catalog-feed";
@@ -54,7 +53,6 @@ export declare const searchCursorSchema: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
             "catalog-attestation": "catalog-attestation";
             "catalog-authority": "catalog-authority";
-            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
             "catalog-evidence": "catalog-evidence";
             "catalog-feed": "catalog-feed";
@@ -154,6 +152,5 @@ export type ChangeCursorCore = z.infer<typeof changeCursorCoreSchema>;
 export type ChangeCursor = z.infer<typeof changeCursorSchema>;
 export type SearchCursorCore = z.infer<typeof searchCursorCoreSchema>;
 export type SearchCursor = z.infer<typeof searchCursorSchema>;
-export type ChangeFeedPage = z.infer<typeof changeFeedPageSchema>;
 export type CatalogJsonFeed = z.infer<typeof catalogJsonFeedSchema>;
 //# sourceMappingURL=index.d.ts.map

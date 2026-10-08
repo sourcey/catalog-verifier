@@ -5,10 +5,12 @@ import { canonicalArtifactSchema, compiledPolicySchema, identityIndexSchema, pro
 import { assetIndexSchema, assetInputsSchema, assetNoticesSchema, } from "../../../contracts/assets/src/index.js";
 import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema, rootSetTransitionSchema } from "../../../contracts/authority/src/index.js";
+import { catalogEventSchema } from "../../../contracts/events/src/index.js";
 import { observationSchema } from "../../../contracts/observations/src/index.js";
 import { closedInputSetSchema, RELEASE_RESOURCES, releaseObservationInputsSchema, releasePolicyObjectPath, releaseResourceDigest, releaseRootSetObjectPath, releaseSignerRegistryObjectPath, releaseTrustTransitionObjectPath, } from "../../../contracts/release/src/index.js";
 import { routeIndexSchema } from "../../../contracts/routes/src/index.js";
-import { validateProtectedEvent, validateProtectedRetainedCaptureReceipt, validateRootSetTransition, validateSignerRegistry, } from "../../authority/src/index.js";
+import { validateProtectedEvent, validateRootSetTransition, validateSignerRegistry, } from "../../authority/src/index.js";
+import { attestedCaptureDigests, verifyReleasedCaptureRecords, } from "../../evidence-operations/src/attested-capture.js";
 import { verifyEvidenceObjectGraph } from "../../evidence-operations/src/proof-graph.js";
 import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
 import { catalogEntityProjectionDigest, catalogOfferProjectionDigest, catalogPolicyRevisionDigest, catalogProgramProjectionDigest, } from "../../projection-identity/src/index.js";
@@ -36,7 +38,7 @@ export function verifyCatalogRelease(release, trust) {
 export async function loadAdmittedCatalogReleaseDirectory(directory, trust) {
     return inspectCatalogRelease(await readVerifiedSourceyRelease(directory), trust, false);
 }
-function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
+async function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
     if (release.kind !== "full") {
         throw new Error("A full Catalog release cannot carry a delta state file.");
     }
@@ -108,11 +110,13 @@ function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
         });
     }
     const trustedRegistries = validateTrustHistory(files, rootSet, registry);
+    const releaseSequence = descriptor.release_core.release_sequence;
     const revisions = new Map();
     const authoring = new Map();
     const events = [];
+    const eventIds = new Set();
+    const carriedEventIds = new Set();
     const observations = [];
-    const captureReceipts = [];
     for (const [path, bytes] of files) {
         if (path.startsWith("authoring/entities/")) {
             const value = entityAuthoringSchema.parse(JSON.parse(bytes.toString("utf8")));
@@ -133,19 +137,34 @@ function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
         else if (path.startsWith("events/")) {
             const input = JSON.parse(bytes.toString("utf8"));
             const address = addressFromJsonPath(path);
-            if (input.event_id !== address)
+            if (input.event_id !== address || eventIds.has(address)) {
                 throw new Error(`Event object ${path} is misaddressed.`);
+            }
+            eventIds.add(address);
             const inclusion = provenance.events[address];
-            if (!inclusion)
+            if (!inclusion || inclusion.event_id !== address) {
                 throw new Error(`Event ${address} lacks first-inclusion provenance.`);
-            const eventRegistry = trustedRegistries.get(input.protected?.signer_registry_digest);
-            if (!eventRegistry) {
+            }
+            const eventRegistry = trustedRegistries.get(inclusion.signer_registry_digest);
+            if (!eventRegistry ||
+                input.protected?.signer_registry_digest !== eventRegistry.registry_digest) {
                 throw new Error(`Event ${address} names a registry outside the trusted history.`);
             }
-            const event = validateProtectedEvent(input, eventRegistry, inclusion.first_inclusion_sequence);
-            if (digest(event) !== inclusion.event_object_digest) {
-                throw new Error(`Event ${address} differs from its witnessed object digest.`);
+            if (inclusion.first_inclusion_sequence > releaseSequence) {
+                throw new Error(`Event ${address} claims a later first inclusion.`);
             }
+            // An event an earlier release first included was verified there; it is carried by witness.
+            const carried = inclusion.first_inclusion_sequence < releaseSequence;
+            const event = carried
+                ? catalogEventSchema.parse(input)
+                : validateProtectedEvent(input, eventRegistry, releaseSequence);
+            if (digest(event) !== inclusion.event_object_digest ||
+                event.operation_id !== inclusion.operation_id ||
+                event.issuer_id !== inclusion.issuer_id) {
+                throw new Error(`Event ${address} differs from its provenance witness.`);
+            }
+            if (carried)
+                carriedEventIds.add(address);
             events.push(event);
         }
         else if (path.startsWith("observations/")) {
@@ -157,38 +176,22 @@ function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
             }
             observations.push(observation);
         }
-        else if (path.startsWith("capture-receipts/")) {
-            const input = JSON.parse(bytes.toString("utf8"));
-            const address = addressFromJsonPath(path);
-            if (input.receipt_digest !== address) {
-                throw new Error(`Capture receipt object ${path} is misaddressed.`);
-            }
-            const inclusion = provenance.capture_receipts[address];
-            if (!inclusion) {
-                throw new Error(`Capture receipt ${address} lacks first-inclusion provenance.`);
-            }
-            const receiptRegistry = trustedRegistries.get(input.protected.signer_registry_digest);
-            if (!receiptRegistry) {
-                throw new Error(`Capture receipt ${address} names a registry outside the trusted history.`);
-            }
-            const receipt = validateProtectedRetainedCaptureReceipt(input, receiptRegistry, inclusion.first_inclusion_sequence);
-            if (digest(receipt) !== inclusion.receipt_object_digest) {
-                throw new Error(`Capture receipt ${address} differs from its witnessed object digest.`);
-            }
-            captureReceipts.push(receipt);
-        }
     }
-    const receiptAddresses = captureReceipts
-        .map((receipt) => receipt.receipt_digest)
-        .sort(compareCanonicalStrings);
-    const witnessedReceiptAddresses = Object.keys(provenance.capture_receipts).sort(compareCanonicalStrings);
-    if (JSON.stringify(receiptAddresses) !== JSON.stringify(witnessedReceiptAddresses)) {
-        throw new Error("Capture receipt objects and provenance witnesses disagree.");
+    // Every event has its witness, so equal sizes make the two sets equal.
+    if (eventIds.size !== Object.keys(provenance.events).length) {
+        throw new Error("Event objects and their provenance witnesses disagree.");
+    }
+    const attestedCaptures = await verifyReleasedCaptureRecords({
+        files,
+        inclusions: provenance.capture_attestations,
+        releaseSequence,
+        registryFor: (signerRegistryDigest) => trustedRegistries.get(signerRegistryDigest),
+    });
+    if (JSON.stringify(inputSet.capture_attestation_digests) !==
+        JSON.stringify(attestedCaptureDigests(attestedCaptures))) {
+        throw new Error("Closed input set disagrees with the capture attestation set.");
     }
     verifyReleasedAuthoringClosure(authoring, artifact.entities);
-    if (JSON.stringify(inputSet.capture_receipt_digests) !== JSON.stringify(receiptAddresses)) {
-        throw new Error("Closed input set disagrees with the capture receipt set.");
-    }
     const agentReadinessProfiles = Object.values(agentReadinessIndex.profiles)
         .map((entry) => {
         const profile = agentReadinessProjectionSchema.parse(parseJsonFile(files, entry.path, CATALOG_RELEASE));
@@ -209,7 +212,7 @@ function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
         inputs: agentReadinessOfferRelationInputs,
         files,
     });
-    assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, bundle.files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
+    assertArtifactClosure(artifact, revisions, provenance, events, carriedEventIds, observations, attestedCaptures, changes, files, bundle.files, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects);
     return {
         bundle,
         descriptor,
@@ -227,12 +230,12 @@ function inspectCatalogRelease(release, trust, replayEvidenceObjects) {
         registry,
         events: events.sort((left, right) => compareCanonicalStrings(left.event_id, right.event_id)),
         observations: observations.sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id)),
-        captureReceipts: captureReceipts.sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest)),
+        attestedCaptures,
         revisions,
         files,
     };
 }
-function assertArtifactClosure(artifact, revisions, provenance, events, observations, captureReceipts, changes, files, declarations, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
+function assertArtifactClosure(artifact, revisions, provenance, events, carriedEventIds, observations, attestedCaptures, changes, files, declarations, agentReadinessProfiles, assetIndex, assetNotices, agentReadinessInputs, assetInputs, environment, replayEvidenceObjects) {
     const eventsById = new Map(events.map((event) => [event.event_id, event]));
     const observationIds = new Set(observations.map((observation) => observation.observation_id));
     for (const entity of artifact.entities) {
@@ -268,9 +271,7 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
     assertReleasedAgentReadinessClosure({
         artifact,
         revisions,
-        provenance,
         events,
-        observations,
         profiles: agentReadinessProfiles,
         inputs: agentReadinessInputs,
     });
@@ -286,8 +287,9 @@ function assertArtifactClosure(artifact, revisions, provenance, events, observat
         verifyEvidenceObjectGraph({
             revisions: [...revisions.values()],
             events,
+            carriedEventIds,
             observations,
-            captureReceipts,
+            attestedCaptures,
             ...releasedEvidenceObjects(observations, files, declarations),
             capturesProven: true,
             allowFixtureEvidence: environment === "dogfood",

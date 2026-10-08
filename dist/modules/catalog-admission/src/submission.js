@@ -292,7 +292,7 @@ function submissionStages(planned, state) {
         { stage: "validation", status: "passed", diagnostics: [] },
         {
             stage: "evidence",
-            status: requiredStage(required.has("catalog-evidence") || required.has("catalog-capture")),
+            status: requiredStage(required.has("catalog-evidence")),
             diagnostics: [],
         },
         {

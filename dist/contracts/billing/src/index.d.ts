@@ -1,10 +1,5 @@
 import { z } from "zod";
 export declare const commercialOrderIdSchema: z.ZodString;
-export declare const paymentRailSchema: z.ZodEnum<{
-    stripe: "stripe";
-    x402: "x402";
-}>;
-export type PaymentRail = z.infer<typeof paymentRailSchema>;
 export declare const commercialProductDefinitionSchema: z.ZodObject<{
     product_code: z.ZodString;
     purchase_kind: z.ZodLiteral<"one_off">;
@@ -83,68 +78,6 @@ export declare const x402PaymentAttemptSchema: z.ZodObject<{
     payer_ref: z.ZodNullable<z.ZodString>;
     refund_ref: z.ZodNullable<z.ZodString>;
 }, z.core.$strict>;
-export declare const paymentAttemptSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-    attempt_id: z.ZodString;
-    order_id: z.ZodString;
-    request_binding_digest: z.ZodString;
-    amount: z.ZodObject<{
-        currency: z.ZodString;
-        minor_units: z.ZodNumber;
-    }, z.core.$strict>;
-    state: z.ZodEnum<{
-        expired: "expired";
-        failed: "failed";
-        payment_pending: "payment_pending";
-        prepared: "prepared";
-        refund_pending: "refund_pending";
-        refunded: "refunded";
-        settled: "settled";
-        settlement_pending: "settlement_pending";
-        verified: "verified";
-    }>;
-    expires_at: z.ZodISODateTime;
-    created_at: z.ZodISODateTime;
-    updated_at: z.ZodISODateTime;
-    rail: z.ZodLiteral<"stripe">;
-    checkout_session_id: z.ZodNullable<z.ZodString>;
-    checkout_url: z.ZodNullable<z.ZodURL>;
-    payment_intent_id: z.ZodNullable<z.ZodString>;
-    refund_id: z.ZodNullable<z.ZodString>;
-}, z.core.$strict>, z.ZodObject<{
-    attempt_contract: z.ZodLiteral<"sourcey.payment-attempt/v1alpha1">;
-    attempt_id: z.ZodString;
-    order_id: z.ZodString;
-    request_binding_digest: z.ZodString;
-    amount: z.ZodObject<{
-        currency: z.ZodString;
-        minor_units: z.ZodNumber;
-    }, z.core.$strict>;
-    state: z.ZodEnum<{
-        expired: "expired";
-        failed: "failed";
-        payment_pending: "payment_pending";
-        prepared: "prepared";
-        refund_pending: "refund_pending";
-        refunded: "refunded";
-        settled: "settled";
-        settlement_pending: "settlement_pending";
-        verified: "verified";
-    }>;
-    expires_at: z.ZodISODateTime;
-    created_at: z.ZodISODateTime;
-    updated_at: z.ZodISODateTime;
-    rail: z.ZodLiteral<"x402">;
-    resource: z.ZodURL;
-    challenge_digest: z.ZodString;
-    payment_payload_digest: z.ZodString;
-    payment_requirements_digest: z.ZodString;
-    payment_ref: z.ZodNullable<z.ZodString>;
-    verification_ref: z.ZodNullable<z.ZodString>;
-    settlement_ref: z.ZodNullable<z.ZodString>;
-    payer_ref: z.ZodNullable<z.ZodString>;
-    refund_ref: z.ZodNullable<z.ZodString>;
-}, z.core.$strict>], "rail">;
 export declare const commercialOrderSchema: z.ZodObject<{
     order_contract: z.ZodLiteral<"sourcey.commercial-order/v1alpha1">;
     order_id: z.ZodString;
@@ -303,57 +236,6 @@ export declare const commercialOrderProjectionSchema: z.ZodObject<{
         payer_ref: z.ZodNullable<z.ZodString>;
         refund_ref: z.ZodNullable<z.ZodString>;
     }, z.core.$strict>], "rail">;
-}, z.core.$strict>;
-/**
- * The rail-neutral order state a product may return to its purchaser. Internal
- * payment-attempt identities and provider reconciliation evidence remain in
- * Billing; callers retain the exact product, intent, money, work, SLA, refund,
- * receipt, and revision bindings needed to understand their purchase.
- */
-export declare const commercialOrderStatusSchema: z.ZodObject<{
-    status_contract: z.ZodLiteral<"sourcey.commercial-order-status/v1alpha1">;
-    order_id: z.ZodString;
-    product_code: z.ZodString;
-    purchase_kind: z.ZodLiteral<"one_off">;
-    product_definition_digest: z.ZodString;
-    funded_work_intent_digest: z.ZodString;
-    amount: z.ZodObject<{
-        currency: z.ZodString;
-        minor_units: z.ZodNumber;
-    }, z.core.$strict>;
-    payment_rail: z.ZodEnum<{
-        stripe: "stripe";
-        x402: "x402";
-    }>;
-    payment_state: z.ZodEnum<{
-        cancelled: "cancelled";
-        paid: "paid";
-        payment_pending: "payment_pending";
-        refund_pending: "refund_pending";
-        refunded: "refunded";
-    }>;
-    work_state: z.ZodEnum<{
-        blocked: "blocked";
-        cancelled: "cancelled";
-        failed: "failed";
-        fulfilled: "fulfilled";
-        in_review: "in_review";
-        queued: "queued";
-    }>;
-    paid_at: z.ZodNullable<z.ZodISODateTime>;
-    sla_due_at: z.ZodNullable<z.ZodISODateTime>;
-    refund_reason: z.ZodNullable<z.ZodEnum<{
-        duplicate_charge: "duplicate_charge";
-        scope_superseded: "scope_superseded";
-        service_level_missed: "service_level_missed";
-        sourcey_error: "sourcey_error";
-    }>>;
-    refund_requested_at: z.ZodNullable<z.ZodISODateTime>;
-    refunded_at: z.ZodNullable<z.ZodISODateTime>;
-    fulfilment_receipt_digest: z.ZodNullable<z.ZodString>;
-    failure_receipt_digest: z.ZodNullable<z.ZodString>;
-    created_at: z.ZodISODateTime;
-    updated_at: z.ZodISODateTime;
 }, z.core.$strict>;
 export declare const createCommercialOrderResponseSchema: z.ZodObject<{
     order: z.ZodObject<{
@@ -573,14 +455,8 @@ export declare const commercialOrderResponseSchema: z.ZodObject<{
         refund_ref: z.ZodNullable<z.ZodString>;
     }, z.core.$strict>], "rail">;
 }, z.core.$strict>;
-export declare const fulfilCommercialOrderRequestSchema: z.ZodObject<{
-    receipt_digest: z.ZodString;
-}, z.core.$strict>;
 export type CommercialOrder = z.infer<typeof commercialOrderSchema>;
 export type CommercialProductDefinition = z.infer<typeof commercialProductDefinitionSchema>;
-export type CommercialOrderStatus = z.infer<typeof commercialOrderStatusSchema>;
-export type PaymentAttempt = z.infer<typeof paymentAttemptSchema>;
 export type CommercialOrderProjection = z.infer<typeof commercialOrderProjectionSchema>;
 export declare function commercialProductDefinitionDigest(definition: CommercialProductDefinition): `sha256:${string}`;
-export declare function projectCommercialOrderStatus(projection: CommercialOrderProjection): CommercialOrderStatus;
 //# sourceMappingURL=index.d.ts.map

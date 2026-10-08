@@ -1,7 +1,7 @@
 import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
 import { entityAuthoringSchema } from "../../../contracts/authoring/src/index.js";
 import { orderedUnique } from "./publication-dependencies.js";
-export function normalizeCatalogEntityAuthoring(authoring) {
+function normalizeCatalogEntityAuthoring(authoring) {
     const parsed = entityAuthoringSchema.parse(authoring);
     return entityAuthoringSchema.parse({
         ...parsed,

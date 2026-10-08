@@ -1,4 +1,4 @@
-import type { AgentReadinessProjection, AgentReadinessProjectionLineage } from "../../../contracts/agent-readiness/src/index.js";
+import type { AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
 import type { CanonicalArtifact, IdentityIndex, ReleaseChange } from "../../../contracts/artifact/src/index.js";
 import type { AssetIndex } from "../../../contracts/assets/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
@@ -9,14 +9,14 @@ export declare function buildChanges(input: {
     readonly identities: IdentityIndex;
     readonly parentRoutes: ReturnType<typeof routeIndexSchema.parse> | null;
     readonly agentReadinessProfiles: readonly AgentReadinessProjection[];
-    readonly parentAgentReadinessProfiles: readonly AgentReadinessProjectionLineage[];
+    readonly parentAgentReadinessProfiles: readonly AgentReadinessProjection[];
     readonly assetIndex: AssetIndex;
     readonly parentAssetIndex: AssetIndex | null;
     readonly events: readonly CatalogEvent[];
 }): ReleaseChange[];
 export declare function buildAgentReadinessChanges(input: {
     readonly current: readonly AgentReadinessProjection[];
-    readonly prior: readonly AgentReadinessProjectionLineage[];
+    readonly prior: readonly AgentReadinessProjection[];
     readonly identities: IdentityIndex;
     readonly regradedProfileIds: ReadonlySet<string>;
 }): ReleaseChange[];

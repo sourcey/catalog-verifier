@@ -3,7 +3,7 @@ import type { AssetMediaType, AssetRedistribution, AssetTransformProfile, Entity
 export declare const ENTITY_ICON_MAX_SOURCE_PIXELS: number;
 export declare const ENTITY_ICON_MAX_SOURCE_ASPECT_RATIO = 1.5;
 export declare const ENTITY_ICON_SIZE = 256;
-export interface AssetObjectStoreReceipt {
+interface AssetObjectStoreReceipt {
     readonly objectDigest: Digest;
     readonly bytes: number;
     readonly mediaType: string;
@@ -66,4 +66,5 @@ export declare function prepareEntityAssetProposal(input: {
     readonly transformer: EntityIconTransformerPort;
     readonly objects: AssetObjectStorePort;
 }): Promise<EntityAssetProposal>;
+export {};
 //# sourceMappingURL=ingestion.d.ts.map

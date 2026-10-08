@@ -1,5 +1,5 @@
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
-import { assetDeltaCoreSchema, assetIndexSchema } from "../../../contracts/assets/src/index.js";
+import { assetDeltaCoreSchema } from "../../../contracts/assets/src/index.js";
 import { catalogEventPayloadSchemas } from "../../../contracts/events/src/index.js";
 import { eventDisposesAssetBinding } from "./disposition.js";
 import { verifyAssetDelta, verifyEntityAssetProposal } from "./index.js";
@@ -101,43 +101,6 @@ export function assetIndexTransitionChanges(delta) {
                 disposition_event_id: change.disposition_event_id,
             }),
     }));
-}
-export function applyAssetDelta(input) {
-    const delta = verifyAssetDelta(input.delta);
-    const current = bindingMap(input.currentBindings);
-    for (const change of delta.changes) {
-        const key = bindingKey(change.entity_id, change.role);
-        const prior = current.get(key);
-        if ((prior?.binding_event_id ?? null) !== change.prior_binding_event_id) {
-            throw new Error(`Asset delta change ${key} does not match its current base.`);
-        }
-        if (change.operation === "upsert") {
-            current.set(key, change.binding);
-        }
-        else {
-            if (!prior || digest(prior) !== change.prior_binding_digest) {
-                throw new Error(`Asset removal ${key} has a stale prior projection digest.`);
-            }
-            current.delete(key);
-        }
-    }
-    const bindings = [...current.values()].sort((left, right) => compareCanonicalStrings(bindingKey(left.entity_id, left.role), bindingKey(right.entity_id, right.role)));
-    if (input.requiredEntityIds) {
-        const iconEntities = new Set(bindings.filter((binding) => binding.role === "icon").map((binding) => binding.entity_id));
-        const missing = [...input.requiredEntityIds].filter((entityId) => !iconEntities.has(entityId));
-        if (missing.length > 0) {
-            throw new Error(`Published Entities lack an icon binding: ${missing.join(", ")}.`);
-        }
-    }
-    assetIndexSchema.parse({
-        asset_index_contract: "sourcey.asset-index/v1alpha1",
-        bindings,
-        notices_digest: digest({
-            notices_contract: "sourcey.asset-notices-transition/v1alpha1",
-            assets: bindings.map((binding) => binding.asset_object_digest),
-        }),
-    });
-    return bindings;
 }
 export function eventMatchesEntityAssetProposal(event, proposal) {
     if (event.kind !== "asset.bound" || event.subject.entity_id !== proposal.entity_id)

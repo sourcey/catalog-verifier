@@ -1,5 +1,5 @@
 import { type Digest } from "provenry/primitives";
-import type { AgentReadinessProjection, AgentReadinessProjectionLineage } from "../../../contracts/agent-readiness/src/index.js";
+import type { AgentReadinessProjection } from "../../../contracts/agent-readiness/src/index.js";
 import type { IdentityIndex } from "../../../contracts/artifact/src/index.js";
 import { type CompiledEntity, releaseChangeSchema } from "../../../contracts/artifact/src/index.js";
 import type { AssetDelta } from "../../../contracts/assets/src/index.js";
@@ -9,7 +9,7 @@ export declare function buildDeltaChanges(entities: readonly {
     readonly prior: CompiledEntity | null;
 }[], identities: IdentityIndex, agentReadiness: {
     readonly current: readonly AgentReadinessProjection[];
-    readonly prior: readonly AgentReadinessProjectionLineage[];
+    readonly prior: readonly AgentReadinessProjection[];
     readonly regradedProfileIds: ReadonlySet<string>;
 }, assetDelta: AssetDelta | null): ReturnType<typeof releaseChangeSchema.parse>[];
 type CatalogStateTransitionInput = Pick<CatalogDelta, "base" | "policy_as_of" | "artifact_core" | "entity_changes" | "routes" | "identities" | "provenance" | "authority_set_digests" | "object_manifest_digest">;

@@ -1,4 +1,3 @@
-import { compareCanonicalStrings } from "provenry/primitives";
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
 import { analyzeCatalogCandidateChanges } from "./publication.js";
 import { catalogSubmissionCandidates, catalogSubmissionReviewCandidates, verifyCatalogSubmissionWorkItem, } from "./submission-input.js";
@@ -113,8 +112,5 @@ export function catalogChangedRevisions(changes) {
             sourceIds: offer.sourceIds,
         })),
     ]);
-}
-export function canonicalChangedEntityIds(changes) {
-    return changes.map(({ entity }) => entity.revision.entity_id).sort(compareCanonicalStrings);
 }
 //# sourceMappingURL=change-analysis.js.map

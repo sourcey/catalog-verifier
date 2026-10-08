@@ -345,6 +345,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -374,6 +378,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -436,6 +444,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -456,6 +468,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -601,6 +617,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
@@ -628,6 +648,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
@@ -688,6 +712,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
@@ -701,6 +729,10 @@ export declare const startupCreditsDatasetSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
@@ -722,7 +754,7 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
                 key: z.ZodString;
                 name: z.ZodString;
             }, z.core.$strict>;
-            funnel: z.ZodObject<{
+            job: z.ZodObject<{
                 key: z.ZodString;
                 name: z.ZodString;
             }, z.core.$strict>;
@@ -738,38 +770,12 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
         policy_digest: z.ZodString;
         policy_version: z.ZodString;
         policy_as_of: z.ZodISODateTime;
-        overall_outcome: z.ZodEnum<{
-            constrained: "constrained";
-            fail: "fail";
-            not_applicable: "not_applicable";
-            pass: "pass";
-            unknown: "unknown";
+        label: z.ZodEnum<{
+            probed: "probed";
+            sourcey_run: "sourcey_run";
+            vendor_run_verified: "vendor_run_verified";
         }>;
-        public_state: z.ZodEnum<{
-            blocked: "blocked";
-            limited: "limited";
-            not_applicable: "not_applicable";
-            ready: "ready";
-            unknown: "unknown";
-        }>;
-        state_label: z.ZodString;
-        grade: z.ZodEnum<{
-            A: "A";
-            "A+": "A+";
-            B: "B";
-            "B+": "B+";
-            C: "C";
-            "C+": "C+";
-            D: "D";
-            F: "F";
-            unrated: "unrated";
-        }>;
-        grade_derivation: z.ZodObject<{
-            label: z.ZodString;
-            explanation: z.ZodString;
-            coverage_rule: z.ZodString;
-            outcome_rule: z.ZodString;
-        }, z.core.$strict>;
+        last_run_at: z.ZodISODateTime;
         publication: z.ZodObject<{
             visibility: z.ZodEnum<{
                 discoverable: "discoverable";
@@ -777,102 +783,17 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
                 resolvable_only: "resolvable_only";
             }>;
             reasons: z.ZodArray<z.ZodEnum<{
-                coverage_incomplete: "coverage_incomplete";
-                freshness_not_fresh: "freshness_not_fresh";
                 lifecycle_not_active: "lifecycle_not_active";
-                no_useful_finding: "no_useful_finding";
                 open_dispute: "open_dispute";
-                required_evidence_not_supported: "required_evidence_not_supported";
-                unrated: "unrated";
             }>>;
         }, z.core.$strict>;
-        primary_finding: z.ZodOptional<z.ZodObject<{
-            stage: z.ZodEnum<{
-                evaluate: "evaluate";
-                operate: "operate";
-                pay: "pay";
-                provision: "provision";
-                sign_up: "sign_up";
-            }>;
-            stage_label: z.ZodString;
-            public_state: z.ZodEnum<{
-                blocked: "blocked";
-                limited: "limited";
-            }>;
-            finding: z.ZodObject<{
-                signal_code: z.ZodString;
-                condition: z.ZodString;
-                finding: z.ZodString;
-                context: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>;
-            blocker: z.ZodOptional<z.ZodObject<{
-                signal_code: z.ZodString;
-                code: z.ZodString;
-                explanation: z.ZodString;
-            }, z.core.$strict>>;
-        }, z.core.$strict>>;
-        coverage: z.ZodObject<{
-            status: z.ZodEnum<{
-                complete: "complete";
-                incomplete: "incomplete";
-            }>;
-            required_signals: z.ZodNumber;
-            covered_signals: z.ZodNumber;
-            ratio: z.ZodNumber;
-            barrier_signals: z.ZodNumber;
-            verified_barrier_signals: z.ZodNumber;
-            barrier_ratio: z.ZodNumber;
-        }, z.core.$strict>;
-        last_tested_at: z.ZodISODateTime;
-        freshness: z.ZodEnum<{
-            fresh: "fresh";
-            stale: "stale";
-            unknown: "unknown";
-        }>;
-        canonical_url: z.ZodURL;
-        projection_digest: z.ZodString;
-        stages: z.ZodArray<z.ZodObject<{
-            stage: z.ZodEnum<{
-                evaluate: "evaluate";
-                operate: "operate";
-                pay: "pay";
-                provision: "provision";
-                sign_up: "sign_up";
-            }>;
-            stage_label: z.ZodString;
-            outcome: z.ZodEnum<{
-                constrained: "constrained";
-                fail: "fail";
-                not_applicable: "not_applicable";
-                pass: "pass";
-                unknown: "unknown";
-            }>;
-            public_state: z.ZodEnum<{
-                blocked: "blocked";
-                limited: "limited";
-                not_applicable: "not_applicable";
-                ready: "ready";
-                unknown: "unknown";
-            }>;
-            state_label: z.ZodString;
-            primary_finding: z.ZodObject<{
-                signal_code: z.ZodString;
-                condition: z.ZodString;
-                finding: z.ZodString;
-                context: z.ZodOptional<z.ZodString>;
-            }, z.core.$strict>;
-        }, z.core.$strict>>;
         provenance: z.ZodObject<{
-            freshness: z.ZodEnum<{
-                fresh: "fresh";
-                stale: "stale";
-                unknown: "unknown";
-            }>;
             dispute: z.ZodEnum<{
                 none: "none";
                 open: "open";
                 resolved: "resolved";
             }>;
+            basis_event_ids: z.ZodArray<z.ZodString>;
             vendor_attestation: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 status: z.ZodLiteral<"none">;
             }, z.core.$strict>, z.ZodObject<{
@@ -880,6 +801,45 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
                 event_id: z.ZodString;
                 attested_at: z.ZodISODateTime;
             }, z.core.$strict>], "status">;
+        }, z.core.$strict>;
+        canonical_url: z.ZodURL;
+        projection_digest: z.ZodString;
+        operate: z.ZodObject<{
+            letter: z.ZodNullable<z.ZodEnum<{
+                A: "A";
+                "A+": "A+";
+                B: "B";
+                "B+": "B+";
+                C: "C";
+                "C+": "C+";
+                D: "D";
+                F: "F";
+            }>>;
+            steps: z.ZodArray<z.ZodObject<{
+                step: z.ZodEnum<{
+                    confirm: "confirm";
+                    delegation: "delegation";
+                    discover: "discover";
+                    job: "job";
+                    pay: "pay";
+                    sustain: "sustain";
+                }>;
+                outcome: z.ZodEnum<{
+                    approval: "approval";
+                    blocked: "blocked";
+                    machine: "machine";
+                    not_applicable: "not_applicable";
+                    not_assessed: "not_assessed";
+                    workaround: "workaround";
+                }>;
+                timing: z.ZodNullable<z.ZodEnum<{
+                    recurring: "recurring";
+                    setup: "setup";
+                }>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>;
+        onboard: z.ZodObject<{
+            level: z.ZodNullable<z.ZodNumber>;
         }, z.core.$strict>;
     }, z.core.$strict>>;
     offer_relations: z.ZodArray<z.ZodObject<{
@@ -891,13 +851,6 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
             operating_path: "operating_path";
             redemption_path: "redemption_path";
         }>;
-        applicable_stages: z.ZodArray<z.ZodEnum<{
-            evaluate: "evaluate";
-            operate: "operate";
-            pay: "pay";
-            provision: "provision";
-            sign_up: "sign_up";
-        }>>;
         effective_from: z.ZodISODateTime;
         effective_until: z.ZodOptional<z.ZodISODateTime>;
         declaration_revision_digest: z.ZodString;
@@ -908,8 +861,6 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
     }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare function projectCompanyDatasetRecord(entity: z.infer<typeof compiledEntitySchema>): CompanyDatasetRecord;
-export type CompanyDatasetRecord = z.infer<typeof companyDatasetRecordSchema>;
-export type CompaniesDataset = z.infer<typeof companiesDatasetSchema>;
-export type StartupCreditsDataset = z.infer<typeof startupCreditsDatasetSchema>;
-export type AgentReadinessDataset = z.infer<typeof agentReadinessDatasetSchema>;
+type CompanyDatasetRecord = z.infer<typeof companyDatasetRecordSchema>;
+export {};
 //# sourceMappingURL=index.d.ts.map

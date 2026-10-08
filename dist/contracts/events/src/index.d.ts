@@ -1,6 +1,5 @@
 import { z } from "zod";
-export declare const authorityClaimMethodKnownValues: readonly ["dns-txt", "domain-email", "well-known", "inbound-dkim"];
-export declare const authorityClaimMethodSchema: z.ZodString;
+declare const authorityClaimMethodSchema: z.ZodString;
 export declare const entityEventSubjectSchema: z.ZodObject<{
     subject_type: z.ZodLiteral<"entity">;
     entity_id: z.ZodString;
@@ -37,6 +36,30 @@ export declare const eventSubjectSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
 export declare const catalogEventPayloadSchemas: {
     readonly "evidence.bound": z.ZodObject<{
         observation_id: z.ZodString;
+        capture_attestation_digest: z.ZodOptional<z.ZodString>;
+        review_decision: z.ZodOptional<z.ZodObject<{
+            review_decision_contract: z.ZodLiteral<"sourcey.evidence-review-decision/v1alpha1">;
+            review_proposal_digest: z.ZodString;
+            decision_basis: z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"human">;
+                actor_id: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"policy">;
+                policy_id: z.ZodString;
+                policy_digest: z.ZodString;
+                evaluator_id: z.ZodString;
+                evaluator_digest: z.ZodString;
+                input_digest: z.ZodString;
+                execution_receipt_digest: z.ZodString;
+            }, z.core.$strict>], "kind">;
+            decision: z.ZodEnum<{
+                approved: "approved";
+                rejected: "rejected";
+            }>;
+            decided_at: z.ZodISODateTime;
+            rationale: z.ZodNullable<z.ZodString>;
+            decision_digest: z.ZodString;
+        }, z.core.$strict>>;
         capture_receipt_digest: z.ZodOptional<z.ZodString>;
         normalized_object_digest: z.ZodString;
         authority_entity_revision_digest: z.ZodString;
@@ -432,6 +455,16 @@ export declare const catalogEventPayloadSchemas: {
         valid_until: z.ZodOptional<z.ZodISODateTime>;
         continuity_evidence_digest: z.ZodString;
     }, z.core.$strict>;
+    /**
+     * The automatic lane admitted one revision: the engine derived its ratings
+     * from exactly this input's run records under this policy.
+     */
+    readonly "agent-readiness-profile.admitted": z.ZodObject<{
+        input_digest: z.ZodString;
+        relation_input_digests: z.ZodArray<z.ZodString>;
+        policy_digest: z.ZodString;
+        engine_digest: z.ZodString;
+    }, z.core.$strict>;
     readonly "agent-readiness-profile.retired": z.ZodObject<{
         agent_readiness_profile_id: z.ZodString;
         entity_id: z.ZodString;
@@ -458,7 +491,8 @@ export declare const catalogEventPayloadSchemas: {
         reason_code: z.ZodString;
     }, z.core.$strict>;
 };
-export declare const catalogEventKindSchema: z.ZodEnum<{
+declare const catalogEventKindSchema: z.ZodEnum<{
+    "agent-readiness-profile.admitted": "agent-readiness-profile.admitted";
     "agent-readiness-profile.merged": "agent-readiness-profile.merged";
     "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
     "agent-readiness-profile.retired": "agent-readiness-profile.retired";
@@ -496,6 +530,7 @@ export declare const catalogEventKindSchema: z.ZodEnum<{
 export declare const catalogEventCoreSchema: z.ZodObject<{
     event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
     kind: z.ZodEnum<{
+        "agent-readiness-profile.admitted": "agent-readiness-profile.admitted";
         "agent-readiness-profile.merged": "agent-readiness-profile.merged";
         "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
         "agent-readiness-profile.retired": "agent-readiness-profile.retired";
@@ -561,6 +596,7 @@ export declare const catalogEventIntentSchema: z.ZodObject<{
     core: z.ZodObject<{
         event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
         kind: z.ZodEnum<{
+            "agent-readiness-profile.admitted": "agent-readiness-profile.admitted";
             "agent-readiness-profile.merged": "agent-readiness-profile.merged";
             "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
             "agent-readiness-profile.retired": "agent-readiness-profile.retired";
@@ -625,6 +661,7 @@ export declare const catalogEventIntentSchema: z.ZodObject<{
 export declare const catalogEventSchema: z.ZodObject<{
     event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
     kind: z.ZodEnum<{
+        "agent-readiness-profile.admitted": "agent-readiness-profile.admitted";
         "agent-readiness-profile.merged": "agent-readiness-profile.merged";
         "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
         "agent-readiness-profile.retired": "agent-readiness-profile.retired";
@@ -689,7 +726,6 @@ export declare const catalogEventSchema: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
             "catalog-attestation": "catalog-attestation";
             "catalog-authority": "catalog-authority";
-            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
             "catalog-evidence": "catalog-evidence";
             "catalog-feed": "catalog-feed";
@@ -706,8 +742,8 @@ export declare const catalogEventSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type CatalogEventKind = z.infer<typeof catalogEventKindSchema>;
 export type AuthorityClaimMethod = z.infer<typeof authorityClaimMethodSchema>;
-export type EventSubject = z.infer<typeof eventSubjectSchema>;
 export type CatalogEventCore = z.infer<typeof catalogEventCoreSchema>;
 export type CatalogEvent = z.infer<typeof catalogEventSchema>;
 export type CatalogEventIntent = z.infer<typeof catalogEventIntentSchema>;
+export {};
 //# sourceMappingURL=index.d.ts.map

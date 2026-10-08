@@ -1,3 +1,0 @@
-import { type AgentReadinessProjection, type AgentReadinessProjectionLineage, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
-export declare function priorAgentReadinessVisibility(revision: AgentReadinessRevision, candidate: AgentReadinessProjectionLineage | null | undefined): AgentReadinessProjection["publication"]["visibility"] | null;
-//# sourceMappingURL=projection-lineage.d.ts.map

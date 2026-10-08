@@ -134,17 +134,6 @@ export declare const coveragePolicySchema: z.ZodObject<{
     }, z.core.$strict>>;
     policy_digest: z.ZodString;
 }, z.core.$strict>;
-/**
- * Current Catalog policy completeness. Historical content-addressed policies
- * continue to parse under the contract that produced their releases, while a
- * production target must account for every current public factual root. An
- * optional field is applicable only when a revision publishes it.
- */
-export declare const currentCatalogMaterialClaimPaths: {
-    readonly entity: readonly ["/category", "/description", "/domains", "/links", "/name", "/summary"];
-    readonly program: readonly ["/summary", "/title"];
-    readonly offer: readonly ["/access", "/description", "/economics", "/eligibility", "/lifecycle", "/roles", "/summary", "/terms_url", "/title"];
-};
 export declare function assertCurrentCoveragePolicyClaimClosure(policy: CoveragePolicy): CoveragePolicy;
 export declare const freshnessPolicyCoreSchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.freshness/v1alpha1">;
@@ -157,9 +146,7 @@ export declare const freshnessPolicySchema: z.ZodObject<{
     max_age_days: z.ZodRecord<z.ZodString, z.ZodNumber>;
     policy_digest: z.ZodString;
 }, z.core.$strict>;
-export type CoveragePolicyCore = z.infer<typeof coveragePolicyCoreSchema>;
 export type CoveragePolicy = z.infer<typeof coveragePolicySchema>;
 export type CoverageRequirement = z.infer<typeof coverageRequirementSchema>;
-export type FreshnessPolicyCore = z.infer<typeof freshnessPolicyCoreSchema>;
 export type FreshnessPolicy = z.infer<typeof freshnessPolicySchema>;
 //# sourceMappingURL=index.d.ts.map

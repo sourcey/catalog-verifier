@@ -1,15 +1,12 @@
 import { type Digest } from "provenry/primitives";
-import { type AgentReadinessDeclarationRevision, type AgentReadinessOfferRelationRevision, type AgentReadinessProjection, type AgentReadinessRevision, type agentReadinessInputsSchema, type agentReadinessOfferRelationInputsSchema } from "../../../contracts/agent-readiness/src/index.js";
-import type { CanonicalArtifact, ProvenanceIndex } from "../../../contracts/artifact/src/index.js";
+import { type AgentReadinessOfferRelationRevision, type AgentReadinessProjection, type agentReadinessInputsSchema, type agentReadinessOfferRelationInputsSchema } from "../../../contracts/agent-readiness/src/index.js";
+import type { CanonicalArtifact } from "../../../contracts/artifact/src/index.js";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
-import type { Observation } from "../../../contracts/observations/src/index.js";
-import type { EntityRevision, OfferRevision, ProgramRevision } from "../../../contracts/revisions/src/index.js";
+import type { RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
 export declare function assertReleasedAgentReadinessClosure(input: {
     readonly artifact: CanonicalArtifact;
-    readonly revisions: ReadonlyMap<Digest, EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision | AgentReadinessDeclarationRevision>;
-    readonly provenance: ProvenanceIndex;
+    readonly revisions: ReadonlyMap<Digest, RetainedCatalogRevision>;
     readonly events: readonly CatalogEvent[];
-    readonly observations: readonly Observation[];
     readonly profiles: readonly AgentReadinessProjection[];
     readonly inputs: ReturnType<typeof agentReadinessInputsSchema.parse>;
 }): void;

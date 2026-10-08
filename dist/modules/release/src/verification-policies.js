@@ -1,7 +1,7 @@
 import { digest, parseJsonFile } from "provenry/primitives";
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
 import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
-import { validateAgentReadinessPolicy } from "../../agent-readiness-policy/src/index.js";
+import { verifyAgentReadinessPolicy } from "../../agent-readiness-policy/src/operate-policy.js";
 import { CATALOG_RELEASE } from "../../artifact/src/release-directory-files.js";
 import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
 export function verifyCatalogDeltaPolicies(bundle, delta, files) {
@@ -12,7 +12,7 @@ export function verifyCatalogDeltaPolicies(bundle, delta, files) {
     const freshness = freshnessPolicySchema.parse(parseJsonFile(files, releasePolicyObjectPath(freshnessExpected), CATALOG_RELEASE));
     const { policy_digest: freshnessDigest, ...freshnessCore } = freshness;
     const agentReadinessExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.agentReadinessPolicy);
-    const agentReadiness = validateAgentReadinessPolicy(parseJsonFile(files, releasePolicyObjectPath(agentReadinessExpected), CATALOG_RELEASE));
+    const agentReadiness = verifyAgentReadinessPolicy(parseJsonFile(files, releasePolicyObjectPath(agentReadinessExpected), CATALOG_RELEASE));
     const assuranceMethodExpected = releaseResourceDigest(bundle.resource_digests, RELEASE_RESOURCES.assuranceMethodPolicy);
     const assuranceMethod = validateAssuranceMethodPolicy(parseJsonFile(files, releasePolicyObjectPath(assuranceMethodExpected), CATALOG_RELEASE));
     if (digest(coveragePolicyCoreSchema.parse(coverageCore)) !== coverageDigest ||
