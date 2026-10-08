@@ -2,119 +2,35 @@ import { SLUG_PATTERN } from "provenry/primitives";
 import { z } from "zod";
 import { provenanceSchema } from "../../artifact/src/index.js";
 import { entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, } from "../../revisions/src/index.js";
-import { standardRequirementReferenceSchema } from "../../standards/src/index.js";
-import { agentReadinessAssessmentTargetSchema, agentReadinessDeclarationRevisionSchema, agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointRoleSchema, agentReadinessEndpointSchema, agentReadinessInterfaceFunctionSchema, agentReadinessInterfaceModalitySchema, agentReadinessOfferRelationPurposeSchema, agentReadinessParticipantSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationKindSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
+import { agentReadinessDeclarationRevisionSchema, agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationPurposeSchema, agentReadinessParticipantSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
 import { agentReadinessDeclarationStateSchema } from "./declaration-reference.js";
-import { agentReadinessCorroborationAlternativeSchema, agentReadinessDeterminationBasisSchema, } from "./evidence.js";
-import { agentReadinessAssessmentMethodPackSchema } from "./method-pack.js";
-import { agentReadinessAssessmentMethodSchema, agentReadinessCatalogBindingSchema, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvaluationRoleSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessProfileIdSchema, agentReadinessPublicStateSchema, agentReadinessResourceRoleSchema, agentReadinessScopeSchema, agentReadinessSignalCodeSchema, agentReadinessSignalValueSchema, agentReadinessStageOutcomeSchema, agentReadinessStageSchema, agentReadinessSurfaceReferenceSchema, sameAgentReadinessScopeIdentity, } from "./shared.js";
+import { agentReadinessAssertionResultSchema, agentReadinessDiscoveryFactSchema, agentReadinessRunKindSchema, agentReadinessRunRecordSchema, agentReadinessRunSummarySchema, agentReadinessStepResultSchema, } from "./run.js";
+import { AGENT_READINESS_MAXIMUM_REVISION_RUNS, AGENT_READINESS_STEPS, agentReadinessCatalogBindingSchema, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessHandoffTimingSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessOnboardLevelSchema, agentReadinessOperateLetterSchema, agentReadinessProfileIdSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, sameAgentReadinessScopeIdentity, } from "./shared.js";
+export * from "./authority.js";
+export * from "./binding.js";
 export * from "./declaration.js";
 export * from "./declaration-acquisition.js";
 export * from "./declaration-reference.js";
-export * from "./evidence.js";
-export * from "./interaction.js";
-export * from "./method-pack.js";
+export * from "./jobs.js";
+export * from "./operate-policy.js";
+export * from "./run.js";
 export * from "./shared.js";
 /** Canonical discriminant for a published Agent Readiness revision. */
 export const agentReadinessRevisionContract = "sourcey.agent-readiness-revision/v1alpha1";
-/**
- * Runtime residue that proves a document failed to render: serialized
- * JavaScript values, replacement characters, and a sentence whose interpolated
- * value is missing. These disqualify a captured segment as evidence for a
- * known finding and can never appear in a public claim.
- */
-const unresolvedRenderingPatterns = [
-    /\bundefined\b/iu,
-    /\[object Object\]/u,
-    /\bNaN\b/u,
-    /\uFFFD/u,
-    /\b(?:amount|cost|currency|date|duration|fee|limit|number|percentage|period|price|quantity|rate|time|total|value)\s+(?:at|by|for|from|is|of|to|with)\s*[.,;:!?](?:\s|$)/iu,
-];
-/**
- * Template syntax that must not reach a public claim, but is ordinary literal
- * content in the documentation Sourcey assesses: vendors write
- * `PINECONE_API_KEY="{{YOUR_API_KEY}}"` and `${{ secrets.GITHUB_TOKEN }}` as
- * reader placeholders, and `${API_KEY}` is shell interpolation in every curl
- * sample. A quote may carry them; a note may not. GitHub Actions expressions
- * are excluded from the Mustache form because they are not template output.
- */
-const unresolvedTemplatePatterns = [/(?<!\$)\{\{[^}]*\}\}/u, /<%[^%]*%>/u];
-/** Rendering residue in a captured segment: the surface did not render. */
-export function agentReadinessRenderingResidue(value) {
-    const text = value.trim();
-    return unresolvedRenderingPatterns.some((pattern) => pattern.test(text))
-        ? "Captured evidence carries unresolved rendered content."
-        : null;
-}
-/**
- * Finds deterministic evidence of unresolved runtime or interpolation residue
- * in text that would otherwise become a public factual claim.
- */
-export function agentReadinessPublicClaimResidue(value) {
-    const text = value.trim();
-    return [...unresolvedRenderingPatterns, ...unresolvedTemplatePatterns].some((pattern) => pattern.test(text))
-        ? "Public Agent Readiness claims cannot contain unresolved rendered content."
-        : null;
-}
-/** The one bound on public claim text: observation notes, the fact response schema and its prompt share it. */
-export const AGENT_READINESS_PUBLIC_CLAIM_TEXT_MAXIMUM_CHARACTERS = 500;
-export const agentReadinessPublicClaimTextSchema = z
-    .string()
-    .trim()
-    .min(1)
-    .max(AGENT_READINESS_PUBLIC_CLAIM_TEXT_MAXIMUM_CHARACTERS)
-    .superRefine((value, context) => {
-    const issue = agentReadinessPublicClaimResidue(value);
-    if (issue)
-        context.addIssue({ code: "custom", message: issue });
-});
-export const agentReadinessSignalInputSchema = z
+/** A run the revision rests on: the latest, and earlier ones a reproduced refusal needs. */
+const agentReadinessRunReferenceSchema = z
     .object({
-    stage: agentReadinessStageSchema,
-    signal_code: agentReadinessSignalCodeSchema,
-    selector_group_id: agentReadinessIdentifierSchema,
-    value: agentReadinessSignalValueSchema,
-    observed_at: agentReadinessInstantSchema,
-    tested_surfaces: z.array(agentReadinessSurfaceReferenceSchema).min(1),
-    assessment_method: agentReadinessAssessmentMethodSchema,
-    determination_bases: z.array(agentReadinessDeterminationBasisSchema),
-    note: agentReadinessPublicClaimTextSchema.optional(),
+    run_digest: agentReadinessDigestSchema,
+    label: agentReadinessEvidenceLabelSchema,
+    run_kind: agentReadinessRunKindSchema,
+    finished_at: agentReadinessInstantSchema,
 })
-    .strict()
-    .superRefine((value, context) => {
-    assertUniqueSurfaceReferences(value.tested_surfaces, context, ["tested_surfaces"]);
-    if ((value.value === "unknown") !== (value.determination_bases.length === 0)) {
-        context.addIssue({
-            code: "custom",
-            path: ["determination_bases"],
-            message: "Every factual signal requires a determination basis; unknown signals cannot claim one.",
-        });
-    }
-    if (new Set(value.determination_bases.map((basis) => JSON.stringify(basis))).size !==
-        value.determination_bases.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["determination_bases"],
-            message: "A signal cannot repeat a determination basis.",
-        });
-    }
-    for (const [index, basis] of value.determination_bases.entries()) {
-        if (basis.kind === "bounded_absence" &&
-            basis.covered_surfaces.some((covered) => !value.tested_surfaces.some((tested) => sameSurface(covered, tested)))) {
-            context.addIssue({
-                code: "custom",
-                path: ["determination_bases", index, "covered_surfaces"],
-                message: "Bounded absence must cover tested surfaces from the same signal.",
-            });
-        }
-    }
-});
-export const agentReadinessEvidenceBindingSchema = z
+    .strict();
+export const agentReadinessEngineIdentitySchema = z
     .object({
-    stage: agentReadinessStageSchema,
-    signal_code: agentReadinessSignalCodeSchema,
-    evidence_event_ids: z.array(agentReadinessDigestSchema).min(1),
-    observation_ids: z.array(agentReadinessDigestSchema).min(1),
+    name: z.string().min(1).max(80),
+    version: z.string().min(1).max(80),
+    engine_digest: agentReadinessDigestSchema,
 })
     .strict();
 const agentReadinessRevisionFields = {
@@ -127,16 +43,71 @@ const agentReadinessRevisionFields = {
     lifecycle: lifecycleStatusSchema,
     effective_from: agentReadinessInstantSchema,
     effective_until: agentReadinessInstantSchema.optional(),
-    signals: z.array(agentReadinessSignalInputSchema).min(1),
+    /** The exact library job the runs performed; a changed job needs new runs. */
+    job_digest: agentReadinessDigestSchema,
+    engine: agentReadinessEngineIdentitySchema,
+    /** The binding the rating rests on; null for a listing no binding has run yet. */
+    binding_id: agentReadinessScopeKeySchema.nullable(),
+    binding_digest: agentReadinessDigestSchema.nullable(),
+    /** Oldest first; the last is the run every step's outcome is read from. */
+    runs: z.array(agentReadinessRunReferenceSchema).min(1).max(AGENT_READINESS_MAXIMUM_REVISION_RUNS),
+    /** One result per step, in path order. */
+    steps: z.array(agentReadinessStepResultSchema).length(AGENT_READINESS_STEPS.length),
+    onboard_level: agentReadinessOnboardLevelSchema.nullable(),
+    /** What the latest run found on the service's own descriptors. */
+    discovery: z.array(agentReadinessDiscoveryFactSchema).max(64),
+    /** What the latest run asked and what came back, as the card shows it. */
+    latest_run: agentReadinessRunSummarySchema,
 };
-function validateAgentReadinessProfile(value, context) {
-    const keys = value.signals.map((signal) => `${signal.stage}:${signal.signal_code}`);
-    if (new Set(keys).size !== keys.length) {
+function validateAgentReadinessRevision(value, context) {
+    if ((value.binding_id === null) !== (value.binding_digest === null)) {
         context.addIssue({
             code: "custom",
-            path: ["signals"],
-            message: "An agent readiness profile cannot repeat a stage signal.",
+            path: ["binding_digest"],
+            message: "A revision names its binding and its digest together, or neither.",
         });
+    }
+    if (value.binding_id === null &&
+        (value.onboard_level !== null || value.steps.some(({ outcome }) => outcome !== "not_assessed"))) {
+        context.addIssue({
+            code: "custom",
+            path: ["steps"],
+            message: "A listing no binding has run assesses no step and no Onboard level.",
+        });
+    }
+    if (value.latest_run.finished_at !== value.runs.at(-1)?.finished_at) {
+        context.addIssue({
+            code: "custom",
+            path: ["latest_run"],
+            message: "A revision summarises its latest run.",
+        });
+    }
+    if (value.steps.some(({ step }, index) => step !== AGENT_READINESS_STEPS[index])) {
+        context.addIssue({
+            code: "custom",
+            path: ["steps"],
+            message: "A revision lists one result per step, in path order.",
+        });
+    }
+    const digests = value.runs.map(({ run_digest }) => run_digest);
+    if (new Set(digests).size !== digests.length ||
+        value.runs.some((run, index) => index > 0 &&
+            Date.parse(run.finished_at) < Date.parse(value.runs[index - 1]?.finished_at ?? ""))) {
+        context.addIssue({
+            code: "custom",
+            path: ["runs"],
+            message: "A revision's runs are unique and ordered oldest first.",
+        });
+    }
+    const runs = new Set(digests);
+    for (const [index, step] of value.steps.entries()) {
+        if (step.evidence.some(({ run_digest }) => !runs.has(run_digest))) {
+            context.addIssue({
+                code: "custom",
+                path: ["steps", index, "evidence"],
+                message: "Step evidence rests only on the revision's own runs.",
+            });
+        }
     }
     if (value.effective_until &&
         Date.parse(value.effective_until) <= Date.parse(value.effective_from)) {
@@ -147,24 +118,39 @@ function validateAgentReadinessProfile(value, context) {
         });
     }
 }
+/** A revision's exact input: its fields and the run records they rest on, oldest first. */
 export const agentReadinessProfileInputSchema = z
     .object({
     input_contract: z.literal("sourcey.agent-readiness-input/v1alpha1"),
     ...agentReadinessRevisionFields,
-    evidence_bindings: z.array(agentReadinessEvidenceBindingSchema).min(1),
+    run_records: z
+        .array(agentReadinessRunRecordSchema)
+        .min(1)
+        .max(AGENT_READINESS_MAXIMUM_REVISION_RUNS),
 })
     .strict()
     .superRefine((value, context) => {
-    validateAgentReadinessProfile(value, context);
-    const signalKeys = new Set(value.signals.map((signal) => `${signal.stage}:${signal.signal_code}`));
-    const bindingKeys = value.evidence_bindings.map((binding) => `${binding.stage}:${binding.signal_code}`);
-    if (new Set(bindingKeys).size !== bindingKeys.length ||
-        bindingKeys.some((key) => !signalKeys.has(key)) ||
-        bindingKeys.length !== signalKeys.size) {
+    validateAgentReadinessRevision(value, context);
+    const records = value.run_records;
+    if (records.length !== value.runs.length ||
+        records.some((record, index) => {
+            const reference = value.runs[index];
+            return (!reference ||
+                record.run_digest !== reference.run_digest ||
+                record.label !== reference.label ||
+                record.run_kind !== reference.run_kind ||
+                record.finished_at !== reference.finished_at ||
+                record.entity_id !== value.entity_id ||
+                record.product_key !== value.scope.product.key ||
+                record.job_id !== value.scope.job.key ||
+                record.binding_id !== value.binding_id ||
+                record.binding_digest !== value.binding_digest ||
+                record.job_digest !== value.job_digest);
+        })) {
         context.addIssue({
             code: "custom",
-            path: ["evidence_bindings"],
-            message: "Every agent readiness signal requires exactly one separate evidence binding.",
+            path: ["run_records"],
+            message: "Each run record is exactly the run its revision names, for this profile.",
         });
     }
 });
@@ -174,7 +160,6 @@ export const agentReadinessOfferRelationInputSchema = z
     agent_readiness_profile_id: agentReadinessProfileIdSchema,
     offer_id: agentReadinessOfferIdSchema,
     purpose: agentReadinessOfferRelationPurposeSchema,
-    applicable_stages: z.array(agentReadinessStageSchema).min(1),
     effective_from: agentReadinessInstantSchema,
     effective_until: agentReadinessInstantSchema.optional(),
     declaration_revision_digest: agentReadinessDigestSchema,
@@ -182,16 +167,7 @@ export const agentReadinessOfferRelationInputSchema = z
     admitted_offer_revision_digest: agentReadinessDigestSchema,
 })
     .strict()
-    .superRefine((value, context) => {
-    if (new Set(value.applicable_stages).size !== value.applicable_stages.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["applicable_stages"],
-            message: "Offer relation input stages must be unique.",
-        });
-    }
-    validateOfferRelationInterval(value, context);
-});
+    .superRefine(validateOfferRelationInterval);
 export const agentReadinessProfileReleaseInputSchema = z
     .object({
     release_input_contract: z.literal("sourcey.agent-readiness-release-input/v1alpha1"),
@@ -230,27 +206,20 @@ export const agentReadinessProfileReleaseInputSchema = z
         });
     }
 });
-export const agentReadinessFactualInputSchema = z
-    .object({
-    factual_input_contract: z.literal("sourcey.agent-readiness-factual-input/v1alpha1"),
-    ...agentReadinessRevisionFields,
-})
-    .strict()
-    .superRefine(validateAgentReadinessProfile);
 export const agentReadinessRevisionCoreSchema = z
     .object({
     revision_contract: z.literal(agentReadinessRevisionContract),
     ...agentReadinessRevisionFields,
 })
     .strict()
-    .superRefine(validateAgentReadinessProfile);
+    .superRefine(validateAgentReadinessRevision);
 export const agentReadinessRevisionSchema = agentReadinessRevisionCoreSchema
     .safeExtend({ revision_digest: agentReadinessDigestSchema })
     .strict();
 /**
  * Stable head identity for closure and ownership checks. Historical Agent
  * Readiness revision bodies remain opaque and are never reparsed through the
- * current factual contract.
+ * current contract.
  */
 export const agentReadinessRevisionHeadSchema = z.object({
     revision_contract: z.literal(agentReadinessRevisionContract),
@@ -258,658 +227,37 @@ export const agentReadinessRevisionHeadSchema = z.object({
     entity_id: agentReadinessEntityIdSchema,
     revision_digest: agentReadinessDigestSchema,
 });
-const publicFindingSchema = z
-    .object({
-    condition: z.string().min(1).max(160),
-    finding: z.string().min(1).max(280),
-})
-    .strict();
-const publicFindingByValueSchema = z
-    .object({
-    yes: publicFindingSchema,
-    no: publicFindingSchema,
-    partial: publicFindingSchema,
-    unknown: publicFindingSchema,
-    not_applicable: publicFindingSchema,
-})
-    .strict();
-const standardEvidenceSupportSchema = z
-    .object({
-    result: z.enum(["satisfied", "not_satisfied"]),
-    values: z.array(agentReadinessSignalValueSchema.exclude(["unknown"])).min(1),
-})
-    .strict()
-    .superRefine((value, context) => {
-    if (new Set(value.values).size !== value.values.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["values"],
-            message: "Standard evidence support values must be unique.",
-        });
-    }
-});
-const agentReadinessSurfaceSelectorSchema = z.discriminatedUnion("kind", [
-    z
-        .object({
-        kind: z.literal("resource_role"),
-        roles: z.array(agentReadinessResourceRoleSchema).min(1),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("endpoint_role"),
-        roles: z.array(agentReadinessEndpointRoleSchema).min(1),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("interface_signature"),
-        modalities: z.array(agentReadinessInterfaceModalitySchema).min(1),
-        functions: z.array(agentReadinessInterfaceFunctionSchema).min(1),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("assessment_target_membership"),
-        membership: z.enum(["direct", "reachable", "selected_path"]),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("target_relation"),
-        relation_kind: agentReadinessSurfaceRelationKindSchema,
-        direction: z.enum(["from_target", "to_target"]),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("standard_requirement"),
-        requirement: standardRequirementReferenceSchema,
-    })
-        .strict(),
-]);
-const agentReadinessSurfaceSelectorAlternativeSchema = z
-    .object({
-    alternative_id: agentReadinessIdentifierSchema,
-    selectors: z.array(agentReadinessSurfaceSelectorSchema).min(1),
-})
-    .strict()
-    .superRefine((value, context) => {
-    if (new Set(value.selectors.map((selector) => JSON.stringify(selector))).size !==
-        value.selectors.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["selectors"],
-            message: "A surface selector alternative cannot repeat a predicate.",
-        });
-    }
-});
-export const agentReadinessSurfaceSelectorGroupSchema = z
-    .object({
-    selector_group_id: agentReadinessIdentifierSchema,
-    coverage: z.enum(["at_least_one", "all_matches"]),
-    alternatives: z.array(agentReadinessSurfaceSelectorAlternativeSchema).min(1),
-})
-    .strict()
-    .superRefine((value, context) => {
-    const ids = value.alternatives.map((alternative) => alternative.alternative_id);
-    if (new Set(ids).size !== ids.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["alternatives"],
-            message: "Surface selector alternative IDs must be unique within a group.",
-        });
-    }
-});
-const agentReadinessValueEvidenceRuleSchema = z
-    .object({
-    value: agentReadinessSignalValueSchema.exclude(["unknown"]),
-    alternatives: z.array(agentReadinessCorroborationAlternativeSchema).min(1),
-})
-    .strict()
-    .superRefine((value, context) => {
-    const ids = value.alternatives.map((alternative) => alternative.alternative_id);
-    if (new Set(ids).size !== ids.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["alternatives"],
-            message: "Corroboration alternative IDs must be unique for one signal value.",
-        });
-    }
-});
-export const agentReadinessStandardEvidenceMappingSchema = z
-    .object({
-    requirement: standardRequirementReferenceSchema,
-    support: z.array(standardEvidenceSupportSchema).min(1).max(2),
-})
-    .strict()
-    .superRefine((value, context) => {
-    if (value.requirement.relation !== "tests") {
-        context.addIssue({
-            code: "custom",
-            path: ["requirement", "relation"],
-            message: "Standard evidence mappings must test an exact requirement.",
-        });
-    }
-    if (new Set(value.support.map((mapping) => mapping.result)).size !== value.support.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["support"],
-            message: "A standard result may appear only once per requirement mapping.",
-        });
-    }
-});
-export const agentReadinessPolicySignalRuleSchema = z
-    .object({
-    stage: agentReadinessStageSchema,
-    signal_code: agentReadinessSignalCodeSchema,
-    evaluation_role: agentReadinessEvaluationRoleSchema,
-    required: z.boolean(),
-    pass_values: z.array(agentReadinessSignalValueSchema).min(1),
-    constrained_values: z.array(agentReadinessSignalValueSchema),
-    fail_values: z.array(agentReadinessSignalValueSchema),
-    allow_not_applicable: z.boolean(),
-    allowed_method_digests: z.array(agentReadinessDigestSchema).min(1),
-    selector_groups: z.array(agentReadinessSurfaceSelectorGroupSchema).min(1),
-    evidence_terms: z
-        .array(z.string().regex(/^[a-z0-9][a-z0-9 .+/_:-]*[a-z0-9+]$/u))
-        .min(1)
-        .optional(),
-    value_evidence: z.array(agentReadinessValueEvidenceRuleSchema).min(1),
-    priority: z.number().int().nonnegative(),
-    blocker: z
-        .object({
-        code: z.string().min(1).max(160),
-        explanation: z.string().min(1).max(500),
-    })
-        .strict()
-        .optional(),
-    remediation: z
-        .object({
-        code: z.string().min(1).max(160),
-        instruction: z.string().min(1).max(500),
-    })
-        .strict()
-        .optional(),
-    fact_question: z.string().min(1).max(240),
-    fact_predicates: z
-        .object({
-        yes: z.string().min(1).max(800),
-        partial: z.string().min(1).max(800),
-        no: z.string().min(1).max(800),
-        unknown: z.string().min(1).max(800),
-        not_applicable: z.string().min(1).max(800),
-    })
-        .strict(),
-    public_findings: publicFindingByValueSchema,
-    external_references: z.array(standardRequirementReferenceSchema),
-    standard_evidence: z.array(agentReadinessStandardEvidenceMappingSchema),
-})
-    .strict()
-    .superRefine((value, context) => {
-    if (value.evidence_terms &&
-        new Set(value.evidence_terms).size !== value.evidence_terms.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["evidence_terms"],
-            message: "Evidence retrieval terms must be unique within a signal rule.",
-        });
-    }
-    const assignments = [...value.pass_values, ...value.constrained_values, ...value.fail_values];
-    if (new Set(assignments).size !== assignments.length) {
-        context.addIssue({
-            code: "custom",
-            message: "An agent readiness signal value can map to only one outcome.",
-        });
-    }
-    if (assignments.includes("not_applicable") !== value.allow_not_applicable) {
-        context.addIssue({
-            code: "custom",
-            path: ["allow_not_applicable"],
-            message: "not_applicable must be explicitly allowed and mapped.",
-        });
-    }
-    if (assignments.includes("unknown")) {
-        context.addIssue({
-            code: "custom",
-            message: "unknown is an unevaluated result and cannot be mapped to an outcome.",
-        });
-    }
-    const expected = value.allow_not_applicable
-        ? ["yes", "no", "partial", "not_applicable"]
-        : ["yes", "no", "partial"];
-    if (expected.some((candidate) => !assignments.includes(candidate)) ||
-        assignments.some((candidate) => !expected.includes(candidate))) {
-        context.addIssue({
-            code: "custom",
-            message: "Each assessable signal value must map to exactly one policy outcome.",
-        });
-    }
-    if (new Set(value.allowed_method_digests).size !== value.allowed_method_digests.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["allowed_method_digests"],
-            message: "Allowed Agent Readiness method digests must be unique.",
-        });
-    }
-    const selectorGroupIds = value.selector_groups.map((group) => group.selector_group_id);
-    if (new Set(selectorGroupIds).size !== selectorGroupIds.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["selector_groups"],
-            message: "Signal selector group IDs must be unique.",
-        });
-    }
-    const evidenceValues = value.value_evidence.map((evidence) => evidence.value);
-    if (new Set(evidenceValues).size !== evidenceValues.length ||
-        evidenceValues.length !== assignments.length ||
-        assignments.some((assignment) => assignment === "unknown" || !evidenceValues.includes(assignment))) {
-        context.addIssue({
-            code: "custom",
-            path: ["value_evidence"],
-            message: "Every assessable signal value requires exactly one evidence rule.",
-        });
-    }
-    const mappingKeys = value.standard_evidence.map(({ requirement }) => standardRequirementKey(requirement));
-    if (new Set(mappingKeys).size !== mappingKeys.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["standard_evidence"],
-            message: "A signal rule cannot repeat an external standard requirement mapping.",
-        });
-    }
-    const testedReferenceKeys = value.external_references
-        .filter((reference) => reference.relation === "tests")
-        .map(standardRequirementKey);
-    if (testedReferenceKeys.length !== mappingKeys.length ||
-        testedReferenceKeys.some((key) => !mappingKeys.includes(key))) {
-        context.addIssue({
-            code: "custom",
-            path: ["standard_evidence"],
-            message: "Every tests reference must have exactly one policy-owned standard evidence mapping.",
-        });
-    }
-    const assessableValues = new Set(assignments);
-    if (value.standard_evidence.some((mapping) => mapping.support.some((support) => support.values.some((candidate) => !assessableValues.has(candidate))))) {
-        context.addIssue({
-            code: "custom",
-            path: ["standard_evidence"],
-            message: "Standard evidence can support only values assessed by the same signal rule.",
-        });
-    }
-    if (value.evaluation_role === "informational") {
-        if (value.required || value.blocker !== undefined || value.remediation !== undefined) {
-            context.addIssue({
-                code: "custom",
-                message: "Informational signals must be optional and cannot own blockers or remediation.",
-            });
-        }
-    }
-    if (value.evaluation_role === "barrier" && value.required) {
-        context.addIssue({
-            code: "custom",
-            path: ["required"],
-            message: "Barrier signals are assessed but cannot be required for core coverage.",
-        });
-    }
-    if (value.fail_values.length > 0 &&
-        value.evaluation_role !== "informational" &&
-        !value.blocker) {
-        context.addIssue({
-            code: "custom",
-            path: ["blocker"],
-            message: "A failing readiness signal requires a blocker explanation.",
-        });
-    }
-    if ((value.constrained_values.length > 0 || value.fail_values.length > 0) &&
-        value.evaluation_role !== "informational" &&
-        !value.remediation) {
-        context.addIssue({
-            code: "custom",
-            path: ["remediation"],
-            message: "A constrained or failing readiness signal requires remediation.",
-        });
-    }
-});
-function standardRequirementKey(value) {
-    return `${value.namespace}\u0000${value.version}\u0000${value.requirement_id}`;
-}
-const stageOutcomePrecedenceSchema = z
-    .array(agentReadinessStageOutcomeSchema)
-    .length(agentReadinessStageOutcomeSchema.options.length)
-    .superRefine((value, context) => {
-    if (new Set(value).size !== agentReadinessStageOutcomeSchema.options.length ||
-        agentReadinessStageOutcomeSchema.options.some((outcome) => !value.includes(outcome))) {
-        context.addIssue({
-            code: "custom",
-            message: "Agent readiness outcome precedence must contain every outcome exactly once.",
-        });
-    }
-});
-const publicStateDescriptorSchema = z
-    .object({
-    state: agentReadinessPublicStateSchema,
-    label: z.string().min(1).max(40),
-})
-    .strict();
-const agentReadinessGradingSchema = z
-    .object({
-    strategy: z.literal("stage-state-cardinality"),
-    grade_by_limited_stage_count: z
-        .object({
-        "0": z.literal("A+"),
-        "1": z.literal("A"),
-        "2": z.literal("B+"),
-        "3": z.literal("B"),
-        "4": z.literal("C+"),
-        "5": z.literal("C"),
-    })
-        .strict(),
-    failure_grade_by_stage: z
-        .object({
-        evaluate: z.literal("D"),
-        sign_up: z.literal("D"),
-        pay: z.literal("D"),
-        provision: z.literal("F"),
-        operate: z.literal("F"),
-    })
-        .strict(),
-    unverified_barrier_grade_cap: z.literal("B+").optional(),
-    unobserved_operation_grade_cap: z.literal("B+"),
-    not_applicable_signals: z.literal("excluded"),
-    unrated_when: z
-        .object({
-        coverage: z.literal("not-complete"),
-        freshness: z.literal("not-fresh"),
-        except: z.literal("fresh-supported-essential-failure"),
-    })
-        .strict(),
-})
-    .strict();
-export const agentReadinessAssessmentBasisSchema = z
-    .object({
-    principal: z.literal("authorized_human_or_organization"),
-    initial_state: z
-        .object({
-        product_specific_account: z.literal(false),
-        product_credentials: z.literal(false),
-        paid_subscription: z.literal(false),
-        provisioned_resource: z.literal(false),
-        external_identity: z.literal("only_when_declared_by_exact_funnel"),
-    })
-        .strict(),
-    permitted_human_boundaries: z.array(z.enum([
-        "account_ownership_confirmation",
-        "delegated_identity_consent",
-        "regulated_approval",
-        "final_payment_or_irreversible_commitment",
-    ])),
-    required_handoff_properties: z.array(z.enum(["exact_disclosure", "resumable_handoff", "deterministic_continuation"])),
-    forbidden_substitutions: z.array(z.enum([
-        "captcha_solving",
-        "human_password_or_session_sharing",
-        "concealed_agent_identity",
-        "invented_eligibility",
-        "unbound_out_of_band_code",
-        "vendor_policy_bypass",
-        "unapproved_consequential_action",
-    ])),
-    success: z
-        .object({
-        target_coverage: z.literal("every_declared_target"),
-        interface_coverage: z.enum([
-            "at_least_one_declared_alternative",
-            "one_selected_interface_per_target",
-        ]),
-        authority: z.literal("scoped"),
-        failure_semantics: z.literal("documented"),
-        recovery: z.literal("supported"),
-    })
-        .strict(),
-    observed_assessment: z
-        .object({
-        allowed_sources: z.array(z.enum([
-            "public_documentation",
-            "public_metadata",
-            "public_endpoints",
-            "non_mutating_interaction",
-            "operator_attested_public_observation",
-        ])),
-        consequential_claims: z.literal("certification_required"),
-    })
-        .strict(),
-})
-    .strict()
-    .superRefine((value, context) => {
-    for (const key of [
-        "permitted_human_boundaries",
-        "required_handoff_properties",
-        "forbidden_substitutions",
-    ]) {
-        if (new Set(value[key]).size !== value[key].length) {
-            context.addIssue({
-                code: "custom",
-                path: [key],
-                message: `Assessment basis ${key} must be unique.`,
-            });
-        }
-    }
-    if (new Set(value.observed_assessment.allowed_sources).size !==
-        value.observed_assessment.allowed_sources.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["observed_assessment", "allowed_sources"],
-            message: "Assessment basis allowed sources must be unique.",
-        });
-    }
-});
-export const agentReadinessPolicyCoreSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.agent-readiness-policy/v1alpha1"),
-    policy_version: z.string().min(1),
-    assessment_basis: agentReadinessAssessmentBasisSchema,
-    assessment_methods: z.array(agentReadinessAssessmentMethodPackSchema).min(1),
-    signal_rules: z.array(agentReadinessPolicySignalRuleSchema).min(1),
-    aggregation: z
-        .object({
-        stage: z.literal("worst-signal"),
-        overall: z.literal("worst-stage"),
-        outcome_precedence: stageOutcomePrecedenceSchema,
-        blocker_precedence: z.literal("outcome-then-rule-priority"),
-        tie_breaker: z.literal("signal-code"),
-    })
-        .strict(),
-    coverage: z
-        .object({
-        unknown_signals: z.literal("uncovered"),
-        contradicted_signals: z.literal("uncovered"),
-    })
-        .strict(),
-    freshness: z
-        .object({
-        source: z.literal("observation-freshness-policy"),
-        aggregation: z.enum(["worst-required-signal", "worst-evaluated-signal", "worst-signal"]),
-    })
-        .strict(),
-    public_states: z
-        .object({
-        pass: publicStateDescriptorSchema,
-        constrained: publicStateDescriptorSchema,
-        fail: publicStateDescriptorSchema,
-        unknown: publicStateDescriptorSchema,
-        not_applicable: publicStateDescriptorSchema,
-    })
-        .strict(),
-    grading: agentReadinessGradingSchema,
-    grade_derivation: z
-        .object({
-        label: z.string().min(1).max(80),
-        explanation: z.string().min(1).max(500),
-        coverage_rule: z.string().min(1).max(280),
-        outcome_rule: z.string().min(1).max(280),
-    })
-        .strict(),
-})
-    .strict()
-    .superRefine((value, context) => {
-    const keys = value.signal_rules.map((rule) => `${rule.stage}:${rule.signal_code}`);
-    if (new Set(keys).size !== keys.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["signal_rules"],
-            message: "An agent readiness policy cannot repeat a stage signal rule.",
-        });
-    }
-    const priorities = value.signal_rules.map((rule) => `${rule.stage}:${rule.priority}`);
-    if (new Set(priorities).size !== priorities.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["signal_rules"],
-            message: "Agent readiness rule priorities must be unique within each stage.",
-        });
-    }
-    const methodDigests = new Set(value.assessment_methods.map((method) => method.method_digest));
-    if (methodDigests.size !== value.assessment_methods.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["assessment_methods"],
-            message: "Agent readiness policy method digests must be unique.",
-        });
-    }
-    for (const [index, rule] of value.signal_rules.entries()) {
-        for (const methodDigest of rule.allowed_method_digests) {
-            if (!methodDigests.has(methodDigest)) {
-                context.addIssue({
-                    code: "custom",
-                    path: ["signal_rules", index, "allowed_method_digests"],
-                    message: `Agent readiness signal rule references unresolved method ${methodDigest}.`,
-                });
-            }
-        }
-        if (rule.evaluation_role === "graded" && !rule.required) {
-            context.addIssue({
-                code: "custom",
-                path: ["signal_rules", index, "required"],
-                message: "Every graded Agent Readiness signal is required for coverage.",
-            });
-        }
-        if (rule.evaluation_role === "informational" && rule.required) {
-            context.addIssue({
-                code: "custom",
-                path: ["signal_rules", index, "required"],
-                message: "Informational Agent Readiness signals cannot be required for coverage.",
-            });
-        }
-        if (rule.evaluation_role === "barrier" && rule.required) {
-            context.addIssue({
-                code: "custom",
-                path: ["signal_rules", index, "required"],
-                message: "Barrier Agent Readiness signals cannot be required for core coverage.",
-            });
-        }
-        const standardSelectorKeys = rule.selector_groups.flatMap((group) => group.alternatives.flatMap((alternative) => alternative.selectors
-            .filter((selector) => selector.kind === "standard_requirement")
-            .map((selector) => standardRequirementKey(selector.requirement))));
-        if (standardSelectorKeys.some((key) => !rule.standard_evidence.some(({ requirement }) => standardRequirementKey(requirement) === key))) {
-            context.addIssue({
-                code: "custom",
-                path: ["signal_rules", index, "selector_groups"],
-                message: "Standard requirement selectors must bind exact policy evidence mappings.",
-            });
-        }
-    }
-    for (const stage of agentReadinessStageSchema.options) {
-        if (!value.signal_rules.some((rule) => rule.stage === stage && rule.evaluation_role === "graded" && rule.required)) {
-            context.addIssue({
-                code: "custom",
-                path: ["signal_rules"],
-                message: `Agent readiness policy has no required graded rules for ${stage}.`,
-            });
-        }
-    }
-    const expectedStates = {
-        pass: "ready",
-        constrained: "limited",
-        fail: "blocked",
-        unknown: "unknown",
-        not_applicable: "not_applicable",
-    };
-    for (const [outcome, state] of Object.entries(expectedStates)) {
-        if (value.public_states[outcome].state !== state) {
-            context.addIssue({
-                code: "custom",
-                path: ["public_states", outcome, "state"],
-                message: `Outcome ${outcome} must project to public state ${state}.`,
-            });
-        }
-    }
-});
-export const agentReadinessPolicySchema = agentReadinessPolicyCoreSchema
-    .safeExtend({ policy_digest: agentReadinessDigestSchema })
-    .strict();
-const projectedBlockerSchema = z
-    .object({
-    signal_code: agentReadinessSignalCodeSchema,
-    code: z.string().min(1).max(160),
-    explanation: z.string().min(1).max(500),
-})
-    .strict();
-const projectedRemediationSchema = z
-    .object({
-    signal_code: agentReadinessSignalCodeSchema,
-    code: z.string().min(1).max(160),
-    instruction: z.string().min(1).max(500),
-})
-    .strict();
-const projectedFindingSchema = z
-    .object({
-    signal_code: agentReadinessSignalCodeSchema,
-    condition: z.string().min(1).max(160),
-    finding: z.string().min(1).max(280),
-    context: agentReadinessPublicClaimTextSchema.optional(),
-})
-    .strict();
-export const agentReadinessProjectedSignalSchema = z
-    .object({
-    signal_code: agentReadinessSignalCodeSchema,
-    evaluation_role: agentReadinessEvaluationRoleSchema,
-    required: z.boolean(),
-    value: agentReadinessSignalValueSchema,
-    value_label: z.string().min(1).max(40),
-    outcome: agentReadinessStageOutcomeSchema,
-    public_state: agentReadinessPublicStateSchema,
-    condition: z.string().min(1).max(160),
-    finding: z.string().min(1).max(280),
-    evidence_status: z.enum(["supported", "contradicted", "mixed", "missing"]),
-    freshness: agentReadinessFreshnessSchema,
-    observed_at: agentReadinessInstantSchema.optional(),
-    tested_surfaces: z.array(agentReadinessSurfaceReferenceSchema),
-    assessment_method: agentReadinessAssessmentMethodSchema.optional(),
-    determination_bases: z.array(agentReadinessDeterminationBasisSchema),
-    note: agentReadinessPublicClaimTextSchema.optional(),
-    blocker: projectedBlockerSchema.optional(),
-    remediation: projectedRemediationSchema.optional(),
-})
-    .strict();
-export const agentReadinessStageProjectionSchema = z
-    .object({
-    stage: agentReadinessStageSchema,
-    stage_label: z.string().min(1).max(40),
-    outcome: agentReadinessStageOutcomeSchema,
-    public_state: agentReadinessPublicStateSchema,
-    state_label: z.string().min(1).max(40),
-    primary_finding: projectedFindingSchema,
-    secondary_context: z.array(projectedFindingSchema),
-    signals: z.array(agentReadinessProjectedSignalSchema),
-    blockers: z.array(projectedBlockerSchema),
-    remediations: z.array(projectedRemediationSchema),
-})
-    .strict();
 export const agentReadinessPublicationVisibilitySchema = z.enum([
     "discoverable",
     "resolvable_only",
     "private",
 ]);
+/** What a reader needs of one step: its outcome and, for a human step, when the human is needed. */
+const agentReadinessProjectedStepSchema = z
+    .object({
+    step: agentReadinessStepSchema,
+    outcome: agentReadinessStepOutcomeSchema,
+    timing: agentReadinessHandoffTimingSchema.nullable(),
+})
+    .strict();
+/** The latest run as the card shows it, each assertion with the job library's statement. */
+const agentReadinessProjectedRunSchema = agentReadinessRunSummarySchema
+    .safeExtend({
+    assertions: z
+        .array(agentReadinessAssertionResultSchema.safeExtend({
+        statement: z.string().min(1).max(400),
+    }))
+        .max(8),
+})
+    .strict();
+/**
+ * The readiness projection's provenance: the profile's dispute state, its Entity's
+ * attestation, and the events establishing both. Ratings rest on run records, not
+ * on evidence coverage.
+ */
+const agentReadinessProvenanceSchema = provenanceSchema
+    .pick({ dispute: true, vendor_attestation: true, basis_event_ids: true })
+    .strict();
 export const agentReadinessProjectionCoreSchema = z
     .object({
     projection_contract: z.literal("sourcey.agent-readiness-projection/v1alpha1"),
@@ -921,7 +269,6 @@ export const agentReadinessProjectionCoreSchema = z
     declaration: agentReadinessDeclarationStateSchema,
     surface_catalog: z
         .object({
-        assessment_targets: z.array(agentReadinessAssessmentTargetSchema),
         participants: z.array(agentReadinessParticipantSchema),
         resources: z.array(agentReadinessResourceSchema),
         endpoints: z.array(agentReadinessEndpointSchema),
@@ -937,97 +284,52 @@ export const agentReadinessProjectionCoreSchema = z
     policy_digest: agentReadinessDigestSchema,
     policy_version: z.string().min(1),
     policy_as_of: agentReadinessInstantSchema,
-    assessment_basis: agentReadinessAssessmentBasisSchema,
-    overall_outcome: agentReadinessStageOutcomeSchema,
-    public_state: agentReadinessPublicStateSchema,
-    state_label: z.string().min(1).max(40),
-    grade: agentReadinessGradeSchema,
-    grade_derivation: z
+    job: z
         .object({
-        label: z.string().min(1).max(80),
-        explanation: z.string().min(1).max(500),
-        coverage_rule: z.string().min(1).max(280),
-        outcome_rule: z.string().min(1).max(280),
+        job_id: agentReadinessScopeKeySchema,
+        job_digest: agentReadinessDigestSchema,
+        category: agentReadinessScopeKeySchema,
+        name: z.string().min(1).max(120),
+        statement: z.string().min(1).max(400),
     })
         .strict(),
+    /** The interface the rated binding uses; null until a binding has run. */
+    interface_id: agentReadinessScopeKeySchema.nullable(),
+    label: agentReadinessEvidenceLabelSchema,
+    operate: z
+        .object({
+        /** Null shows the dash: not yet exercised, or no letter's coverage met. */
+        letter: agentReadinessOperateLetterSchema.nullable(),
+        /** The letter's exact definition from the policy; null with the dash. */
+        statement: z.string().min(1).max(280).nullable(),
+        steps: z.array(agentReadinessProjectedStepSchema).length(AGENT_READINESS_STEPS.length),
+        /** Steps not yet assessed. */
+        missing: z.array(agentReadinessStepSchema),
+        /** Where the principal stays in the loop; never lowers the letter. */
+        approvals: z.array(agentReadinessStepSchema),
+        /** Where a person does the agent's work, and how often. */
+        workarounds: z.array(z
+            .object({ step: agentReadinessStepSchema, timing: agentReadinessHandoffTimingSchema })
+            .strict()),
+    })
+        .strict(),
+    onboard: z.object({ level: agentReadinessOnboardLevelSchema.nullable() }).strict(),
+    discovery: z.array(agentReadinessDiscoveryFactSchema).max(64),
+    run: agentReadinessProjectedRunSchema,
+    /** When the published facts were established: the revision's latest run. */
+    last_run_at: agentReadinessInstantSchema,
     publication: z
         .object({
         visibility: agentReadinessPublicationVisibilitySchema,
-        reasons: z.array(z.enum([
-            "lifecycle_not_active",
-            "coverage_incomplete",
-            "required_evidence_not_supported",
-            "freshness_not_fresh",
-            "unrated",
-            "no_useful_finding",
-            "open_dispute",
-        ])),
+        reasons: z.array(z.enum(["lifecycle_not_active", "open_dispute"])),
     })
         .strict(),
-    primary_finding: z
-        .object({
-        stage: agentReadinessStageSchema,
-        stage_label: z.string().min(1).max(40),
-        public_state: z.enum(["limited", "blocked"]),
-        finding: projectedFindingSchema,
-        blocker: projectedBlockerSchema.optional(),
-    })
-        .strict()
-        .optional(),
-    first_blocked_stage: z
-        .object({
-        stage: agentReadinessStageSchema,
-        stage_label: z.string().min(1).max(40),
-        finding: projectedFindingSchema,
-        blocker: projectedBlockerSchema.optional(),
-    })
-        .strict()
-        .optional(),
-    limitations: z.array(z
-        .object({
-        stage: agentReadinessStageSchema,
-        stage_label: z.string().min(1).max(40),
-        finding: projectedFindingSchema,
-        remediation: projectedRemediationSchema.optional(),
-    })
-        .strict()),
-    stages: z.array(agentReadinessStageProjectionSchema).length(5),
-    coverage: z
-        .object({
-        status: z.enum(["complete", "incomplete"]),
-        required_signals: z.number().int().nonnegative(),
-        covered_signals: z.number().int().nonnegative(),
-        ratio: z.number().min(0).max(1),
-        barrier_signals: z.number().int().nonnegative(),
-        verified_barrier_signals: z.number().int().nonnegative(),
-        barrier_ratio: z.number().min(0).max(1),
-    })
-        .strict(),
-    last_tested_at: agentReadinessInstantSchema,
-    freshness: agentReadinessFreshnessSchema,
-    provenance: provenanceSchema,
+    provenance: agentReadinessProvenanceSchema,
     canonical_url: z.url(),
 })
     .strict();
 export const agentReadinessProjectionSchema = agentReadinessProjectionCoreSchema
     .safeExtend({ projection_digest: agentReadinessDigestSchema })
-    .strict();
-export const agentReadinessStageSummarySchema = agentReadinessStageProjectionSchema
-    .pick({
-    stage: true,
-    stage_label: true,
-    outcome: true,
-    public_state: true,
-    state_label: true,
-    primary_finding: true,
-})
-    .strict();
-export const agentReadinessProvenanceSummarySchema = provenanceSchema
-    .pick({
-    freshness: true,
-    dispute: true,
-    vendor_attestation: true,
-})
     .strict();
 export const agentReadinessProfileSummarySchema = agentReadinessProjectionSchema
     .pick({
@@ -1041,24 +343,61 @@ export const agentReadinessProfileSummarySchema = agentReadinessProjectionSchema
     policy_digest: true,
     policy_version: true,
     policy_as_of: true,
-    overall_outcome: true,
-    public_state: true,
-    state_label: true,
-    grade: true,
-    grade_derivation: true,
+    label: true,
+    last_run_at: true,
     publication: true,
-    primary_finding: true,
-    coverage: true,
-    last_tested_at: true,
-    freshness: true,
+    provenance: true,
     canonical_url: true,
     projection_digest: true,
 })
     .safeExtend({
-    stages: z.array(agentReadinessStageSummarySchema).length(5),
-    provenance: agentReadinessProvenanceSummarySchema,
+    operate: z
+        .object({
+        letter: agentReadinessOperateLetterSchema.nullable(),
+        steps: z.array(agentReadinessProjectedStepSchema).length(AGENT_READINESS_STEPS.length),
+    })
+        .strict(),
+    onboard: z.object({ level: agentReadinessOnboardLevelSchema.nullable() }).strict(),
 })
     .strict();
+/** The freshness index's namespace for report cards; each subject is a profile id. */
+export const AGENT_READINESS_FRESHNESS_NAMESPACE = "agent-readiness";
+/**
+ * A card's freshness as serving reads it from the freshness index, beside the
+ * released facts: never released itself, so a recheck that changes nothing
+ * publishes nothing.
+ */
+export const agentReadinessServedFreshnessSchema = z
+    .object({
+    /** The last check, successful or not. */
+    checked_at: agentReadinessInstantSchema,
+    /** The last successful check: the card's "observed" date; null before one. */
+    succeeded_at: agentReadinessInstantSchema.nullable(),
+    next_due_at: agentReadinessInstantSchema.nullable(),
+    /** Stale with no success, or a last success before the policy's window. */
+    state: agentReadinessFreshnessSchema,
+})
+    .strict();
+/** Served freshness by profile id: what a response carries beside its released profiles. */
+export const agentReadinessServedFreshnessMapSchema = z.record(agentReadinessProfileIdSchema, agentReadinessServedFreshnessSchema);
+/** The instant before which a card's last success makes it stale, under the policy's window. */
+export function agentReadinessStaleBefore(now, policy) {
+    const at = Date.parse(now);
+    if (!Number.isFinite(at))
+        throw new Error("Agent Readiness freshness needs a valid instant.");
+    return new Date(at - policy.fresh_for_days * 86_400_000).toISOString();
+}
+/** The one definition of staleness: no success yet, or the last one before `staleBefore`. */
+export function agentReadinessServedFreshness(record, staleBefore) {
+    return agentReadinessServedFreshnessSchema.parse({
+        checked_at: record.checkedAt,
+        succeeded_at: record.succeededAt,
+        next_due_at: record.nextDueAt,
+        state: record.succeededAt !== null && Date.parse(record.succeededAt) >= Date.parse(staleBefore)
+            ? "fresh"
+            : "stale",
+    });
+}
 /** The one compact public-list projection of a complete released profile. */
 export function summarizeAgentReadinessProfile(profile) {
     return agentReadinessProfileSummarySchema.parse({
@@ -1072,60 +411,25 @@ export function summarizeAgentReadinessProfile(profile) {
         policy_digest: profile.policy_digest,
         policy_version: profile.policy_version,
         policy_as_of: profile.policy_as_of,
-        overall_outcome: profile.overall_outcome,
-        public_state: profile.public_state,
-        state_label: profile.state_label,
-        grade: profile.grade,
-        grade_derivation: profile.grade_derivation,
+        label: profile.label,
+        operate: { letter: profile.operate.letter, steps: profile.operate.steps },
+        onboard: profile.onboard,
+        last_run_at: profile.last_run_at,
         publication: profile.publication,
-        primary_finding: profile.primary_finding,
-        stages: profile.stages.map((stage) => ({
-            stage: stage.stage,
-            stage_label: stage.stage_label,
-            outcome: stage.outcome,
-            public_state: stage.public_state,
-            state_label: stage.state_label,
-            primary_finding: stage.primary_finding,
-        })),
-        coverage: profile.coverage,
-        last_tested_at: profile.last_tested_at,
-        freshness: profile.freshness,
-        provenance: {
-            freshness: profile.provenance.freshness,
-            dispute: profile.provenance.dispute,
-            vendor_attestation: profile.provenance.vendor_attestation,
-        },
+        provenance: profile.provenance,
         canonical_url: profile.canonical_url,
         projection_digest: profile.projection_digest,
     });
 }
-/**
- * Stable identity and lineage fields for an immutable projection already admitted by a
- * previous release. Unknown fields are retained so its exact historical bytes remain
- * digest-verifiable; callers must not use this contract for current semantic reads.
- */
-export const agentReadinessProjectionLineageSchema = z
-    .object({
-    projection_contract: z.literal("sourcey.agent-readiness-projection/v1alpha1"),
-    agent_readiness_profile_id: agentReadinessProfileIdSchema,
-    entity_id: agentReadinessEntityIdSchema,
-    scope: agentReadinessScopeSchema,
-    lifecycle: lifecycleStatusSchema,
-    revision_digest: agentReadinessDigestSchema,
-    policy_digest: agentReadinessDigestSchema,
-    policy_as_of: agentReadinessInstantSchema,
-    publication: z.object({ visibility: agentReadinessPublicationVisibilitySchema }).passthrough(),
-    provenance: z.object({ freshness_policy_digest: agentReadinessDigestSchema }).passthrough(),
-    canonical_url: z.url(),
-    projection_digest: agentReadinessDigestSchema,
-})
-    .passthrough();
+/** Whether two profiles rate the same product and job. */
+export function sameAgentReadinessScope(left, right) {
+    return left.product.key === right.product.key && left.job.key === right.job.key;
+}
 const agentReadinessOfferRelationRevisionFields = {
     relation_id: agentReadinessIdentifierSchema,
     agent_readiness_profile_id: agentReadinessProfileIdSchema,
     offer_id: agentReadinessOfferIdSchema,
     purpose: agentReadinessOfferRelationPurposeSchema,
-    applicable_stages: z.array(agentReadinessStageSchema).min(1),
     effective_from: agentReadinessInstantSchema,
     effective_until: agentReadinessInstantSchema.optional(),
     declaration_revision_digest: agentReadinessDigestSchema,
@@ -1138,7 +442,7 @@ const agentReadinessOfferRelationRevisionFieldsSchema = z
     ...agentReadinessOfferRelationRevisionFields,
 })
     .strict();
-export const agentReadinessOfferRelationRevisionCoreSchema = agentReadinessOfferRelationRevisionFieldsSchema.superRefine(validateOfferRelationRevision);
+export const agentReadinessOfferRelationRevisionCoreSchema = agentReadinessOfferRelationRevisionFieldsSchema.superRefine(validateOfferRelationInterval);
 export const agentReadinessOfferRelationRevisionSchema = agentReadinessOfferRelationRevisionCoreSchema
     .safeExtend({ relation_revision_digest: agentReadinessDigestSchema })
     .strict();
@@ -1348,7 +652,7 @@ export const agentReadinessDeltaObjectSchema = z
     agent_readiness_profile_id: agentReadinessProfileIdSchema,
     profile_input: agentReadinessProfileInputSchema.nullable(),
     projection: agentReadinessProjectionSchema.nullable(),
-    prior_projection: agentReadinessProjectionLineageSchema.nullable(),
+    prior_projection: agentReadinessProjectionSchema.nullable(),
     catalog_context: z
         .object({
         entity_slug: z.string().regex(SLUG_PATTERN),
@@ -1399,11 +703,11 @@ export const agentReadinessDeltaObjectSchema = z
         return;
     }
     if (value.prior_projection &&
-        !sameAgentReadinessScopeIdentity(value.prior_projection.scope, current.scope)) {
+        !sameAgentReadinessScope(value.prior_projection.scope, current.scope)) {
         context.addIssue({
             code: "custom",
             path: ["projection", "scope"],
-            message: "An Agent Readiness profile cannot change product or funnel identity.",
+            message: "An Agent Readiness profile cannot change product or job identity.",
         });
     }
     if (!value.prior_projection && !value.profile_input) {
@@ -1446,18 +750,6 @@ export const agentReadinessDeltaObjectSchema = z
         });
     }
 });
-function validateOfferRelationRevision(value, context) {
-    const canonicalStages = agentReadinessStageSchema.options.filter((stage) => value.applicable_stages.includes(stage));
-    if (canonicalStages.length !== value.applicable_stages.length ||
-        canonicalStages.some((stage, index) => value.applicable_stages[index] !== stage)) {
-        context.addIssue({
-            code: "custom",
-            path: ["applicable_stages"],
-            message: "Offer relation stages must be unique and ordered by the canonical funnel.",
-        });
-    }
-    validateOfferRelationInterval(value, context);
-}
 function validateOfferRelationInterval(value, context) {
     if (value.effective_until &&
         Date.parse(value.effective_until) <= Date.parse(value.effective_from)) {
@@ -1468,7 +760,7 @@ function validateOfferRelationInterval(value, context) {
         });
     }
 }
-export function sameAgentReadinessOfferRelationIdentity(left, right) {
+function sameAgentReadinessOfferRelationIdentity(left, right) {
     return (left.relation_id === right.relation_id &&
         left.agent_readiness_profile_id === right.agent_readiness_profile_id &&
         left.offer_id === right.offer_id &&
@@ -1507,19 +799,6 @@ function validateRelationMembership(actual, expected, context, path) {
                 message: "Offer relation index membership must be unique, complete, and canonically ordered.",
             });
         }
-    }
-}
-function sameSurface(left, right) {
-    return left.node_kind === right.node_kind && left.node_id === right.node_id;
-}
-function assertUniqueSurfaceReferences(surfaces, context, path) {
-    if (new Set(surfaces.map((surface) => `${surface.node_kind}:${surface.node_id}`)).size !==
-        surfaces.length) {
-        context.addIssue({
-            code: "custom",
-            path,
-            message: "Surface references must be unique.",
-        });
     }
 }
 //# sourceMappingURL=index.js.map

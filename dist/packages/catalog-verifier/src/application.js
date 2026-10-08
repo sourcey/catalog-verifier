@@ -169,8 +169,8 @@ export class CatalogVerifierApplication {
             const release = await readVerifiedSourceyRelease(input.directory);
             const trust = { rootSetDigest: input.trustedRootDigest };
             const result = release.kind === "delta"
-                ? verifyCatalogDelta(release, trust)
-                : verifyCatalogRelease(release, trust);
+                ? await verifyCatalogDelta(release, trust)
+                : await verifyCatalogRelease(release, trust);
             return valid(operation, {
                 entities: "artifact" in result ? result.artifact.entities.length : result.entities.size,
                 release_id: result.bundle.release.release_id,
@@ -182,9 +182,6 @@ export class CatalogVerifierApplication {
             return invalid(operation, diagnosticFor(error, "release.immutable-closure"));
         }
     }
-}
-export function validateCatalogCandidate(input) {
-    return new CatalogVerifierApplication().validateCandidate(input);
 }
 async function inspectRepositoryChange(input) {
     if (input.repositoryKind === "startup-credits") {

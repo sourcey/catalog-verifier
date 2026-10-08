@@ -6,13 +6,13 @@ const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
 const offerId = z.string().regex(OFFER_ID_PATTERN);
-export const publicRouteSlugSchema = z.string().regex(SLUG_PATTERN, "Invalid route slug");
-export const entityCanonicalPathInputSchema = z
+const publicRouteSlugSchema = z.string().regex(SLUG_PATTERN, "Invalid route slug");
+const entityCanonicalPathInputSchema = z
     .object({
     entity_slug: publicRouteSlugSchema,
 })
     .strict();
-export const programCanonicalPathInputSchema = z
+const programCanonicalPathInputSchema = z
     .object({
     entity_slug: publicRouteSlugSchema,
     program_slug: publicRouteSlugSchema,
@@ -24,14 +24,14 @@ export const offerCanonicalPathInputSchema = z
     offer_slug: publicRouteSlugSchema,
 })
     .strict();
-export const agentReadinessCanonicalPathInputSchema = z
+const agentReadinessCanonicalPathInputSchema = z
     .object({
     entity_slug: publicRouteSlugSchema,
     product_key: publicRouteSlugSchema,
-    funnel_key: publicRouteSlugSchema,
+    job_key: publicRouteSlugSchema,
 })
     .strict();
-export const entityIconCurrentPathInputSchema = z.object({ entity_id: entityId }).strict();
+const entityIconCurrentPathInputSchema = z.object({ entity_id: entityId }).strict();
 export function catalogCanonicalPath() {
     return "/companies";
 }
@@ -144,7 +144,7 @@ export function parseOfferCanonicalPath(path) {
 }
 export function agentReadinessCanonicalPath(input) {
     const parsed = agentReadinessCanonicalPathInputSchema.parse(input);
-    return `${entityCanonicalPath({ entity_slug: parsed.entity_slug })}/agent-readiness/${parsed.product_key}/${parsed.funnel_key}`;
+    return `${entityCanonicalPath({ entity_slug: parsed.entity_slug })}/agent-readiness/${parsed.product_key}/${parsed.job_key}`;
 }
 /**
  * Stable public delivery route for the current icon binding. The transport

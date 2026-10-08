@@ -1,358 +1,61 @@
-import { TextDecoder, TextEncoder } from "node:util";
-import { canonicalJson, digest, sha256Bytes } from "provenry/primitives";
+import { normalizeDocument, PARSE5_VERSION } from "provenry/capture/normalize";
+import { digest } from "provenry/primitives";
 import { z } from "zod";
-import { PARSE5_VERSION } from "./dependency-versions.js";
-import { parseHtmlDocument } from "./html-document.js";
-const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/u);
-const utf8 = new TextDecoder("utf-8", { fatal: true });
-const encoder = new TextEncoder();
-/** The document normalized to nothing: no metadata, no structured data, no content. */
-export class EmptyEvidenceDocumentError extends Error {
-    documentKind;
-    constructor(documentKind) {
-        super(`Evidence ${documentKind === "html" ? "HTML" : "text"} is empty after normalization.`);
-        this.documentKind = documentKind;
-        this.name = "EmptyEvidenceDocumentError";
-    }
-}
-export const EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN = {
+/**
+ * Catalog's normalizer identity and the one profile every capture is
+ * normalized with. The algorithm is Provenry's `capture/normalize`, which the
+ * public verifier also runs; the profile only says what it reads. Evidence an
+ * earlier release first included was verified by that release, so no earlier
+ * profile is kept (lean-release-chain §3.1).
+ */
+export const EVIDENCE_NORMALIZER_TOOLCHAIN = {
     algorithm: "sourcey.deterministic-content-normalizer/v1",
     html_metadata: ["meta", "structured-data", "canonical-link"],
     html_links: ["a[href]", "form[action]"],
     html_link_protocols: ["http", "https", "mailto"],
     parse5: PARSE5_VERSION,
     unicode: "NFC",
-};
-/** Exact retained profile for captures created before empty HTML values were omitted. */
-export const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN,
     json_media_types: ["application/json", "application/*+json", "application/*-json"],
-};
-/** Exact retained profile for captures made before bounded embedded JSON was read. */
-export const EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN,
     html_empty_values: "omit",
-};
-export const EVIDENCE_NORMALIZER_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
     html_json_attributes: {
         name_prefix: "data-",
         maximum_attribute_bytes: 32_768,
         maximum_document_bytes: 131_072,
     },
+    /** The site's navigation, banner and footer are written apart from the content a reader judges. */
+    html_page_chrome: "separate",
 };
-/** Exact retained XML profile for captures created before empty HTML values were omitted. */
-export const EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN,
-    xml_media_types: ["application/xml", "text/xml", "application/*+xml"],
-};
-export const EVIDENCE_NORMALIZER_XML_TOOLCHAIN = {
-    ...EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
-    xml_media_types: ["application/xml", "text/xml", "application/*+xml"],
-};
-/** Exact retained profile for evidence captured before public mail actions were preserved. */
-export const EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN = {
-    algorithm: "sourcey.deterministic-content-normalizer/v1",
-    html_metadata: ["meta", "structured-data", "canonical-link"],
-    html_links: ["a[href]", "form[action]"],
-    parse5: PARSE5_VERSION,
-    unicode: "NFC",
-};
-export const EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN = {
-    algorithm: "sourcey.deterministic-content-normalizer/v1",
-    html_metadata: ["meta", "structured-data", "canonical-link"],
-    parse5: PARSE5_VERSION,
-    unicode: "NFC",
-};
-export const EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN = {
-    algorithm: "sourcey.deterministic-content-normalizer/v1",
-    parse5: PARSE5_VERSION,
-    unicode: "NFC",
-};
-const EVIDENCE_NORMALIZER_IDENTITY = {
+export const EVIDENCE_NORMALIZER = {
     normalizer_contract: "sourcey.evidence-normalizer/v1alpha1",
     normalizer_id: "sourcey-deterministic-content",
     version: "1",
+    toolchain_digest: digest(EVIDENCE_NORMALIZER_TOOLCHAIN),
 };
-function evidenceNormalizerDefinition(toolchain) {
-    return { ...EVIDENCE_NORMALIZER_IDENTITY, toolchain_digest: digest(toolchain) };
-}
-export const EVIDENCE_NORMALIZER = evidenceNormalizerDefinition(EVIDENCE_NORMALIZER_TOOLCHAIN);
-export const EVIDENCE_NORMALIZER_XML = evidenceNormalizerDefinition(EVIDENCE_NORMALIZER_XML_TOOLCHAIN);
-export const EVIDENCE_NORMALIZER_CANONICAL_LINK = evidenceNormalizerDefinition(EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN);
-export const EVIDENCE_NORMALIZER_FOUNDATION = evidenceNormalizerDefinition(EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN);
-const NORMALIZER_TOOLCHAIN_BY_DIGEST = new Map([
-    [EVIDENCE_NORMALIZER.toolchain_digest, EVIDENCE_NORMALIZER_TOOLCHAIN],
-    [
-        digest(EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN),
-        EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN,
-    ],
-    [
-        digest(EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN),
-        EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN,
-    ],
-    [
-        digest(EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN),
-        EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN,
-    ],
-    [EVIDENCE_NORMALIZER_XML.toolchain_digest, EVIDENCE_NORMALIZER_XML_TOOLCHAIN],
-    [
-        digest(EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN),
-        EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN,
-    ],
-    [digest(EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN), EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN],
-    [
-        EVIDENCE_NORMALIZER_CANONICAL_LINK.toolchain_digest,
-        EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN,
-    ],
-    [
-        EVIDENCE_NORMALIZER_FOUNDATION.toolchain_digest,
-        EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN,
-    ],
-]);
 export const evidenceNormalizerSchema = z
     .object({
     normalizer_contract: z.literal(EVIDENCE_NORMALIZER.normalizer_contract),
     normalizer_id: z.literal(EVIDENCE_NORMALIZER.normalizer_id),
     version: z.literal(EVIDENCE_NORMALIZER.version),
-    toolchain_digest: digestSchema,
+    toolchain_digest: z.literal(EVIDENCE_NORMALIZER.toolchain_digest),
 })
-    .strict()
-    .superRefine((value, context) => {
-    if (!NORMALIZER_TOOLCHAIN_BY_DIGEST.has(value.toolchain_digest)) {
-        context.addIssue({
-            code: "custom",
-            path: ["toolchain_digest"],
-            message: "Evidence normalizer toolchain is not retained for exact verification.",
-        });
-    }
-});
+    .strict();
 export function normalizeEvidenceCapture(input) {
-    const toolchainDigest = input.normalizerToolchainDigest ?? EVIDENCE_NORMALIZER.toolchain_digest;
-    const toolchain = normalizerToolchainForDigest(toolchainDigest);
-    const mediaType = input.mediaType.split(";", 1)[0]?.trim().toLowerCase();
-    let normalized;
-    if (mediaType && matchesMediaType(mediaType, jsonMediaTypes(toolchainDigest, toolchain))) {
-        normalized = `${canonicalJson(JSON.parse(decodeText(input.bytes)))}\n`;
-    }
-    else if (mediaType === "text/html" || mediaType === "application/xhtml+xml") {
-        normalized = normalizeHtml(decodeText(input.bytes), {
-            includeCanonicalLinks: "html_metadata" in toolchain && toolchain.html_metadata.includes("canonical-link"),
-            includeDocumentLinks: "html_links" in toolchain,
-            includeMailtoLinks: "html_link_protocols" in toolchain && toolchain.html_link_protocols.includes("mailto"),
-            omitEmptyValues: "html_empty_values" in toolchain,
-            embeddedJsonAttributes: "html_json_attributes" in toolchain ? toolchain.html_json_attributes : null,
-        });
-    }
-    else if (mediaType &&
-        "xml_media_types" in toolchain &&
-        matchesMediaType(mediaType, toolchain.xml_media_types)) {
-        normalized = normalizeText(decodeText(input.bytes));
-    }
-    else if (mediaType?.startsWith("text/")) {
-        normalized = normalizeText(decodeText(input.bytes));
-    }
-    else {
-        throw new Error(`Evidence media type ${input.mediaType} has no approved normalizer.`);
-    }
-    const bytes = encoder.encode(normalized);
-    return { bytes, digest: sha256Bytes(bytes) };
-}
-function jsonMediaTypes(toolchainDigest, toolchain) {
-    if ("json_media_types" in toolchain)
-        return toolchain.json_media_types;
-    if (!NORMALIZER_TOOLCHAIN_BY_DIGEST.has(toolchainDigest)) {
-        throw new Error(`Evidence normalizer ${toolchainDigest} is not recognized.`);
-    }
-    // These retained digests predate the explicit media-type field; their exact
-    // historical algorithm normalized application/json and +json variants.
-    return ["application/json", "application/*+json"];
-}
-function matchesMediaType(mediaType, patterns) {
-    return patterns.some((pattern) => {
-        const wildcard = pattern.indexOf("*");
-        return wildcard < 0
-            ? mediaType === pattern
-            : mediaType.startsWith(pattern.slice(0, wildcard)) &&
-                mediaType.endsWith(pattern.slice(wildcard + 1));
+    const toolchain = EVIDENCE_NORMALIZER_TOOLCHAIN;
+    return normalizeDocument({
+        bytes: input.bytes,
+        mediaType: input.mediaType,
+        profile: {
+            html: {
+                includeCanonicalLinks: true,
+                includeDocumentLinks: true,
+                includeMailtoLinks: true,
+                omitEmptyValues: true,
+                embeddedJsonAttributes: toolchain.html_json_attributes,
+                separatePageChrome: true,
+            },
+            jsonMediaTypes: toolchain.json_media_types,
+            xmlMediaTypes: [],
+        },
     });
-}
-export function evidenceNormalizerForToolchainDigest(value) {
-    return evidenceNormalizerDefinition(normalizerToolchainForDigest(value));
-}
-function normalizerToolchainForDigest(value) {
-    const toolchain = NORMALIZER_TOOLCHAIN_BY_DIGEST.get(value);
-    if (!toolchain)
-        throw new Error(`Evidence normalizer ${value} is not recognized.`);
-    return toolchain;
-}
-function normalizeHtml(html, options) {
-    const document = parseHtmlDocument(html);
-    const visible = [];
-    const metadata = [];
-    const structured = [];
-    const canonicalLinks = [];
-    const documentLinks = [];
-    const embeddedJsonBudget = options.embeddedJsonAttributes
-        ? { remaining: options.embeddedJsonAttributes.maximum_document_bytes }
-        : null;
-    visitHtml(document, false, options.includeMailtoLinks, options.omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, options.embeddedJsonAttributes, embeddedJsonBudget);
-    const sections = [
-        ["metadata", [...new Set(metadata)].sort()],
-        ...(options.includeCanonicalLinks
-            ? [["canonical-links", [...new Set(canonicalLinks)].sort()]]
-            : []),
-        ...(options.includeDocumentLinks
-            ? [["document-links", [...new Set(documentLinks)].sort()]]
-            : []),
-        ["structured-data", [...new Set(structured)].sort()],
-        ["content", visible],
-    ];
-    const rendered = sections
-        .filter(([, lines]) => lines.length > 0)
-        .map(([name, lines]) => `[${name}]\n${lines.join("\n")}`)
-        .join("\n\n");
-    if (!rendered)
-        throw new EmptyEvidenceDocumentError("html");
-    return `${rendered}\n`;
-}
-function visitHtml(node, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, embeddedJsonAttributes, embeddedJsonBudget) {
-    if (isElement(node)) {
-        const tag = node.tagName.toLowerCase();
-        const attributes = new Map(node.attrs.map((attribute) => [attribute.name, attribute.value]));
-        if (tag === "meta") {
-            const name = attributes.get("name") ?? attributes.get("property");
-            const content = attributes.get("content");
-            if (name && content) {
-                const normalizedName = normalizeInline(name);
-                const normalizedContent = normalizeInline(content);
-                if (!omitEmptyValues || (normalizedName && normalizedContent)) {
-                    metadata.push(`${normalizedName}: ${normalizedContent}`);
-                }
-            }
-        }
-        if (tag === "link" &&
-            attributes.get("rel")?.toLowerCase().split(/\s+/u).includes("canonical")) {
-            const href = attributes.get("href");
-            if (href) {
-                const normalizedHref = normalizeInline(href);
-                if (!omitEmptyValues || normalizedHref)
-                    canonicalLinks.push(normalizedHref);
-            }
-        }
-        if (!suppressed && (tag === "a" || tag === "form")) {
-            const destination = evidenceDocumentLink(attributes.get(tag === "a" ? "href" : "action") ?? "", includeMailtoLinks);
-            if (destination) {
-                const label = visibleElementText(node);
-                documentLinks.push(label ? `${label}: ${destination}` : destination);
-            }
-        }
-        if (tag === "script" && attributes.get("type")?.toLowerCase() === "application/ld+json") {
-            const source = node.childNodes
-                .filter((child) => child.nodeName === "#text")
-                .map((child) => ("value" in child ? child.value : ""))
-                .join("");
-            try {
-                structured.push(canonicalJson(JSON.parse(source)));
-            }
-            catch {
-                // Malformed structured data is ignored as input, never repaired or guessed.
-            }
-        }
-        if (!suppressed &&
-            !["script", "style", "template", "noscript", "svg", "canvas"].includes(tag) &&
-            embeddedJsonAttributes &&
-            embeddedJsonBudget) {
-            for (const [name, value] of attributes) {
-                if (!name.startsWith(embeddedJsonAttributes.name_prefix) ||
-                    !/^[{[]/u.test(value.trimStart()) ||
-                    value.length > embeddedJsonAttributes.maximum_attribute_bytes ||
-                    encoder.encode(value).byteLength > embeddedJsonAttributes.maximum_attribute_bytes)
-                    continue;
-                try {
-                    const normalized = canonicalJson(JSON.parse(value));
-                    const bytes = encoder.encode(normalized).byteLength;
-                    if (bytes > embeddedJsonBudget.remaining)
-                        continue;
-                    structured.push(normalized);
-                    embeddedJsonBudget.remaining -= bytes;
-                }
-                catch {
-                    // Invalid page data is not repaired or admitted as evidence.
-                }
-            }
-        }
-        suppressed =
-            suppressed || ["script", "style", "template", "noscript", "svg", "canvas"].includes(tag);
-    }
-    else if (node.nodeName === "#text" && !suppressed && "value" in node) {
-        const text = normalizeInline(node.value);
-        if (text)
-            visible.push(text);
-    }
-    if ("childNodes" in node) {
-        for (const child of node.childNodes) {
-            visitHtml(child, suppressed, includeMailtoLinks, omitEmptyValues, visible, metadata, structured, canonicalLinks, documentLinks, embeddedJsonAttributes, embeddedJsonBudget);
-        }
-    }
-}
-function evidenceDocumentLink(value, includeMailtoLinks) {
-    const normalized = normalizeInline(value);
-    if (!normalized || normalized.startsWith("#"))
-        return null;
-    try {
-        const parsed = new URL(normalized, "https://sourcey.invalid/");
-        return parsed.protocol === "http:" ||
-            parsed.protocol === "https:" ||
-            (includeMailtoLinks && parsed.protocol === "mailto:")
-            ? normalized
-            : null;
-    }
-    catch {
-        return null;
-    }
-}
-function visibleElementText(node) {
-    const parts = [];
-    collectVisibleElementText(node, false, parts);
-    return normalizeInline(parts.join(" "));
-}
-function collectVisibleElementText(node, suppressed, parts) {
-    if (isElement(node)) {
-        suppressed =
-            suppressed ||
-                ["script", "style", "template", "noscript", "svg", "canvas"].includes(node.tagName.toLowerCase());
-    }
-    else if (node.nodeName === "#text" && !suppressed && "value" in node) {
-        const text = normalizeInline(node.value);
-        if (text)
-            parts.push(text);
-    }
-    if ("childNodes" in node) {
-        for (const child of node.childNodes)
-            collectVisibleElementText(child, suppressed, parts);
-    }
-}
-function isElement(node) {
-    return "tagName" in node && "attrs" in node;
-}
-function decodeText(bytes) {
-    return utf8.decode(bytes).replace(/^\uFEFF/u, "");
-}
-function normalizeText(text) {
-    const normalized = text
-        .replaceAll("\r\n", "\n")
-        .replaceAll("\r", "\n")
-        .normalize("NFC")
-        .split("\n")
-        .map((line) => line.replace(/[ \t]+$/gu, ""))
-        .join("\n")
-        .trim();
-    if (!normalized)
-        throw new EmptyEvidenceDocumentError("text");
-    return `${normalized}\n`;
-}
-function normalizeInline(text) {
-    return text.normalize("NFC").replace(/\s+/gu, " ").trim();
 }
 //# sourceMappingURL=evidence-normalization.js.map

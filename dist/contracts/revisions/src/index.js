@@ -107,7 +107,7 @@ export function entityOfficialSiteProblem(domains, site) {
  * An Entity's official site participates in identity and outbound-link trust,
  * so it must remain inside one of the identity epoch's current domain boundaries.
  */
-export function entityOfficialSiteInvariant(value, context) {
+function entityOfficialSiteInvariant(value, context) {
     const problem = entityOfficialSiteProblem(value.domains, value.links.site);
     if (problem === "primary-domain-count") {
         context.addIssue({
@@ -125,7 +125,7 @@ export function entityOfficialSiteInvariant(value, context) {
         });
     }
 }
-export const moneySchema = z
+const moneySchema = z
     .object({
     currency,
     minor_units: z.number().int().nonnegative(),
@@ -191,6 +191,8 @@ export const durationValueSchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("exact"), value: duration }).strict(),
     z.object({ kind: z.literal("up-to"), value: duration }).strict(),
     z.object({ kind: z.literal("at-least"), value: duration }).strict(),
+    /** A period stated as a range: "free for 6 to 12 months". */
+    z.object({ kind: z.literal("range"), minimum: duration, maximum: duration }).strict(),
 ]);
 const benefitBase = {
     benefit_id: identifier,
@@ -275,7 +277,7 @@ export const economicsSchema = z
     .superRefine((value, context) => {
     assertUniqueIdentifiers(value.benefits.map((benefit) => benefit.benefit_id), "benefit_id", context);
 });
-export const eligibilityFactValueSchema = z.discriminatedUnion("type", [
+const eligibilityFactValueSchema = z.discriminatedUnion("type", [
     z.object({ type: z.literal("null") }).strict(),
     z.object({ type: z.literal("string"), value: z.string() }).strict(),
     z.object({ type: z.literal("number"), value: z.number().finite() }).strict(),
@@ -328,8 +330,24 @@ function eligibilityConditionVariants(head) {
             .strict(),
     ];
 }
-/** A fact, an operator and its value: what evidence extraction reports for a page threshold. */
-export const eligibilityConditionSchema = z.union(eligibilityConditionVariants({}));
+/**
+ * The eligibility facts a page requirement is read into, one key per
+ * quantity, each with what it means. A requirement none of them states
+ * exactly is a statement, never a typed condition.
+ */
+export const ELIGIBILITY_FACT_VOCABULARY = {
+    "company.age_months": "number: months since the company was founded or incorporated",
+    "company.employee_count": "number: people the company employs",
+    "company.funding_raised_usd": "number: total outside funding the company has raised, in US dollars",
+    "company.annual_revenue_usd": "number: the company's revenue over a year, in US dollars",
+    "company.is_current_customer": "boolean: whether the company is a paying customer of the vendor now",
+    "company.is_incorporated": "boolean: whether the company is a registered legal entity",
+    "company.website_url": "presence: the company has a public website",
+    "company.stage": "string: the company's funding stage, as the page names it",
+    "company.industry": "string: the company's industry or kind of business, as the page names it",
+    "company.partner_memberships": "string-set: accelerators, programs, investors or partners the company belongs to, as the page names them",
+    "company.country_code": "string: ISO 3166-1 alpha-3 code of the country the company is in",
+};
 /** One typed eligibility condition, with its criterion identity and statement. */
 export const eligibilityPredicateSchema = z.union(eligibilityConditionVariants({ kind: z.literal("predicate"), ...criterionBase }));
 export const eligibilityManualSchema = z
@@ -351,7 +369,7 @@ export const eligibilityConstantSchema = z
     value: z.boolean(),
 })
     .strict();
-export const eligibilityRuleSchema = z.lazy(() => z.union([
+const eligibilityRuleSchema = z.lazy(() => z.union([
     eligibilityPredicateSchema,
     eligibilityManualSchema,
     eligibilityConstantSchema,
@@ -372,8 +390,8 @@ export const eligibilitySchema = z
     .superRefine((value, context) => {
     assertUniqueIdentifiers(collectCriterionIds(value.rule), "criterion_id", context);
 });
-export const eligibilityOutcomeSchema = z.enum(["met", "unmet", "unknown"]);
-export const eligibilityTraceSchema = z.lazy(() => z.union([
+const eligibilityOutcomeSchema = z.enum(["met", "unmet", "unknown"]);
+const eligibilityTraceSchema = z.lazy(() => z.union([
     z
         .object({
         kind: z.enum(["all", "any"]),

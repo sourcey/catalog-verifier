@@ -2,7 +2,6 @@ import { z } from "zod";
 export declare const signaturePurposeSchema: z.ZodEnum<{
     "catalog-attestation": "catalog-attestation";
     "catalog-authority": "catalog-authority";
-    "catalog-capture": "catalog-capture";
     "catalog-dispute": "catalog-dispute";
     "catalog-evidence": "catalog-evidence";
     "catalog-feed": "catalog-feed";
@@ -11,7 +10,6 @@ export declare const signaturePurposeSchema: z.ZodEnum<{
     "catalog-release": "catalog-release";
     "catalog-verification": "catalog-verification";
 }>;
-export declare const registeredSignaturePurposeSchema: z.ZodString;
 /**
  * Exact authority for an immutable admission decision. Human review and
  * deterministic policy are two attribution forms on one decision contract;
@@ -110,7 +108,6 @@ export declare const protectedSignatureSchema: z.ZodObject<{
     signature_purpose: z.ZodEnum<{
         "catalog-attestation": "catalog-attestation";
         "catalog-authority": "catalog-authority";
-        "catalog-capture": "catalog-capture";
         "catalog-dispute": "catalog-dispute";
         "catalog-evidence": "catalog-evidence";
         "catalog-feed": "catalog-feed";

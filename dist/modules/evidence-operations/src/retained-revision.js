@@ -1,32 +1,30 @@
 import { digest } from "provenry/primitives";
-import { agentReadinessDeclarationRevisionSchema, agentReadinessRevisionContract, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { revisionDocumentSchema } from "../../../contracts/api/src/index.js";
 import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
-/** Parses a revision under the schema its contract names and proves its canonical core. */
+/** Reads a retained revision's contract and digest, and proves its bytes against the digest. */
 export function parseRetainedCatalogRevision(value) {
-    const candidate = typeof value === "object" && value !== null ? value : {};
-    const parsed = safeParseRevision(candidate.revision_contract, value);
+    const parsed = revisionDocumentSchema.safeParse(value);
     if (!parsed.success) {
-        throw new Error(`Retained revision ${String(candidate.revision_digest ?? "unknown")} (${String(candidate.revision_contract ?? "unknown")}) does not use the current revision contract.`);
+        const candidate = typeof value === "object" && value !== null ? value : {};
+        throw new Error(`Retained revision ${String(candidate.revision_digest ?? "unknown")} (${String(candidate.revision_contract ?? "unknown")}) does not use a released revision contract.`);
     }
-    const revision = parsed.data;
-    const { revision_digest: revisionDigest, ...core } = revision;
+    const { revision_digest: revisionDigest, ...core } = parsed.data;
     if (digest(core) !== revisionDigest) {
         throw new Error(`Retained revision ${revisionDigest} does not match its canonical core.`);
     }
-    return revision;
+    return parsed.data;
 }
-function safeParseRevision(contract, value) {
-    switch (contract) {
+/** A retained listing revision read for its meaning; any other contract is refused. */
+export function currentListingRevision(revision) {
+    switch (revision.revision_contract) {
         case catalogRevisionContracts.entity:
-            return entityRevisionSchema.safeParse(value);
+            return entityRevisionSchema.parse(revision);
         case catalogRevisionContracts.program:
-            return programRevisionSchema.safeParse(value);
+            return programRevisionSchema.parse(revision);
         case catalogRevisionContracts.offer:
-            return offerRevisionSchema.safeParse(value);
-        case agentReadinessRevisionContract:
-            return agentReadinessRevisionSchema.safeParse(value);
+            return offerRevisionSchema.parse(revision);
         default:
-            return agentReadinessDeclarationRevisionSchema.safeParse(value);
+            throw new Error(`Revision ${revision.revision_digest} is not a listing revision.`);
     }
 }
 //# sourceMappingURL=retained-revision.js.map

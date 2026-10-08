@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
-import { agentReadinessAssessmentTargetSchema, agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationProposalSchema, agentReadinessParticipantRoleSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
+import { agentReadinessJobBindingSchema } from "./binding.js";
+import { agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationProposalSchema, agentReadinessParticipantRoleSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
 import { agentReadinessAuthoringPathSchema } from "./declaration-reference.js";
 import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessInstantSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, } from "./shared.js";
 const sourceUrisSchema = z.array(catalogAuthoringUrlSchema).min(1);
@@ -16,7 +17,7 @@ export const agentReadinessDraftSubjectSchema = z.discriminatedUnion("kind", [
     })
         .strict(),
 ]);
-export const agentReadinessDraftParticipantSchema = z
+const agentReadinessDraftParticipantSchema = z
     .object({
     participant_id: agentReadinessScopeKeySchema.refine((value) => value !== "subject", "The subject participant is generated and uses the reserved ID 'subject'."),
     roles: z.array(agentReadinessParticipantRoleSchema.exclude(["subject"])).min(1),
@@ -27,25 +28,26 @@ export const agentReadinessDraftParticipantSchema = z
     source_uris: sourceUrisSchema,
 })
     .strict();
-export const agentReadinessDraftResourceSchema = agentReadinessResourceSchema
+const agentReadinessDraftResourceSchema = agentReadinessResourceSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
-export const agentReadinessDraftEndpointSchema = agentReadinessEndpointSchema
+const agentReadinessDraftEndpointSchema = agentReadinessEndpointSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
-export const agentReadinessDraftInterfaceSchema = agentReadinessDeclaredInterfaceSchema
+const agentReadinessDraftInterfaceSchema = agentReadinessDeclaredInterfaceSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
-export const agentReadinessDraftAssessmentTargetSchema = agentReadinessAssessmentTargetSchema
+/** A job binding as drafted: its calls are sourced from where the service documents them. */
+const agentReadinessDraftJobBindingSchema = z
+    .object({ binding: agentReadinessJobBindingSchema, source_uris: sourceUrisSchema })
+    .strict();
+const agentReadinessDraftRelationSchema = agentReadinessSurfaceRelationSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
-export const agentReadinessDraftRelationSchema = agentReadinessSurfaceRelationSchema
+const agentReadinessDraftOfferRelationSchema = agentReadinessOfferRelationProposalSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
-export const agentReadinessDraftOfferRelationSchema = agentReadinessOfferRelationProposalSchema
-    .safeExtend({ source_uris: sourceUrisSchema })
-    .strict();
-export const agentReadinessDraftSurfaceExclusionSchema = agentReadinessSurfaceExclusionSchema
+const agentReadinessDraftSurfaceExclusionSchema = agentReadinessSurfaceExclusionSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
 /**
@@ -60,7 +62,7 @@ export const agentReadinessDeclarationDraftRequestSchema = z
     scope: agentReadinessScopeSchema.optional(),
     scope_source_uris: z.array(catalogAuthoringUrlSchema).default([]),
     subject_roles: z.array(agentReadinessParticipantRoleSchema.exclude(["subject"])).default([]),
-    assessment_targets: z.array(agentReadinessDraftAssessmentTargetSchema).default([]),
+    job_bindings: z.array(agentReadinessDraftJobBindingSchema).default([]),
     participants: z.array(agentReadinessDraftParticipantSchema).default([]),
     resources: z.array(agentReadinessDraftResourceSchema).default([]),
     endpoints: z.array(agentReadinessDraftEndpointSchema).default([]),

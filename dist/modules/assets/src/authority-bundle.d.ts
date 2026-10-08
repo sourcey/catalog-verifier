@@ -3,7 +3,7 @@ import { type AssetAuthorityBundleManifest, type EntityAssetProposal, type Entit
 import type { SignerRegistry } from "../../../contracts/authority/src/index.js";
 import { type CatalogEvent, type CatalogEventCore } from "../../../contracts/events/src/index.js";
 import type { CatalogPublicationProposal } from "../../../contracts/publication/src/index.js";
-export interface ReadAssetAuthorityBundle {
+interface ReadAssetAuthorityBundle {
     readonly manifest: AssetAuthorityBundleManifest;
     readonly proposals: readonly EntityAssetProposal[];
     readonly reviews: readonly EntityAssetReviewArtifact[];
@@ -42,8 +42,5 @@ export declare function assertAssetAuthorityCoverage(input: {
         readonly proposals: readonly EntityAssetProposal[];
     }[];
 }): void;
-export declare function assetAuthorityObjectPaths(input: {
-    readonly proposals: readonly EntityAssetProposal[];
-    readonly events: readonly CatalogEvent[];
-}): readonly string[];
+export {};
 //# sourceMappingURL=authority-bundle.d.ts.map

@@ -12,7 +12,6 @@ const rootSignatureSchema = z
 })
     .strict();
 export const signaturePurposeSchema = z.enum([
-    "catalog-capture",
     "catalog-evidence",
     "catalog-identity",
     "catalog-authority",
@@ -23,7 +22,7 @@ export const signaturePurposeSchema = z.enum([
     "catalog-release",
     "catalog-feed",
 ]);
-export const registeredSignaturePurposeSchema = identifier;
+const registeredSignaturePurposeSchema = identifier;
 /**
  * Exact authority for an immutable admission decision. Human review and
  * deterministic policy are two attribution forms on one decision contract;

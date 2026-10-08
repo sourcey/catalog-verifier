@@ -202,8 +202,14 @@ export declare function releaseSignerRegistryObjectPath(signerRegistryDigest: st
 export declare function releaseTrustTransitionObjectPath(transitionDigest: string): string;
 export declare function releasePolicyObjectPath(policyDigest: string): string;
 export declare function releaseCaptureObjectPath(captureDigest: string): string;
+/** A Provenry capture start, the reservation made before the fetch. */
+export declare function releaseCaptureStartObjectPath(startDigest: string): string;
+/** A Provenry capture attempt, what the fetch returned. */
+export declare function releaseCaptureAttemptObjectPath(attemptDigest: string): string;
+/** A Provenry capture attestation, the signature that proves a start and its attempt. */
+export declare function releaseCaptureAttestationObjectPath(attestationDigest: string): string;
 export declare function releaseNormalizedObjectPath(normalizedDigest: string): string;
-export declare const catalogDeltaEntityChangeSchema: z.ZodObject<{
+declare const catalogDeltaEntityChangeSchema: z.ZodObject<{
     operation: z.ZodLiteral<"upsert">;
     entity_id: z.ZodString;
     prior_projection_digest: z.ZodNullable<z.ZodString>;
@@ -334,11 +340,11 @@ export declare const catalogStateTransitionCoreSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
-            receipt_digest: z.ZodString;
-            receipt_object_digest: z.ZodString;
-            issuer_id: z.ZodString;
-            operation_id: z.ZodString;
+        capture_attestations: z.ZodRecord<z.ZodString, z.ZodObject<{
+            attestation_digest: z.ZodString;
+            attestation_object_digest: z.ZodString;
+            start_digest: z.ZodString;
+            attempt_digest: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
@@ -497,11 +503,11 @@ export declare const catalogDeltaCoreSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
-            receipt_digest: z.ZodString;
-            receipt_object_digest: z.ZodString;
-            issuer_id: z.ZodString;
-            operation_id: z.ZodString;
+        capture_attestations: z.ZodRecord<z.ZodString, z.ZodObject<{
+            attestation_digest: z.ZodString;
+            attestation_object_digest: z.ZodString;
+            start_digest: z.ZodString;
+            attempt_digest: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
@@ -661,11 +667,11 @@ export declare const catalogDeltaSchema: z.ZodObject<{
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
-        capture_receipts: z.ZodRecord<z.ZodString, z.ZodObject<{
-            receipt_digest: z.ZodString;
-            receipt_object_digest: z.ZodString;
-            issuer_id: z.ZodString;
-            operation_id: z.ZodString;
+        capture_attestations: z.ZodRecord<z.ZodString, z.ZodObject<{
+            attestation_digest: z.ZodString;
+            attestation_object_digest: z.ZodString;
+            start_digest: z.ZodString;
+            attempt_digest: z.ZodString;
             signer_registry_digest: z.ZodString;
             first_inclusion_sequence: z.ZodNumber;
         }, z.core.$strict>>;
@@ -859,6 +865,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -888,6 +898,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -950,6 +964,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -970,6 +988,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1115,6 +1137,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
@@ -1142,6 +1168,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
@@ -1202,6 +1232,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
@@ -1215,6 +1249,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
@@ -1405,6 +1443,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1434,6 +1476,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1496,6 +1542,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1516,6 +1566,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1661,6 +1715,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"discount">;
@@ -1688,6 +1746,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"cashback">;
@@ -1748,6 +1810,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"free-service">;
@@ -1761,6 +1827,10 @@ export declare const catalogDeltaEntityObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">;
                 }, z.core.$strict>, z.ZodObject<{
                     kind: z.ZodLiteral<"waiver">;
@@ -1886,6 +1956,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1915,6 +1989,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1977,6 +2055,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -1997,6 +2079,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2149,6 +2235,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2178,6 +2268,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2240,6 +2334,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2260,6 +2358,10 @@ export declare const catalogDeltaAuthoringObjectSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         kind: z.ZodLiteral<"at-least">;
                         value: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        kind: z.ZodLiteral<"range">;
+                        minimum: z.ZodString;
+                        maximum: z.ZodString;
                     }, z.core.$strict>], "kind">>;
                 }, z.core.$strict>, z.ZodObject<{
                     benefit_id: z.ZodString;
@@ -2309,7 +2411,7 @@ export declare const closedInputSetSchema: z.ZodObject<{
     }>;
     authoring_revisions: z.ZodArray<z.ZodString>;
     event_ids: z.ZodArray<z.ZodString>;
-    capture_receipt_digests: z.ZodArray<z.ZodString>;
+    capture_attestation_digests: z.ZodArray<z.ZodString>;
     evidence_authority_set_digest: z.ZodNullable<z.ZodString>;
     evidence_authority_bundle_digests: z.ZodArray<z.ZodString>;
     resource_digests: z.ZodRecord<z.ZodString, z.ZodString>;
@@ -2428,7 +2530,6 @@ export declare const releasePublicationSchema: z.ZodObject<{
         signature_purpose: z.ZodEnum<{
             "catalog-attestation": "catalog-attestation";
             "catalog-authority": "catalog-authority";
-            "catalog-capture": "catalog-capture";
             "catalog-dispute": "catalog-dispute";
             "catalog-evidence": "catalog-evidence";
             "catalog-feed": "catalog-feed";
@@ -2451,10 +2552,8 @@ export type CatalogPublicationParent = z.infer<typeof catalogPublicationParentSc
 export type ReleasePublicationCore = z.infer<typeof releasePublicationCoreSchema>;
 export type ReleasePublication = z.infer<typeof releasePublicationSchema>;
 export type CatalogReleaseDelivery = z.infer<typeof catalogReleaseDeliverySchema>;
-export type ClosedInputSet = z.infer<typeof closedInputSetSchema>;
-export type ReleaseObservationInputs = z.infer<typeof releaseObservationInputsSchema>;
 export type CatalogDelta = z.infer<typeof catalogDeltaSchema>;
-export type CatalogDeltaCore = z.infer<typeof catalogDeltaCoreSchema>;
 export type CatalogDeltaEntityChange = z.infer<typeof catalogDeltaEntityChangeSchema>;
 export type CatalogStateTransitionCore = z.infer<typeof catalogStateTransitionCoreSchema>;
+export {};
 //# sourceMappingURL=index.d.ts.map

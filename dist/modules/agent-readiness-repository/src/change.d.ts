@@ -1,7 +1,7 @@
 import { type Digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY, type AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/index.js";
 import { type AgentReadinessDeclarationBlob } from "./declaration-blob.js";
-export type AgentReadinessDeclarationDelta = {
+type AgentReadinessDeclarationDelta = {
     readonly kind: "declaration_added";
     readonly declarationId: string;
     readonly currentRevisionDigest: Digest;
@@ -30,7 +30,7 @@ export interface AgentReadinessAuthoringDelta {
     readonly entitySubjectChanged: boolean;
     readonly declarations: readonly AgentReadinessDeclarationDelta[];
 }
-export interface AgentReadinessRepositoryPathDelta extends AgentReadinessAuthoringDelta {
+interface AgentReadinessRepositoryPathDelta extends AgentReadinessAuthoringDelta {
     readonly status: "added" | "modified" | "removed";
     readonly path: string;
 }
@@ -70,6 +70,5 @@ export declare function agentReadinessAuthoringDelta(input: {
     readonly base: AgentReadinessDeclarationBlob | null;
     readonly head: AgentReadinessDeclarationBlob | null;
 }): AgentReadinessAuthoringDelta;
-/** Every declaration in the bytes closes over the installed readiness policy. */
-export declare function assertAgentReadinessBlobPolicy(blob: AgentReadinessDeclarationBlob | null, policy: AgentReadinessPolicy): void;
+export {};
 //# sourceMappingURL=change.d.ts.map

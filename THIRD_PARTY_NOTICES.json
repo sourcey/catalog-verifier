@@ -7,10 +7,10 @@
   "dependencies": [
     {
       "name": "entities",
-      "version": "8.0.0",
+      "version": "8.1.0",
       "license": "BSD-2-Clause",
-      "resolved": "https://registry.npmjs.org/entities/-/entities-8.0.0.tgz",
-      "integrity": "sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==",
+      "resolved": "https://registry.npmjs.org/entities/-/entities-8.1.0.tgz",
+      "integrity": "sha512-kxL7msIffSuh9aaFAMD7rxAIuTRMAHMeBtgHW2yUdWw732ZNh4MehkF2gdjvtdmikkaIP9bFDDJOPlsvm7avrA==",
       "lock_path": "node_modules/entities",
       "license_files": [
         {
@@ -37,10 +37,10 @@
     },
     {
       "name": "provenry",
-      "version": "0.1.5",
+      "version": "0.2.0",
       "license": "MIT",
-      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.1.5.tgz",
-      "integrity": "sha512-FwchnhfQBYG9JtTcWGM4i8aXSTiKBXgyX8azQdVZyd4am+aZ8+yPn1ekp4VMjOGyAXtlhIzWqgwskUx7iTjm1w==",
+      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.2.0.tgz",
+      "integrity": "sha512-+Z2o6BLUf1NqkunyjtzZrgqo3/th81qPM44RnxdfUhJOwb4Q2zWnMWM7E47GGj9JCYyCQ5IuROiWI5tcwNG1UQ==",
       "lock_path": "node_modules/provenry",
       "license_files": [
         {

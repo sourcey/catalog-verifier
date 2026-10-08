@@ -1,26 +1,25 @@
 import { TextDecoder } from "node:util";
 import { canonicalJson, digest, IDENTIFIER_PATTERN, sha256Bytes, } from "provenry/primitives";
 import { z } from "zod";
-import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { sourceyEvidenceCaptureMethodVersion } from "../../../contracts/capture/src/method-names.js";
 import { sourceyCaptureMethodRegistry } from "../../../contracts/capture/src/methods.js";
 import { EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT, evidenceAssertionSchema, evidenceCaptureDeclarationSchema, evidenceDerivationRuleSchema, evidenceProofKindSchema, evidenceReceiptSubjectSchema, evidenceSourceStandingSchema, } from "../../../contracts/evidence/src/index.js";
 import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
 import { evidenceNormalizerSchema, normalizeEvidenceCapture } from "./evidence-normalization.js";
 import { hostnameWithinEntityDomains } from "./source-authority.js";
-export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
+export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_TOOLCHAIN, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const pointerSchema = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
 const utf8 = new TextDecoder("utf-8", { fatal: true });
-export const EVIDENCE_SUBMISSION_LIMITS = {
+const EVIDENCE_SUBMISSION_LIMITS = {
     captureBytes: 10 * 1024 * 1024,
     normalizedBytes: 5 * 1024 * 1024,
     assertions: 128,
     locatorsPerAssertion: EVIDENCE_LOCATORS_PER_ASSERTION_LIMIT,
     redirects: 5,
 };
-export const evidenceSubmissionCaptureSchema = evidenceCaptureDeclarationSchema;
-export const evidenceSubmissionNormalizationSchema = evidenceNormalizerSchema
+const evidenceSubmissionCaptureSchema = evidenceCaptureDeclarationSchema;
+const evidenceSubmissionNormalizationSchema = evidenceNormalizerSchema
     .extend({ object_digest: digestSchema })
     .strict();
 export const evidenceSubmissionSchema = z
@@ -152,7 +151,6 @@ export function verifyEvidenceCaptureObjects(input) {
     const normalized = normalizeEvidenceCapture({
         bytes: input.captureBytes,
         mediaType: capture.media_type,
-        normalizerToolchainDigest: normalization.toolchain_digest,
     });
     if (normalized.digest !== normalization.object_digest ||
         sha256Bytes(input.normalizedBytes) !== normalization.object_digest ||
@@ -188,14 +186,6 @@ function assertRevisionAuthorityBindings(input) {
     }
 }
 function revisionSubject(revision) {
-    if (revision.revision_contract === agentReadinessRevisionContract) {
-        return {
-            subject_type: "agent_readiness_profile",
-            entity_id: revision.entity_id,
-            agent_readiness_profile_id: revision.agent_readiness_profile_id,
-            revision_digest: revision.revision_digest,
-        };
-    }
     if (revision.revision_contract === catalogRevisionContracts.offer) {
         return {
             subject_type: "offer",
@@ -226,7 +216,7 @@ export function verifyEvidenceAssertions(input) {
             throw new Error(`Evidence submission repeats path ${assertion.path}.`);
         }
         paths.add(assertion.path);
-        if (!pointerExists(revisionEvidenceValue(input.revision), assertion.path)) {
+        if (!pointerExists(input.revision.content, assertion.path)) {
             throw new Error(`Evidence assertion targets missing revision path ${assertion.path}.`);
         }
         const values = assertion.locators.map((locator) => {
@@ -254,11 +244,6 @@ export function verifyEvidenceAssertions(input) {
             values,
         };
     });
-}
-function revisionEvidenceValue(revision) {
-    return revision.revision_contract === agentReadinessRevisionContract
-        ? revision
-        : revision.content;
 }
 export function prepareEvidenceReviewProposal(input) {
     const verified = verifyEvidenceSubmission(input);

@@ -1,8 +1,9 @@
+import { captureAttemptAttestationSchema } from "provenry/capture/attestation";
 import { publicationResourceDigestsSchema } from "provenry/contracts/publication";
 import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN, SLUG_PATTERN, } from "provenry/primitives";
 import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
-import { agentReadinessAuthoringPathSchema, agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionSchema, agentReadinessDraftDiagnosticSchema, agentReadinessFreshnessSchema, agentReadinessGradeSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionLineageSchema, agentReadinessProjectionSchema, agentReadinessPublicationVisibilitySchema, agentReadinessPublicStateSchema, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
+import { agentReadinessAuthoringPathSchema, agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDeclarationRevisionContract, agentReadinessDeclarationRevisionSchema, agentReadinessDraftDiagnosticSchema, agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessOnboardLevelSchema, agentReadinessOperateLetterSchema, agentReadinessProfileSummarySchema, agentReadinessProjectionSchema, agentReadinessPublicationVisibilitySchema, agentReadinessRevisionContract, agentReadinessRevisionHeadSchema, agentReadinessRevisionSchema, agentReadinessScopeKeySchema, agentReadinessServedFreshnessMapSchema, } from "../../agent-readiness/src/index.js";
 import { canonicalArtifactSchema, compiledEntitySchema, compiledOfferSchema, compiledPolicySchema, compiledProgramSchema, provenanceEntrySchema, } from "../../artifact/src/index.js";
 import { assetBindingProjectionSchema, assetMediaTypeSchema, ENTITY_ICON_MAX_SOURCE_BYTES, entityAssetSubmissionSchema, entityAssetUploadHeadersSchema, entityAssetUploadReceiptSchema, } from "../../assets/src/index.js";
 import { entityIdentityAssuranceSchema } from "../../assurance/src/index.js";
@@ -11,12 +12,11 @@ import { commercialOrderIdSchema } from "../../billing/src/index.js";
 import { catalogAdmissionConflictLookupRequestSchema, catalogVerifierIdentityContextPacketSchema, } from "../../catalog-verifier/src/index.js";
 import { agentReadinessDatasetSchema, companiesDatasetSchema, startupCreditsDatasetSchema, } from "../../datasets/src/index.js";
 import { catalogEventPayloadSchemas, eventSubjectSchema } from "../../events/src/index.js";
-import { captureReceiptSchema } from "../../evidence/src/index.js";
 import { changeFeedPageSchema } from "../../feed/src/index.js";
 import { observationSchema } from "../../observations/src/index.js";
-import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, PUBLICATION_STAGES, publicationDiagnosticSchema, publicationStageResultSchema, } from "../../publication/src/index.js";
+import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, PUBLICATION_STAGES, publicationStageResultSchema, } from "../../publication/src/index.js";
 import { sourceyReleaseEnvelopeSchemas } from "../../release/src/index.js";
-import { eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
+import { catalogRevisionContracts, eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
 import { agentReadinessJsonCanonicalPath, companiesJsonCanonicalPath, startupCreditsJsonCanonicalPath, } from "../../routes/src/index.js";
 import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../startup-credits-commercial/src/index.js";
 import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
@@ -30,7 +30,7 @@ const slug = z.string().regex(SLUG_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
-export const SOURCEY_PUBLIC_API_VERSION = "1.2.3";
+export const SOURCEY_PUBLIC_API_VERSION = "1.2.6";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -48,7 +48,7 @@ export const siteRecordEnvelopeSchema = z
     data: z.unknown(),
 })
     .strict();
-export const catalogApiErrorCodeSchema = z.enum([
+const catalogApiErrorCodeSchema = z.enum([
     "already_verified",
     "authentication_required",
     "capacity_unavailable",
@@ -71,7 +71,7 @@ export const catalogApiErrorCodeSchema = z.enum([
     "service_unavailable",
     "standing_stale",
 ]);
-export const catalogApiErrorSchema = z
+const catalogApiErrorSchema = z
     .object({
     code: catalogApiErrorCodeSchema,
     message: z.string().min(1),
@@ -143,7 +143,7 @@ export const catalogReleaseCursorSchema = catalogReleaseSummarySchema
     admitted_input_digests: true,
 })
     .strip();
-export const eligibilityCheckInputSchema = z
+const eligibilityCheckInputSchema = z
     .object({
     offer_id: offerId,
     facts: eligibilityFactsSchema,
@@ -243,7 +243,7 @@ export const entityListResponseSchema = pagedApiEnvelope(compiledEntitySchema).e
     summary: catalogEntityListSummarySchema,
     assets: entityAssetBindingsSchema,
 });
-export const entityTombstoneSchema = z.discriminatedUnion("transition", [
+const entityTombstoneSchema = z.discriminatedUnion("transition", [
     z
         .object({
         kind: z.literal("entity_tombstone"),
@@ -298,7 +298,7 @@ export const offerTombstoneSchema = z.discriminatedUnion("transition", [
     })
         .strict(),
 ]);
-export const programTombstoneSchema = z.discriminatedUnion("transition", [
+const programTombstoneSchema = z.discriminatedUnion("transition", [
     z
         .object({
         kind: z.literal("program_tombstone"),
@@ -316,7 +316,7 @@ export const programTombstoneSchema = z.discriminatedUnion("transition", [
     })
         .strict(),
 ]);
-export const agentReadinessProfileTombstoneSchema = z.discriminatedUnion("transition", [
+const agentReadinessProfileTombstoneSchema = z.discriminatedUnion("transition", [
     z
         .object({
         kind: z.literal("agent_readiness_profile_tombstone"),
@@ -367,7 +367,7 @@ const offerSearchResultBaseSchema = z
     canonical_url: z.url(),
 })
     .strict();
-export const offerSearchResultSchema = z.union([
+const offerSearchResultSchema = z.union([
     offerSearchResultBaseSchema.extend({
         program_id: programId,
         program_slug: slug,
@@ -375,7 +375,7 @@ export const offerSearchResultSchema = z.union([
     }),
     offerSearchResultBaseSchema,
 ]);
-export const searchEntitiesResponseSchema = apiEnvelope(z.array(compiledEntitySchema)).extend({
+const searchEntitiesResponseSchema = apiEnvelope(z.array(compiledEntitySchema)).extend({
     query: z.string(),
     next_cursor: z.string().min(1).nullable(),
 });
@@ -386,17 +386,13 @@ export const searchOffersResponseSchema = apiEnvelope(z.array(offerSearchResultS
 export const entityAgentReadinessProfilesResponseSchema = apiEnvelope(z.array(agentReadinessProjectionSchema)).extend({
     entity_id: entityId,
     next_cursor: z.string().min(1).nullable(),
+    freshness: agentReadinessServedFreshnessMapSchema,
 });
-export const agentReadinessProfileResponseSchema = apiEnvelope(z.union([agentReadinessProjectionSchema, agentReadinessProfileTombstoneSchema]));
-export const agentReadinessProjectionLineageResponseSchema = apiEnvelope(z.union([agentReadinessProjectionLineageSchema, agentReadinessProfileTombstoneSchema]));
-export const agentReadinessProjectionLineageListResponseSchema = apiEnvelope(z.array(agentReadinessProjectionLineageSchema)).extend({
-    query: z.string(),
-    next_cursor: z.string().min(1).nullable(),
-});
-export const entityAgentReadinessProjectionLineageResponseSchema = apiEnvelope(z.array(agentReadinessProjectionLineageSchema)).extend({ entity_id: entityId });
+export const agentReadinessProfileResponseSchema = apiEnvelope(z.union([agentReadinessProjectionSchema, agentReadinessProfileTombstoneSchema])).extend({ freshness: agentReadinessServedFreshnessMapSchema });
 export const agentReadinessProfileListResponseSchema = apiEnvelope(z.array(agentReadinessProfileSummarySchema)).extend({
     query: z.string(),
     next_cursor: z.string().min(1).nullable(),
+    freshness: agentReadinessServedFreshnessMapSchema,
 });
 export const agentReadinessOfferRelationResponseSchema = apiEnvelope(agentReadinessOfferRelationRevisionSchema);
 export const agentReadinessOfferRelationListResponseSchema = apiEnvelope(z.array(agentReadinessOfferRelationRevisionSchema)).extend({
@@ -416,7 +412,11 @@ export const offerAgentReadinessProfilesResponseSchema = apiEnvelope(z.array(z
         });
     }
 })))
-    .extend({ offer_id: offerId, next_cursor: z.string().min(1).nullable() })
+    .extend({
+    offer_id: offerId,
+    next_cursor: z.string().min(1).nullable(),
+    freshness: agentReadinessServedFreshnessMapSchema,
+})
     .superRefine((value, context) => {
     if (value.data.some((item) => item.relation.offer_id !== value.offer_id)) {
         context.addIssue({
@@ -426,7 +426,7 @@ export const offerAgentReadinessProfilesResponseSchema = apiEnvelope(z.array(z
         });
     }
 });
-export const eligibilityResponseSchema = apiEnvelope(z
+const eligibilityResponseSchema = apiEnvelope(z
     .object({
     entity_id: entityId,
     program_id: programId,
@@ -437,13 +437,56 @@ export const eligibilityResponseSchema = apiEnvelope(z
 })
     .strict());
 export const provenanceResponseSchema = apiEnvelope(provenanceEntrySchema);
-export const revisionResponseSchema = apiEnvelope(z.union([
+/** A current revision. The API serves only revisions current state references. */
+export const catalogRevisionSchema = z.union([
     entityRevisionSchema,
     programRevisionSchema,
     offerRevisionSchema,
     agentReadinessRevisionSchema,
     agentReadinessDeclarationRevisionSchema,
-]));
+]);
+/**
+ * A revision as a release admitted it: its contract, digest and identity, and otherwise its exact
+ * bytes, which the release that first included it verified. A reader that needs its meaning
+ * parses the current schema for its contract.
+ */
+const revisionDocumentHead = { revision_digest: digest, entity_id: entityId };
+export const revisionDocumentSchema = z.discriminatedUnion("revision_contract", [
+    z
+        .object({
+        revision_contract: z.literal(catalogRevisionContracts.entity),
+        ...revisionDocumentHead,
+    })
+        .passthrough(),
+    z
+        .object({
+        revision_contract: z.literal(catalogRevisionContracts.program),
+        ...revisionDocumentHead,
+        program_id: programId,
+    })
+        .passthrough(),
+    z
+        .object({
+        revision_contract: z.literal(catalogRevisionContracts.offer),
+        ...revisionDocumentHead,
+        offer_id: offerId,
+    })
+        .passthrough(),
+    z
+        .object({
+        revision_contract: z.literal(agentReadinessRevisionContract),
+        ...revisionDocumentHead,
+        agent_readiness_profile_id: agentReadinessProfileId,
+    })
+        .passthrough(),
+    z
+        .object({
+        revision_contract: z.literal(agentReadinessDeclarationRevisionContract),
+        ...revisionDocumentHead,
+    })
+        .passthrough(),
+]);
+export const revisionResponseSchema = apiEnvelope(catalogRevisionSchema);
 const publicCatalogEventVariants = Object.entries(catalogEventPayloadSchemas).map(([kind, payload]) => z
     .object({
     event_contract: z.literal("sourcey.catalog-event/v1alpha1"),
@@ -457,12 +500,10 @@ const publicCatalogEventVariants = Object.entries(catalogEventPayloadSchemas).ma
     protected: protectedSignatureSchema,
 })
     .strict());
-export const publicCatalogEventSchema = z.union(publicCatalogEventVariants);
+const publicCatalogEventSchema = z.union(publicCatalogEventVariants);
 export const eventResponseSchema = apiEnvelope(publicCatalogEventSchema);
 export const eventListResponseSchema = pagedApiEnvelope(publicCatalogEventSchema);
-export const captureReceiptResponseSchema = apiEnvelope(captureReceiptSchema);
-export const captureReceiptListResponseSchema = pagedApiEnvelope(captureReceiptSchema);
-export const publicObservationSchema = observationSchema;
+const publicObservationSchema = observationSchema;
 export const observationResponseSchema = apiEnvelope(publicObservationSchema);
 const closureItems = (item) => z.array(item).max(1_000).default([]);
 const closureQueryItems = (item) => z.array(item).default([]);
@@ -476,8 +517,7 @@ const catalogClosureFields = (items) => ({
     event_ids: items(digest),
     event_operation_ids: items(operationId),
     observation_ids: items(digest),
-    capture_receipt_digests: items(digest),
-    capture_operation_ids: items(operationId),
+    capture_attestation_digests: items(digest),
 });
 const nonEmptyCatalogClosureQuery = (schema) => schema.refine((value) => Object.values(value).some((items) => Array.isArray(items) && items.length > 0), {
     message: "A catalog closure query must name at least one immutable object or current subject.",
@@ -503,7 +543,8 @@ export const catalogClosureResponseSchema = apiEnvelope(z
         .strict()),
     events: z.array(publicCatalogEventSchema),
     observations: z.array(publicObservationSchema),
-    capture_receipts: z.array(captureReceiptSchema),
+    /** The named capture attestations the live release already carries. */
+    capture_attestations: z.array(captureAttemptAttestationSchema),
 })
     .strict());
 /**
@@ -555,7 +596,7 @@ const entityAgentReadinessScopePath = z
     .object({
     entity: entityId,
     product: agentReadinessScopeKeySchema,
-    funnel: agentReadinessScopeKeySchema,
+    job: agentReadinessScopeKeySchema,
 })
     .strict();
 const pageQuery = z
@@ -581,15 +622,16 @@ const entityAssetListQuery = z
     limit: z.coerce.number().int().min(1).max(100).default(100),
 })
     .strict();
-export const agentReadinessProfileListQuerySchema = z
+const agentReadinessProfileListQuerySchema = z
     .object({
     q: z.string().max(256).default(""),
     entity_id: entityId.optional(),
     offer_id: offerId.optional(),
     product_key: agentReadinessScopeKeySchema.optional(),
-    funnel_key: agentReadinessScopeKeySchema.optional(),
-    grade: agentReadinessGradeSchema.optional(),
-    public_state: agentReadinessPublicStateSchema.optional(),
+    job_key: agentReadinessScopeKeySchema.optional(),
+    operate_letter: agentReadinessOperateLetterSchema.optional(),
+    onboard_level: z.coerce.number().pipe(agentReadinessOnboardLevelSchema).optional(),
+    label: agentReadinessEvidenceLabelSchema.optional(),
     visibility: agentReadinessPublicationVisibilitySchema.exclude(["private"]).optional().meta({
         description: "Publication visibility. Defaults to discoverable. Select resolvable_only to enumerate public records retained outside discovery, including stale report cards. Private candidates are never returned.",
     }),
@@ -599,7 +641,7 @@ export const agentReadinessProfileListQuerySchema = z
     limit: z.coerce.number().int().min(1).max(100).default(20),
 })
     .strict();
-export const agentReadinessOfferRelationListQuerySchema = z
+const agentReadinessOfferRelationListQuerySchema = z
     .object({
     agent_readiness_profile_id: agentReadinessProfileId.optional(),
     offer_id: offerId.optional(),
@@ -619,13 +661,6 @@ const eventListQuery = z
     .refine((value) => value.operation_id !== undefined ||
     value.entity_id !== undefined ||
     value.revision_digest !== undefined, { message: "An exact operation_id, entity_id or revision_digest filter is required." });
-const operationLookupQuery = z
-    .object({
-    operation_id: operationId,
-    cursor: z.string().min(1).optional(),
-    limit: z.coerce.number().int().min(1).max(100).optional(),
-})
-    .strict();
 const sitemapPageQuery = z
     .object({
     cursor: z.string().min(1).optional(),
@@ -645,7 +680,7 @@ export const catalogSubmissionAuthoringFileSchema = z
     content: z.string().min(1),
 })
     .strict();
-export const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
+const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
     z.object({ kind: z.literal("authenticated_form") }).strict(),
     z
         .object({
@@ -696,7 +731,7 @@ function changesCatalogRecords(value) {
 }
 const CATALOG_RECORD_CHANGE_REQUIRED = "A submission must contain authoring, an Entity removal, or an Entity asset.";
 /** One Catalog record change: the existing Catalog proposal payload. */
-export const catalogRecordSubmissionPayloadSchema = z
+const catalogRecordSubmissionPayloadSchema = z
     .object(catalogRecordChangeShape)
     .strict()
     .superRefine(uniqueExpectedEntities)
@@ -729,7 +764,7 @@ export const submissionRequestSchema = z.discriminatedUnion("product", [
     })
         .strict(),
 ]);
-export const catalogSubmissionAuthorizationPolicySchema = z.enum(["proposal", "publication"]);
+const catalogSubmissionAuthorizationPolicySchema = z.enum(["proposal", "publication"]);
 export const catalogSubmissionOperatorAdmissionCoreSchema = z
     .object({
     admission_contract: z.literal("sourcey.catalog-submission-operator-admission/v1alpha1"),
@@ -771,18 +806,17 @@ export const catalogSubmissionWorkItemSchema = catalogSubmissionWorkItemCoreSche
     .extend({ work_item_digest: digest })
     .strict();
 /** Mutable execution progress never rewrites the protected submission identity. */
-export const catalogSubmissionExecutionSchema = z
+const catalogSubmissionExecutionSchema = z
     .object({
     work_item: catalogSubmissionWorkItemSchema,
     publication_base: catalogPublicationCurrentStateSchema,
 })
     .strict();
-export const catalogSubmissionHeadersSchema = z.looseObject({
+const catalogSubmissionHeadersSchema = z.looseObject({
     "idempotency-key": z.string().min(8).max(128),
 });
-export const catalogSubmissionDiagnosticSchema = publicationDiagnosticSchema;
-export const catalogSubmissionStageResultSchema = publicationStageResultSchema;
-export const catalogSubmissionStateSchema = z.enum([
+const catalogSubmissionStageResultSchema = publicationStageResultSchema;
+const catalogSubmissionStateSchema = z.enum([
     "queued",
     "active",
     "awaiting_review",
@@ -792,7 +826,7 @@ export const catalogSubmissionStateSchema = z.enum([
     "invalidated",
     "published",
 ]);
-export const catalogSubmissionTelemetrySchema = z
+const catalogSubmissionTelemetrySchema = z
     .object({
     queued_ms: z.number().int().nonnegative(),
     active_ms: z.number().int().nonnegative(),
@@ -859,7 +893,7 @@ export const catalogSubmissionStatusSchema = z
  * drafts it against the Entity's current authoring source, then admitted with
  * its exact hosted bytes or refused with the draft's diagnostics.
  */
-export const agentReadinessSubmissionStatusSchema = z
+const agentReadinessSubmissionStatusSchema = z
     .object({
     submission_id: submissionId,
     product: z.literal("agent_readiness"),
@@ -883,14 +917,14 @@ export const submissionStatusSchema = z.discriminatedUnion("product", [
 ]);
 export const submissionResponseSchema = apiEnvelope(submissionStatusSchema);
 /** The exact authoring bytes a published profile cites for a hosted declaration. */
-export const agentReadinessDeclarationBytesSchema = z
+const agentReadinessDeclarationBytesSchema = z
     .object({
     blob_digest: digest,
     path: agentReadinessAuthoringPathSchema,
     content: z.string().min(1),
 })
     .strict();
-export const agentReadinessDeclarationBytesResponseSchema = apiEnvelope(agentReadinessDeclarationBytesSchema);
+const agentReadinessDeclarationBytesResponseSchema = apiEnvelope(agentReadinessDeclarationBytesSchema);
 export const entityAssetUploadResponseSchema = apiEnvelope(entityAssetUploadReceiptSchema);
 export const agentReadinessDeclarationDraftResponseSchema = apiEnvelope(agentReadinessDeclarationDraftResultSchema);
 const submissionIdPath = z.object({ submission_id: submissionId }).strict();
@@ -1042,7 +1076,7 @@ export const publicCatalogV1Endpoints = [
     {
         operationId: "getEntityAgentReadinessProfile",
         method: "GET",
-        path: "/v1/entities/{entity}/agent-readiness-profiles/{product}/{funnel}",
+        path: "/v1/entities/{entity}/agent-readiness-profiles/{product}/{job}",
         summary: "Resolve a published agent readiness profile by immutable entity and exact scope keys.",
         tags: ["Catalog"],
         request: { path: entityAgentReadinessScopePath },
@@ -1158,27 +1192,6 @@ export const publicCatalogV1Endpoints = [
         tags: ["Catalog"],
         request: { path: idPath },
         responses: { 200: eventResponseSchema, ...commonErrors },
-    },
-    {
-        operationId: "listCaptureReceipts",
-        method: "GET",
-        path: "/v1/capture-receipts",
-        summary: "Find capture receipts by exact operation identity.",
-        tags: ["Catalog"],
-        request: { query: operationLookupQuery },
-        responses: {
-            200: captureReceiptListResponseSchema,
-            400: catalogApiErrorResponseSchema,
-        },
-    },
-    {
-        operationId: "getCaptureReceipt",
-        method: "GET",
-        path: "/v1/capture-receipts/{id}",
-        summary: "Read an immutable evidence capture receipt.",
-        tags: ["Catalog"],
-        request: { path: idPath },
-        responses: { 200: captureReceiptResponseSchema, ...commonErrors },
     },
     {
         operationId: "getObservation",
@@ -1327,7 +1340,7 @@ export const agentReadinessDeclarationDraftV1Endpoints = [
         operationId: "prepareAgentReadinessDeclaration",
         method: "POST",
         path: "/v1/agent-readiness/declaration-drafts",
-        summary: "Prepare canonical Agent Readiness vendor, service, API, authentication, payment, provisioning, operation, recovery, and agent-standard declaration YAML to submit through POST /v1/submissions.",
+        summary: "Prepare canonical Agent Readiness service, API, authentication, payment, operation, recovery and agent-standard declaration YAML for an existing Sourcey company, to submit through POST /v1/submissions. Drafts publish no facts or grades.",
         tags: ["Catalog"],
         request: { body: agentReadinessDeclarationDraftRequestSchema },
         responses: {
@@ -1486,7 +1499,7 @@ const catalogOpenApiPathMatchers = catalogOpenApiV1Endpoints.map((endpoint) => (
         .join("/")}$`, "u"),
 }));
 /** Resolve one HTTP operation from the canonical registry. */
-export function catalogOpenApiEndpoint(operationId) {
+function catalogOpenApiEndpoint(operationId) {
     const endpoint = catalogOpenApiEndpointIndex.get(operationId);
     if (!endpoint)
         throw new Error(`Unknown Sourcey API operation: ${operationId}`);

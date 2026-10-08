@@ -1,6 +1,6 @@
 import { type Digest } from "provenry/primitives";
 import type { CatalogEvent } from "../../../contracts/events/src/index.js";
-import type { PublicationDependencyRegistration, SurfaceDependencyReference } from "../../../contracts/publication/src/index.js";
+import type { PublicationDependencyRegistration } from "../../../contracts/publication/src/index.js";
 export declare function catalogSourceLocatorDigest(url: string): Digest;
 export declare function catalogPublicationImpactProof(input: {
     readonly impact_index_digest: string;
@@ -79,7 +79,6 @@ export declare const catalogPublicationDependencyKey: {
     readonly parent: (kind: string, targetId: string) => string;
     readonly route: (kind: string, targetId: string) => string;
 };
-export declare function surfaceDependencyReferenceKey(reference: SurfaceDependencyReference): string;
 /** Structural read port across purpose-scoped distributions. Its public shape
  * is derived from the owner, never copied by a host or coupled to JS private fields. */
 export type CatalogPublicationImpactQuery = Pick<CatalogPublicationImpactIndex, keyof CatalogPublicationImpactIndex>;
@@ -91,10 +90,6 @@ export declare class CatalogPublicationImpactIndex {
     #private;
     readonly indexDigest: Digest;
     constructor(registrations?: readonly PublicationDependencyRegistration[], selectedDependencyKeys?: readonly string[]);
-    registration(dependent: {
-        readonly domain: string;
-        readonly key: string;
-    }): PublicationDependencyRegistration | undefined;
     registrations(): readonly PublicationDependencyRegistration[];
     affected(dependencyKeys: readonly string[]): {
         readonly dependents: readonly {

@@ -1,4 +1,3 @@
-import { type Digest } from "provenry/primitives";
 import { type AgentReadinessAuthoring, type AgentReadinessDeclaration, type AgentReadinessDeclarationRevision } from "../../../contracts/agent-readiness/src/declaration.js";
 import type { AgentReadinessDeclarationProvenance, AgentReadinessHostedDeclarationProvenance } from "../../../contracts/agent-readiness/src/declaration-reference.js";
 /** One Entity's exact authoring bytes, compiled, and where those bytes live. */
@@ -22,10 +21,6 @@ export declare function compileAgentReadinessDeclarationSource(input: {
     readonly declarationRevisions: Readonly<Record<string, AgentReadinessDeclarationRevision>>;
 };
 export declare function readAgentReadinessDeclarationBlobAtRevision(repositoryRoot: string, headRevision: string, file: string): Promise<AgentReadinessDeclarationBlob>;
-export declare function agentReadinessDeclarationRevisionDigest(input: {
-    readonly authoring: AgentReadinessAuthoring;
-    readonly declaration: AgentReadinessDeclaration;
-}): Digest;
 export declare function compileAgentReadinessDeclarationRevision(input: {
     readonly authoring: AgentReadinessAuthoring;
     readonly declaration: AgentReadinessDeclaration;

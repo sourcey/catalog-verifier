@@ -15,7 +15,7 @@ export const agentReadinessAuthoringPathSchema = z
     .string()
     .regex(/^entities\/[a-z0-9]{1,2}\/[a-z0-9]+(?:-[a-z0-9]+)*\.yaml$/);
 /** A declaration held in the public repository at one pinned commit. */
-export const agentReadinessGitDeclarationProvenanceSchema = z
+const agentReadinessGitDeclarationProvenanceSchema = z
     .object({
     repository: z.literal(AGENT_READINESS_REPOSITORY),
     commit: gitObjectIdSchema,
@@ -28,7 +28,7 @@ export const agentReadinessGitDeclarationProvenanceSchema = z
  * A declaration submitted to Sourcey without Git. Sourcey serves the exact
  * authoring bytes by their digest once a published profile cites them.
  */
-export const agentReadinessHostedDeclarationProvenanceSchema = z
+const agentReadinessHostedDeclarationProvenanceSchema = z
     .object({
     source: z.literal("sourcey"),
     path: agentReadinessAuthoringPathSchema,
@@ -56,10 +56,7 @@ export const agentReadinessDeclarationReferenceSchema = z
     provenance: agentReadinessDeclarationProvenanceSchema,
 })
     .strict();
-export const agentReadinessDeclarationAuthoritySchema = z.enum([
-    "community_declared",
-    "entity_attested",
-]);
+const agentReadinessDeclarationAuthoritySchema = z.enum(["community_declared", "entity_attested"]);
 export const agentReadinessDeclarationStateSchema = z.discriminatedUnion("status", [
     z.object({ status: z.literal("none") }).strict(),
     agentReadinessDeclarationReferenceSchema

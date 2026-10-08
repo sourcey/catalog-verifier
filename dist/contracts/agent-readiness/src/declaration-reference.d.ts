@@ -9,7 +9,7 @@ export declare const agentReadinessRepositoryYamlPathSchema: z.ZodString;
 /** The single accepted path shape for new Agent Readiness authoring. */
 export declare const agentReadinessAuthoringPathSchema: z.ZodString;
 /** A declaration held in the public repository at one pinned commit. */
-export declare const agentReadinessGitDeclarationProvenanceSchema: z.ZodObject<{
+declare const agentReadinessGitDeclarationProvenanceSchema: z.ZodObject<{
     repository: z.ZodLiteral<"sourcey/agent-ready-services">;
     commit: z.ZodString;
     path: z.ZodString;
@@ -20,7 +20,7 @@ export declare const agentReadinessGitDeclarationProvenanceSchema: z.ZodObject<{
  * A declaration submitted to Sourcey without Git. Sourcey serves the exact
  * authoring bytes by their digest once a published profile cites them.
  */
-export declare const agentReadinessHostedDeclarationProvenanceSchema: z.ZodObject<{
+declare const agentReadinessHostedDeclarationProvenanceSchema: z.ZodObject<{
     source: z.ZodLiteral<"sourcey">;
     path: z.ZodString;
     blob_digest: z.ZodString;
@@ -41,7 +41,7 @@ export declare const agentReadinessDeclarationProvenanceSchema: z.ZodUnion<reado
     blob_digest: z.ZodString;
 }, z.core.$strict>]>;
 export type AgentReadinessDeclarationProvenance = z.infer<typeof agentReadinessDeclarationProvenanceSchema>;
-export type AgentReadinessGitDeclarationProvenance = z.infer<typeof agentReadinessGitDeclarationProvenanceSchema>;
+type AgentReadinessGitDeclarationProvenance = z.infer<typeof agentReadinessGitDeclarationProvenanceSchema>;
 export type AgentReadinessHostedDeclarationProvenance = z.infer<typeof agentReadinessHostedDeclarationProvenanceSchema>;
 /** Narrow a provenance to the Git locator; the local Git lane refuses anything else. */
 export declare function agentReadinessGitProvenance(provenance: AgentReadinessDeclarationProvenance): AgentReadinessGitDeclarationProvenance;
@@ -59,10 +59,6 @@ export declare const agentReadinessDeclarationReferenceSchema: z.ZodObject<{
         blob_digest: z.ZodString;
     }, z.core.$strict>]>;
 }, z.core.$strict>;
-export declare const agentReadinessDeclarationAuthoritySchema: z.ZodEnum<{
-    community_declared: "community_declared";
-    entity_attested: "entity_attested";
-}>;
 export declare const agentReadinessDeclarationStateSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     status: z.ZodLiteral<"none">;
 }, z.core.$strict>, z.ZodObject<{
@@ -83,4 +79,5 @@ export declare const agentReadinessDeclarationStateSchema: z.ZodDiscriminatedUni
         entity_attested: "entity_attested";
     }>;
 }, z.core.$strict>], "status">;
+export {};
 //# sourceMappingURL=declaration-reference.d.ts.map

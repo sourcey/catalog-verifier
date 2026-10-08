@@ -2,7 +2,9 @@ import { DIGEST_PATTERN, digest } from "provenry/primitives";
 import { z } from "zod";
 import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { entityAssetSubmissionSourceSchema } from "../../assets/src/index.js";
-import { entityIdentityAssuranceSchema, offerTermsAssuranceSchema, } from "../../assurance/src/index.js";
+import { offerTermsAssuranceSchema } from "../../assurance/src/index.js";
+import { companyAuthoringFileSchema, companyDraftDiagnosticSchema, companySubmissionSchema, } from "../../company-authoring/src/index.js";
+import { companyIdentityReviewDecisionSchema, companyVerificationNewListingTargetSchema, completedCompanyReviewCoreSchema, reviewEvidenceBasisSchema, } from "../../company-verification/src/index.js";
 import { fundedWorkIntentEnvelopeSchema } from "../../funded-work/src/index.js";
 import { expectedPublicationEntitySchema } from "../../publication/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
@@ -12,14 +14,10 @@ const instantSchema = z.iso.datetime({ offset: true });
 const entityIdSchema = z.string().regex(ENTITY_ID_PATTERN);
 const programIdSchema = z.string().regex(PROGRAM_ID_PATTERN);
 const offerIdSchema = z.string().regex(OFFER_ID_PATTERN);
-export const domainNameSchema = z
-    .string()
-    .trim()
-    .toLowerCase()
-    .regex(/^(?=.{1,253}$)(?:[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/u);
+import { standingResultSchema } from "../../company-standing/src/index.js";
 export const startupCreditsProductCode = "startup-offer-human-verification";
-export const startupCreditsPrice = { currency: "usd", minor_units: 4_900 };
-export const startupCreditsPriceLookupKey = "startup-offer-human-verification-usd-49";
+export const startupCreditsPrice = { currency: "usd", minor_units: 2_900 };
+export const startupCreditsPriceLookupKey = "startup-offer-human-verification-usd-29";
 export const startupCreditsPurchaseDisclosureStatement = "Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.";
 const startupCreditsPriceSchema = z
     .object({
@@ -124,103 +122,7 @@ const startupCreditsPurchasePreviewCoreSchema = z
 export const startupCreditsPurchasePreviewSchema = startupCreditsPurchasePreviewCoreSchema
     .safeExtend({ preview_digest: digestSchema })
     .strict();
-export const standingRouteSchema = z.enum([
-    "correction_required",
-    "repair_required",
-    "temporarily_unavailable",
-    "free_machine_review",
-    "human_verification_required",
-]);
-export const standingPolicySchema = z
-    .object({
-    policy_contract: z.literal("sourcey.standing-policy/v1alpha1"),
-    reach_provider: z.literal("ahrefs-domain-rating"),
-    reach_threshold_exclusive: z.number().int().min(0).max(100),
-    fallback_domain_age_days: z.number().int().positive(),
-    fallback_certificate_age_days: z.number().int().positive(),
-    cache_ttl_seconds: z.number().int().positive().max(86_400),
-})
-    .strict();
-export const standingEvidenceSchema = z
-    .object({
-    registrable_domain: domainNameSchema,
-    official_source_url: catalogAuthoringUrlSchema,
-    source: z
-        .object({
-        status: z.enum(["reachable", "unreachable", "invalid"]),
-        first_party: z.boolean(),
-        observed_at: instantSchema,
-        observation_digest: digestSchema,
-    })
-        .strict(),
-    catalog_identity: z.discriminatedUnion("status", [
-        z.object({ status: z.literal("unresolved") }).strict(),
-        z
-            .object({
-            status: z.literal("existing"),
-            entity_id: entityIdSchema,
-            entity_revision_digest: digestSchema,
-        })
-            .strict(),
-        z
-            .object({
-            status: z.literal("ambiguous"),
-            entity_ids: z.array(entityIdSchema).min(2),
-        })
-            .strict(),
-    ]),
-    reach: z.discriminatedUnion("status", [
-        z
-            .object({
-            status: z.literal("available"),
-            rating: z.number().min(0).max(100),
-            observed_at: instantSchema,
-            observation_digest: digestSchema,
-        })
-            .strict(),
-        z
-            .object({
-            status: z.literal("unavailable"),
-            reason: z.enum(["not_found", "provider_unavailable", "provider_rejected"]),
-            observed_at: instantSchema,
-        })
-            .strict(),
-    ]),
-    domain_age: z.discriminatedUnion("status", [
-        z
-            .object({ status: z.literal("available"), age_days: z.number().int().nonnegative() })
-            .strict(),
-        z.object({ status: z.literal("unavailable") }).strict(),
-    ]),
-    certificate_age: z.discriminatedUnion("status", [
-        z
-            .object({ status: z.literal("available"), age_days: z.number().int().nonnegative() })
-            .strict(),
-        z.object({ status: z.literal("unavailable") }).strict(),
-    ]),
-    mx: z.discriminatedUnion("status", [
-        z.object({ status: z.literal("available"), present: z.boolean() }).strict(),
-        z.object({ status: z.literal("unavailable") }).strict(),
-    ]),
-})
-    .strict();
-export const standingResultCoreSchema = z
-    .object({
-    result_contract: z.literal("sourcey.standing-result/v1alpha1"),
-    policy_digest: digestSchema,
-    evidence_digest: digestSchema,
-    registrable_domain: domainNameSchema,
-    official_source_url: catalogAuthoringUrlSchema,
-    route: standingRouteSchema,
-    reasons: z.array(z.string().trim().min(1).max(500)).min(1).max(12),
-    evaluated_at: instantSchema,
-    expires_at: instantSchema,
-})
-    .strict();
-export const standingResultSchema = standingResultCoreSchema
-    .safeExtend({ result_digest: digestSchema })
-    .strict();
-export const startupCreditsExistingEntityDraftBaseSchema = z
+const startupCreditsExistingEntityDraftBaseSchema = z
     .object({
     entity_id: entityIdSchema,
     entity_revision_digest: digestSchema,
@@ -230,15 +132,7 @@ export const startupCreditsDraftRequestSchema = z
     .object({
     standing_result: standingResultSchema,
     existing_entity: startupCreditsExistingEntityDraftBaseSchema.optional(),
-    company: z
-        .object({
-        name: z.string().trim().min(1).max(160),
-        domain: domainNameSchema,
-        category: z.string().regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/u),
-        summary: z.string().trim().min(1).max(240),
-        site_url: catalogAuthoringUrlSchema,
-    })
-        .strict(),
+    company: companySubmissionSchema,
     program: z
         .object({
         title: z.string().trim().min(1).max(240),
@@ -277,18 +171,11 @@ export const startupCreditsDraftRequestSchema = z
         });
     }
 });
-const diagnosticSchema = z
-    .object({
-    code: z.enum(["required", "invalid", "conflict", "ineligible"]),
-    path: z.string().startsWith("/"),
-    message: z.string().trim().min(1).max(1_000),
-})
-    .strict();
 export const startupCreditsDraftResultSchema = z.discriminatedUnion("status", [
     z
         .object({
         status: z.enum(["invalid", "incomplete", "conflict", "ineligible"]),
-        diagnostics: z.array(diagnosticSchema).min(1),
+        diagnostics: z.array(companyDraftDiagnosticSchema).min(1),
     })
         .strict(),
     z
@@ -300,18 +187,12 @@ export const startupCreditsDraftResultSchema = z.discriminatedUnion("status", [
         offer_id: offerIdSchema,
         purchase_preview: startupCreditsPurchasePreviewSchema,
         expected_current_entities: z.array(expectedPublicationEntitySchema).max(1),
-        authoring_file: z
-            .object({
-            path: z.string().regex(/^entities\/[a-z0-9]{1,2}\/[a-z0-9-]+\.yaml$/u),
-            content: z.string().min(1),
-            content_digest: digestSchema,
-        })
-            .strict(),
-        diagnostics: z.array(diagnosticSchema).max(20),
+        authoring_file: companyAuthoringFileSchema,
+        diagnostics: z.array(companyDraftDiagnosticSchema).max(20),
     })
         .strict(),
 ]);
-export const startupCreditsVerificationCaseIdSchema = z.string().regex(/^hvc_[a-f0-9]{64}$/u);
+const startupCreditsVerificationCaseIdSchema = z.string().regex(/^hvc_[a-f0-9]{64}$/u);
 const startupCreditsNewListingIntentTargetSchema = z
     .object({
     kind: z.literal("new_listing"),
@@ -348,10 +229,10 @@ export const startupCreditsExistingRecordTargetSchema = z
  * not invalidate checkout for this exact record. The product resolver adds the
  * current base release only after proving both revision digests still match.
  */
-export const startupCreditsExistingRecordReferenceSchema = startupCreditsExistingRecordTargetSchema
+const startupCreditsExistingRecordReferenceSchema = startupCreditsExistingRecordTargetSchema
     .omit({ base_release_id: true })
     .strict();
-export const startupCreditsVerificationIntentTargetSchema = z.discriminatedUnion("kind", [
+const startupCreditsVerificationIntentTargetSchema = z.discriminatedUnion("kind", [
     startupCreditsNewListingIntentTargetSchema,
     startupCreditsExistingRecordTargetSchema,
 ]);
@@ -442,61 +323,12 @@ export const startupCreditsFundedWorkIntentSchema = z
         });
     }
 });
-export const startupCreditsCompletedReviewBasisSchema = z
-    .object({
-    evidence_event_ids: z.array(digestSchema),
-    observation_ids: z.array(digestSchema),
-    retained_artifact_digests: z.array(digestSchema).default([]),
-})
-    .strict()
-    .superRefine((basis, context) => {
-    if (basis.evidence_event_ids.length +
-        basis.observation_ids.length +
-        basis.retained_artifact_digests.length ===
-        0) {
-        context.addIssue({
-            code: "custom",
-            message: "A review outcome requires at least one retained evidence or observation ID.",
-        });
-    }
-    for (const [field, values] of Object.entries(basis)) {
-        if (new Set(values).size !== values.length ||
-            [...values].sort().some((v, i) => v !== values[i])) {
-            context.addIssue({
-                code: "custom",
-                path: [field],
-                message: "Review basis IDs must be unique and canonically sorted.",
-            });
-        }
-    }
-});
-export const startupCreditsEntityIdentityFailureReasonSchema = z.enum([
-    "identity_mismatch",
-    "identity_unresolved",
-    "insufficient_evidence",
-]);
-export const startupCreditsOfferTermsFailureReasonSchema = z.enum([
+const startupCreditsOfferTermsFailureReasonSchema = z.enum([
     "terms_mismatch",
     "source_unavailable",
     "insufficient_evidence",
 ]);
-export const startupCreditsEntityIdentityReviewDecisionSchema = z.discriminatedUnion("status", [
-    z
-        .object({
-        status: z.literal("passed"),
-        rationale: z.string().trim().min(1).max(2_000),
-    })
-        .strict(),
-    z
-        .object({
-        status: z.literal("failed"),
-        reason_code: startupCreditsEntityIdentityFailureReasonSchema,
-        rationale: z.string().trim().min(1).max(2_000),
-        basis: startupCreditsCompletedReviewBasisSchema,
-    })
-        .strict(),
-]);
-export const startupCreditsOfferTermsReviewDecisionSchema = z.discriminatedUnion("status", [
+const startupCreditsOfferTermsReviewDecisionSchema = z.discriminatedUnion("status", [
     z
         .object({
         status: z.literal("passed"),
@@ -508,7 +340,7 @@ export const startupCreditsOfferTermsReviewDecisionSchema = z.discriminatedUnion
         status: z.literal("failed"),
         reason_code: startupCreditsOfferTermsFailureReasonSchema,
         rationale: z.string().trim().min(1).max(2_000),
-        basis: startupCreditsCompletedReviewBasisSchema,
+        basis: reviewEvidenceBasisSchema,
     })
         .strict(),
     z
@@ -522,7 +354,7 @@ export const startupCreditsOfferTermsReviewDecisionSchema = z.discriminatedUnion
  * Offer terms are skipped exactly when company identity cannot be established. */
 export const startupCreditsReviewDecisionSchema = z
     .object({
-    entity_identity: startupCreditsEntityIdentityReviewDecisionSchema,
+    entity_identity: companyIdentityReviewDecisionSchema,
     offer_terms: startupCreditsOfferTermsReviewDecisionSchema,
 })
     .strict()
@@ -537,31 +369,6 @@ export const startupCreditsReviewDecisionSchema = z
         });
     }
 });
-const entityIdentityReviewOutcomeSchema = z.discriminatedUnion("status", [
-    z
-        .object({
-        status: z.literal("passed"),
-        entity_id: entityIdSchema,
-        assurance: entityIdentityAssuranceSchema,
-    })
-        .strict(),
-    z
-        .object({
-        status: z.literal("reused"),
-        entity_id: entityIdSchema,
-        assurance: entityIdentityAssuranceSchema,
-    })
-        .strict(),
-    z
-        .object({
-        status: z.literal("failed"),
-        entity_id: entityIdSchema,
-        reason_code: startupCreditsEntityIdentityFailureReasonSchema,
-        rationale: z.string().trim().min(1).max(2_000),
-        basis: startupCreditsCompletedReviewBasisSchema,
-    })
-        .strict(),
-]);
 const offerTermsReviewOutcomeSchema = z.discriminatedUnion("status", [
     z
         .object({
@@ -587,7 +394,7 @@ const offerTermsReviewOutcomeSchema = z.discriminatedUnion("status", [
         revision_digest: digestSchema,
         reason_code: startupCreditsOfferTermsFailureReasonSchema,
         rationale: z.string().trim().min(1).max(2_000),
-        basis: startupCreditsCompletedReviewBasisSchema,
+        basis: reviewEvidenceBasisSchema,
     })
         .strict(),
     z
@@ -599,40 +406,21 @@ const offerTermsReviewOutcomeSchema = z.discriminatedUnion("status", [
     })
         .strict(),
 ]);
-export const startupCreditsReviewCompletionTargetSchema = z.discriminatedUnion("kind", [
-    z
-        .object({
-        kind: z.literal("new_listing"),
-        base_release_id: digestSchema,
-        entity_id: entityIdSchema,
-        program_id: programIdSchema.optional(),
-        offer_id: offerIdSchema,
-        submission_id: z.string().regex(/^sub_[a-f0-9]{64}$/u),
-        submission_payload_digest: digestSchema,
-    })
+const startupCreditsReviewCompletionTargetSchema = z.discriminatedUnion("kind", [
+    companyVerificationNewListingTargetSchema
+        .extend({ program_id: programIdSchema.optional(), offer_id: offerIdSchema })
         .strict(),
     startupCreditsExistingRecordTargetSchema,
 ]);
-export const startupCreditsReviewCompletionReceiptCoreSchema = z
-    .object({
+export const startupCreditsReviewCompletionReceiptCoreSchema = completedCompanyReviewCoreSchema
+    .safeExtend({
     receipt_contract: z.literal("sourcey.startup-credits-review-completion/v1alpha1"),
-    order_id: z.string().regex(/^ord_[a-f0-9]{64}$/u),
-    funded_work_intent_id: fundedWorkIntentEnvelopeSchema.shape.intent_id,
-    funded_work_intent_digest: digestSchema,
-    verification_case_id: startupCreditsVerificationCaseIdSchema,
     target: startupCreditsReviewCompletionTargetSchema,
-    method_policy_digest: digestSchema,
-    reviewer_id: z.string().trim().min(1).max(256),
-    reviewed_at: instantSchema,
-    readback_release_id: digestSchema,
-    work_outcome: z.literal("review_delivered"),
-    entity_identity: entityIdentityReviewOutcomeSchema,
     offer_terms: offerTermsReviewOutcomeSchema,
 })
     .strict()
     .superRefine((receipt, context) => {
-    if (receipt.entity_identity.entity_id !== receipt.target.entity_id ||
-        receipt.offer_terms.entity_id !== receipt.target.entity_id ||
+    if (receipt.offer_terms.entity_id !== receipt.target.entity_id ||
         receipt.offer_terms.offer_id !== receipt.target.offer_id) {
         context.addIssue({
             code: "custom",
@@ -647,25 +435,6 @@ export const startupCreditsReviewCompletionReceiptCoreSchema = z
             code: "custom",
             path: ["offer_terms", "status"],
             message: "Offer terms may be not evaluated only when Entity identity failed, and identity failure cannot carry an Offer terms decision.",
-        });
-    }
-    if (receipt.entity_identity.status === "passed") {
-        if (receipt.entity_identity.assurance.method_policy_digest !== receipt.method_policy_digest ||
-            receipt.entity_identity.assurance.verified_at !== receipt.reviewed_at) {
-            context.addIssue({
-                code: "custom",
-                path: ["entity_identity", "assurance"],
-                message: "A newly passed Entity identity assurance must use this review method and timestamp.",
-            });
-        }
-    }
-    if (receipt.entity_identity.status === "reused" &&
-        (receipt.entity_identity.assurance.method_policy_digest !== receipt.method_policy_digest ||
-            Date.parse(receipt.entity_identity.assurance.verified_at) > Date.parse(receipt.reviewed_at))) {
-        context.addIssue({
-            code: "custom",
-            path: ["entity_identity", "assurance"],
-            message: "A reused Entity identity assurance must use this review method and cannot postdate this review.",
         });
     }
     if (receipt.offer_terms.status === "passed" &&
@@ -694,14 +463,14 @@ export const startupCreditsReviewRequestIdSchema = z
     .string()
     .trim()
     .regex(/^[A-Za-z0-9_-]{32,128}$/u);
-export const startupCreditsEntityIconInputSchema = z
+const startupCreditsEntityIconInputSchema = z
     .object({
     source: entityAssetSubmissionSourceSchema,
     trademark_owner: z.string().trim().min(1).max(240),
     relationship: z.enum(["vendor-representative", "community-contributor"]),
 })
     .strict();
-export const startupCreditsExpectedDraftSchema = z
+const startupCreditsExpectedDraftSchema = z
     .object({
     base_release_id: digestSchema,
     content_digest: digestSchema,
@@ -715,13 +484,13 @@ const startupCreditsNewListingReviewTargetCoreSchema = z
     entity_icon: startupCreditsEntityIconInputSchema.optional(),
 })
     .strict();
-export const startupCreditsExistingRecordReviewTargetSchema = startupCreditsExistingRecordReferenceSchema
+const startupCreditsExistingRecordReviewTargetSchema = startupCreditsExistingRecordReferenceSchema
     .extend({ expected_purchase_preview_digest: digestSchema })
     .strict();
 export const startupCreditsExistingRecordReviewPreparationRequestSchema = z
     .object({ target: startupCreditsExistingRecordReferenceSchema })
     .strict();
-export const startupCreditsExistingRecordReviewPreparationSchema = z
+const startupCreditsExistingRecordReviewPreparationSchema = z
     .object({
     target: startupCreditsExistingRecordReviewTargetSchema,
     purchase_preview: startupCreditsPurchasePreviewSchema,
@@ -746,7 +515,6 @@ const startupCreditsStripeReviewTargetSchema = z.discriminatedUnion("kind", [
         .strict(),
     startupCreditsExistingRecordReviewTargetSchema,
 ]);
-export const startupCreditsReviewTargetSchema = startupCreditsX402ReviewTargetSchema;
 const startupCreditsReviewRequestCoreSchema = z.object({
     request_id: startupCreditsReviewRequestIdSchema,
 });
@@ -767,7 +535,7 @@ export const startupCreditsReviewRequestSchema = z.discriminatedUnion("payment_r
     })
         .strict(),
 ]);
-export const startupCreditsVerificationPublicStateSchema = z.enum([
+const startupCreditsVerificationPublicStateSchema = z.enum([
     "awaiting_payment",
     "verifying",
     "input_needed",
@@ -946,9 +714,4 @@ export const startupCreditsReviewProductDescriptor = payableProductDescriptorSch
         },
     },
 });
-export function isFirstPartyUrlForDomain(value, domain) {
-    const hostname = new URL(value).hostname.toLowerCase().replace(/\.$/u, "");
-    const canonicalDomain = domainNameSchema.parse(domain);
-    return hostname === canonicalDomain || hostname.endsWith(`.${canonicalDomain}`);
-}
 //# sourceMappingURL=index.js.map

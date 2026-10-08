@@ -1,18 +1,17 @@
-import { DIGEST_PATTERN, IDENTIFIER_PATTERN, OPERATION_ID_PATTERN } from "provenry/primitives";
+import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
-import { decisionBasisSchema, protectedSignatureSchema } from "../../authority/src/index.js";
+import { decisionBasisSchema } from "../../authority/src/index.js";
 import { sourceyEvidenceCaptureMethodNames } from "../../capture/src/method-names.js";
-import { standardObservationRequestSchema } from "../../standards/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const agentReadinessProfileId = z.string().regex(AGENT_READINESS_PROFILE_ID_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
-const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const offerId = z.string().regex(OFFER_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
-const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
+/** The most model readings one evaluation may depend on, as an admission report lists them. */
+export const EVIDENCE_READINGS_PER_EVALUATION_LIMIT = 512;
 export const evidenceArtifactScopeSchema = z.enum(["complete_document", "document_excerpt"]);
 export const evidenceSourceContentSchema = z
     .object({
@@ -108,50 +107,6 @@ export const evidencePublicReadRequestSchema = z
         });
     }
 });
-/** The exact physical request retained for evidence replay. */
-export const evidenceCaptureRequestSchema = z.union([
-    evidencePublicReadRequestSchema,
-    standardObservationRequestSchema,
-]);
-/** One operator-approved public read of one exact declared surface. */
-export const evidencePublicReadRequestEntrySchema = z
-    .object({
-    source_url: z.url({ protocol: /^https$/u }),
-    request: evidencePublicReadRequestSchema,
-})
-    .strict()
-    .superRefine((entry, context) => {
-    if (!entry.request.target_url)
-        return;
-    const source = new URL(entry.source_url);
-    const target = new URL(entry.request.target_url);
-    const sourcePath = source.pathname.endsWith("/") ? source.pathname : `${source.pathname}/`;
-    if (target.origin !== source.origin ||
-        (target.pathname !== source.pathname && !target.pathname.startsWith(sourcePath))) {
-        context.addIssue({
-            code: "custom",
-            path: ["request", "target_url"],
-            message: "A public-read target must remain on the declared source origin and path boundary.",
-        });
-    }
-});
-export const evidencePublicReadRequestSetSchema = z
-    .object({
-    request_set_contract: z.literal("sourcey.evidence-public-read-request-set/v1alpha1"),
-    requests: z.array(evidencePublicReadRequestEntrySchema),
-})
-    .strict()
-    .superRefine((value, context) => {
-    const urls = value.requests.map(({ source_url: sourceUrl }) => sourceUrl);
-    if (new Set(urls).size !== urls.length ||
-        urls.some((url, index) => url !== [...urls].sort()[index])) {
-        context.addIssue({
-            code: "custom",
-            path: ["requests"],
-            message: "Public-read request surfaces must be canonical, ordered, and unique.",
-        });
-    }
-});
 export const evidenceProofKindSchema = z.enum(["observed", "derived", "editorial", "attested"]);
 export const evidenceDerivationRuleSchema = z.enum([
     "contact-access-from-first-party-mailto",
@@ -174,7 +129,7 @@ const EVIDENCE_DERIVATION_RULE_TARGETS = {
     "consideration-from-benefits": { path: "/economics/consideration/kind" },
     "eligibility-composition-from-criteria": { family: "eligibility-rule-kind" },
 };
-export function evidenceDerivationRuleTarget(rule) {
+function evidenceDerivationRuleTarget(rule) {
     const target = EVIDENCE_DERIVATION_RULE_TARGETS[rule];
     return "path" in target ? target.path : "/eligibility/rule/.../kind";
 }
@@ -269,20 +224,20 @@ export const evidenceAssertionSchema = z
         });
     }
 });
-export const entityEvidenceSubjectSchema = z
+const entityEvidenceSubjectSchema = z
     .object({
     subject_type: z.literal("entity"),
     entity_id: entityId,
 })
     .strict();
-export const programEvidenceSubjectSchema = z
+const programEvidenceSubjectSchema = z
     .object({
     subject_type: z.literal("program"),
     entity_id: entityId,
     program_id: programId,
 })
     .strict();
-export const offerEvidenceSubjectSchema = z
+const offerEvidenceSubjectSchema = z
     .object({
     subject_type: z.literal("offer"),
     entity_id: entityId,
@@ -290,19 +245,20 @@ export const offerEvidenceSubjectSchema = z
     offer_id: offerId,
 })
     .strict();
-export const agentReadinessEvidenceSubjectSchema = z
+const agentReadinessEvidenceSubjectSchema = z
     .object({
     subject_type: z.literal("agent_readiness_profile"),
     entity_id: entityId,
     agent_readiness_profile_id: agentReadinessProfileId,
 })
     .strict();
+/** What an evidence job targets; readiness ratings rest on run records instead. */
 export const evidenceSubjectSchema = z.discriminatedUnion("subject_type", [
     entityEvidenceSubjectSchema,
     programEvidenceSubjectSchema,
     offerEvidenceSubjectSchema,
-    agentReadinessEvidenceSubjectSchema,
 ]);
+/** Receipts released before readiness left the evidence lane still name readiness revisions. */
 export const evidenceReceiptSubjectSchema = z.discriminatedUnion("subject_type", [
     entityEvidenceSubjectSchema.extend({ revision_digest: digest }).strict(),
     programEvidenceSubjectSchema.extend({ revision_digest: digest }).strict(),
@@ -339,49 +295,6 @@ export const evidenceCaptureDeclarationSchema = z
 })
     .strict()
     .superRefine(validateEvidenceArtifactScopeClosure);
-export const captureReceiptCoreSchema = z
-    .object({
-    receipt_contract: z.literal("sourcey.capture-receipt/v1alpha1"),
-    issuer_id: identifier,
-    operation_id: operationId,
-    job_id: digest,
-    base_release_id: digest,
-    subject: evidenceReceiptSubjectSchema,
-    authority_entity_revision_digest: digest,
-    authority_program_revision_digest: digest.nullable(),
-    capture_policy_digest: digest,
-    review_decision: evidenceReviewDecisionSchema,
-    capture: evidenceCaptureDeclarationSchema
-        .extend({ bytes: z.number().int().positive() })
-        .strict(),
-    issued_at: instant,
-})
-    .strict()
-    .superRefine((value, context) => {
-    const requiresProgramAuthority = value.subject.subject_type === "offer" && value.subject.program_id !== undefined;
-    if (requiresProgramAuthority !== (value.authority_program_revision_digest !== null)) {
-        context.addIssue({
-            code: "custom",
-            path: ["authority_program_revision_digest"],
-            message: requiresProgramAuthority
-                ? "Program-backed Offer capture receipts require the exact authority Program revision."
-                : "Only Program-backed Offer capture receipts may carry an authority Program revision.",
-        });
-    }
-    if (Date.parse(value.issued_at) < Date.parse(value.capture.retrieved_at)) {
-        context.addIssue({
-            code: "custom",
-            path: ["issued_at"],
-            message: "Capture receipt cannot be issued before retrieval.",
-        });
-    }
-});
-export const captureReceiptSchema = captureReceiptCoreSchema
-    .extend({
-    receipt_digest: digest,
-    protected: protectedSignatureSchema,
-})
-    .strict();
 const evidenceAuthorityFileDeclarationSchema = z
     .object({
     sha256: digest,
@@ -394,7 +307,7 @@ export const evidenceAuthorityBundleCoreSchema = z
     proposal_digest: digest,
     review_decision_digest: digest,
     base_release_id: digest,
-    capture_receipt_digest: digest,
+    capture_attestation_digest: digest,
     revision_digests: z.array(digest).min(1).max(3),
     observation_ids: z.array(digest).min(1).max(2),
     event_ids: z.array(digest).min(1).max(2),

@@ -3,7 +3,7 @@ import { z } from "zod";
 import { AGENT_READINESS_PROFILE_ID_PATTERN, ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
 import { assuranceRevokedPayloadSchema, entityIdentityCheckedPayloadSchema, offerTermsCheckedPayloadSchema, } from "../../assurance/src/index.js";
 import { protectedSignatureSchema } from "../../authority/src/index.js";
-import { evidenceAssertionSchema } from "../../evidence/src/index.js";
+import { evidenceAssertionSchema, evidenceReviewDecisionSchema } from "../../evidence/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const entityId = z.string().regex(ENTITY_ID_PATTERN);
 const programId = z.string().regex(PROGRAM_ID_PATTERN);
@@ -13,13 +13,13 @@ const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const operationId = z.string().regex(OPERATION_ID_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const pointer = z.string().regex(/^\/(?:[^~/]|~0|~1)+(?:\/(?:[^~/]|~0|~1)+)*$/);
-export const authorityClaimMethodKnownValues = [
+const authorityClaimMethodKnownValues = [
     "dns-txt",
     "domain-email",
     "well-known",
     "inbound-dkim",
 ];
-export const authorityClaimMethodSchema = z
+const authorityClaimMethodSchema = z
     .string()
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/)
     .meta({
@@ -109,6 +109,14 @@ export const catalogEventPayloadSchemas = {
     "evidence.bound": z
         .object({
         observation_id: digest,
+        /** The Provenry capture attestation that proves the observation's capture. */
+        capture_attestation_digest: digest.optional(),
+        /** The approved review that admits this evidence; it comes with an attestation. */
+        review_decision: evidenceReviewDecisionSchema.optional(),
+        /**
+         * The capture receipt cited by events published through release 135, verified by the
+         * release that included it. The served record holds it; no code issues or resolves one.
+         */
         capture_receipt_digest: digest.optional(),
         normalized_object_digest: digest,
         authority_entity_revision_digest: digest,
@@ -121,20 +129,29 @@ export const catalogEventPayloadSchemas = {
     })
         .strict()
         .superRefine((value, context) => {
-        if (value.capture_receipt_digest === undefined &&
-            value.binding_method !== "fixture-exact-path") {
+        const attested = value.capture_attestation_digest !== undefined;
+        const receipted = value.capture_receipt_digest !== undefined;
+        if (attested !== (value.review_decision !== undefined)) {
             context.addIssue({
                 code: "custom",
-                path: ["capture_receipt_digest"],
-                message: "Non-fixture evidence bindings require an exact capture receipt.",
+                path: ["review_decision"],
+                message: "An attested evidence binding carries exactly its approved review decision.",
             });
         }
-        if (value.capture_receipt_digest !== undefined &&
-            value.binding_method === "fixture-exact-path") {
+        if (value.binding_method === "fixture-exact-path") {
+            if (attested || receipted) {
+                context.addIssue({
+                    code: "custom",
+                    path: ["binding_method"],
+                    message: "Fixture evidence bindings cannot claim a protected capture.",
+                });
+            }
+        }
+        else if (attested === receipted) {
             context.addIssue({
                 code: "custom",
-                path: ["binding_method"],
-                message: "Fixture evidence bindings cannot claim a protected capture receipt.",
+                path: ["capture_attestation_digest"],
+                message: "Evidence bindings cite exactly one capture proof: an attestation or a receipt.",
             });
         }
         const assertionPaths = value.assertions.map((assertion) => assertion.path);
@@ -404,6 +421,19 @@ export const catalogEventPayloadSchemas = {
         continuity_evidence_digest: digest,
     })
         .strict(),
+    /**
+     * The automatic lane admitted one revision: the engine derived its ratings
+     * from exactly this input's run records under this policy.
+     */
+    "agent-readiness-profile.admitted": z
+        .object({
+        input_digest: digest,
+        relation_input_digests: z.array(digest),
+        policy_digest: digest,
+        engine_digest: digest,
+    })
+        .strict()
+        .refine(({ relation_input_digests: digests }) => digests.every((value, index) => index === 0 || (digests[index - 1] ?? "") < value), "Relation input digests are unique and sorted."),
     "agent-readiness-profile.retired": z
         .object({
         agent_readiness_profile_id: agentReadinessProfileId,
@@ -438,7 +468,7 @@ export const catalogEventPayloadSchemas = {
     })
         .strict(),
 };
-export const catalogEventKindSchema = z.enum(Object.keys(catalogEventPayloadSchemas));
+const catalogEventKindSchema = z.enum(Object.keys(catalogEventPayloadSchemas));
 const catalogEventIdentitySchema = z
     .object({
     event_contract: z.literal("sourcey.catalog-event/v1alpha1"),
@@ -488,6 +518,7 @@ const catalogEventIdentitySchema = z
         "dispute.resolved",
         "offer.retired",
         "program.retired",
+        "agent-readiness-profile.admitted",
         "agent-readiness-profile.retired",
     ].includes(value.kind);
     if (requiresRevision && !value.subject.revision_digest) {
@@ -534,6 +565,14 @@ const catalogEventIdentitySchema = z
                 message: "Offer terms check occurrence must equal its check time.",
             });
         }
+    }
+    if (value.kind === "agent-readiness-profile.admitted" &&
+        value.subject.subject_type !== "agent_readiness_profile") {
+        context.addIssue({
+            code: "custom",
+            path: ["subject", "subject_type"],
+            message: "A readiness admission targets its exact profile revision.",
+        });
     }
     if (value.kind === "assurance.revoked" && parsed.success) {
         const payload = parsed.data;

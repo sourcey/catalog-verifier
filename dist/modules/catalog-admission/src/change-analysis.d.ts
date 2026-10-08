@@ -1,4 +1,4 @@
-import { type Digest } from "provenry/primitives";
+import type { Digest } from "provenry/primitives";
 import type { CatalogSubmissionAuthoringFile, CatalogSubmissionWorkItem } from "../../../contracts/api/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { CatalogPublicationCurrentState } from "../../../contracts/publication/src/index.js";
@@ -51,5 +51,4 @@ export declare function catalogChangedEntitiesFromCurrent(input: {
     readonly candidates: CompiledCatalogFacts;
 }): CatalogChangedEntity[];
 export declare function catalogChangedRevisions(changes: readonly CatalogChangedEntity[]): CatalogChangedRevision[];
-export declare function canonicalChangedEntityIds(changes: readonly CatalogChangedEntity[]): readonly string[];
 //# sourceMappingURL=change-analysis.d.ts.map

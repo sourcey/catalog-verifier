@@ -1,18 +1,9 @@
 import { type Digest } from "provenry/primitives";
 import { z } from "zod";
-import { type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import { type EvidenceAssertion, type EvidenceDerivationRule, type EvidenceProofKind, type EvidenceSourceStanding } from "../../../contracts/evidence/src/index.js";
-import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
-import type { RetainedEvidenceBearingRevision } from "./retained-revision.js";
-export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_CANONICAL_LINK, EVIDENCE_NORMALIZER_CANONICAL_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_FOUNDATION, EVIDENCE_NORMALIZER_FOUNDATION_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMBEDDED_JSON_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_EMPTY_HTML_VALUES_XML_TOOLCHAIN, EVIDENCE_NORMALIZER_PRE_JSON_VARIANTS_TOOLCHAIN, EVIDENCE_NORMALIZER_TOOLCHAIN, EVIDENCE_NORMALIZER_WEB_LINK_TOOLCHAIN, EVIDENCE_NORMALIZER_XML, EVIDENCE_NORMALIZER_XML_TOOLCHAIN, evidenceNormalizerForToolchainDigest, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
-export declare const EVIDENCE_SUBMISSION_LIMITS: {
-    readonly captureBytes: number;
-    readonly normalizedBytes: number;
-    readonly assertions: 128;
-    readonly locatorsPerAssertion: 16;
-    readonly redirects: 5;
-};
-export declare const evidenceSubmissionCaptureSchema: z.ZodObject<{
+import { type EntityRevision, type ListingRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
+export { EVIDENCE_NORMALIZER, EVIDENCE_NORMALIZER_TOOLCHAIN, evidenceNormalizerSchema, normalizeEvidenceCapture, } from "./evidence-normalization.js";
+declare const evidenceSubmissionCaptureSchema: z.ZodObject<{
     subject_source_url: z.ZodURL;
     requested_url: z.ZodURL;
     final_url: z.ZodURL;
@@ -47,11 +38,11 @@ export declare const evidenceSubmissionCaptureSchema: z.ZodObject<{
         normalized_bytes: z.ZodNumber;
     }, z.core.$strict>>;
 }, z.core.$strict>;
-export declare const evidenceSubmissionNormalizationSchema: z.ZodObject<{
+declare const evidenceSubmissionNormalizationSchema: z.ZodObject<{
     normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
     normalizer_id: z.ZodLiteral<"sourcey-deterministic-content">;
     version: z.ZodLiteral<"1">;
-    toolchain_digest: z.ZodString;
+    toolchain_digest: z.ZodLiteral<`sha256:${string}`>;
     object_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const evidenceSubmissionSchema: z.ZodObject<{
@@ -96,7 +87,7 @@ export declare const evidenceSubmissionSchema: z.ZodObject<{
         normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
         normalizer_id: z.ZodLiteral<"sourcey-deterministic-content">;
         version: z.ZodLiteral<"1">;
-        toolchain_digest: z.ZodString;
+        toolchain_digest: z.ZodLiteral<`sha256:${string}`>;
         object_digest: z.ZodString;
     }, z.core.$strict>;
     assertions: z.ZodArray<z.ZodObject<{
@@ -131,7 +122,7 @@ export type EvidenceSubmission = z.infer<typeof evidenceSubmissionSchema>;
 export type EvidenceSubmissionCapture = z.infer<typeof evidenceSubmissionCaptureSchema>;
 export type EvidenceSubmissionNormalization = z.infer<typeof evidenceSubmissionNormalizationSchema>;
 export type { EvidenceSourceStanding };
-export interface VerifiedEvidenceAssertion {
+interface VerifiedEvidenceAssertion {
     readonly path: string;
     readonly polarity: "supports" | "contradicts";
     readonly proofKind: EvidenceProofKind;
@@ -141,7 +132,7 @@ export interface VerifiedEvidenceAssertion {
         readonly text: string;
     }[];
 }
-export interface VerifiedEvidenceSubmission {
+interface VerifiedEvidenceSubmission {
     readonly submission: EvidenceSubmission;
     readonly sourceStanding: EvidenceSourceStanding;
     readonly normalizedBytes: Uint8Array;
@@ -220,7 +211,7 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
             normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
             normalizer_id: z.ZodLiteral<"sourcey-deterministic-content">;
             version: z.ZodLiteral<"1">;
-            toolchain_digest: z.ZodString;
+            toolchain_digest: z.ZodLiteral<`sha256:${string}`>;
             object_digest: z.ZodString;
         }, z.core.$strict>;
         assertions: z.ZodArray<z.ZodObject<{
@@ -291,7 +282,6 @@ export declare const evidenceReviewProposalSchema: z.ZodObject<{
     proposal_digest: z.ZodString;
 }, z.core.$strict>;
 export type EvidenceReviewProposal = z.infer<typeof evidenceReviewProposalSchema>;
-type Revision = EntityRevision | ProgramRevision | OfferRevision | AgentReadinessRevision;
 /**
  * Validates the self-contained proposal envelope at a persistence or provider
  * boundary. This intentionally does not claim that the referenced evidence is
@@ -307,7 +297,7 @@ export declare function verifyEvidenceSubmission(input: {
     readonly submission: unknown;
     readonly captureBytes: Uint8Array;
     readonly normalizedBytes: Uint8Array;
-    readonly revision: Revision;
+    readonly revision: ListingRevision;
     readonly authorityEntityRevision: EntityRevision;
     readonly authorityProgramRevision: ProgramRevision | null;
 }): VerifiedEvidenceSubmission;
@@ -328,7 +318,7 @@ export declare function verifyEvidenceCaptureObjects(input: {
 export declare function verifyEvidenceAssertions(input: {
     readonly assertions: readonly EvidenceAssertion[];
     readonly normalizedBytes: Uint8Array;
-    readonly revision: RetainedEvidenceBearingRevision;
+    readonly revision: ListingRevision;
 }): readonly VerifiedEvidenceAssertion[];
 export declare function prepareEvidenceReviewProposal(input: {
     readonly operationId: Digest;
@@ -340,7 +330,7 @@ export declare function prepareEvidenceReviewProposal(input: {
     readonly submission: unknown;
     readonly captureBytes: Uint8Array;
     readonly normalizedBytes: Uint8Array;
-    readonly revision: Revision;
+    readonly revision: ListingRevision;
     readonly authorityEntityRevision: EntityRevision;
     readonly authorityProgramRevision: ProgramRevision | null;
 }): EvidenceReviewProposal;
@@ -348,7 +338,7 @@ export declare function verifyEvidenceReviewProposal(input: {
     readonly proposal: unknown;
     readonly captureBytes: Uint8Array;
     readonly normalizedBytes: Uint8Array;
-    readonly revision: Revision;
+    readonly revision: ListingRevision;
     readonly authorityEntityRevision: EntityRevision;
     readonly authorityProgramRevision: ProgramRevision | null;
     readonly expectedBaseReleaseId?: Digest;

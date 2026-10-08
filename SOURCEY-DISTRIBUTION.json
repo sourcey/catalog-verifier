@@ -20,6 +20,6 @@
     "dist/modules/evidence-operations/src/source-inventory",
     "dist/modules/evidence-operations/src/workflow"
   ],
-  "dependencies": ["parse5", "provenry", "tldts", "yaml", "zod"],
+  "dependencies": ["provenry", "tldts", "yaml", "zod"],
   "self_contained": true
 }

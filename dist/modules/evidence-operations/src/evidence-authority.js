@@ -1,93 +1,29 @@
-import { canonicalJson, compareCanonicalStrings, deriveOperationId, digest, } from "provenry/primitives";
+import { canonicalJson, compareCanonicalStrings, compareInstants, deriveOperationId, digest, } from "provenry/primitives";
 import { z } from "zod";
-import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessOfferRelationInputSchema, agentReadinessProfileInputSchema, agentReadinessRevisionContract, agentReadinessRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { sourceyEvidenceCaptureMethodVersion } from "../../../contracts/capture/src/method-names.js";
 import { catalogEventCoreSchema, catalogEventIntentSchema, } from "../../../contracts/events/src/index.js";
-import { captureReceiptCoreSchema, evidenceReviewDecisionCoreSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
+import { evidenceReviewDecisionCoreSchema, evidenceReviewDecisionSchema, } from "../../../contracts/evidence/src/index.js";
 import { observationCoreSchema, observationSchema, } from "../../../contracts/observations/src/index.js";
 import { catalogRevisionContracts, entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
+import { assertAttestedObservationCapture } from "./attested-capture.js";
 import { evidenceReviewProposalSchema, verifyEvidenceReviewProposal, } from "./submission-verifier.js";
 const digestSchema = z.string().regex(/^sha256:[a-f0-9]{64}$/);
 const instantSchema = z.iso.datetime({ offset: true });
-const captureReceiptIntentSchema = z
-    .object({
-    receipt_digest: digestSchema,
-    core: captureReceiptCoreSchema,
-})
-    .strict();
-export const evidenceCatalogProposalCoreSchema = z
+const evidenceCatalogProposalCoreSchema = z
     .object({
     catalog_proposal_contract: z.literal("sourcey.evidence-catalog-proposal/v1alpha1"),
     materialized_at: instantSchema,
     review_proposal: evidenceReviewProposalSchema,
     review_decision: evidenceReviewDecisionSchema,
-    subject_revision: z.union([
-        entityRevisionSchema,
-        programRevisionSchema,
-        offerRevisionSchema,
-        agentReadinessRevisionSchema,
-    ]),
-    agent_readiness_profile_input: agentReadinessProfileInputSchema.nullable(),
-    agent_readiness_declaration_revision: agentReadinessDeclarationRevisionSchema.nullable(),
-    agent_readiness_offer_relation_inputs: z.array(agentReadinessOfferRelationInputSchema),
+    subject_revision: z.union([entityRevisionSchema, programRevisionSchema, offerRevisionSchema]),
     authority_entity_revision: entityRevisionSchema,
     authority_program_revision: programRevisionSchema.nullable(),
-    capture_receipt_intent: captureReceiptIntentSchema,
+    /** The Provenry attestation that proves the reviewed capture. */
+    capture_attestation_digest: digestSchema,
     observations: z.array(observationSchema).min(1).max(2),
     event_intents: z.array(catalogEventIntentSchema).min(1).max(2),
 })
-    .strict()
-    .superRefine((value, context) => {
-    const readiness = value.subject_revision.revision_contract === agentReadinessRevisionContract;
-    if (readiness !== (value.agent_readiness_profile_input !== null)) {
-        context.addIssue({
-            code: "custom",
-            path: ["agent_readiness_profile_input"],
-            message: "Only an Agent Readiness revision requires its exact canonical profile input.",
-        });
-    }
-    if (readiness !== (value.agent_readiness_declaration_revision !== null)) {
-        context.addIssue({
-            code: "custom",
-            path: ["agent_readiness_declaration_revision"],
-            message: "Only an Agent Readiness revision requires its exact declaration revision.",
-        });
-    }
-    if (readiness &&
-        (!value.agent_readiness_profile_input ||
-            !value.agent_readiness_declaration_revision ||
-            value.agent_readiness_profile_input.declaration_revision_digest !==
-                value.agent_readiness_declaration_revision.revision_digest ||
-            value.agent_readiness_profile_input.entity_id !==
-                value.agent_readiness_declaration_revision.entity_id)) {
-        context.addIssue({
-            code: "custom",
-            path: ["agent_readiness_declaration_revision"],
-            message: "Agent Readiness evidence must bind one exact Entity declaration revision.",
-        });
-    }
-    if (!readiness && value.agent_readiness_offer_relation_inputs.length > 0) {
-        context.addIssue({
-            code: "custom",
-            path: ["agent_readiness_offer_relation_inputs"],
-            message: "Only Agent Readiness evidence may carry Offer relations.",
-        });
-    }
-    for (const [index, relation] of value.agent_readiness_offer_relation_inputs.entries()) {
-        if (!value.agent_readiness_profile_input ||
-            !value.agent_readiness_declaration_revision ||
-            relation.agent_readiness_profile_id !==
-                value.agent_readiness_profile_input.agent_readiness_profile_id ||
-            relation.declaration_revision_digest !==
-                value.agent_readiness_declaration_revision.revision_digest) {
-            context.addIssue({
-                code: "custom",
-                path: ["agent_readiness_offer_relation_inputs", index],
-                message: "Agent Readiness Offer relations must bind the exact profile and declaration.",
-            });
-        }
-    }
-});
+    .strict();
 export const evidenceCatalogProposalSchema = evidenceCatalogProposalCoreSchema
     .extend({ proposal_digest: digestSchema })
     .strict();
@@ -99,9 +35,6 @@ export function evidenceCatalogProposalRevisionDigests(input) {
             proposal.authority_entity_revision.revision_digest,
             ...(proposal.authority_program_revision
                 ? [proposal.authority_program_revision.revision_digest]
-                : []),
-            ...(proposal.agent_readiness_declaration_revision
-                ? [proposal.agent_readiness_declaration_revision.revision_digest]
                 : []),
         ]),
     ].sort(compareCanonicalStrings);
@@ -122,18 +55,9 @@ export function createEvidenceReviewDecision(input) {
     });
 }
 export function createEvidenceCatalogProposal(input) {
-    const prepared = prepareEvidenceAuthorityIntents(input);
-    return finalizeEvidenceCatalogProposal({
-        prepared,
-        agentReadinessProfileInput: input.agentReadinessProfileInput,
-        agentReadinessDeclarationRevision: input.agentReadinessDeclarationRevision,
-        agentReadinessOfferRelationInputs: input.agentReadinessOfferRelationInputs ?? [],
-        ...(input.agentReadinessRevisionCompiler
-            ? { agentReadinessRevisionCompiler: input.agentReadinessRevisionCompiler }
-            : {}),
-    });
+    return finalizeEvidenceCatalogProposal(prepareEvidenceAuthorityIntents(input));
 }
-export function prepareEvidenceAuthorityIntents(input) {
+function prepareEvidenceAuthorityIntents(input) {
     const review = verifyEvidenceReviewProposal({
         proposal: input.reviewProposal,
         captureBytes: input.captureBytes,
@@ -158,32 +82,11 @@ export function prepareEvidenceAuthorityIntents(input) {
     if (review.submission.capture.availability !== "public") {
         throw new Error("Restricted evidence cannot be materialized into the public catalog.");
     }
+    const { attestedCapture } = input;
+    if (compareInstants(attestedCapture.attestation.signed_at, materializedAt) > 0) {
+        throw new Error("Evidence cannot be materialized before its capture is attested.");
+    }
     const subject = review.subject;
-    const receiptCore = captureReceiptCoreSchema.parse({
-        receipt_contract: "sourcey.capture-receipt/v1alpha1",
-        issuer_id: input.policy.captureReceiptIssuerId,
-        operation_id: deriveOperationId("sourcey.capture-receipt-operation/v1", {
-            review_proposal_digest: review.proposal_digest,
-            job_id: review.job_id,
-            capture_digest: review.submission.capture.digest,
-        }),
-        job_id: review.job_id,
-        base_release_id: review.base_release_id,
-        subject,
-        authority_entity_revision_digest: review.authority_entity_revision_digest,
-        authority_program_revision_digest: review.authority_program_revision_digest,
-        capture_policy_digest: review.capture_policy_digest,
-        review_decision: reviewDecision,
-        capture: {
-            ...review.submission.capture,
-            bytes: input.captureBytes.byteLength,
-        },
-        issued_at: materializedAt,
-    });
-    const captureReceiptIntent = {
-        receipt_digest: digest(receiptCore),
-        core: receiptCore,
-    };
     const groups = groupAssertionsByPolarity(review);
     const observations = groups.map(({ polarity }) => {
         const core = observationCoreSchema.parse({
@@ -222,7 +125,9 @@ export function prepareEvidenceAuthorityIntents(input) {
                 },
             },
         });
-        return observationSchema.parse({ ...core, observation_id: digest(core) });
+        const observation = observationSchema.parse({ ...core, observation_id: digest(core) });
+        assertAttestedObservationCapture(observation, attestedCapture);
+        return observation;
     });
     const eventIntents = groups.map(({ assertions, polarity }, index) => {
         const observation = observations[index];
@@ -240,7 +145,8 @@ export function prepareEvidenceAuthorityIntents(input) {
             occurred_at: materializedAt,
             payload: {
                 observation_id: observation.observation_id,
-                capture_receipt_digest: captureReceiptIntent.receipt_digest,
+                capture_attestation_digest: attestedCapture.attestation.attestation_digest,
+                review_decision: reviewDecision,
                 normalized_object_digest: review.submission.normalization.object_digest,
                 authority_entity_revision_digest: review.authority_entity_revision_digest,
                 authority_program_revision_digest: review.authority_program_revision_digest,
@@ -260,57 +166,23 @@ export function prepareEvidenceAuthorityIntents(input) {
         subjectRevision: input.revision,
         authorityEntityRevision: input.authorityEntityRevision,
         authorityProgramRevision: input.authorityProgramRevision,
-        captureReceiptIntent,
+        attestedCapture,
         observations,
         eventIntents,
     };
 }
-export function finalizeEvidenceCatalogProposal(input) {
-    const agentReadinessProfileInput = agentReadinessProfileInputSchema
-        .nullable()
-        .parse(input.agentReadinessProfileInput);
-    const readinessRevision = input.prepared.subjectRevision.revision_contract === agentReadinessRevisionContract;
-    if (readinessRevision !== (agentReadinessProfileInput !== null)) {
-        throw new Error("Only an Agent Readiness revision requires its exact profile input.");
-    }
-    const agentReadinessDeclarationRevision = agentReadinessDeclarationRevisionSchema
-        .nullable()
-        .parse(input.agentReadinessDeclarationRevision);
-    if (readinessRevision !== (agentReadinessDeclarationRevision !== null)) {
-        throw new Error("Only an Agent Readiness revision requires its exact declaration revision.");
-    }
-    if (agentReadinessDeclarationRevision) {
-        const { revision_digest: revisionDigest, ...core } = agentReadinessDeclarationRevision;
-        if (digest(agentReadinessDeclarationRevisionCoreSchema.parse(core)) !== revisionDigest) {
-            throw new Error("Agent Readiness declaration revision digest mismatch.");
-        }
-    }
-    const agentReadinessOfferRelationInputs = z
-        .array(agentReadinessOfferRelationInputSchema)
-        .parse(input.agentReadinessOfferRelationInputs ?? []);
-    if (agentReadinessProfileInput) {
-        if (!input.agentReadinessRevisionCompiler) {
-            throw new Error("Agent Readiness evidence requires its revision compiler.");
-        }
-        if (canonicalJson(input.agentReadinessRevisionCompiler(agentReadinessProfileInput)) !==
-            canonicalJson(input.prepared.subjectRevision)) {
-            throw new Error("Agent Readiness profile input does not compile to its reviewed revision.");
-        }
-    }
+function finalizeEvidenceCatalogProposal(prepared) {
     const core = evidenceCatalogProposalCoreSchema.parse({
         catalog_proposal_contract: "sourcey.evidence-catalog-proposal/v1alpha1",
-        materialized_at: input.prepared.materializedAt,
-        review_proposal: input.prepared.reviewProposal,
-        review_decision: input.prepared.reviewDecision,
-        subject_revision: input.prepared.subjectRevision,
-        agent_readiness_profile_input: agentReadinessProfileInput,
-        agent_readiness_declaration_revision: agentReadinessDeclarationRevision,
-        agent_readiness_offer_relation_inputs: agentReadinessOfferRelationInputs,
-        authority_entity_revision: input.prepared.authorityEntityRevision,
-        authority_program_revision: input.prepared.authorityProgramRevision,
-        capture_receipt_intent: input.prepared.captureReceiptIntent,
-        observations: input.prepared.observations,
-        event_intents: input.prepared.eventIntents,
+        materialized_at: prepared.materializedAt,
+        review_proposal: prepared.reviewProposal,
+        review_decision: prepared.reviewDecision,
+        subject_revision: prepared.subjectRevision,
+        authority_entity_revision: prepared.authorityEntityRevision,
+        authority_program_revision: prepared.authorityProgramRevision,
+        capture_attestation_digest: prepared.attestedCapture.attestation.attestation_digest,
+        observations: prepared.observations,
+        event_intents: prepared.eventIntents,
     });
     return evidenceCatalogProposalSchema.parse({ ...core, proposal_digest: digest(core) });
 }
@@ -321,10 +193,7 @@ export function validateEvidenceCatalogProposal(input) {
         throw new Error("Evidence catalog proposal digest mismatch.");
     }
     const review = proposal.review_proposal;
-    const expectedCoveragePolicyDigest = proposal.subject_revision.revision_contract === agentReadinessRevisionContract
-        ? input.catalog.agentReadinessPolicyDigest
-        : input.catalog.coveragePolicyDigest;
-    if (review.coverage_policy_digest !== expectedCoveragePolicyDigest) {
+    if (review.coverage_policy_digest !== input.catalog.coveragePolicyDigest) {
         throw new Error("Evidence proposal coverage policy is not current.");
     }
     const revision = proposal.subject_revision;
@@ -347,42 +216,23 @@ export function validateEvidenceCatalogProposal(input) {
     const expected = createEvidenceCatalogProposal({
         reviewProposal: review,
         reviewDecision: proposal.review_decision,
+        attestedCapture: input.attestedCapture,
         captureBytes: input.captureBytes,
         normalizedBytes: input.normalizedBytes,
         revision,
-        agentReadinessProfileInput: proposal.agent_readiness_profile_input,
-        agentReadinessDeclarationRevision: proposal.agent_readiness_declaration_revision,
-        agentReadinessOfferRelationInputs: proposal.agent_readiness_offer_relation_inputs,
         authorityEntityRevision: authorityRevision,
         authorityProgramRevision,
         materializedAt: proposal.materialized_at,
         policy: input.policy,
-        ...(input.agentReadinessRevisionCompiler
-            ? { agentReadinessRevisionCompiler: input.agentReadinessRevisionCompiler }
-            : {}),
     });
     if (canonicalJson(expected) !== canonicalJson(proposal)) {
         throw new Error("Evidence catalog proposal is not the deterministic reviewed projection.");
     }
-    const existingReceiptByDigest = new Map(input.catalog.existingCaptureReceipts.map((receipt) => [receipt.receipt_digest, receipt]));
-    const existingReceiptByOperation = new Map(input.catalog.existingCaptureReceipts.map((receipt) => [receipt.operation_id, receipt]));
-    const receiptIntent = proposal.capture_receipt_intent;
-    const existingReceipt = existingReceiptByDigest.get(receiptIntent.receipt_digest);
-    let newCaptureReceiptIntent = receiptIntent;
-    let existingCaptureReceiptDigest = null;
-    if (existingReceipt) {
-        const { receipt_digest: _, protected: __, ...existingCore } = existingReceipt;
-        if (canonicalJson(existingCore) !== canonicalJson(receiptIntent.core)) {
-            throw new Error(`Capture receipt collision for ${receiptIntent.receipt_digest}.`);
-        }
-        newCaptureReceiptIntent = null;
-        existingCaptureReceiptDigest = receiptIntent.receipt_digest;
-    }
-    else {
-        const operationCollision = existingReceiptByOperation.get(receiptIntent.core.operation_id);
-        if (operationCollision) {
-            throw new Error(`Capture operation ${receiptIntent.core.operation_id} is already bound to another receipt.`);
-        }
+    // A capture the release already carries is the same attestation, byte for byte.
+    const existingAttestation = input.catalog.existingCaptureAttestations.find((attestation) => attestation.attestation_digest === proposal.capture_attestation_digest);
+    if (existingAttestation &&
+        digest(existingAttestation) !== digest(input.attestedCapture.attestation)) {
+        throw new Error(`Capture attestation collision for ${proposal.capture_attestation_digest}.`);
     }
     const observationsById = new Map(input.catalog.existingObservations.map((observation) => [
         observation.observation_id,
@@ -422,12 +272,16 @@ export function validateEvidenceCatalogProposal(input) {
         }
         newEventIntents.push(intent);
     }
+    // An attestation is first included with the evidence it proves, once; an
+    // exact retry is a no-op, and new evidence is attested by a read of its own.
+    if (existingAttestation && newEventIntents.length > 0) {
+        throw new Error(`Capture attestation ${proposal.capture_attestation_digest} was first included by an earlier release; new evidence needs its own attested read.`);
+    }
     return {
         proposal,
-        newCaptureReceiptIntent,
+        existingCaptureAttestation: existingAttestation !== undefined,
         newObservations,
         newEventIntents,
-        existingCaptureReceiptDigest,
         existingObservationIds: existingObservationIds.sort(compareCanonicalStrings),
         existingEventIds: existingEventIds.sort(compareCanonicalStrings),
     };
@@ -462,20 +316,15 @@ function assertProspectiveRevisionIdentity(input) {
     const currentPrograms = new Map();
     const currentProgramOwners = new Map();
     const currentOfferOwners = new Map();
-    const currentAgentReadinessOwners = new Map();
     const currentDomainOwners = new Map();
-    const readinessHeadsByDigest = new Map([...input.currentAgentReadinessHeads.entries()].map(([profileId, head]) => [
-        head.revisionDigest,
-        { profileId, entityId: head.entityId },
-    ]));
+    // Readiness heads are current state this lane neither reads nor owns.
+    const readinessHeadDigests = new Set([...input.currentAgentReadinessHeads.values()].map((head) => head.revisionDigest));
     for (const revisionDigest of input.currentRevisionDigests) {
         const revision = input.revisions.get(revisionDigest);
         if (!revision) {
-            const readinessHead = readinessHeadsByDigest.get(revisionDigest);
-            if (!readinessHead) {
+            if (!readinessHeadDigests.has(revisionDigest)) {
                 throw new Error(`Current catalog revision ${revisionDigest} is unavailable.`);
             }
-            currentAgentReadinessOwners.set(readinessHead.profileId, readinessHead.entityId);
             continue;
         }
         if (revision.revision_contract === catalogRevisionContracts.entity) {
@@ -493,9 +342,6 @@ function assertProspectiveRevisionIdentity(input) {
         else if (revision.revision_contract === catalogRevisionContracts.offer) {
             currentOfferOwners.set(revision.offer_id, revision.entity_id);
         }
-        else if (revision.revision_contract === agentReadinessRevisionContract) {
-            currentAgentReadinessOwners.set(revision.agent_readiness_profile_id, revision.entity_id);
-        }
     }
     if (input.revision.revision_contract === catalogRevisionContracts.program &&
         currentProgramOwners.has(input.revision.program_id) &&
@@ -506,12 +352,6 @@ function assertProspectiveRevisionIdentity(input) {
         currentOfferOwners.has(input.revision.offer_id) &&
         currentOfferOwners.get(input.revision.offer_id) !== input.revision.entity_id) {
         throw new Error(`Offer ${input.revision.offer_id} is owned by another entity.`);
-    }
-    if (input.revision.revision_contract === agentReadinessRevisionContract &&
-        currentAgentReadinessOwners.has(input.revision.agent_readiness_profile_id) &&
-        currentAgentReadinessOwners.get(input.revision.agent_readiness_profile_id) !==
-            input.revision.entity_id) {
-        throw new Error(`Agent readiness profile ${input.revision.agent_readiness_profile_id} is owned by another entity.`);
     }
     for (const domain of input.authorityRevision.content.domains) {
         if (domain.valid_until !== undefined)

@@ -1,12 +1,11 @@
 import { execFile } from "node:child_process";
-import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { promisify } from "node:util";
 import { assertExactGitCheckout, gitComparisonBase } from "provenry/git";
 import { canonicalJson, compareCanonicalStrings, mapLimit } from "provenry/primitives";
 import { parse } from "yaml";
-import { catalogTaxonomySchema, } from "../../../contracts/taxonomy/src/index.js";
 import { assertCatalogContributionAuthoring, assertCatalogTaxonomy, } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
 import { ENTITY_ID_PATTERN } from "../../catalog-primitives/src/index.js";
@@ -22,10 +21,8 @@ export * from "./machine-admission.js";
 export * from "./publication.js";
 export * from "./publication-composition.js";
 export * from "./submission.js";
+export * from "./taxonomy.js";
 export const CATALOG_ENTITY_ROOT = "entities";
-export async function readCatalogTaxonomy(path) {
-    return catalogTaxonomySchema.parse(JSON.parse(await readFile(resolve(path), "utf8")));
-}
 /**
  * Resolve a deterministic Git tree containing only the exact changed Entity
  * files. This is the admission identity: unrelated repository and Catalog
@@ -79,7 +76,7 @@ export async function validateCatalogPrTree(input) {
     };
 }
 /** Enforce the public contribution policy over the one shared PR analysis. */
-export function assertCatalogContributionAnalysis(analysis) {
+function assertCatalogContributionAnalysis(analysis) {
     assertCatalogContributionSelection(analysis.unsupportedChanges, analysis.changedEntities.map(({ currentAuthoring }) => currentAuthoring));
 }
 function assertCatalogContributionSelection(unsupportedChanges, authoring) {
@@ -297,7 +294,7 @@ async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selected
     assertChangedRoleClosure(changedAuthoring, identityClosure);
     return { changes, changedAuthoring, identityClosure, dependencyFiles };
 }
-export async function catalogPullRequestComparisonBase(input) {
+async function catalogPullRequestComparisonBase(input) {
     return gitComparisonBase(input);
 }
 export async function catalogChangedPaths(input) {
@@ -452,10 +449,13 @@ async function identityDependencyFiles(input) {
     if (needles.length === 0)
         return [];
     const authoringPath = repositoryPath(input.repositoryRoot, input.authoringRoot);
+    // Whole values only, in any case: domain needles are lower-cased, authoring need not be.
     const arguments_ = [
         "grep",
         "-l",
         "-F",
+        "-w",
+        "-i",
         ...needles.flatMap((value) => ["-e", value]),
         input.headRevision,
         "--",
@@ -475,7 +475,7 @@ async function identityDependencyFiles(input) {
     }
     const changed = new Set(input.changedFiles);
     const revisionPrefix = `${input.headRevision}:`;
-    return stdout
+    const candidates = stdout
         .split("\n")
         .filter(Boolean)
         .map((path) => {
@@ -486,8 +486,16 @@ async function identityDependencyFiles(input) {
     })
         .filter((path) => !changed.has(path))
         .sort(compareCanonicalStrings);
+    const needlesByIdentity = new Set(needles);
+    const owners = await mapLimit(candidates, 8, async (path) => {
+        const facts = await compileAuthoringFiles(input.authoringRoot, [path], {
+            allowExternalRoleEntities: true,
+        });
+        return ownedIdentityKeys(facts).some((key) => needlesByIdentity.has(key)) ? path : null;
+    });
+    return owners.filter((path) => path !== null);
 }
-function identityNeedles(facts) {
+function ownedIdentityKeys(facts) {
     return [
         ...new Set(facts.entities.flatMap((entity) => [
             entity.revision.entity_id,
@@ -497,12 +505,19 @@ function identityNeedles(facts) {
                 .filter((domain) => domain.valid_until === undefined)
                 .map((domain) => domain.value.toLowerCase()),
             ...entity.programs.map((program) => program.revision.program_id),
-            ...entity.offers.flatMap((offer) => [
-                offer.revision.offer_id,
+            ...entity.offers.map((offer) => offer.revision.offer_id),
+        ])),
+    ].sort(compareCanonicalStrings);
+}
+function identityNeedles(facts) {
+    return [
+        ...new Set([
+            ...ownedIdentityKeys(facts),
+            ...facts.entities.flatMap((entity) => entity.offers.flatMap((offer) => [
                 offer.revision.content.roles.terms_authority_entity_id,
                 offer.revision.content.roles.access_operator_entity_id,
-            ]),
-        ])),
+            ])),
+        ]),
     ].sort(compareCanonicalStrings);
 }
 function assertChangedRoleClosure(changed, closure) {

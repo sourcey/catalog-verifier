@@ -72,8 +72,9 @@ export const coveragePolicySchema = coveragePolicyCoreSchema
  * production target must account for every current public factual root. An
  * optional field is applicable only when a revision publishes it.
  */
-export const currentCatalogMaterialClaimPaths = {
-    entity: ["/category", "/description", "/domains", "/links", "/name", "/summary"],
+const currentCatalogMaterialClaimPaths = {
+    // The category is Sourcey's own taxonomy, validated against it, never a vendor statement.
+    entity: ["/description", "/domains", "/links", "/name", "/summary"],
     program: ["/summary", "/title"],
     offer: [
         "/access",

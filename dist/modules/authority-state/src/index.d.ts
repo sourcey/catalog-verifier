@@ -13,7 +13,7 @@ export interface AuthorityState {
     readonly activeClaims: ReadonlyMap<string, ActiveAuthorityClaim>;
     readonly activeAttestations: readonly CatalogEvent[];
 }
-export interface EntityIdentityAuthorityClosure {
+interface EntityIdentityAuthorityClosure {
     readonly canonical_entity_resolutions: Readonly<Record<string, string>>;
     readonly split_relationships: Readonly<Record<string, readonly string[]>>;
 }
@@ -40,4 +40,5 @@ export declare function assertEntityIdentityAuthorityClosure(input: {
     }>;
     readonly identities: EntityIdentityAuthorityClosure;
 }): void;
+export {};
 //# sourceMappingURL=index.d.ts.map

@@ -36,7 +36,7 @@
     "properties": [
       {
         "name": "sourcey:distribution-definition-sha256",
-        "value": "sha256:2053aabb4a74f62a85c91ee911547f401127ca670adb8f363c485cce265ffa3c"
+        "value": "sha256:56c6104b1f8de751b08df2167b3f79ba41a06ea03281645af17a7e86f71f0da2"
       },
       {
         "name": "sourcey:toolchain-sha256",
@@ -51,25 +51,25 @@
   "components": [
     {
       "type": "library",
-      "bom-ref": "pkg:npm/entities@8.0.0",
+      "bom-ref": "pkg:npm/entities@8.1.0",
       "name": "entities",
       "licenses": [
         {
           "expression": "BSD-2-Clause"
         }
       ],
-      "version": "8.0.0",
-      "purl": "pkg:npm/entities@8.0.0",
+      "version": "8.1.0",
+      "purl": "pkg:npm/entities@8.1.0",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "cf07f325e710fd47a3eadbac32ac00a94ffa28bd97681d95676260e7825ee9a84d046347e8493a8378e33421747c6f4459028664d75d3635391756509ffb019c"
+          "content": "9312fb9ac21f7d2ba1f5a68500c0fbaf1008b9344c00731e06d8075b6c94756c3bdf664d87831e86417681d8efb5d9a29246883fd6c50c324e3e5b2f9bb6afac"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/entities/-/entities-8.0.0.tgz"
+          "url": "https://registry.npmjs.org/entities/-/entities-8.1.0.tgz"
         }
       ]
     },
@@ -99,25 +99,25 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/provenry@0.1.5",
+      "bom-ref": "pkg:npm/provenry@0.2.0",
       "name": "provenry",
       "licenses": [
         {
           "expression": "MIT"
         }
       ],
-      "version": "0.1.5",
-      "purl": "pkg:npm/provenry@0.1.5",
+      "version": "0.2.0",
+      "purl": "pkg:npm/provenry@0.2.0",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "1707219e17d00581bd26d4dc5863388bc69749388a0578325fc6b341d559c9de1a9be699f3ec8f9f57a4a7854c8ce1b2017b65848cd6aa0c2c914c7b8938e6d7"
+          "content": "f99da8e812d47f536a92e9f28edcd9ae0aa8dffb61f35a8f338e119f175f52124ec1be10db35a731633b138ec61a3f49098c8243922e44e896239b5cc0d1b551"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/provenry/-/provenry-0.1.5.tgz"
+          "url": "https://registry.npmjs.org/provenry/-/provenry-0.2.0.tgz"
         }
       ]
     },
@@ -222,26 +222,26 @@
     {
       "ref": "urn:sourcey:code-distribution:catalog-verifier",
       "dependsOn": [
-        "pkg:npm/parse5@8.0.1",
-        "pkg:npm/provenry@0.1.5",
+        "pkg:npm/provenry@0.2.0",
         "pkg:npm/tldts@7.4.16",
         "pkg:npm/yaml@2.9.1",
         "pkg:npm/zod@4.6.5"
       ]
     },
     {
-      "ref": "pkg:npm/entities@8.0.0",
+      "ref": "pkg:npm/entities@8.1.0",
       "dependsOn": []
     },
     {
       "ref": "pkg:npm/parse5@8.0.1",
       "dependsOn": [
-        "pkg:npm/entities@8.0.0"
+        "pkg:npm/entities@8.1.0"
       ]
     },
     {
-      "ref": "pkg:npm/provenry@0.1.5",
+      "ref": "pkg:npm/provenry@0.2.0",
       "dependsOn": [
+        "pkg:npm/parse5@8.0.1",
         "pkg:npm/zod@4.6.5"
       ]
     },

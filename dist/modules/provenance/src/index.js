@@ -1,5 +1,4 @@
 import { compareCanonicalStrings, compareInstants } from "provenry/primitives";
-import { agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventPayloadSchemas, } from "../../../contracts/events/src/index.js";
 import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
 import { deriveAuthorityState, entityAcceptsClaimAuthorityDomain, } from "../../authority-state/src/index.js";
@@ -9,19 +8,6 @@ export { evidenceAssertions } from "./evidence-bindings.js";
 export { applicableEvidenceCoverageRequirements, evaluateEvidenceCoverage, evidenceAssertionSatisfiesRequirement, evidenceCoverageCandidateRequirements, evidencePathsOverlap, evidenceRequirementIsCovered, valueAtEvidencePointer, } from "./evidence-coverage.js";
 export * from "./material-claims.js";
 export { buildProspectiveEvidenceStandingGraph } from "./prospective-evidence.js";
-/** Field standing over the shared event graph; both catalog pathways read it here. */
-export function evidenceStatusFor(field) {
-    if (!field)
-        return "missing";
-    if (field.supporting_event_ids.length > 0 && field.contradicting_event_ids.length > 0) {
-        return "mixed";
-    }
-    if (field.supporting_event_ids.length > 0)
-        return "supported";
-    if (field.contradicting_event_ids.length > 0)
-        return "contradicted";
-    return "missing";
-}
 /** The unique observations that the evidence events among `eventIds` bind, in canonical order. */
 export function boundObservationIds(eventIds, events) {
     const observationIds = new Set();
@@ -300,24 +286,15 @@ export function buildEventGraph(events, observations) {
         activeAuthorityClaims,
     };
 }
-export function deriveProvenance(input) {
-    const { revision, authorityEntityRevision, graph, coveragePolicy, freshnessPolicy, policyAsOf } = input;
-    const subjectEvents = (graph.byRevisionDigest.get(revision.revision_digest) ?? []).filter((event) => !graph.inactiveEventIds.has(event.event_id));
-    const agentReadinessRevision = revision.revision_contract === agentReadinessRevisionContract;
-    const revisionValue = agentReadinessRevision ? revision : revision.content;
-    const policyRequirements = agentReadinessRevision
-        ? revision.signals.map((_, index) => ({
-            path: `/signals/${index}`,
-            proof_kinds: ["observed"],
-            derivation_rules: [],
-            guidance: "Agent-readiness signals require exact observed test evidence.",
-        }))
-        : revision.revision_contract === catalogRevisionContracts.entity
-            ? coveragePolicy.entity_requirements
-            : revision.revision_contract === catalogRevisionContracts.program
-                ? coveragePolicy.program_requirements
-                : coveragePolicy.offer_requirements;
-    const requirements = applicableEvidenceCoverageRequirements(revisionValue, policyRequirements);
+/**
+ * A revision's standing apart from field coverage: its open or resolved
+ * disputes, the Entity's current attestation of it, and the events that
+ * establish both. Every subject's provenance carries it; an Agent Readiness
+ * profile's provenance is only this, its ratings resting on run records.
+ */
+export function deriveSubjectStanding(input) {
+    const { authorityEntityRevision, graph, policyAsOf } = input;
+    const subjectEvents = activeSubjectEvents(graph, input.revisionDigest);
     const attestations = subjectEvents.filter((event) => {
         if (event.kind !== "subject.attested")
             return false;
@@ -332,9 +309,58 @@ export function deriveProvenance(input) {
         return entityAcceptsClaimAuthorityDomain(authorityEntityRevision, claim.controlledDomain);
     });
     if (attestations.length > 1) {
-        throw new Error(`Revision ${revision.revision_digest} has multiple active attestations; revoke or supersede one.`);
+        throw new Error(`Revision ${input.revisionDigest} has multiple active attestations; revoke or supersede one.`);
     }
     const attestation = attestations[0];
+    const openDisputes = subjectEvents.filter((event) => event.kind === "dispute.opened" &&
+        !subjectEvents.some((candidate) => candidate.kind === "dispute.resolved" &&
+            payloadString(candidate, "opened_event_id") === event.event_id));
+    const resolvedDisputes = subjectEvents.filter((event) => event.kind === "dispute.resolved");
+    const basis = new Set();
+    if (attestation) {
+        basis.add(attestation.event_id);
+        const claim = graph.activeAuthorityClaims.get(payloadString(attestation, "authority_claim_id"));
+        if (claim) {
+            for (const eventId of claim.eventIds)
+                basis.add(eventId);
+        }
+    }
+    for (const event of [...openDisputes, ...resolvedDisputes])
+        basis.add(event.event_id);
+    for (const event of subjectEvents.filter((candidate) => ["evidence.retracted", "attestation.revoked", "freshness.exception-revoked"].includes(candidate.kind))) {
+        basis.add(event.event_id);
+    }
+    return {
+        dispute: openDisputes.length > 0 ? "open" : resolvedDisputes.length > 0 ? "resolved" : "none",
+        vendor_attestation: attestation
+            ? {
+                status: "current",
+                event_id: attestation.event_id,
+                attested_at: payloadString(attestation, "attested_at"),
+            }
+            : { status: "none" },
+        basis_event_ids: [...basis].sort(),
+    };
+}
+function activeSubjectEvents(graph, revisionDigest) {
+    return (graph.byRevisionDigest.get(revisionDigest) ?? []).filter((event) => !graph.inactiveEventIds.has(event.event_id));
+}
+export function deriveProvenance(input) {
+    const { revision, graph, coveragePolicy, freshnessPolicy, policyAsOf } = input;
+    const subjectEvents = activeSubjectEvents(graph, revision.revision_digest);
+    const revisionValue = revision.content;
+    const policyRequirements = revision.revision_contract === catalogRevisionContracts.entity
+        ? coveragePolicy.entity_requirements
+        : revision.revision_contract === catalogRevisionContracts.program
+            ? coveragePolicy.program_requirements
+            : coveragePolicy.offer_requirements;
+    const requirements = applicableEvidenceCoverageRequirements(revisionValue, policyRequirements);
+    const standing = deriveSubjectStanding({
+        revisionDigest: revision.revision_digest,
+        authorityEntityRevision: input.authorityEntityRevision,
+        graph,
+        policyAsOf,
+    });
     const coverageStates = requirements.map((requirement) => {
         const { path } = requirement;
         const supporting = subjectEvents.filter((event) => event.kind === "evidence.bound" &&
@@ -399,11 +425,7 @@ export function deriveProvenance(input) {
         };
     });
     const fieldCoverage = coverageStates.map(({ field }) => field);
-    const openDisputes = subjectEvents.filter((event) => event.kind === "dispute.opened" &&
-        !subjectEvents.some((candidate) => candidate.kind === "dispute.resolved" &&
-            payloadString(candidate, "opened_event_id") === event.event_id));
-    const hasResolvedDispute = subjectEvents.some((event) => event.kind === "dispute.resolved");
-    const basis = new Set();
+    const basis = new Set(standing.basis_event_ids);
     for (const field of fieldCoverage) {
         for (const eventId of field.supporting_event_ids)
             basis.add(eventId);
@@ -417,22 +439,6 @@ export function deriveProvenance(input) {
         compareInstants(payloadString(event, "valid_until"), policyAsOf) > 0)) {
         basis.add(exception.event_id);
     }
-    if (attestation) {
-        basis.add(attestation.event_id);
-        const claim = graph.activeAuthorityClaims.get(payloadString(attestation, "authority_claim_id"));
-        if (claim) {
-            for (const eventId of claim.eventIds)
-                basis.add(eventId);
-        }
-    }
-    for (const event of openDisputes)
-        basis.add(event.event_id);
-    for (const event of subjectEvents.filter((candidate) => candidate.kind === "dispute.resolved")) {
-        basis.add(event.event_id);
-    }
-    for (const event of subjectEvents.filter((candidate) => ["evidence.retracted", "attestation.revoked", "freshness.exception-revoked"].includes(candidate.kind))) {
-        basis.add(event.event_id);
-    }
     const freshness = fieldCoverage.some((field) => field.freshness === "unknown")
         ? "unknown"
         : fieldCoverage.some((field) => field.freshness === "stale")
@@ -440,18 +446,12 @@ export function deriveProvenance(input) {
             : "fresh";
     return {
         freshness,
-        dispute: openDisputes.length > 0 ? "open" : hasResolvedDispute ? "resolved" : "none",
+        dispute: standing.dispute,
         coverage_policy_digest: coveragePolicy.policy_digest,
         freshness_policy_digest: freshnessPolicy.policy_digest,
         basis_event_ids: [...basis].sort(),
         fields: fieldCoverage,
-        vendor_attestation: attestation
-            ? {
-                status: "current",
-                event_id: attestation.event_id,
-                attested_at: payloadString(attestation, "attested_at"),
-            }
-            : { status: "none" },
+        vendor_attestation: standing.vendor_attestation,
     };
 }
 function observationFreshness(observation, policy, policyAsOf) {

@@ -1,6 +1,6 @@
 import { type EvidenceAssertion } from "../../../contracts/evidence/src/index.js";
 import type { CoverageRequirement } from "../../../contracts/policies/src/index.js";
-export interface EvidenceCoverageDiagnostic {
+interface EvidenceCoverageDiagnostic {
     readonly path: string;
     readonly status: "covered" | "uncovered";
     readonly proof_kinds: CoverageRequirement["proof_kinds"];
@@ -32,4 +32,5 @@ export declare function evaluateEvidenceCoverage(content: unknown, requirements:
 export declare function evidencePathsOverlap(left: string, right: string): boolean;
 export declare function evidenceAssertionSatisfiesRequirement(assertion: EvidenceAssertion, requirement: CoverageRequirement): boolean;
 export declare function valueAtEvidencePointer(value: unknown, pointer: string): unknown;
+export {};
 //# sourceMappingURL=evidence-coverage.d.ts.map

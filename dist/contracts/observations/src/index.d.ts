@@ -1,5 +1,4 @@
 import { z } from "zod";
-export declare const observationMethodKnownValues: readonly ["fixture", "http", "headless", "archive", "manual"];
 export declare const observationMethodSchema: z.ZodString;
 export declare const observationCoreSchema: z.ZodObject<{
     observation_contract: z.ZodLiteral<"sourcey.observation/v1alpha1">;

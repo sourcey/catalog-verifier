@@ -1,13 +1,10 @@
 import { canonicalJson, digest, digestPathSegment, parseJsonFile, prettyJson, } from "provenry/primitives";
 import { agentReadinessProfileReleaseInputSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { CATALOG_RELEASE } from "../../artifact/src/release-directory-files.js";
-import { agentReadinessPublicationInput, } from "./publication-authorities.js";
 const prefix = "inputs/agent-readiness-release/";
-export function addAgentReadinessPublicationInputs(files, proposals) {
-    for (const proposal of proposals) {
-        const input = agentReadinessPublicationInput(proposal);
-        if (input)
-            files.set(`${prefix}${digestPathSegment(digest(input))}.json`, prettyJson(input));
+export function addAgentReadinessPublicationInputs(files, releaseInputs) {
+    for (const input of releaseInputs) {
+        files.set(`${prefix}${digestPathSegment(digest(input))}.json`, prettyJson(input));
     }
 }
 /** An admitted profile update binds its complete relation set, including an

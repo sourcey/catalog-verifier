@@ -1,6 +1,6 @@
 import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import { type EntityRevision, type OfferRevision, type ProgramRevision } from "../../../contracts/revisions/src/index.js";
-export interface CompiledOfferFacts {
+interface CompiledOfferFacts {
     readonly revision: OfferRevision;
     readonly slug: string;
     readonly slugAliases: readonly string[];
@@ -8,7 +8,7 @@ export interface CompiledOfferFacts {
     /** True when the offer's evidence basis is an Entity attestation, not sources. */
     readonly declared: boolean;
 }
-export interface CompiledProgramFacts {
+interface CompiledProgramFacts {
     readonly revision: ProgramRevision;
     readonly slug: string;
     readonly slugAliases: readonly string[];

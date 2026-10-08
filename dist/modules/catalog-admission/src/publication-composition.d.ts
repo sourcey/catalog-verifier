@@ -136,6 +136,10 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                     } | {
                         kind: "at-least";
                         value: string;
+                    } | {
+                        kind: "range";
+                        minimum: string;
+                        maximum: string;
                     } | undefined;
                 } | {
                     benefit_id: string;
@@ -165,6 +169,10 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                     } | {
                         kind: "at-least";
                         value: string;
+                    } | {
+                        kind: "range";
+                        minimum: string;
+                        maximum: string;
                     } | undefined;
                 } | {
                     benefit_id: string;
@@ -227,6 +235,10 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                     } | {
                         kind: "at-least";
                         value: string;
+                    } | {
+                        kind: "range";
+                        minimum: string;
+                        maximum: string;
                     } | undefined;
                 } | {
                     benefit_id: string;
@@ -247,6 +259,10 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
                     } | {
                         kind: "at-least";
                         value: string;
+                    } | {
+                        kind: "range";
+                        minimum: string;
+                        maximum: string;
                     } | undefined;
                 } | {
                     benefit_id: string;
@@ -404,7 +420,7 @@ export declare function catalogPublicationIngressUnion(input: readonly CatalogPu
         binding_digest: string | null;
     }[];
     authority_proposals: {
-        purpose: "catalog-attestation" | "catalog-authority" | "catalog-capture" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
+        purpose: "catalog-attestation" | "catalog-authority" | "catalog-dispute" | "catalog-evidence" | "catalog-feed" | "catalog-identity" | "catalog-policy" | "catalog-release" | "catalog-verification";
         proposal_digest: string;
         dependency_keys: string[];
         public_input_digest?: string | undefined;

@@ -11,7 +11,6 @@ export declare function parseCatalogAuthoringSources(sources: readonly {
 }[], options?: {
     readonly allowExternalRoleEntities?: boolean;
 }): readonly CatalogAuthoringEntry[];
-export declare function parseCatalogAuthoringSource(source: string, content: string): CatalogAuthoringEntry;
 export declare function assertCatalogAuthoringIdentity(entries: readonly CatalogAuthoringEntry[], allowExternalRoleEntities: boolean): void;
 /**
  * Canonical non-Git validation for explicit Catalog authoring bytes. Git

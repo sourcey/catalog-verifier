@@ -4,8 +4,7 @@ import { compileAgentReadinessOfferRelationRevision } from "../../agent-readines
 import { CATALOG_RELEASE } from "./release-directory-files.js";
 export function assertReleasedAgentReadinessClosure(input) {
     const entityIds = new Set(input.artifact.entities.map((entity) => entity.entity_id));
-    const eventById = new Map(input.events.map((event) => [event.event_id, event]));
-    const observationIds = new Set(input.observations.map((observation) => observation.observation_id));
+    const eventIds = new Set(input.events.map((event) => event.event_id));
     const inputProfiles = new Map(input.inputs.profiles.map((profile) => [profile.agent_readiness_profile_id, profile]));
     if (inputProfiles.size !== input.profiles.length) {
         throw new Error("Agent readiness inputs and projections do not have the same closed profile set.");
@@ -20,26 +19,10 @@ export function assertReleasedAgentReadinessClosure(input) {
             !entityIds.has(projection.entity_id)) {
             throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} is not closed over its inputs.`);
         }
-        const provenance = input.provenance.revisions[projection.revision_digest];
-        if (!provenance ||
-            JSON.stringify(provenance.event_ids) !==
-                JSON.stringify([...projection.provenance.basis_event_ids].sort()) ||
-            provenance.coverage_policy_digest !== projection.provenance.coverage_policy_digest ||
-            provenance.freshness_policy_digest !== projection.provenance.freshness_policy_digest) {
-            throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} has invalid provenance closure.`);
-        }
-        for (const eventId of provenance.event_ids) {
-            const event = eventById.get(eventId);
-            if (event?.kind !== "evidence.bound" ||
-                event.subject.subject_type !== "agent_readiness_profile" ||
-                event.subject.agent_readiness_profile_id !== projection.agent_readiness_profile_id ||
-                event.subject.revision_digest !== projection.revision_digest) {
-                throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} targets invalid event ${eventId}.`);
-            }
-        }
-        for (const observationId of provenance.observation_ids) {
-            if (!observationIds.has(observationId)) {
-                throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} targets missing observation ${observationId}.`);
+        // Ratings rest on the run records inside the released input; standing rests on events.
+        for (const eventId of projection.provenance.basis_event_ids) {
+            if (!eventIds.has(eventId)) {
+                throw new Error(`Agent readiness projection ${projection.agent_readiness_profile_id} cites unreleased event ${eventId}.`);
             }
         }
     }

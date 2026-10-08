@@ -142,7 +142,6 @@ export declare const offerTermsAssuranceSchema: z.ZodObject<{
     event_id: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>;
-export type EntityIdentityAnchor = z.infer<typeof entityIdentityAnchorSchema>;
 export type EntityIdentityAssurance = z.infer<typeof entityIdentityAssuranceSchema>;
 export type OfferTermsAssurance = z.infer<typeof offerTermsAssuranceSchema>;
 export type AssuranceMethodPolicy = z.infer<typeof assuranceMethodPolicySchema>;

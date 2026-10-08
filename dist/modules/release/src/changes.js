@@ -320,8 +320,7 @@ function agentReadinessChangeCandidates(input) {
             const lifecycleChanged = prior.lifecycle !== profile.lifecycle;
             const policyProjectionRefresh = prior.revision_digest === profile.revision_digest &&
                 (prior.policy_digest !== profile.policy_digest ||
-                    prior.policy_as_of !== profile.policy_as_of ||
-                    prior.provenance.freshness_policy_digest !== profile.provenance.freshness_policy_digest);
+                    prior.policy_as_of !== profile.policy_as_of);
             const kind = lifecycleChanged && profile.lifecycle === "ended"
                 ? "agent-readiness.ended"
                 : lifecycleChanged && profile.lifecycle === "withdrawn"

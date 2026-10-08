@@ -1,7 +1,6 @@
 import { digest as canonicalDigest, DIGEST_PATTERN, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
 import { ENTITY_ID_PATTERN } from "../../../modules/catalog-primitives/src/index.js";
-import { agentReadinessProfileIdSchema, agentReadinessSignalCodeSchema, agentReadinessStageSchema, } from "../../agent-readiness/src/index.js";
 import { assetBindingProjectionSchema, entityAssetProposalSchema } from "../../assets/src/index.js";
 import { entityAuthoringSchema } from "../../authoring/src/index.js";
 import { signaturePurposeSchema } from "../../authority/src/index.js";
@@ -39,15 +38,15 @@ export const PUBLICATION_STAGES = [
     "publication",
     "readback",
 ];
-export const publicationStageSchema = z.enum(PUBLICATION_STAGES);
-export const publicationStageStatusSchema = z.enum([
+const publicationStageSchema = z.enum(PUBLICATION_STAGES);
+const publicationStageStatusSchema = z.enum([
     "pending",
     "passed",
     "failed",
     "not_required",
     "invalidated",
 ]);
-export const publicationDiagnosticSchema = z
+const publicationDiagnosticSchema = z
     .object({
     stage: publicationStageSchema,
     code: identifierSchema,
@@ -100,9 +99,9 @@ export const publicationAdmissionTargetSchema = z.discriminatedUnion("kind", [
     })
         .strict(),
 ]);
-export const publicationAdmissionAuthoritySchema = z
+const publicationAdmissionAuthoritySchema = z
     .object({
-    kind: z.enum(["asset", "assurance", "evidence", "identity", "claim"]),
+    kind: z.enum(["asset", "assurance", "evidence", "identity", "claim", "readiness"]),
     root: safeRelativePathSchema,
     tree_digest: digestSchema,
 })
@@ -123,7 +122,7 @@ export const publicationPolicyReferenceSchema = z
 export const expectedPublicationEntitySchema = z
     .object({ entity_id: entityIdSchema, snapshot_digest: digestSchema.nullable() })
     .strict();
-export const expectedPublicationAssetBindingSchema = z
+const expectedPublicationAssetBindingSchema = z
     .object({
     entity_id: entityIdSchema,
     role: z.literal("icon"),
@@ -140,7 +139,7 @@ export const expectedPublicationAssetBindingSchema = z
         });
     }
 });
-export const publicationAuthorityProposalSchema = z
+const publicationAuthorityProposalSchema = z
     .object({
     purpose: signaturePurposeSchema,
     proposal_digest: digestSchema,
@@ -170,7 +169,7 @@ const ingressCommon = {
     proposal_digest: digestSchema,
     semantic_input_digest: digestSchema,
 };
-export const gitPublicationIngressReceiptCoreSchema = z
+const gitPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("git"),
@@ -181,7 +180,7 @@ export const gitPublicationIngressReceiptCoreSchema = z
     changed_tree: gitObjectIdSchema,
 })
     .strict();
-export const authenticatedFormPublicationIngressReceiptCoreSchema = z
+const authenticatedFormPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("authenticated_form"),
@@ -194,7 +193,7 @@ export const authenticatedFormPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
-export const paidAgentPublicationIngressReceiptCoreSchema = z
+const paidAgentPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("paid_agent"),
@@ -211,7 +210,7 @@ export const paidAgentPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
-export const governedOpsPublicationIngressReceiptCoreSchema = z
+const governedOpsPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("governed_ops"),
@@ -225,7 +224,7 @@ export const governedOpsPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
-export const scannerPublicationIngressReceiptCoreSchema = z
+const scannerPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("scanner"),
@@ -234,7 +233,7 @@ export const scannerPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
-export const operatorJobPublicationIngressReceiptCoreSchema = z
+const operatorJobPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("operator_job"),
@@ -244,7 +243,7 @@ export const operatorJobPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
-export const policyTransitionPublicationIngressReceiptCoreSchema = z
+const policyTransitionPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
     kind: z.literal("policy_transition"),
@@ -311,7 +310,7 @@ export const policyTransitionIntentSchema = policyTransitionIntentObject
     .extend({ intent_digest: digestSchema })
     .strict()
     .superRefine(assertCanonicalTransitionTargets);
-export const gitPublicationCursorSchema = z
+const gitPublicationCursorSchema = z
     .object({
     repository_id: z.string().trim().min(1),
     head_commit: gitObjectIdSchema,
@@ -331,46 +330,7 @@ export const catalogPublicationCurrentStateCoreSchema = z
 export const catalogPublicationCurrentStateSchema = catalogPublicationCurrentStateCoreSchema
     .extend({ state_digest: digestSchema })
     .strict();
-export const catalogCurrentAuthoringCutoverEntrySchema = z
-    .object({
-    entity_id: entityIdSchema,
-    prior_document_digest: digestSchema,
-    authoring: entityAuthoringSchema,
-})
-    .strict()
-    .refine((entry) => entry.authoring.entity.entity_id === entry.entity_id, {
-    message: "Current-authoring cutover identity differs from its authoring document.",
-    path: ["authoring", "entity", "entity_id"],
-});
-export const catalogCurrentAuthoringCutoverCoreSchema = z
-    .object({
-    cutover_contract: z.literal("sourcey.catalog-current-authoring-cutover/v1alpha1"),
-    live_release_id: digestSchema,
-    from_git_cursor: gitPublicationCursorSchema,
-    to_git_cursor: gitPublicationCursorSchema,
-    entries: z.array(catalogCurrentAuthoringCutoverEntrySchema).min(1),
-})
-    .strict()
-    .superRefine((cutover, context) => {
-    if (cutover.from_git_cursor.repository_id !== cutover.to_git_cursor.repository_id) {
-        context.addIssue({
-            code: "custom",
-            path: ["to_git_cursor", "repository_id"],
-            message: "A current-authoring cutover cannot change repository identity.",
-        });
-    }
-    if (cutover.from_git_cursor.head_commit === cutover.to_git_cursor.head_commit) {
-        context.addIssue({
-            code: "custom",
-            path: ["to_git_cursor", "head_commit"],
-            message: "A current-authoring cutover must advance the exact Git cursor.",
-        });
-    }
-});
-export const catalogCurrentAuthoringCutoverSchema = catalogCurrentAuthoringCutoverCoreSchema
-    .extend({ cutover_digest: digestSchema })
-    .strict();
-export const publicationRevisionChangeSchema = z
+const publicationRevisionChangeSchema = z
     .object({
     kind: z.enum(["entity", "program", "offer"]),
     entity_id: entityIdSchema,
@@ -383,7 +343,7 @@ export const publicationRevisionChangeSchema = z
     parent_changed: z.boolean(),
 })
     .strict();
-export const publicationSourceChangeSchema = z
+const publicationSourceChangeSchema = z
     .object({
     entity_id: entityIdSchema,
     source_id: identifierSchema,
@@ -392,7 +352,7 @@ export const publicationSourceChangeSchema = z
     candidate_url: z.url().nullable(),
 })
     .strict();
-export const publicationAssetChangeSchema = z.discriminatedUnion("change", [
+const publicationAssetChangeSchema = z.discriminatedUnion("change", [
     z
         .object({
         change: z.literal("upsert"),
@@ -417,7 +377,7 @@ export const publicationAssetChangeSchema = z.discriminatedUnion("change", [
     })
         .strict(),
 ]);
-export const publicationRouteChangeSchema = z
+const publicationRouteChangeSchema = z
     .object({
     kind: z.enum(["entity", "program", "offer"]),
     entity_id: entityIdSchema,
@@ -428,7 +388,7 @@ export const publicationRouteChangeSchema = z
     removed_aliases: z.array(z.string()),
 })
     .strict();
-export const publicationContextChangeSchema = z.discriminatedUnion("kind", [
+const publicationContextChangeSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("policy"),
@@ -445,7 +405,7 @@ export const publicationContextChangeSchema = z.discriminatedUnion("kind", [
     })
         .strict(),
 ]);
-export const publicationDependentRefSchema = z
+const publicationDependentRefSchema = z
     .object({ domain: identifierSchema, key: z.string().trim().min(1) })
     .strict();
 export const publicationDependencyRegistrationSchema = z
@@ -454,106 +414,6 @@ export const publicationDependencyRegistrationSchema = z
     dependency_keys: z.array(z.string().trim().min(1)).min(1),
 })
     .strict();
-/**
- * Exact factual or projection identity consumed by a maintained surface.
- * This is deliberately a closed union: editorial composition cannot smuggle
- * untyped metadata or infer readiness from a neighbouring Entity or Offer.
- */
-export const surfaceDependencyReferenceSchema = z.discriminatedUnion("kind", [
-    z.object({ kind: z.literal("catalog_revision"), revision_digest: digestSchema }).strict(),
-    z.object({ kind: z.literal("catalog_field_support"), support_id: digestSchema }).strict(),
-    z
-        .object({ kind: z.literal("research_fact_revision"), fact_revision_digest: digestSchema })
-        .strict(),
-    z
-        .object({ kind: z.literal("relation_fact_revision"), fact_revision_digest: digestSchema })
-        .strict(),
-    z.object({ kind: z.literal("query_result"), result_digest: digestSchema }).strict(),
-    z
-        .object({
-        kind: z.literal("agent_readiness_profile_revision"),
-        agent_readiness_profile_id: agentReadinessProfileIdSchema,
-        profile_revision_digest: digestSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("agent_readiness_signal_conclusion"),
-        agent_readiness_profile_id: agentReadinessProfileIdSchema,
-        stage: agentReadinessStageSchema,
-        signal_code: agentReadinessSignalCodeSchema,
-        conclusion_digest: digestSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("agent_readiness_stage_projection"),
-        agent_readiness_profile_id: agentReadinessProfileIdSchema,
-        stage: agentReadinessStageSchema,
-        stage_projection_digest: digestSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("agent_readiness_grade_projection"),
-        agent_readiness_profile_id: agentReadinessProfileIdSchema,
-        grade_projection_digest: digestSchema,
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("agent_readiness_offer_relation_revision"),
-        relation_id: identifierSchema,
-        agent_readiness_profile_id: agentReadinessProfileIdSchema,
-        offer_id: identifierSchema,
-        relation_revision_digest: digestSchema,
-    })
-        .strict(),
-]);
-export const publicationRecompositionActionSchema = z.enum([
-    "refresh",
-    "reinterpret",
-    "reassess",
-    "rebind",
-    "reproject",
-    "withdraw",
-]);
-export const publicationRecompositionWorkCountsSchema = z
-    .object({
-    capture: z.number().int().nonnegative(),
-    interpretation: z.number().int().nonnegative(),
-    signal: z.number().int().nonnegative(),
-    profile: z.number().int().nonnegative(),
-    projection: z.number().int().nonnegative(),
-})
-    .strict();
-export const publicationRecompositionNodeSchema = z
-    .object({
-    dependent: publicationDependentRefSchema,
-    dependency_keys: z.array(z.string().trim().min(1)).min(1),
-    output_dependency_key: z.string().trim().min(1),
-    current_output_digest: digestSchema.nullable(),
-    candidate_output_digest: digestSchema.nullable(),
-    action: publicationRecompositionActionSchema,
-    work: publicationRecompositionWorkCountsSchema,
-})
-    .strict()
-    .superRefine((value, context) => {
-    if ((value.action === "withdraw") !== (value.candidate_output_digest === null)) {
-        context.addIssue({
-            code: "custom",
-            path: ["candidate_output_digest"],
-            message: "Exactly a withdrawal has no candidate semantic output.",
-        });
-    }
-    if (value.current_output_digest === null && value.candidate_output_digest === null) {
-        context.addIssue({
-            code: "custom",
-            path: ["current_output_digest"],
-            message: "A recomposition node must have a current or candidate semantic output.",
-        });
-    }
-});
 export const catalogPublicationChangeSetCoreSchema = z
     .object({
     proposal_digest: digestSchema,
@@ -583,7 +443,7 @@ export const catalogPublicationImpactSelectionSchema = catalogPublicationChangeS
     changed_dependency_keys: true,
 });
 /** One ingress retains its own plan. A combined release never broadens its authority. */
-export const catalogPublicationIngressSchema = z
+const catalogPublicationIngressSchema = z
     .object({
     proposal: catalogPublicationProposalSchema,
     change_set: catalogPublicationChangeSetSchema,

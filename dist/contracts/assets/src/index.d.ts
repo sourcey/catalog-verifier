@@ -13,7 +13,6 @@ export declare const assetMediaTypeSchema: z.ZodEnum<{
     "image/svg+xml": "image/svg+xml";
     "image/webp": "image/webp";
 }>;
-export declare const entityIconRoleSchema: z.ZodLiteral<"icon">;
 export declare const assetRedistributionSchema: z.ZodObject<{
     basis: z.ZodEnum<{
         "nominative-use": "nominative-use";
@@ -176,17 +175,6 @@ export declare const retainedAssetCaptureSchema: z.ZodObject<{
     storage_receipt_digest: z.ZodString;
     capture_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const assetByteReferenceSchema: z.ZodObject<{
-    digest: z.ZodString;
-    bytes: z.ZodNumber;
-    media_type: z.ZodEnum<{
-        "image/jpeg": "image/jpeg";
-        "image/png": "image/png";
-        "image/svg+xml": "image/svg+xml";
-        "image/webp": "image/webp";
-    }>;
-    source_path: z.ZodString;
-}, z.core.$strict>;
 export declare const assetTransformProfileCoreSchema: z.ZodObject<{
     profile_contract: z.ZodLiteral<"sourcey.asset-transform-profile/v1alpha1">;
     profile_version: z.ZodString;
@@ -234,22 +222,6 @@ export declare const assetTransformReceiptSchema: z.ZodObject<{
     profile_digest: z.ZodString;
     toolchain_digest: z.ZodString;
     receipt_digest: z.ZodString;
-}, z.core.$strict>;
-export declare const assetSafeVariantSchema: z.ZodObject<{
-    digest: z.ZodString;
-    bytes: z.ZodNumber;
-    media_type: z.ZodEnum<{
-        "image/jpeg": "image/jpeg";
-        "image/png": "image/png";
-        "image/svg+xml": "image/svg+xml";
-        "image/webp": "image/webp";
-    }>;
-    source_path: z.ZodString;
-    served_path: z.ZodString;
-    width: z.ZodNumber;
-    height: z.ZodNumber;
-    transform_profile_digest: z.ZodString;
-    transform_receipt_digest: z.ZodString;
 }, z.core.$strict>;
 export declare const assetObjectCoreSchema: z.ZodObject<{
     asset_contract: z.ZodLiteral<"sourcey.asset/v1alpha1">;
@@ -982,105 +954,6 @@ export declare const entityAssetProposalSchema: z.ZodObject<{
     effective_from: z.ZodISODateTime;
     proposal_digest: z.ZodString;
 }, z.core.$strict>;
-export declare const assetDeltaChangeSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    operation: z.ZodLiteral<"upsert">;
-    entity_id: z.ZodString;
-    role: z.ZodLiteral<"icon">;
-    prior_binding_event_id: z.ZodNullable<z.ZodString>;
-    binding: z.ZodObject<{
-        entity_id: z.ZodString;
-        role: z.ZodEnum<{
-            icon: "icon";
-            "logo-dark": "logo-dark";
-            "logo-light": "logo-light";
-        }>;
-        asset_object_digest: z.ZodString;
-        served_digest: z.ZodString;
-        served_path: z.ZodString;
-        media_type: z.ZodEnum<{
-            "image/jpeg": "image/jpeg";
-            "image/png": "image/png";
-            "image/svg+xml": "image/svg+xml";
-            "image/webp": "image/webp";
-        }>;
-        bytes: z.ZodNumber;
-        width: z.ZodNumber;
-        height: z.ZodNumber;
-        authority_basis: z.ZodEnum<{
-            "editorial-review": "editorial-review";
-            "licensed-source": "licensed-source";
-            "sourcey-owned": "sourcey-owned";
-            "vendor-authority": "vendor-authority";
-        }>;
-        authority_claim_id: z.ZodOptional<z.ZodString>;
-        approval_receipt_digest: z.ZodString;
-        source_basis: z.ZodString;
-        license_basis: z.ZodString;
-        effective_from: z.ZodISODateTime;
-        effective_until: z.ZodOptional<z.ZodISODateTime>;
-        binding_event_id: z.ZodString;
-    }, z.core.$strict>;
-    asset: z.ZodObject<{
-        asset_contract: z.ZodLiteral<"sourcey.asset/v1alpha1">;
-        original: z.ZodObject<{
-            digest: z.ZodString;
-            bytes: z.ZodNumber;
-            media_type: z.ZodEnum<{
-                "image/jpeg": "image/jpeg";
-                "image/png": "image/png";
-                "image/svg+xml": "image/svg+xml";
-                "image/webp": "image/webp";
-            }>;
-            source_path: z.ZodString;
-        }, z.core.$strict>;
-        safe_variants: z.ZodArray<z.ZodObject<{
-            digest: z.ZodString;
-            bytes: z.ZodNumber;
-            media_type: z.ZodEnum<{
-                "image/jpeg": "image/jpeg";
-                "image/png": "image/png";
-                "image/svg+xml": "image/svg+xml";
-                "image/webp": "image/webp";
-            }>;
-            source_path: z.ZodString;
-            served_path: z.ZodString;
-            width: z.ZodNumber;
-            height: z.ZodNumber;
-            transform_profile_digest: z.ZodString;
-            transform_receipt_digest: z.ZodString;
-        }, z.core.$strict>>;
-        transform_receipts: z.ZodArray<z.ZodObject<{
-            receipt_contract: z.ZodLiteral<"sourcey.asset-transform-receipt/v1alpha1">;
-            original_digest: z.ZodString;
-            safe_digest: z.ZodString;
-            profile_digest: z.ZodString;
-            toolchain_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-        }, z.core.$strict>>;
-        redistribution: z.ZodObject<{
-            basis: z.ZodEnum<{
-                "nominative-use": "nominative-use";
-                "redistributable-license": "redistributable-license";
-                "sourcey-owned": "sourcey-owned";
-                "vendor-approved": "vendor-approved";
-            }>;
-            license: z.ZodString;
-            notice: z.ZodString;
-            trademark_owner: z.ZodString;
-            fallback_reason: z.ZodOptional<z.ZodString>;
-        }, z.core.$strict>;
-        asset_object_digest: z.ZodString;
-    }, z.core.$strict>;
-    original_path: z.ZodString;
-    safe_variant_path: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    operation: z.ZodLiteral<"remove">;
-    entity_id: z.ZodString;
-    role: z.ZodLiteral<"icon">;
-    prior_binding_event_id: z.ZodString;
-    prior_binding_digest: z.ZodString;
-    disposition_event_id: z.ZodString;
-}, z.core.$strict>], "operation">;
 export declare const assetDeltaCoreSchema: z.ZodObject<{
     delta_contract: z.ZodLiteral<"sourcey.asset-delta/v1alpha1">;
     parent_asset_index_digest: z.ZodString;
@@ -1377,7 +1250,6 @@ export declare const assetInputsSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type AssetTransformProfile = z.infer<typeof assetTransformProfileSchema>;
 export type AssetMediaType = z.infer<typeof assetMediaTypeSchema>;
-export type AssetTransformReceipt = z.infer<typeof assetTransformReceiptSchema>;
 export type AssetObject = z.infer<typeof assetObjectSchema>;
 export type AssetManifest = z.infer<typeof assetManifestSchema>;
 export type AssetIndex = z.infer<typeof assetIndexSchema>;
@@ -1391,7 +1263,6 @@ export type EntityAssetProposal = z.infer<typeof entityAssetProposalSchema>;
 export type EntityAssetReviewArtifact = z.infer<typeof entityAssetReviewArtifactSchema>;
 export type SourceyOwnedEntityIconCandidate = z.infer<typeof sourceyOwnedEntityIconCandidateSchema>;
 export type AssetBindingProjection = z.infer<typeof assetBindingProjectionSchema>;
-export type AssetDeltaChange = z.infer<typeof assetDeltaChangeSchema>;
 export type AssetDelta = z.infer<typeof assetDeltaSchema>;
 export type AssetAuthorityBundleManifest = z.infer<typeof assetAuthorityBundleManifestSchema>;
 export declare const reviewedEntityAssetSubmissionCoreSchema: z.ZodObject<{

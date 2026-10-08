@@ -28,7 +28,9 @@ export const sourceyReleaseOwnership = publicationOwnershipRegistry({
             objects: [
                 "assets/",
                 "authoring/",
-                "capture-receipts/",
+                "capture-attempts/",
+                "capture-attestations/",
+                "capture-starts/",
                 "captures/",
                 "catalog.json",
                 "entities/",

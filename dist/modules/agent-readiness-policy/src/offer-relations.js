@@ -1,6 +1,6 @@
 import { compareCanonicalStrings, digest } from "provenry/primitives";
 import { recordReferenceRequiresRevalidation, } from "provenry/records/references";
-import { agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessOfferRelationRevisionSchema, agentReadinessStageSchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessOfferRelationIndexSchema, agentReadinessOfferRelationInputSchema, agentReadinessOfferRelationRevisionCoreSchema, agentReadinessOfferRelationRevisionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { SOURCEY_PUBLICATION_INSTANCE_ID } from "../../../contracts/sourcey-publication/src/instance-id.js";
 /** Sourcey maps its signed Offer relation to an engine-owned exact record edge. */
 export function agentReadinessOfferRecordReference(relation) {
@@ -33,7 +33,7 @@ export function agentReadinessOfferRelationRequiresWithdrawal(input) {
         currentRevisionDigest: input.changedOfferRevisionDigest,
     });
 }
-export function agentReadinessOfferRelationId(input) {
+function agentReadinessOfferRelationId(input) {
     const identityDigest = digest({
         relation_contract: "sourcey.agent-readiness-offer-relation-identity/v1alpha1",
         agent_readiness_profile_id: input.agentReadinessProfileId,
@@ -54,8 +54,6 @@ export function compileAgentReadinessOfferRelationRevision(input) {
         agent_readiness_profile_id: parsed.agent_readiness_profile_id,
         offer_id: parsed.offer_id,
         purpose: parsed.purpose,
-        applicable_stages: [...parsed.applicable_stages].sort((left, right) => agentReadinessStageSchema.options.indexOf(left) -
-            agentReadinessStageSchema.options.indexOf(right)),
         effective_from: parsed.effective_from,
         ...(parsed.effective_until ? { effective_until: parsed.effective_until } : {}),
         declaration_revision_digest: parsed.declaration_revision_digest,

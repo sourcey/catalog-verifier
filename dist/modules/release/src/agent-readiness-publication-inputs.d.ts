@@ -1,7 +1,6 @@
 import { type AgentReadinessDeltaObject, type AgentReadinessProfileReleaseInput } from "../../../contracts/agent-readiness/src/index.js";
 import type { CatalogPublicationProposal } from "../../../contracts/publication/src/index.js";
-import { type ReadinessPublicationProposal } from "./publication-authorities.js";
-export declare function addAgentReadinessPublicationInputs(files: Map<string, string | Buffer>, proposals: readonly ReadinessPublicationProposal[]): void;
+export declare function addAgentReadinessPublicationInputs(files: Map<string, string | Buffer>, releaseInputs: readonly AgentReadinessProfileReleaseInput[]): void;
 /** An admitted profile update binds its complete relation set, including an
  * intentional empty set. Regrading/retirement carries no new admission input. */
 export declare function verifyAgentReadinessPublicationInputs(input: {

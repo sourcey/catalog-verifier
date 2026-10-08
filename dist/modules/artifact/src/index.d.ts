@@ -1,14 +1,14 @@
+import type { AttestedCapture } from "provenry/capture/attestation";
 import { type Digest } from "provenry/primitives";
 import { type AgentReadinessOfferRelationRevision, type AgentReadinessProjection, agentReadinessIndexSchema } from "../../../contracts/agent-readiness/src/index.js";
 import { type CanonicalArtifact, identityIndexSchema, provenanceIndexSchema } from "../../../contracts/artifact/src/index.js";
 import { assetIndexSchema, assetNoticesSchema } from "../../../contracts/assets/src/index.js";
 import { type EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { RootSet, SignerRegistry } from "../../../contracts/authority/src/index.js";
-import type { CatalogEvent } from "../../../contracts/events/src/index.js";
+import { type CatalogEvent } from "../../../contracts/events/src/index.js";
 import { type Observation } from "../../../contracts/observations/src/index.js";
 import { type CatalogReleaseBundle } from "../../../contracts/release/src/index.js";
 import { routeIndexSchema } from "../../../contracts/routes/src/index.js";
-import { type RetainedCaptureReceipt } from "../../authority/src/index.js";
 import { type RetainedCatalogRevision } from "../../evidence-operations/src/retained-revision.js";
 import { type VerifiedSourceyRelease } from "../../publication-instance/src/index.js";
 export interface VerifiedCatalogRelease {
@@ -28,7 +28,8 @@ export interface VerifiedCatalogRelease {
     readonly registry: SignerRegistry;
     readonly events: CatalogEvent[];
     readonly observations: Observation[];
-    readonly captureReceipts: RetainedCaptureReceipt[];
+    /** The attested captures the release holds, by attestation digest. */
+    readonly attestedCaptures: ReadonlyMap<string, AttestedCapture>;
     /** Every current and historical revision the release retains, by digest. */
     readonly revisions: ReadonlyMap<Digest, RetainedCatalogRevision>;
     readonly files: ReadonlyMap<string, Buffer>;
@@ -39,7 +40,7 @@ export declare function verifyCatalogReleaseDirectory(directory: string, trust?:
 /** Verifies a full release whose envelope is already verified. */
 export declare function verifyCatalogRelease(release: VerifiedSourceyRelease, trust?: {
     readonly rootSetDigest: Digest;
-}): VerifiedCatalogRelease;
+}): Promise<VerifiedCatalogRelease>;
 /**
  * Loads an exact bundle already admitted with verifyCatalogReleaseDirectory and
  * pinned by an immutable consumer lock. It repeats byte closure, schemas,

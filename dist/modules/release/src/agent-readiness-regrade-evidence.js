@@ -1,18 +1,19 @@
 import { basename } from "node:path";
-import { compareCanonicalStrings, digest } from "provenry/primitives";
+import { compareCanonicalStrings } from "provenry/primitives";
 import { z } from "zod";
 import { agentReadinessDigestSchema, agentReadinessProfileIdSchema, agentReadinessProjectionSchema, } from "../../../contracts/agent-readiness/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
-import { observationSchema } from "../../../contracts/observations/src/index.js";
 import { deriveAgentReadinessReprojection, regradeAgentReadinessProjection, } from "../../agent-readiness-policy/src/index.js";
 import { validateProtectedEvent } from "../../authority/src/index.js";
 import { buildEventGraph } from "../../provenance/src/index.js";
 import { mergeCanonicalById } from "./evidence-admission.js";
 export const AGENT_READINESS_REGRADE_EVIDENCE_PREFIX = "agent-readiness-regrade-evidence/";
 /**
- * Exact evidence context for reprojection of an existing revision. New events
- * still require ordinary release admission; these bytes only close the graph
- * beside the prior projection for independent offline recomputation.
+ * Exact standing context for reprojection of an existing revision: the events
+ * its dispute and attestation state rest on. New events still require ordinary
+ * release admission; these bytes only close the graph beside the prior
+ * projection for independent offline recomputation. Ratings rest on the
+ * revision's own steps and need no evidence here.
  */
 export const agentReadinessRegradeEvidenceSchema = z
     .object({
@@ -20,33 +21,22 @@ export const agentReadinessRegradeEvidenceSchema = z
     agent_readiness_profile_id: agentReadinessProfileIdSchema,
     revision_digest: agentReadinessDigestSchema,
     events: z.array(catalogEventSchema).min(1),
-    observations: z.array(observationSchema),
 })
     .strict();
 /**
- * Select the changed evidence owned by one exact Agent Readiness revision.
+ * Select the changed events owned by one exact Agent Readiness revision.
  * A Catalog delta is not a complete event graph: unrelated transitions may
  * target immutable objects retained by the parent release.
  */
 export function selectAgentReadinessEvidenceChanges(input) {
-    const events = input.events.filter((event) => event.subject.subject_type === "agent_readiness_profile" &&
+    return input.events.filter((event) => event.subject.subject_type === "agent_readiness_profile" &&
         event.subject.agent_readiness_profile_id === input.profileId &&
         event.subject.revision_digest === input.revisionDigest);
-    const observationIds = new Set(events.flatMap((event) => {
-        if (event.kind !== "evidence.bound")
-            return [];
-        const observationId = event.payload.observation_id;
-        return typeof observationId === "string" ? [observationId] : [];
-    }));
-    return {
-        events,
-        observations: input.observations.filter((observation) => observationIds.has(observation.observation_id)),
-    };
 }
 /**
- * Select, from the resolved closure, exactly the events and observations one
- * regrade is projected from: the prior projection's basis events, every event
- * on the same revision, and every event that invalidates one of those.
+ * Select, from the resolved closure, exactly the events one regrade is
+ * projected from: the prior projection's basis events, every event on the same
+ * revision, and every event that invalidates one of those.
  */
 export function selectAgentReadinessRegradeEvidence(input) {
     const included = new Set(input.priorProjection.provenance.basis_event_ids);
@@ -67,25 +57,11 @@ export function selectAgentReadinessRegradeEvidence(input) {
     if (missing.length > 0) {
         throw new Error(`Agent Readiness regrade ${input.profileId} cannot resolve basis events ${missing.join(", ")}.`);
     }
-    const observationIds = new Set(events.flatMap((event) => {
-        if (event.kind !== "evidence.bound")
-            return [];
-        const observationId = event.payload.observation_id;
-        return typeof observationId === "string" ? [observationId] : [];
-    }));
-    const observations = input.observations
-        .filter((observation) => observationIds.has(observation.observation_id))
-        .sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id));
-    const missingObservations = [...observationIds].filter((observationId) => !observations.some((observation) => observation.observation_id === observationId));
-    if (missingObservations.length > 0) {
-        throw new Error(`Agent Readiness regrade ${input.profileId} cannot resolve observations ${missingObservations.join(", ")}.`);
-    }
     return agentReadinessRegradeEvidenceSchema.parse({
         evidence_contract: "sourcey.agent-readiness-regrade-evidence/v1alpha1",
         agent_readiness_profile_id: input.profileId,
         revision_digest: input.revision.revision_digest,
         events,
-        observations,
     });
 }
 /** The evidence must close the prior projection exactly before it can rebuild its graph. */
@@ -107,7 +83,7 @@ export function verifyAgentReadinessRegradeEvidence(input) {
             throw new Error(`Agent Readiness regrade ${profileId} evidence carries foreign event ${event.event_id}.`);
         }
     }
-    return buildEventGraph(input.evidence.events, input.evidence.observations);
+    return buildEventGraph(input.evidence.events, []);
 }
 /**
  * Read one shipped regrade evidence file. Retained evidence re-verifies every
@@ -126,12 +102,6 @@ export function readAgentReadinessRegradeEvidenceFile(input) {
             throw new Error(`Catalog delta regrade event ${event.event_id} names a registry outside the trusted history.`);
         }
         validateProtectedEvent(event, registry, input.releaseSequence);
-    }
-    for (const observation of evidence.observations) {
-        const { observation_id: observationId, ...core } = observation;
-        if (digest(core) !== observationId) {
-            throw new Error(`Catalog delta regrade evidence ${input.path} observation is not content-addressed.`);
-        }
     }
     return [address, evidence];
 }
@@ -170,13 +140,12 @@ export function expectedAgentReadinessRegradeProjection(input) {
                 profileId: input.profileId,
                 revision: input.revision,
                 priorProjection,
-                events: mergeCanonicalById(input.evidence.events, input.deltaEvidence.events, "event", (event) => event.event_id),
-                observations: mergeCanonicalById(input.evidence.observations, input.deltaEvidence.observations, "observation", (observation) => observation.observation_id),
+                events: mergeCanonicalById(input.evidence.events, input.deltaEvents, "event", (event) => event.event_id),
             }),
             revision: input.revision,
             priorProjection,
         })
-        : buildEventGraph(input.deltaEvidence.events, input.deltaEvidence.observations);
+        : buildEventGraph(input.deltaEvents, []);
     const reproject = input.evidence
         ? regradeAgentReadinessProjection
         : deriveAgentReadinessReprojection;
@@ -190,7 +159,6 @@ export function expectedAgentReadinessRegradeProjection(input) {
         entitySlug: input.entitySlug,
         policy: input.policy,
         policyAsOf: input.policyAsOf,
-        freshnessPolicy: input.freshnessPolicy,
     });
 }
 //# sourceMappingURL=agent-readiness-regrade-evidence.js.map

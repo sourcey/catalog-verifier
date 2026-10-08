@@ -7,7 +7,7 @@ export interface CatalogVerifierIdentityContextInput {
     readonly trustedRootDigest: string;
     readonly verifiedAt: string;
 }
-export interface CatalogVerifierRepositoryInput {
+interface CatalogVerifierRepositoryInput {
     readonly repositoryKind: VerifierRepositoryKind;
     readonly repositoryRoot: string;
     readonly baseRevision: string;
@@ -84,8 +84,5 @@ export declare class CatalogVerifierApplication {
         readonly trustedRootDigest: string;
     }): Promise<CatalogVerifierResult>;
 }
-export declare function validateCatalogCandidate(input: CatalogVerifierCandidateInput & {
-    readonly candidate: CatalogAdmissionCandidate;
-    readonly identityContext: CatalogVerifierIdentityContextInput;
-}): CatalogVerifierResult;
+export {};
 //# sourceMappingURL=application.d.ts.map

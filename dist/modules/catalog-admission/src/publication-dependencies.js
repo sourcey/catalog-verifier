@@ -1,5 +1,5 @@
 import { compareCanonicalStrings, digest } from "provenry/primitives";
-import { publicationDependencyRegistrationSchema, surfaceDependencyReferenceSchema, } from "../../../contracts/publication/src/index.js";
+import { publicationDependencyRegistrationSchema } from "../../../contracts/publication/src/index.js";
 import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
 export function catalogSourceLocatorDigest(url) {
     return digest({
@@ -83,11 +83,11 @@ export function requiredAuthoritiesForChanges(input) {
     const purposes = new Set(["catalog-release"]);
     for (const proposal of input.authorityProposals)
         purposes.add(proposal.purpose);
-    if (input.revisionChanges.some(({ change }) => change !== "removed")) {
+    // The evidence event admits a source: it carries the review decision and
+    // cites the capture's attestation.
+    if (input.revisionChanges.some(({ change }) => change !== "removed") ||
+        input.sourceChanges.some(({ change }) => change !== "removed")) {
         purposes.add("catalog-evidence");
-    }
-    if (input.sourceChanges.some(({ change }) => change !== "removed")) {
-        purposes.add("catalog-capture");
     }
     if (input.assetChanges.length > 0)
         purposes.add("catalog-identity");
@@ -116,31 +116,6 @@ export const catalogPublicationDependencyKey = {
     parent: (kind, targetId) => `catalog:parent:${kind}:${targetId}`,
     route: (kind, targetId) => `catalog:route:${kind}:${targetId}`,
 };
-export function surfaceDependencyReferenceKey(reference) {
-    const parsed = surfaceDependencyReferenceSchema.parse(reference);
-    switch (parsed.kind) {
-        case "catalog_revision":
-            return catalogPublicationDependencyKey.revision(parsed.revision_digest);
-        case "catalog_field_support":
-            return `catalog:field-support:${parsed.support_id}`;
-        case "research_fact_revision":
-            return `research:revision:${parsed.fact_revision_digest}`;
-        case "relation_fact_revision":
-            return `research:relation-revision:${parsed.fact_revision_digest}`;
-        case "query_result":
-            return `research:query-result:${parsed.result_digest}`;
-        case "agent_readiness_profile_revision":
-            return `agent-readiness:profile-revision:${parsed.agent_readiness_profile_id}:${parsed.profile_revision_digest}`;
-        case "agent_readiness_signal_conclusion":
-            return `agent-readiness:signal-conclusion:${parsed.agent_readiness_profile_id}:${parsed.stage}:${parsed.signal_code}:${parsed.conclusion_digest}`;
-        case "agent_readiness_stage_projection":
-            return `agent-readiness:stage-projection:${parsed.agent_readiness_profile_id}:${parsed.stage}:${parsed.stage_projection_digest}`;
-        case "agent_readiness_grade_projection":
-            return `agent-readiness:grade-projection:${parsed.agent_readiness_profile_id}:${parsed.grade_projection_digest}`;
-        case "agent_readiness_offer_relation_revision":
-            return `agent-readiness:offer-relation-revision:${parsed.relation_id}:${parsed.relation_revision_digest}`;
-    }
-}
 export class CatalogPublicationImpactIndex {
     indexDigest;
     #byDependency = new Map();
@@ -171,9 +146,6 @@ export class CatalogPublicationImpactIndex {
             this.#byDependency.set(dependency, values.sort((left, right) => compareCanonicalStrings(dependentKey(left), dependentKey(right))));
         }
         this.indexDigest = digest(normalized);
-    }
-    registration(dependent) {
-        return this.#registrations.get(dependentKey(dependent));
     }
     registrations() {
         return [...this.#registrations.values()];

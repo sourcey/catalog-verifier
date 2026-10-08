@@ -216,7 +216,7 @@ export function deriveCatalogEntityIdentityAdmissionKeys(input) {
     return uniqueAdmissionKeys(keys);
 }
 /** The one slug key an entity authoring path proves without a parseable document. */
-export function deriveOpenPullRequestPathAdmissionKeys(path) {
+function deriveOpenPullRequestPathAdmissionKeys(path) {
     const match = /^entities\/[a-z0-9]{2}\/(?<slug>[a-z0-9-]+)\.yaml$/u.exec(path);
     if (!match?.groups?.slug) {
         throw new Error("Open pull-request entity path is outside its bounded contract.");

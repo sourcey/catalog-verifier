@@ -2,15 +2,15 @@ import { z } from "zod";
 import { type AgentReadinessDeclarationRevision, type AgentReadinessDeltaObject, type AgentReadinessPolicy, type AgentReadinessProjection, type AgentReadinessRevision } from "../../../contracts/agent-readiness/src/index.js";
 import type { SignerRegistry } from "../../../contracts/authority/src/index.js";
 import { type CatalogEvent } from "../../../contracts/events/src/index.js";
-import { type Observation } from "../../../contracts/observations/src/index.js";
-import type { FreshnessPolicy } from "../../../contracts/policies/src/index.js";
 import type { EntityRevision } from "../../../contracts/revisions/src/index.js";
 import { type EventGraph } from "../../provenance/src/index.js";
 export declare const AGENT_READINESS_REGRADE_EVIDENCE_PREFIX = "agent-readiness-regrade-evidence/";
 /**
- * Exact evidence context for reprojection of an existing revision. New events
- * still require ordinary release admission; these bytes only close the graph
- * beside the prior projection for independent offline recomputation.
+ * Exact standing context for reprojection of an existing revision: the events
+ * its dispute and attestation state rest on. New events still require ordinary
+ * release admission; these bytes only close the graph beside the prior
+ * projection for independent offline recomputation. Ratings rest on the
+ * revision's own steps and need no evidence here.
  */
 export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
     evidence_contract: z.ZodLiteral<"sourcey.agent-readiness-regrade-evidence/v1alpha1">;
@@ -19,6 +19,7 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
     events: z.ZodArray<z.ZodObject<{
         event_contract: z.ZodLiteral<"sourcey.catalog-event/v1alpha1">;
         kind: z.ZodEnum<{
+            "agent-readiness-profile.admitted": "agent-readiness-profile.admitted";
             "agent-readiness-profile.merged": "agent-readiness-profile.merged";
             "agent-readiness-profile.reparented": "agent-readiness-profile.reparented";
             "agent-readiness-profile.retired": "agent-readiness-profile.retired";
@@ -83,7 +84,6 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
             signature_purpose: z.ZodEnum<{
                 "catalog-attestation": "catalog-attestation";
                 "catalog-authority": "catalog-authority";
-                "catalog-capture": "catalog-capture";
                 "catalog-dispute": "catalog-dispute";
                 "catalog-evidence": "catalog-evidence";
                 "catalog-feed": "catalog-feed";
@@ -98,84 +98,10 @@ export declare const agentReadinessRegradeEvidenceSchema: z.ZodObject<{
             signature: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>>;
-    observations: z.ZodArray<z.ZodObject<{
-        observation_contract: z.ZodLiteral<"sourcey.observation/v1alpha1">;
-        source_id: z.ZodString;
-        source_uri: z.ZodURL;
-        retrieved_at: z.ZodISODateTime;
-        method: z.ZodObject<{
-            name: z.ZodString;
-            version: z.ZodString;
-        }, z.core.$strict>;
-        outcome: z.ZodEnum<{
-            "contradicts-candidate": "contradicts-candidate";
-            error: "error";
-            "supports-candidate": "supports-candidate";
-            unreachable: "unreachable";
-        }>;
-        capture: z.ZodOptional<z.ZodObject<{
-            digest: z.ZodString;
-            bytes: z.ZodNumber;
-            media_type: z.ZodString;
-            availability: z.ZodEnum<{
-                "private-receipt": "private-receipt";
-                public: "public";
-            }>;
-            requested_uri: z.ZodOptional<z.ZodURL>;
-            final_uri: z.ZodOptional<z.ZodURL>;
-            redirect_chain: z.ZodOptional<z.ZodArray<z.ZodObject<{
-                status: z.ZodUnion<readonly [z.ZodLiteral<301>, z.ZodLiteral<302>, z.ZodLiteral<303>, z.ZodLiteral<307>, z.ZodLiteral<308>]>;
-                from: z.ZodURL;
-                to: z.ZodURL;
-            }, z.core.$strict>>>;
-            source_standing: z.ZodOptional<z.ZodEnum<{
-                "archived-first-party": "archived-first-party";
-                "archived-third-party": "archived-third-party";
-                "live-first-party": "live-first-party";
-                "live-third-party": "live-third-party";
-                "manual-first-party": "manual-first-party";
-                "manual-third-party": "manual-third-party";
-            }>>;
-            normalized_object: z.ZodOptional<z.ZodObject<{
-                digest: z.ZodString;
-                bytes: z.ZodNumber;
-                media_type: z.ZodLiteral<"text/plain; charset=utf-8">;
-                normalizer_contract: z.ZodLiteral<"sourcey.evidence-normalizer/v1alpha1">;
-                normalizer_id: z.ZodString;
-                version: z.ZodString;
-                toolchain_digest: z.ZodString;
-            }, z.core.$strict>>;
-            artifact_scope: z.ZodOptional<z.ZodEnum<{
-                complete_document: "complete_document";
-                document_excerpt: "document_excerpt";
-            }>>;
-            source_content: z.ZodOptional<z.ZodObject<{
-                digest: z.ZodString;
-                bytes: z.ZodNumber;
-                media_type: z.ZodString;
-                normalized_digest: z.ZodString;
-                normalized_bytes: z.ZodNumber;
-            }, z.core.$strict>>;
-        }, z.core.$strict>>;
-        no_capture_reason: z.ZodOptional<z.ZodEnum<{
-            "access-denied": "access-denied";
-            "connect-timeout": "connect-timeout";
-            "dns-failure": "dns-failure";
-            "empty-response": "empty-response";
-            "extractor-error": "extractor-error";
-            "policy-blocked": "policy-blocked";
-            "tls-failure": "tls-failure";
-        }>>;
-        observation_id: z.ZodString;
-    }, z.core.$strict>>;
 }, z.core.$strict>;
 export type AgentReadinessRegradeEvidence = z.infer<typeof agentReadinessRegradeEvidenceSchema>;
-export interface AgentReadinessEvidenceChanges {
-    readonly events: readonly CatalogEvent[];
-    readonly observations: readonly Observation[];
-}
 /**
- * Select the changed evidence owned by one exact Agent Readiness revision.
+ * Select the changed events owned by one exact Agent Readiness revision.
  * A Catalog delta is not a complete event graph: unrelated transitions may
  * target immutable objects retained by the parent release.
  */
@@ -183,19 +109,17 @@ export declare function selectAgentReadinessEvidenceChanges(input: {
     readonly profileId: string;
     readonly revisionDigest: string;
     readonly events: readonly CatalogEvent[];
-    readonly observations: readonly Observation[];
-}): AgentReadinessEvidenceChanges;
+}): readonly CatalogEvent[];
 /**
- * Select, from the resolved closure, exactly the events and observations one
- * regrade is projected from: the prior projection's basis events, every event
- * on the same revision, and every event that invalidates one of those.
+ * Select, from the resolved closure, exactly the events one regrade is
+ * projected from: the prior projection's basis events, every event on the same
+ * revision, and every event that invalidates one of those.
  */
 export declare function selectAgentReadinessRegradeEvidence(input: {
     readonly profileId: string;
     readonly revision: AgentReadinessRevision;
     readonly priorProjection: AgentReadinessProjection;
     readonly events: readonly CatalogEvent[];
-    readonly observations: readonly Observation[];
 }): AgentReadinessRegradeEvidence;
 /** The evidence must close the prior projection exactly before it can rebuild its graph. */
 export declare function verifyAgentReadinessRegradeEvidence(input: {
@@ -226,9 +150,9 @@ export declare function expectedAgentReadinessRegradeProjection(input: {
     readonly entityRevision: EntityRevision;
     readonly entitySlug: string;
     readonly evidence: AgentReadinessRegradeEvidence | undefined;
-    readonly deltaEvidence: AgentReadinessEvidenceChanges;
+    /** The delta's own events on this revision. */
+    readonly deltaEvents: readonly CatalogEvent[];
     readonly policy: AgentReadinessPolicy;
     readonly policyAsOf: string;
-    readonly freshnessPolicy: FreshnessPolicy;
 }): AgentReadinessProjection;
 //# sourceMappingURL=agent-readiness-regrade-evidence.d.ts.map

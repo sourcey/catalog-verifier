@@ -12,7 +12,7 @@ export function parseCatalogAuthoringSources(sources, options = {}) {
     assertCatalogAuthoringIdentity(entries, options.allowExternalRoleEntities ?? false);
     return entries;
 }
-export function parseCatalogAuthoringSource(source, content) {
+function parseCatalogAuthoringSource(source, content) {
     if (isAbsolute(source) ||
         source.includes("\\") ||
         source.split("/").some((part) => part === "" || part === "." || part === "..") ||

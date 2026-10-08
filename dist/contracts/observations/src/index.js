@@ -5,10 +5,7 @@ import { evidenceArtifactScopeSchema, evidenceCaptureAvailabilitySchema, evidenc
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
 const instant = z.iso.datetime({ offset: true });
-export const observationMethodKnownValues = [
-    "fixture",
-    ...sourceyEvidenceCaptureMethodNames,
-];
+const observationMethodKnownValues = ["fixture", ...sourceyEvidenceCaptureMethodNames];
 export const observationMethodSchema = identifier.meta({
     description: "Capture adapter identifier. Known values are examples; new adapters may appear without changing the observation envelope.",
     examples: observationMethodKnownValues,

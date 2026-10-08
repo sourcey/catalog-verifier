@@ -1,57 +1,7 @@
 import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, type AgentReadinessAuthoring, type AgentReadinessDeclaration } from "../../../contracts/agent-readiness/src/declaration.js";
 import type { AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/index.js";
-import { type AgentReadinessDeclarationBlob } from "./declaration-blob.js";
-export * from "./admission.js";
 export * from "./declaration-blob.js";
 export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL };
-export interface AgentReadinessRepositoryTreeEntry {
-    readonly path: string;
-    readonly mode: "100644" | "100755" | "120000" | "160000";
-    readonly objectType: "blob" | "commit";
-    readonly gitObjectOid: string;
-}
-export interface AgentReadinessRepositoryInspection {
-    readonly comparisonBase: string;
-    readonly headRevision: string;
-    readonly entitiesTreeOid: string;
-    readonly treeEntries: readonly AgentReadinessRepositoryTreeEntry[];
-    readonly entityFiles: readonly string[];
-    readonly blobs: readonly AgentReadinessDeclarationBlob[];
-    readonly declarations: number;
-}
-/**
- * Inspect one immutable repository tree for an explicit bootstrap or audit.
- * Ordinary pull-request admission must use the exact repository-change packet
- * so mixed-path and changed-closure rules remain enforced.
- */
-export declare function inspectAgentReadinessRepositoryTreeAtRevision(input: {
-    readonly repositoryRoot: string;
-    readonly headRevision: string;
-    readonly policy: AgentReadinessPolicy;
-}): Promise<AgentReadinessRepositoryInspection>;
-export declare function validateAgentReadinessRepositoryChange(input: {
-    readonly repositoryRoot: string;
-    readonly baseRevision: string;
-    readonly headRevision: string;
-    readonly policy: AgentReadinessPolicy;
-}): Promise<{
-    readonly entities: number;
-    readonly declarations: number;
-}>;
-/**
- * Validate explicit non-Git declaration bytes through the same parser,
- * revision compiler, and policy closure used by repository intake.
- */
-export declare function validateAgentReadinessCandidateSources(input: {
-    readonly sources: readonly {
-        readonly source: string;
-        readonly content: string;
-    }[];
-    readonly policy: AgentReadinessPolicy;
-}): {
-    readonly entities: number;
-    readonly declarations: number;
-};
 export declare function inspectAgentReadinessCandidateSources(input: {
     readonly sources: readonly {
         readonly source: string;
@@ -77,7 +27,7 @@ export declare function validateAgentReadinessRepositoryTree(input: {
     readonly entities: number;
     readonly declarations: number;
 }>;
-export type AgentReadinessCandidateDisposition = {
+type AgentReadinessCandidateDisposition = {
     readonly status: "ready_for_scope_review";
     readonly declarationAuthority: "community_claimed" | "entity_authority_proven";
 } | {

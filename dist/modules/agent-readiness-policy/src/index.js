@@ -1,56 +1,25 @@
+import { canonicalJson, digest } from "provenry/primitives";
+import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, sameAgentReadinessScopeIdentity, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index.js";
+import { rateOperate } from "../../agent-readiness-engine/src/rate.js";
+import { agentReadinessJobDigest } from "../../agent-readiness-jobs/src/index.js";
+import { deriveSubjectStanding } from "../../provenance/src/index.js";
+import { priorAgentReadinessVisibility } from "./prior-projection.js";
 export * from "./current-policy.js";
-export * from "./current-policy-validation.js";
-export * from "./grading.js";
+export * from "./declaration-jobs.js";
 export * from "./impact.js";
 export * from "./offer-relations.js";
-export * from "./policy-validation.js";
+export * from "./operate-policy.js";
+export * from "./prior-projection.js";
 export * from "./revision.js";
-export * from "./standard-mapping.js";
-import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
-import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, agentReadinessStageLabel, agentReadinessStageSchema, methodCapabilityFor, sameAgentReadinessScopeIdentity, } from "../../../contracts/agent-readiness/src/index.js";
-import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index.js";
-import { deriveProvenance, evidenceStatusFor, } from "../../provenance/src/index.js";
-import { verifyStandardEvidenceResult } from "../../standard-evidence/src/index.js";
-import { agentReadinessAdmittedFactSupportsPolicy } from "./corroboration.js";
-import { deriveAgentReadinessGrade, isAgentReadinessGradingSignal, isAgentReadinessVerifiedBarrierSignal, } from "./grading.js";
-import { validateAgentReadinessPolicy } from "./policy-validation.js";
-import { priorAgentReadinessVisibility } from "./projection-lineage.js";
-import { agentReadinessValuesSupportedByStandardRequirementResults } from "./standard-mapping.js";
-import { assertAgentReadinessSignalSelectorCoverage, assertSignalSurfaceClosure, surfaceCatalogFromDeclaration, } from "./surface-selection.js";
-export { agentReadinessAssessmentTargetIdsForSurface, agentReadinessSelectorGroupUsesAssessmentTargets, assertAgentReadinessDeclarationPolicyScope, assertAgentReadinessSignalSelectorCoverage, } from "./surface-selection.js";
-export function agentReadinessValuesSupportedByStandardEvidence(input) {
-    const policy = validateAgentReadinessPolicy(input.policy);
-    const rule = policy.signal_rules.find((candidate) => candidate.stage === input.stage && candidate.signal_code === input.signalCode);
-    if (!rule) {
-        throw new Error(`Unknown Agent Readiness signal ${input.stage}:${input.signalCode} for standard evidence.`);
-    }
-    const result = verifyStandardEvidenceResult(input.result);
-    return agentReadinessValuesSupportedByStandardRequirementResults({
-        mappings: rule.standard_evidence,
-        results: result.requirements,
-    });
-}
+/**
+ * The projection a release publishes for one revision: the Operate letter the
+ * pinned policy gives its steps, its Onboard level and evidence label, the
+ * human boundaries a reader sees, and whether it is discoverable. Freshness is
+ * served from the freshness index, never released. Nothing here reads
+ * documentation or calls out.
+ */
 export function deriveAgentReadinessProjection(input) {
-    const context = deriveAgentReadinessProjectionContext(input);
-    return projectAgentReadinessProjection({
-        ...context,
-        entitySlug: input.entitySlug,
-        priorVisibility: priorAgentReadinessVisibility(context.revision, input.priorProjection),
-    });
-}
-export function deriveAgentReadinessAssessment(input) {
-    return evaluateAgentReadinessProjection(deriveAgentReadinessProjectionContext(input));
-}
-export function verifyAgentReadinessProjection(input) {
-    const projection = agentReadinessProjectionSchema.parse(input);
-    const { projection_digest: projectionDigest, ...coreInput } = projection;
-    const core = agentReadinessProjectionCoreSchema.parse(coreInput);
-    if (digest(core) !== projectionDigest) {
-        throw new Error("Agent Readiness projection digest mismatch.");
-    }
-    return projection;
-}
-function deriveAgentReadinessProjectionContext(input) {
     const revision = agentReadinessRevisionSchema.parse(input.revision);
     const declarationRevision = agentReadinessDeclarationRevisionSchema.parse(input.declarationRevision);
     const { revision_digest: declarationDigest, ...declarationCore } = declarationRevision;
@@ -59,55 +28,129 @@ function deriveAgentReadinessProjectionContext(input) {
         revision.declaration_revision_digest !== declarationDigest ||
         revision.entity_id !== declarationRevision.entity_id ||
         !sameAgentReadinessScopeIdentity(revision.scope, declarationRevision.declaration.scope)) {
-        throw new Error("Agent Readiness projection does not bind its exact declaration revision and declaration scope.");
+        throw new Error("Agent Readiness projection does not bind its exact declaration revision and scope.");
     }
-    assertSignalSurfaceClosure(revision, declarationRevision);
-    const policy = validateAgentReadinessPolicy(input.policy);
+    const { policy } = input;
+    const job = policy.job_library.jobs.find(({ job_id }) => job_id === revision.scope.job.key);
+    if (job && agentReadinessJobDigest(job) !== revision.job_digest) {
+        throw new Error(`Agent Readiness profile ${revision.agent_readiness_profile_id} ran a job this policy changed; it needs new runs.`);
+    }
+    const binding = revision.binding_id === null
+        ? null
+        : declarationRevision.declaration.job_bindings.find(({ binding_id }) => binding_id === revision.binding_id);
+    if (!job || binding === undefined) {
+        throw new Error("Agent Readiness projection names a job or binding it cannot resolve.");
+    }
     if (!Number.isFinite(Date.parse(input.policyAsOf))) {
-        throw new Error("Agent readiness projection policy time is invalid.");
+        throw new Error("Agent Readiness projection policy time is invalid.");
     }
-    const provenance = deriveProvenance({
-        revision,
+    const rating = rateOperate(policy, revision.steps);
+    const rule = policy.letters.find(({ letter }) => letter === rating.letter);
+    const latest = revision.runs.at(-1);
+    const standing = deriveSubjectStanding({
+        revisionDigest: revision.revision_digest,
         authorityEntityRevision: input.authorityEntityRevision,
         graph: input.graph,
-        coveragePolicy: policy,
-        freshnessPolicy: input.freshnessPolicy,
         policyAsOf: input.policyAsOf,
     });
-    return {
-        revision,
-        policy,
-        policyAsOf: input.policyAsOf,
-        freshnessPolicy: input.freshnessPolicy,
-        surfaceCatalog: surfaceCatalogFromDeclaration(declarationRevision),
-        provenance,
-    };
+    const reasons = [
+        ...(revision.lifecycle === "active" ? [] : ["lifecycle_not_active"]),
+        ...(standing.dispute === "open" ? ["open_dispute"] : []),
+    ];
+    const prior = priorAgentReadinessVisibility(revision, input.priorProjection);
+    const { declaration } = declarationRevision;
+    const core = agentReadinessProjectionCoreSchema.parse({
+        projection_contract: "sourcey.agent-readiness-projection/v1alpha1",
+        agent_readiness_profile_id: revision.agent_readiness_profile_id,
+        entity_id: revision.entity_id,
+        scope: revision.scope,
+        catalog_binding: revision.catalog_binding,
+        declaration_revision_digest: revision.declaration_revision_digest,
+        declaration: revision.declaration,
+        surface_catalog: {
+            participants: declaration.participants,
+            resources: declaration.resources,
+            endpoints: declaration.endpoints,
+            interfaces: declaration.interfaces,
+            relations: declaration.relations,
+            surface_exclusions: declaration.surface_exclusions,
+        },
+        lifecycle: revision.lifecycle,
+        effective_from: revision.effective_from,
+        ...(revision.effective_until ? { effective_until: revision.effective_until } : {}),
+        revision_digest: revision.revision_digest,
+        policy_digest: policy.policy_digest,
+        policy_version: policy.policy_version,
+        policy_as_of: input.policyAsOf,
+        job: {
+            job_id: job.job_id,
+            job_digest: revision.job_digest,
+            category: job.category,
+            name: job.name,
+            statement: job.statement,
+        },
+        interface_id: binding?.interface_id ?? null,
+        label: latest.label,
+        operate: {
+            letter: rating.letter,
+            statement: rating.letter === "D" || rating.letter === "F"
+                ? policy.blocked.statements[rating.letter]
+                : (rule?.statement ?? null),
+            steps: revision.steps.map(({ step, outcome, timing }) => ({ step, outcome, timing })),
+            missing: rating.missing,
+            approvals: revision.steps
+                .filter(({ outcome }) => outcome === "approval")
+                .map(({ step }) => step),
+            workarounds: revision.steps.flatMap(({ step, outcome, timing }) => outcome === "workaround" && timing ? [{ step, timing }] : []),
+        },
+        onboard: { level: revision.onboard_level },
+        discovery: revision.discovery,
+        run: {
+            ...revision.latest_run,
+            assertions: revision.latest_run.assertions.map((result) => {
+                const assertion = job.assertions.find(({ name }) => name === result.assertion);
+                if (!assertion) {
+                    throw new Error(`Agent Readiness run reports assertion ${result.assertion}, which its job lacks.`);
+                }
+                return { ...result, statement: assertion.statement };
+            }),
+        },
+        last_run_at: latest.finished_at,
+        publication: {
+            visibility: reasons.length === 0
+                ? "discoverable"
+                : prior === "discoverable" || prior === "resolvable_only"
+                    ? "resolvable_only"
+                    : "private",
+            reasons,
+        },
+        provenance: standing,
+        canonical_url: canonicalUrl(input.entitySlug, revision),
+    });
+    return agentReadinessProjectionSchema.parse({ ...core, projection_digest: digest(core) });
 }
+function verifyAgentReadinessProjection(input) {
+    const projection = agentReadinessProjectionSchema.parse(input);
+    const { projection_digest: projectionDigest, ...coreInput } = projection;
+    const core = agentReadinessProjectionCoreSchema.parse(coreInput);
+    if (digest(core) !== projectionDigest) {
+        throw new Error("Agent Readiness projection digest mismatch.");
+    }
+    return projection;
+}
+/** The same revision under a newer policy or a later policy instant. */
 export function regradeAgentReadinessProjection(input) {
     const revision = agentReadinessRevisionSchema.parse(input.revision);
     const prior = verifyAgentReadinessProjection(input.priorProjection);
-    const policy = validateAgentReadinessPolicy(input.policy);
     assertCurrentAgentReadinessProjectionRevision(prior, revision);
-    if (Date.parse(input.policyAsOf) < Date.parse(prior.policy_as_of) ||
-        prior.provenance.coverage_policy_digest !== prior.policy_digest) {
-        throw new Error("Agent Readiness regrade does not bind the exact current revision.");
+    if (Date.parse(input.policyAsOf) < Date.parse(prior.policy_as_of)) {
+        throw new Error("Agent Readiness regrade cannot move its policy instant backwards.");
     }
-    return deriveAgentReadinessProjection({
-        revision,
-        declarationRevision: input.declarationRevision,
-        authorityEntityRevision: input.authorityEntityRevision,
-        priorProjection: prior,
-        graph: input.graph,
-        policy,
-        policyAsOf: input.policyAsOf,
-        freshnessPolicy: input.freshnessPolicy,
-        entitySlug: input.entitySlug,
-    });
+    return deriveAgentReadinessProjection(input);
 }
 /**
- * Move only the public route of an immutable assessment projection. This is
- * the contract-transition path: it retains every assessed fact, grade,
- * evidence binding, policy result, and publication decision byte-for-byte.
+ * Move only the public route of an immutable projection: every assessed fact,
+ * letter and publication decision is kept byte for byte.
  */
 export function reprojectAgentReadinessCanonicalRoute(input) {
     const revision = agentReadinessRevisionSchema.parse(input.revision);
@@ -116,16 +159,9 @@ export function reprojectAgentReadinessCanonicalRoute(input) {
     const { projection_digest: _projectionDigest, ...priorCore } = prior;
     const core = agentReadinessProjectionCoreSchema.parse({
         ...priorCore,
-        canonical_url: `https://sourcey.com${agentReadinessCanonicalPath({
-            entity_slug: input.entitySlug,
-            product_key: revision.scope.product.key,
-            funnel_key: revision.scope.funnel.key,
-        })}`,
+        canonical_url: canonicalUrl(input.entitySlug, revision),
     });
-    return agentReadinessProjectionSchema.parse({
-        ...core,
-        projection_digest: digest(core),
-    });
+    return agentReadinessProjectionSchema.parse({ ...core, projection_digest: digest(core) });
 }
 /** A relocation changes the locator, never the immutable assessment facts. */
 export function isAgentReadinessRouteOnlySuccession(prior, current) {
@@ -133,6 +169,7 @@ export function isAgentReadinessRouteOnlySuccession(prior, current) {
     const { canonical_url: currentUrl, projection_digest: _currentDigest, ...currentFacts } = current;
     return priorUrl !== currentUrl && canonicalJson(priorFacts) === canonicalJson(currentFacts);
 }
+/** A route move when that is all that changed; otherwise the revision re-rated. */
 export function deriveAgentReadinessReprojection(input) {
     const routeProjection = reprojectAgentReadinessCanonicalRoute(input);
     return isAgentReadinessRouteOnlySuccession(input.priorProjection, input.currentProjection) &&
@@ -144,391 +181,21 @@ function assertCurrentAgentReadinessProjectionRevision(prior, revision) {
     if (prior.agent_readiness_profile_id !== revision.agent_readiness_profile_id ||
         prior.revision_digest !== revision.revision_digest ||
         prior.entity_id !== revision.entity_id ||
-        JSON.stringify(prior.scope) !== JSON.stringify(revision.scope) ||
-        JSON.stringify(prior.catalog_binding) !== JSON.stringify(revision.catalog_binding) ||
+        canonicalJson(prior.scope) !== canonicalJson(revision.scope) ||
+        canonicalJson(prior.catalog_binding) !== canonicalJson(revision.catalog_binding) ||
         prior.declaration_revision_digest !== revision.declaration_revision_digest ||
-        JSON.stringify(prior.declaration) !== JSON.stringify(revision.declaration) ||
+        canonicalJson(prior.declaration) !== canonicalJson(revision.declaration) ||
         prior.lifecycle !== revision.lifecycle ||
         prior.effective_from !== revision.effective_from ||
         prior.effective_until !== revision.effective_until) {
         throw new Error("Agent Readiness projection does not bind the exact current revision.");
     }
 }
-function evaluateAgentReadinessProjection(input) {
-    const { revision, policy, provenance } = input;
-    if (!Number.isFinite(Date.parse(input.policyAsOf))) {
-        throw new Error("Agent readiness projection policy time is invalid.");
-    }
-    const facts = new Map(revision.signals.map((signal, index) => [
-        `${signal.stage}:${signal.signal_code}`,
-        {
-            signal,
-            field: provenance.fields.find((candidate) => candidate.path === `/signals/${index}`),
-        },
-    ]));
-    const policySignalKeys = new Set(policy.signal_rules.map((rule) => `${rule.stage}:${rule.signal_code}`));
-    const unmodeledSignals = revision.signals
-        .map((signal) => `${signal.stage}:${signal.signal_code}`)
-        .filter((key) => !policySignalKeys.has(key));
-    if (unmodeledSignals.length > 0) {
-        throw new Error(`Agent readiness revision contains signals outside policy: ${unmodeledSignals.join(", ")}.`);
-    }
-    const stages = agentReadinessStageSchema.options.map((stage) => {
-        const rules = policy.signal_rules.filter((rule) => rule.stage === stage);
-        const evaluated = rules.map((rule) => {
-            const fact = facts.get(`${stage}:${rule.signal_code}`);
-            if (fact)
-                assertAllowedAssessmentMethod(fact.signal, rule, policy, input.surfaceCatalog);
-            const evidenceRule = rule.value_evidence.find((candidate) => candidate.value === fact?.signal.value);
-            const policySupported = !fact ||
-                fact.signal.value === "unknown" ||
-                (evidenceRule !== undefined &&
-                    agentReadinessAdmittedFactSupportsPolicy({ signal: fact.signal, rule: evidenceRule }));
-            const evidenceStatus = fact && policySupported ? evidenceStatusFor(fact.field) : "missing";
-            const freshness = fact
-                ? assessmentFreshness(fact.signal, fact.field?.freshness ?? "unknown", policy)
-                : "unknown";
-            const currentEvidence = freshness === "fresh";
-            const outcome = fact && evidenceStatus === "supported" && fact.signal.value !== "unknown" && currentEvidence
-                ? agentReadinessSignalOutcome(rule, fact.signal.value)
-                : "unknown";
-            const value = fact && evidenceStatus === "supported" && currentEvidence ? fact.signal.value : "unknown";
-            const descriptor = rule.public_findings[value];
-            const publicState = policy.public_states[outcome];
-            const blocker = outcome === "fail" && rule.blocker
-                ? { signal_code: rule.signal_code, ...rule.blocker }
-                : undefined;
-            const remediation = ["constrained", "fail"].includes(outcome) && rule.remediation
-                ? { signal_code: rule.signal_code, ...rule.remediation }
-                : undefined;
-            return {
-                rule,
-                outcome,
-                evidenceStatus,
-                signal: {
-                    signal_code: rule.signal_code,
-                    evaluation_role: rule.evaluation_role,
-                    required: rule.required,
-                    value,
-                    value_label: publicState.label,
-                    outcome,
-                    public_state: publicState.state,
-                    condition: descriptor.condition,
-                    finding: descriptor.finding,
-                    evidence_status: evidenceStatus,
-                    freshness,
-                    ...(fact && policySupported
-                        ? {
-                            observed_at: fact.signal.observed_at,
-                            tested_surfaces: fact.signal.tested_surfaces,
-                            assessment_method: fact.signal.assessment_method,
-                            determination_bases: fact.signal.determination_bases,
-                            ...(fact.signal.note ? { note: fact.signal.note } : {}),
-                        }
-                        : { tested_surfaces: fact?.signal.tested_surfaces ?? [], determination_bases: [] }),
-                    ...(blocker ? { blocker } : {}),
-                    ...(remediation ? { remediation } : {}),
-                },
-            };
-        });
-        const graded = evaluated.filter((entry) => isAgentReadinessGradingSignal(entry.rule));
-        const verifiedBarriers = evaluated.filter((entry) => isAgentReadinessVerifiedBarrierSignal(entry.signal));
-        const stageSignals = [...graded, ...verifiedBarriers];
-        const outcome = worstAgentReadinessOutcome(stageSignals.map((entry) => entry.outcome), policy.aggregation.outcome_precedence);
-        const orderedStageSignals = [...stageSignals].sort((left, right) => compareEvaluatedRules(left, right, policy.aggregation.outcome_precedence));
-        const primary = orderedStageSignals[0];
-        if (!primary)
-            throw new Error(`Agent readiness stage ${stage} has no graded primary finding.`);
-        const orderedSecondary = evaluated
-            .filter((entry) => entry !== primary)
-            .sort((left, right) => compareEvaluatedRules(left, right, policy.aggregation.outcome_precedence));
-        return {
-            stage,
-            stage_label: agentReadinessStageLabel(stage),
-            outcome,
-            public_state: policy.public_states[outcome].state,
-            state_label: policy.public_states[outcome].label,
-            primary_finding: projectedFinding(primary),
-            secondary_context: orderedSecondary.map(projectedFinding),
-            signals: evaluated
-                .map((entry) => entry.signal)
-                .sort((left, right) => compareCanonicalStrings(left.signal_code, right.signal_code)),
-            blockers: orderedStageSignals.flatMap((entry) => entry.signal.blocker ? [entry.signal.blocker] : []),
-            remediations: orderedStageSignals.flatMap((entry) => entry.signal.remediation ? [entry.signal.remediation] : []),
-        };
-    });
-    const signals = stages.flatMap((stage) => stage.signals);
-    const gradedSignals = signals.filter((signal) => signal.evaluation_role === "graded");
-    const coveredSignals = gradedSignals.filter((signal) => signal.evidence_status === "supported" &&
-        signal.value !== "unknown" &&
-        signal.outcome !== "unknown" &&
-        signal.freshness === "fresh");
-    const coverageRatio = gradedSignals.length === 0 ? 1 : coveredSignals.length / gradedSignals.length;
-    const coverageStatus = coverageRatio === 1 ? "complete" : "incomplete";
-    const barrierSignals = signals.filter((signal) => signal.evaluation_role === "barrier");
-    const verifiedBarrierSignals = barrierSignals.filter(isAgentReadinessVerifiedBarrierSignal);
-    const barrierRatio = barrierSignals.length === 0 ? 1 : verifiedBarrierSignals.length / barrierSignals.length;
-    const freshnessSignals = policy.freshness.aggregation === "worst-required-signal"
-        ? gradedSignals
-        : policy.freshness.aggregation === "worst-evaluated-signal"
-            ? signals.filter((signal) => signal.evaluation_role !== "informational")
-            : signals;
-    const freshness = freshnessSignals.some((signal) => signal.freshness === "unknown")
-        ? "unknown"
-        : freshnessSignals.some((signal) => signal.freshness === "stale")
-            ? "stale"
-            : "fresh";
-    const overallOutcome = worstAgentReadinessOutcome(stages.map((stage) => stage.outcome), policy.aggregation.outcome_precedence);
-    // Only a signal whose method admits a service exchange can carry one, so the
-    // proof is found by kind; no signal is named here.
-    const supportedExchanges = signals.flatMap((signal) => signal.value === "yes" && signal.evidence_status === "supported" && signal.freshness === "fresh"
-        ? signal.determination_bases
-        : []);
-    const observedOperationCoverage = input.surfaceCatalog.assessment_targets.length > 0 &&
-        input.surfaceCatalog.assessment_targets.every((target) => {
-            const selectedInterfaceId = target.interface_ids[0];
-            const selectedInterface = input.surfaceCatalog.interfaces.find((candidate) => candidate.interface_id === selectedInterfaceId);
-            return supportedExchanges.some((proof) => proof.kind === "service_exchange" &&
-                proof.assessment_target_id === target.target_id &&
-                selectedInterface?.endpoint_ids.includes(proof.endpoint_id) &&
-                input.surfaceCatalog.endpoints.some((endpoint) => endpoint.endpoint_id === proof.endpoint_id && endpoint.roles.includes("service")));
-        });
-    const grade = deriveAgentReadinessGrade({
-        policy,
-        stages,
-        coverageStatus,
-        freshness,
-        observedOperationCoverage,
-    });
-    return {
-        stages,
-        signals,
-        gradedSignals,
-        coveredSignals,
-        coverageRatio,
-        coverageStatus,
-        barrierSignals,
-        verifiedBarrierSignals,
-        barrierRatio,
-        freshness,
-        overallOutcome,
-        grade,
-    };
-}
-function projectAgentReadinessProjection(input) {
-    const { revision, policy, provenance } = input;
-    const { stages, gradedSignals, coveredSignals, coverageRatio, coverageStatus, barrierSignals, verifiedBarrierSignals, barrierRatio, freshness, overallOutcome, grade, } = evaluateAgentReadinessProjection(input);
-    const actionableFindings = stages
-        .flatMap((stage) => stage.signals
-        .filter((signal) => signal.evaluation_role !== "informational" &&
-        signal.evidence_status === "supported" &&
-        (signal.evaluation_role === "graded" ||
-            isAgentReadinessVerifiedBarrierSignal(signal)) &&
-        (signal.public_state === "blocked" || signal.public_state === "limited"))
-        .map((signal) => ({ stage, signal })))
-        .sort((left, right) => compareActionableFindings(left, right, policy));
-    const primaryFinding = actionableFindings[0];
-    const firstBlockedStage = stages.find((stage) => stage.public_state === "blocked");
-    const limitations = actionableFindings.filter(({ signal }) => signal.public_state === "limited");
-    const publicationReasons = agentReadinessPublicationReasons({
-        revision,
-        stages,
-        coverageStatus,
-        freshness,
-        grade,
-        provenance,
-    });
-    const visibility = publicationReasons.length === 0
-        ? "discoverable"
-        : input.priorVisibility === "discoverable" || input.priorVisibility === "resolvable_only"
-            ? "resolvable_only"
-            : "private";
-    const core = agentReadinessProjectionCoreSchema.parse({
-        projection_contract: "sourcey.agent-readiness-projection/v1alpha1",
-        agent_readiness_profile_id: revision.agent_readiness_profile_id,
-        entity_id: revision.entity_id,
-        scope: revision.scope,
-        catalog_binding: revision.catalog_binding,
-        declaration_revision_digest: revision.declaration_revision_digest,
-        declaration: revision.declaration,
-        surface_catalog: input.surfaceCatalog,
-        lifecycle: revision.lifecycle,
-        effective_from: revision.effective_from,
-        ...(revision.effective_until ? { effective_until: revision.effective_until } : {}),
-        revision_digest: revision.revision_digest,
-        policy_digest: policy.policy_digest,
-        policy_version: policy.policy_version,
-        policy_as_of: input.policyAsOf,
-        assessment_basis: policy.assessment_basis,
-        overall_outcome: overallOutcome,
-        public_state: policy.public_states[overallOutcome].state,
-        state_label: policy.public_states[overallOutcome].label,
-        grade,
-        grade_derivation: policy.grade_derivation,
-        publication: {
-            visibility,
-            reasons: publicationReasons,
-        },
-        ...(primaryFinding
-            ? {
-                primary_finding: {
-                    stage: primaryFinding.stage.stage,
-                    stage_label: primaryFinding.stage.stage_label,
-                    public_state: primaryFinding.signal.public_state,
-                    finding: {
-                        signal_code: primaryFinding.signal.signal_code,
-                        condition: primaryFinding.signal.condition,
-                        finding: primaryFinding.signal.finding,
-                        ...("note" in primaryFinding.signal && primaryFinding.signal.note
-                            ? { context: primaryFinding.signal.note }
-                            : {}),
-                    },
-                    ...(primaryFinding.signal.blocker ? { blocker: primaryFinding.signal.blocker } : {}),
-                },
-            }
-            : {}),
-        ...(firstBlockedStage
-            ? {
-                first_blocked_stage: {
-                    stage: firstBlockedStage.stage,
-                    stage_label: firstBlockedStage.stage_label,
-                    finding: firstBlockedStage.primary_finding,
-                    ...(firstBlockedStage.blockers[0] ? { blocker: firstBlockedStage.blockers[0] } : {}),
-                },
-            }
-            : {}),
-        limitations: limitations.map(({ stage, signal }) => ({
-            stage: stage.stage,
-            stage_label: stage.stage_label,
-            finding: {
-                signal_code: signal.signal_code,
-                condition: signal.condition,
-                finding: signal.finding,
-                ...("note" in signal && signal.note ? { context: signal.note } : {}),
-            },
-            ...(signal.remediation ? { remediation: signal.remediation } : {}),
-        })),
-        stages,
-        coverage: {
-            status: coverageStatus,
-            required_signals: gradedSignals.length,
-            covered_signals: coveredSignals.length,
-            ratio: coverageRatio,
-            barrier_signals: barrierSignals.length,
-            verified_barrier_signals: verifiedBarrierSignals.length,
-            barrier_ratio: barrierRatio,
-        },
-        last_tested_at: latestInstant(revision.signals.map((signal) => signal.observed_at)),
-        freshness,
-        provenance,
-        canonical_url: `https://sourcey.com${agentReadinessCanonicalPath({
-            entity_slug: input.entitySlug,
-            product_key: revision.scope.product.key,
-            funnel_key: revision.scope.funnel.key,
-        })}`,
-    });
-    return agentReadinessProjectionSchema.parse({
-        ...core,
-        projection_digest: digest(core),
-    });
-}
-function latestInstant(instants) {
-    const latest = [...instants].sort((left, right) => Date.parse(left) - Date.parse(right)).at(-1);
-    if (!latest)
-        throw new Error("Agent Readiness projection requires a tested signal instant.");
-    return latest;
-}
-function agentReadinessPublicationReasons(input) {
-    const reasons = [];
-    const signals = input.stages.flatMap((stage) => stage.signals);
-    if (input.revision.lifecycle !== "active")
-        reasons.push("lifecycle_not_active");
-    const decisiveFailure = input.grade === "D" || input.grade === "F";
-    if (!decisiveFailure) {
-        if (input.coverageStatus !== "complete")
-            reasons.push("coverage_incomplete");
-        if (signals.some((signal) => signal.evaluation_role === "graded" && signal.evidence_status !== "supported")) {
-            reasons.push("required_evidence_not_supported");
-        }
-        if (input.freshness !== "fresh")
-            reasons.push("freshness_not_fresh");
-    }
-    if (input.grade === "unrated")
-        reasons.push("unrated");
-    if (!signals.some((signal) => signal.evidence_status === "supported")) {
-        reasons.push("no_useful_finding");
-    }
-    if (input.provenance.dispute === "open")
-        reasons.push("open_dispute");
-    return reasons;
-}
-function projectedFinding(entry) {
-    return {
-        signal_code: entry.rule.signal_code,
-        condition: entry.signal.condition,
-        finding: entry.signal.finding,
-        ...(entry.signal.note ? { context: entry.signal.note } : {}),
-    };
-}
-export function agentReadinessSignalOutcome(rule, value) {
-    if (rule.pass_values.includes(value))
-        return value === "not_applicable" ? "not_applicable" : "pass";
-    if (rule.constrained_values.includes(value)) {
-        return value === "not_applicable" ? "not_applicable" : "constrained";
-    }
-    if (rule.fail_values.includes(value))
-        return value === "not_applicable" ? "not_applicable" : "fail";
-    return "unknown";
-}
-export function worstAgentReadinessOutcome(outcomes, precedence) {
-    return ([...outcomes].sort((left, right) => precedence.indexOf(left) - precedence.indexOf(right))[0] ??
-        "unknown");
-}
-function assertAllowedAssessmentMethod(signal, rule, policy, surfaceCatalog) {
-    const method = policy.assessment_methods.find((candidate) => candidate.method_digest === signal.assessment_method.method_digest);
-    if (!method ||
-        method.name !== signal.assessment_method.name ||
-        method.version !== signal.assessment_method.version ||
-        !rule.allowed_method_digests.includes(method.method_digest)) {
-        throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} uses an unapproved assessment method.`);
-    }
-    const selectorGroup = rule.selector_groups.find((group) => group.selector_group_id === signal.selector_group_id);
-    if (!selectorGroup) {
-        throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} uses an unknown selector group.`);
-    }
-    assertAgentReadinessSignalSelectorCoverage(signal, selectorGroup, surfaceCatalog, rule.allow_not_applicable);
-    if (signal.tested_surfaces.some((surface) => surface.node_kind !== "surface_exclusion" &&
-        !method.surface_support.node_kinds.includes(surface.node_kind))) {
-        throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} uses an unsupported surface kind.`);
-    }
-    const capability = methodCapabilityFor(method, signal.stage, signal.signal_code);
-    if (!capability || (signal.value !== "unknown" && !capability.values.includes(signal.value))) {
-        throw new Error(`Agent readiness method ${method.name}@${method.version} cannot establish ${signal.stage}:${signal.signal_code}=${signal.value}.`);
-    }
-    if (signal.determination_bases.some((basis) => !capability.determination_bases.includes(basis.kind))) {
-        throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} uses an unsupported determination basis.`);
-    }
-}
-function assessmentFreshness(signal, evidenceFreshness, policy) {
-    const method = policy.assessment_methods.find((candidate) => candidate.method_digest === signal.assessment_method.method_digest);
-    return method?.capture.freshness_capability === "history-only" ? "stale" : evidenceFreshness;
-}
-function compareActionableFindings(left, right, policy) {
-    const severity = { blocked: 0, limited: 1 };
-    const leftRule = policy.signal_rules.find((rule) => rule.stage === left.stage.stage && rule.signal_code === left.signal.signal_code);
-    const rightRule = policy.signal_rules.find((rule) => rule.stage === right.stage.stage && rule.signal_code === right.signal.signal_code);
-    if (!leftRule || !rightRule)
-        throw new Error("Actionable finding lost its policy rule.");
-    return (severity[left.signal.public_state] -
-        severity[right.signal.public_state] ||
-        agentReadinessStageSchema.options.indexOf(left.stage.stage) -
-            agentReadinessStageSchema.options.indexOf(right.stage.stage) ||
-        leftRule.priority - rightRule.priority ||
-        compareCanonicalStrings(left.signal.signal_code, right.signal.signal_code));
-}
-function compareEvaluatedRules(left, right, precedence) {
-    return (precedence.indexOf(left.outcome) - precedence.indexOf(right.outcome) ||
-        left.rule.priority - right.rule.priority ||
-        compareCanonicalStrings(left.rule.signal_code, right.rule.signal_code));
+function canonicalUrl(entitySlug, revision) {
+    return `https://sourcey.com${agentReadinessCanonicalPath({
+        entity_slug: entitySlug,
+        product_key: revision.scope.product.key,
+        job_key: revision.scope.job.key,
+    })}`;
 }
 //# sourceMappingURL=index.js.map

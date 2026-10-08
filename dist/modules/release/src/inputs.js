@@ -5,27 +5,20 @@ import { parse as parseYaml } from "yaml";
 import { agentReadinessIndexSchema, agentReadinessProfileReleaseInputSchema, agentReadinessRevisionContract, } from "../../../contracts/agent-readiness/src/index.js";
 import { policyCoreSchema } from "../../../contracts/artifact/src/index.js";
 import { catalogEventSchema } from "../../../contracts/events/src/index.js";
-import { captureReceiptSchema, } from "../../../contracts/evidence/src/index.js";
 import { catalogRevisionContracts, } from "../../../contracts/revisions/src/index.js";
-import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, } from "../../agent-readiness-policy/src/index.js";
-import { validateProtectedCaptureReceipt, validateProtectedEvent, } from "../../authority/src/index.js";
-import { canonicalizePublicHttpsUrl } from "../../catalog-primitives/src/index.js";
-import { parseRetainedCatalogRevision, } from "../../evidence-operations/src/retained-revision.js";
+import { compileAgentReadinessOfferRelationRevision, compileAgentReadinessRevision, verifyAgentReadinessProfileInput, } from "../../agent-readiness-policy/src/index.js";
+import { validateProtectedEvent } from "../../authority/src/index.js";
 const policyInputSchema = policyCoreSchema;
-export async function loadCheckpointRevisions(directory) {
-    const revisions = new Map();
-    for (const path of (await filesUnder(directory))
-        .filter((file) => file.endsWith(".json"))
-        .sort(compareCanonicalStrings)) {
-        const revision = parseRetainedCatalogRevision(JSON.parse(await readFile(path, "utf8")));
-        const revisionDigest = revision.revision_digest;
-        const existing = revisions.get(revisionDigest);
-        if (existing && digest(existing) !== digest(revision)) {
-            throw new Error(`Checkpoint revision ${revisionDigest} collides with another object.`);
-        }
-        revisions.set(revisionDigest, revision);
-    }
-    return revisions;
+/** One released profile as every lane loads it: its input, the revision it compiles to and its relations. */
+export function loadedAgentReadinessProfile(releaseInput) {
+    const input = releaseInput.profile_input;
+    return {
+        input,
+        declarationRevision: releaseInput.declaration_revision,
+        revision: compileAgentReadinessRevision(input),
+        offerRelationInputs: releaseInput.offer_relation_inputs,
+        offerRelations: releaseInput.offer_relation_inputs.map(compileAgentReadinessOfferRelationRevision),
+    };
 }
 export async function loadAssetSourceBytes(manifest, assetRoot) {
     const paths = new Set(manifest.objects.flatMap((object) => [
@@ -48,98 +41,35 @@ export async function loadAgentReadinessRevisions(directory) {
         .filter((file) => /\.(?:json|ya?ml)$/i.test(file))
         .sort(compareCanonicalStrings)) {
         const source = await readFile(path, "utf8");
-        const releaseInput = agentReadinessProfileReleaseInputSchema.parse(path.endsWith(".json") ? JSON.parse(source) : parseYaml(source));
-        const input = releaseInput.profile_input;
-        if (ids.has(input.agent_readiness_profile_id)) {
-            throw new Error(`Duplicate agent readiness profile ${input.agent_readiness_profile_id}.`);
+        const profile = loadedAgentReadinessProfile(agentReadinessProfileReleaseInputSchema.parse(path.endsWith(".json") ? JSON.parse(source) : parseYaml(source)));
+        const profileId = profile.revision.agent_readiness_profile_id;
+        if (ids.has(profileId)) {
+            throw new Error(`Duplicate agent readiness profile ${profileId}.`);
         }
-        ids.add(input.agent_readiness_profile_id);
-        profiles.push({
-            input,
-            declarationRevision: releaseInput.declaration_revision,
-            revision: compileAgentReadinessRevision(input),
-            offerRelationInputs: releaseInput.offer_relation_inputs,
-            offerRelations: releaseInput.offer_relation_inputs.map(compileAgentReadinessOfferRelationRevision),
-        });
+        ids.add(profileId);
+        profiles.push(profile);
     }
     return profiles.sort((left, right) => compareCanonicalStrings(left.revision.agent_readiness_profile_id, right.revision.agent_readiness_profile_id));
 }
+/**
+ * Every profile names a released Entity, binds its exact declaration revision,
+ * and rates exactly what the engine derives from its run records under the
+ * pinned policy; every Offer relation binds its same-Entity profile.
+ */
 export function validateAgentReadinessClosure(input) {
-    const events = new Map(input.events.map((event) => [event.event_id, event]));
-    const observations = new Map(input.observations.map((observation) => [observation.observation_id, observation]));
     assertAgentReadinessOfferRelationAdmission({
         profiles: input.profiles,
         offers: input.offers,
     });
     for (const profile of input.profiles) {
-        const { revision, declarationRevision } = profile;
-        if (!input.entityIds.has(revision.entity_id)) {
-            throw new Error(`Agent readiness profile ${revision.agent_readiness_profile_id} targets an unknown entity.`);
+        if (!input.entityIds.has(profile.revision.entity_id)) {
+            throw new Error(`Agent readiness profile ${profile.revision.agent_readiness_profile_id} targets an unknown entity.`);
         }
-        if (declarationRevision.entity_id !== revision.entity_id ||
-            declarationRevision.revision_digest !== revision.declaration_revision_digest) {
-            throw new Error(`Agent readiness profile ${revision.agent_readiness_profile_id} does not bind its exact declaration revision.`);
-        }
-        for (const binding of profile.input.evidence_bindings) {
-            const signalIndex = revision.signals.findIndex((signal) => signal.stage === binding.stage && signal.signal_code === binding.signal_code);
-            const signal = revision.signals[signalIndex];
-            if (!signal) {
-                throw new Error(`Agent readiness evidence binding ${binding.stage}:${binding.signal_code} has no signal fact.`);
-            }
-            const assessmentMethod = input.policy.assessment_methods.find((method) => method.method_digest === signal.assessment_method.method_digest);
-            if (!assessmentMethod ||
-                assessmentMethod.name !== signal.assessment_method.name ||
-                assessmentMethod.version !== signal.assessment_method.version) {
-                throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} names an unresolved assessment method.`);
-            }
-            const testedSurfaceUris = captureUrisBySurface(signal.tested_surfaces, declarationRevision);
-            const allowedObservationUris = new Set(testedSurfaceUris.flatMap((uris) => [...uris].map(canonicalCaptureUri)));
-            const boundObservations = [];
-            for (const observationId of binding.observation_ids) {
-                const observation = observations.get(observationId);
-                if (!observation) {
-                    throw new Error(`Agent readiness profile ${revision.agent_readiness_profile_id} targets missing observation ${observationId}.`);
-                }
-                boundObservations.push(observation);
-                if (!assessmentMethod.capture.rungs.some((rung) => rung === observation.method.name)) {
-                    throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} uses an observation capture rung outside its assessment method.`);
-                }
-                if (!allowedObservationUris.has(canonicalCaptureUri(observation.source_uri))) {
-                    throw new Error(`Agent readiness signal ${signal.stage}:${signal.signal_code} observation is not in its tested surface closure.`);
-                }
-            }
-            const latestObservation = [...boundObservations]
-                .sort((left, right) => Date.parse(left.retrieved_at) - Date.parse(right.retrieved_at))
-                .at(-1);
-            if (latestObservation?.retrieved_at !== signal.observed_at) {
-                throw new Error(`Agent readiness profile ${revision.agent_readiness_profile_id} signal ${signal.stage}:${signal.signal_code} observed_at is not its latest bound observation.`);
-            }
-            for (const eventId of binding.evidence_event_ids) {
-                const event = events.get(eventId);
-                if (event?.kind !== "evidence.bound" ||
-                    event.subject.subject_type !== "agent_readiness_profile" ||
-                    event.subject.entity_id !== revision.entity_id ||
-                    event.subject.agent_readiness_profile_id !== revision.agent_readiness_profile_id ||
-                    event.subject.revision_digest !== revision.revision_digest) {
-                    throw new Error(`Agent readiness profile ${revision.agent_readiness_profile_id} has an invalid evidence binding ${eventId}.`);
-                }
-                const observationId = stringValue(event.payload.observation_id);
-                if (!binding.observation_ids.includes(observationId)) {
-                    throw new Error(`Agent readiness evidence event ${eventId} is not closed over its declared observations.`);
-                }
-                const assertions = event.payload.assertions;
-                const signalPath = `/signals/${signalIndex}`;
-                if (!Array.isArray(assertions) ||
-                    !assertions.some((assertion) => {
-                        if (typeof assertion !== "object" || assertion === null)
-                            return false;
-                        const path = assertion.path;
-                        return (typeof path === "string" && (path === signalPath || path.startsWith(`${signalPath}/`)));
-                    })) {
-                    throw new Error(`Agent readiness evidence event ${eventId} does not prove its bound signal path.`);
-                }
-            }
-        }
+        verifyAgentReadinessProfileInput({
+            profileInput: profile.input,
+            declarationRevision: profile.declarationRevision,
+            policy: input.policy,
+        });
     }
 }
 export function assertAgentReadinessOfferRelationAdmission(input) {
@@ -163,69 +93,6 @@ export function assertAgentReadinessOfferRelationAdmission(input) {
             relationIdentities.add(identity);
         }
     }
-}
-function captureUrisBySurface(surfaces, revision) {
-    return surfaces.map((surface) => {
-        const uris = new Set();
-        if (surface.node_kind === "resource") {
-            const resource = revision.declaration.resources.find((candidate) => candidate.resource_id === surface.node_id);
-            if (!resource)
-                throw new Error(`Unknown tested resource ${surface.node_id}.`);
-            uris.add(resource.uri);
-        }
-        else if (surface.node_kind === "endpoint") {
-            const endpoint = revision.declaration.endpoints.find((candidate) => candidate.endpoint_id === surface.node_id);
-            if (!endpoint)
-                throw new Error(`Unknown tested endpoint ${surface.node_id}.`);
-            uris.add(endpoint.uri);
-        }
-        else if (surface.node_kind === "interface") {
-            const declaredInterface = revision.declaration.interfaces.find((candidate) => candidate.interface_id === surface.node_id);
-            if (!declaredInterface)
-                throw new Error(`Unknown tested interface ${surface.node_id}.`);
-            for (const resourceId of declaredInterface.resource_ids) {
-                const resource = revision.declaration.resources.find((candidate) => candidate.resource_id === resourceId);
-                if (!resource)
-                    throw new Error(`Interface ${surface.node_id} lost resource ${resourceId}.`);
-                uris.add(resource.uri);
-            }
-            for (const endpointId of declaredInterface.endpoint_ids) {
-                const endpoint = revision.declaration.endpoints.find((candidate) => candidate.endpoint_id === endpointId);
-                if (!endpoint)
-                    throw new Error(`Interface ${surface.node_id} lost endpoint ${endpointId}.`);
-                uris.add(endpoint.uri);
-            }
-        }
-        else if (surface.node_kind === "surface_exclusion") {
-            const exclusion = revision.declaration.surface_exclusions.find((candidate) => candidate.exclusion_id === surface.node_id);
-            if (!exclusion)
-                throw new Error(`Unknown tested surface exclusion ${surface.node_id}.`);
-            const sourceIds = revision.declaration.source_bindings
-                .filter((binding) => binding.target.node_kind === "surface_exclusion" &&
-                binding.target.node_id === surface.node_id)
-                .map((binding) => binding.source_id);
-            for (const sourceId of new Set(sourceIds)) {
-                const source = revision.sources.find((candidate) => candidate.source_id === sourceId);
-                if (!source) {
-                    throw new Error(`Surface exclusion ${surface.node_id} lost source ${sourceId}.`);
-                }
-                uris.add(source.url);
-            }
-            if (uris.size === 0) {
-                throw new Error(`Surface exclusion ${surface.node_id} has no capture URI.`);
-            }
-        }
-        else {
-            throw new Error(`Unknown Agent Readiness surface kind ${surface.node_kind}.`);
-        }
-        return uris;
-    });
-}
-function canonicalCaptureUri(value) {
-    return canonicalizePublicHttpsUrl(value, {
-        fragment: "remove",
-        trimTrailingPathSlash: true,
-    });
 }
 export function projectAgentReadinessIndex(profiles) {
     return agentReadinessIndexSchema.parse({
@@ -280,28 +147,6 @@ export function assertNoRetiredVerificationIntroductions(events) {
     if (retired) {
         throw new Error(`Retired verification event ${retired.event_id} cannot be newly introduced; use typed assurance.`);
     }
-}
-export async function loadCaptureReceipts(directory, registry, sequence) {
-    const receiptDigests = new Set();
-    const operationIds = new Set();
-    const receipts = [];
-    for (const file of (await filesUnder(directory))
-        .filter((path) => path.endsWith(".json"))
-        .sort(compareCanonicalStrings)) {
-        const raw = JSON.parse(await readFile(file, "utf8"));
-        captureReceiptSchema.parse(raw);
-        const receipt = validateProtectedCaptureReceipt(raw, registry, sequence);
-        if (receiptDigests.has(receipt.receipt_digest)) {
-            throw new Error(`Duplicate capture receipt ${receipt.receipt_digest}.`);
-        }
-        if (operationIds.has(receipt.operation_id)) {
-            throw new Error(`Duplicate capture receipt operation ${receipt.operation_id}.`);
-        }
-        receiptDigests.add(receipt.receipt_digest);
-        operationIds.add(receipt.operation_id);
-        receipts.push(receipt);
-    }
-    return receipts.sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest));
 }
 export async function loadPublicPolicies(directory) {
     const entries = await readdir(directory, { withFileTypes: true });
@@ -360,23 +205,6 @@ export function unionHistoricalObservations(parent, current) {
         observations.set(observation.observation_id, observation);
     }
     return [...observations.values()].sort((left, right) => compareCanonicalStrings(left.observation_id, right.observation_id));
-}
-export function unionHistoricalCaptureReceipts(parent, current) {
-    const receipts = new Map(parent?.captureReceipts.map((receipt) => [receipt.receipt_digest, receipt]) ?? []);
-    const operations = new Map(parent?.captureReceipts.map((receipt) => [receipt.operation_id, receipt.receipt_digest]) ?? []);
-    for (const receipt of current) {
-        const prior = receipts.get(receipt.receipt_digest);
-        if (prior && digest(prior) !== digest(receipt)) {
-            throw new Error(`Historical capture receipt ${receipt.receipt_digest} was mutated.`);
-        }
-        const operationReceipt = operations.get(receipt.operation_id);
-        if (operationReceipt && operationReceipt !== receipt.receipt_digest) {
-            throw new Error(`Capture operation ${receipt.operation_id} is already bound to ${operationReceipt}.`);
-        }
-        receipts.set(receipt.receipt_digest, receipt);
-        operations.set(receipt.operation_id, receipt.receipt_digest);
-    }
-    return [...receipts.values()].sort((left, right) => compareCanonicalStrings(left.receipt_digest, right.receipt_digest));
 }
 export function unionHistoricalRevisions(parent, facts, agentReadinessRevisions, agentReadinessDeclarationRevisions) {
     const all = new Map(parent?.revisions ?? []);

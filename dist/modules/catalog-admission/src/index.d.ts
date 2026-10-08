@@ -2,7 +2,7 @@ import { type Digest } from "provenry/primitives";
 import type { AssetBindingProjection, EntityAssetProposal } from "../../../contracts/assets/src/index.js";
 import type { EntityAuthoring } from "../../../contracts/authoring/src/index.js";
 import type { CatalogPublicationCurrentState } from "../../../contracts/publication/src/index.js";
-import { type CatalogTaxonomy } from "../../../contracts/taxonomy/src/index.js";
+import type { CatalogTaxonomy } from "../../../contracts/taxonomy/src/index.js";
 import { type CompiledCatalogFacts } from "../../compiler/src/index.js";
 import { type CatalogChangeAnalysis } from "./change-analysis.js";
 import { type CatalogPublicationImpactIndex, type CatalogPublicationPlanningInput, type CatalogPublicationPolicyReference } from "./publication.js";
@@ -13,8 +13,8 @@ export * from "./machine-admission.js";
 export * from "./publication.js";
 export * from "./publication-composition.js";
 export * from "./submission.js";
+export * from "./taxonomy.js";
 export declare const CATALOG_ENTITY_ROOT = "entities";
-export declare function readCatalogTaxonomy(path: string): Promise<CatalogTaxonomy>;
 /**
  * Resolve a deterministic Git tree containing only the exact changed Entity
  * files. This is the admission identity: unrelated repository and Catalog
@@ -35,8 +35,6 @@ export declare function validateCatalogPrTree(input: {
     readonly programs: number;
     readonly offers: number;
 }>;
-/** Enforce the public contribution policy over the one shared PR analysis. */
-export declare function assertCatalogContributionAnalysis(analysis: CatalogChangeAnalysis): void;
 /**
  * Validate strict changed-head authoring and Git scope for public PR intake.
  * Historical Git supplies file identity only, never the semantic parent.
@@ -180,11 +178,6 @@ export declare function planCatalogGitPublication(input: {
         receipt_digest: string;
     };
 }>;
-export declare function catalogPullRequestComparisonBase(input: {
-    readonly repositoryRoot: string;
-    readonly baseRevision: string;
-    readonly headRevision: string;
-}): Promise<string>;
 export declare function catalogChangedPaths(input: {
     readonly repositoryRoot: string;
     readonly baseRevision: string;
