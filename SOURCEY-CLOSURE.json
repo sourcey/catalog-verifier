@@ -1860,11 +1860,11 @@
     },
     {
       "path": "dist/modules/publication-instance/src/index.d.ts",
-      "sha256": "sha256:5fca02b4eb9e720a9715089602ed308edfb113bf41bc857877f9cd1e3f40b3cc"
+      "sha256": "sha256:23987dedc02a9a7d940ed0ad3d80ea10833fc2ebe3af7f26affecb937a96c6e0"
     },
     {
       "path": "dist/modules/publication-instance/src/index.d.ts.map",
-      "sha256": "sha256:6c9b7b1b516360c88282af90f58c2a4aa925688f6ae38d4796230db84d725bca"
+      "sha256": "sha256:f10ea7b676fc06914b593aa9993a711e49d62be603e9fec389e61881d114c39f"
     },
     {
       "path": "dist/modules/publication-instance/src/index.js",
@@ -2211,5 +2211,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:58c92fc8400a7d7a787b6ce5aa5d250509f41396d7c2250ce2ed8aaa895e3c1f"
+  "closure_digest": "sha256:77b7a630c0a0d047ec5f7b1fcf0da14178664160e9a34a75e9a908cf20a2feca"
 }
