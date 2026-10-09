@@ -106,6 +106,17 @@ export const standingResultCoreSchema = z
 export const standingResultSchema = standingResultCoreSchema
     .safeExtend({ result_digest: digestSchema })
     .strict();
+/** One rule of the standing bar as a company's contributor reads it, from `standingCriteria`. */
+export const standingCriterionSchema = z
+    .object({
+    key: z.enum(["source", "reach", "domain_age", "certificate_age", "mx"]),
+    label: z.string().min(1).max(80),
+    value: z.string().min(1).max(80),
+    requirement: z.string().min(1).max(120),
+    /** Null when the evidence could not be observed. */
+    met: z.boolean().nullable(),
+})
+    .strict();
 export function isFirstPartyUrlForDomain(value, domain) {
     const hostname = new URL(value).hostname.toLowerCase().replace(/\.$/u, "");
     const canonicalDomain = domainNameSchema.parse(domain);

@@ -1,6 +1,7 @@
 import { DIGEST_PATTERN, digest } from "provenry/primitives";
 import { z } from "zod";
 import { ENTITY_ID_PATTERN, OFFER_ID_PATTERN, PROGRAM_ID_PATTERN, } from "../../../modules/catalog-primitives/src/index.js";
+import { admissionSummarySchema } from "../../admission-results/src/index.js";
 import { entityAssetSubmissionSourceSchema } from "../../assets/src/index.js";
 import { offerTermsAssuranceSchema } from "../../assurance/src/index.js";
 import { companyAuthoringFileSchema, companyDraftDiagnosticSchema, companySubmissionSchema, } from "../../company-authoring/src/index.js";
@@ -232,9 +233,63 @@ export const startupCreditsExistingRecordTargetSchema = z
 const startupCreditsExistingRecordReferenceSchema = startupCreditsExistingRecordTargetSchema
     .omit({ base_release_id: true })
     .strict();
+/**
+ * A data repository's pull request adding a company below Sourcey's standing bar, with its Offer.
+ * The order serves the pull request's own submission and its exact Entity and Offer; the head is
+ * where it was bought. A later head keeps the service while it keeps that Entity and Offer, and
+ * the person verifies each head again.
+ */
+export const startupCreditsGitPullRequestTargetSchema = z
+    .object({
+    kind: z.literal("git_pull_request"),
+    base_release_id: digestSchema,
+    entity_id: entityIdSchema,
+    program_id: programIdSchema.optional(),
+    offer_id: offerIdSchema,
+    pull_request: z
+        .object({
+        repository_id: z.string().regex(/^[1-9][0-9]*$/u),
+        repository: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u),
+        pull_request_number: z.number().int().positive(),
+        submission_id: z.string().regex(/^pull_[a-f0-9]{64}$/u),
+        head_sha: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u),
+    })
+        .strict(),
+    standing_result: standingResultSchema,
+    /** The canonical Entity authoring at the head it was bought at. */
+    authoring_digest: digestSchema,
+    /** The exact Entity and Offer revisions that head compiles to. */
+    revisions: z
+        .object({ entity_revision_digest: digestSchema, offer_revision_digest: digestSchema })
+        .strict(),
+    /** What that head names, as the person verifying it reads it. */
+    labels: z
+        .object({
+        company_name: z.string().trim().min(1).max(240),
+        company_site_url: z.url({ protocol: /^https$/u }),
+        offer_title: z.string().trim().min(1).max(240),
+        offer_url: z.url({ protocol: /^https$/u }),
+    })
+        .strict(),
+})
+    .strict();
+/**
+ * The exact pull request head a person verified: its submission revision, and the Entity and
+ * Offer revisions that head compiles to, which the verification attests and nothing later.
+ */
+export const startupCreditsReviewedPullRequestRevisionSchema = z
+    .object({
+    submission_id: z.string().regex(/^pull_[a-f0-9]{64}$/u),
+    revision_digest: digestSchema,
+    head_sha: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u),
+    entity_revision_digest: digestSchema,
+    offer_revision_digest: digestSchema,
+})
+    .strict();
 const startupCreditsVerificationIntentTargetSchema = z.discriminatedUnion("kind", [
     startupCreditsNewListingIntentTargetSchema,
     startupCreditsExistingRecordTargetSchema,
+    startupCreditsGitPullRequestTargetSchema,
 ]);
 export const startupCreditsFundedWorkIntentSchema = z
     .object({
@@ -269,9 +324,9 @@ export const startupCreditsFundedWorkIntentSchema = z
             message: "Startup Credits funded work must remain human verification.",
         });
     }
-    const eligibilityDigest = intent.target.kind === "new_listing"
-        ? intent.target.standing_result.result_digest
-        : digest(intent.target);
+    const eligibilityDigest = intent.target.kind === "existing_record"
+        ? digest(intent.target)
+        : intent.target.standing_result.result_digest;
     if (intent.billing.eligibility_digest !== eligibilityDigest) {
         context.addIssue({
             code: "custom",
@@ -280,12 +335,20 @@ export const startupCreditsFundedWorkIntentSchema = z
         });
     }
     const bindings = new Map(intent.billing.policy_bindings.map((binding) => [binding.role, binding.policy_digest]));
-    if (intent.target.kind === "new_listing" &&
+    if (intent.target.kind !== "existing_record" &&
         bindings.get("standing") !== intent.target.standing_result.policy_digest) {
         context.addIssue({
             code: "custom",
             path: ["billing", "policy_bindings"],
             message: "The standing policy binding must match the exact standing result.",
+        });
+    }
+    if (intent.target.kind === "git_pull_request" &&
+        intent.target.standing_result.route !== "human_verification_required") {
+        context.addIssue({
+            code: "custom",
+            path: ["target", "standing_result", "route"],
+            message: "A pull request buys verification only for a company below the standing bar.",
         });
     }
     if (intent.target.kind === "existing_record" && bindings.has("standing")) {
@@ -411,15 +474,27 @@ const startupCreditsReviewCompletionTargetSchema = z.discriminatedUnion("kind", 
         .extend({ program_id: programIdSchema.optional(), offer_id: offerIdSchema })
         .strict(),
     startupCreditsExistingRecordTargetSchema,
+    startupCreditsGitPullRequestTargetSchema,
 ]);
 export const startupCreditsReviewCompletionReceiptCoreSchema = completedCompanyReviewCoreSchema
     .safeExtend({
     receipt_contract: z.literal("sourcey.startup-credits-review-completion/v1alpha1"),
     target: startupCreditsReviewCompletionTargetSchema,
+    /** For a pull request, the exact head the person verified, which may follow the one bought. */
+    reviewed_revision: startupCreditsReviewedPullRequestRevisionSchema.optional(),
     offer_terms: offerTermsReviewOutcomeSchema,
 })
     .strict()
     .superRefine((receipt, context) => {
+    if ((receipt.target.kind === "git_pull_request") !== (receipt.reviewed_revision !== undefined) ||
+        (receipt.target.kind === "git_pull_request" &&
+            receipt.reviewed_revision?.submission_id !== receipt.target.pull_request.submission_id)) {
+        context.addIssue({
+            code: "custom",
+            path: ["reviewed_revision"],
+            message: "A pull request's completion names exactly the head its person verified.",
+        });
+    }
     if (receipt.offer_terms.entity_id !== receipt.target.entity_id ||
         receipt.offer_terms.offer_id !== receipt.target.offer_id) {
         context.addIssue({
@@ -505,15 +580,105 @@ const startupCreditsExistingRecordReviewPreparationSchema = z
 export const startupCreditsExistingRecordReviewPreparationResponseSchema = z
     .object({ data: startupCreditsExistingRecordReviewPreparationSchema })
     .strict();
+/** One exact pull request head of a Sourcey data repository, as its buyer names it. */
+export const startupCreditsGitPullRequestReferenceSchema = z
+    .object({
+    kind: z.literal("git_pull_request"),
+    repository: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u),
+    pull_request_number: z.number().int().positive(),
+    head_sha: z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u),
+})
+    .strict();
+const startupCreditsGitPullRequestReviewTargetSchema = startupCreditsGitPullRequestReferenceSchema
+    .extend({ expected_purchase_preview_digest: digestSchema })
+    .strict();
+export const startupCreditsGitPullRequestReviewPreparationRequestSchema = z
+    .object({ target: startupCreditsGitPullRequestReferenceSchema })
+    .strict();
+/** What one held pull request head's verification buys, before checkout. */
+export const startupCreditsGitPullRequestReviewPreparationResponseSchema = z
+    .object({
+    data: z
+        .object({
+        target: startupCreditsGitPullRequestReviewTargetSchema,
+        purchase_preview: startupCreditsPurchasePreviewSchema,
+        offer: startupCreditsGitPullRequestTargetSchema,
+    })
+        .strict(),
+})
+    .strict();
+const pullRequestHeadSchema = z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
+/** Which pull request of a Sourcey data repository a reader asks about. */
+export const startupCreditsPullRequestQuerySchema = z
+    .object({
+    repository: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u),
+    pull: z.coerce.number().int().positive().max(Number.MAX_SAFE_INTEGER),
+})
+    .strict();
+/**
+ * Where one pull request stands with Sourcey, for its contributor's page: its current head, what
+ * Sourcey's admission concluded for it, and its company verification. The buyer's own order is
+ * shown only to the account that bought it.
+ */
+export const startupCreditsPullRequestStatusSchema = z
+    .object({
+    pull_request: z
+        .object({
+        repository: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u),
+        pull_request_number: z.number().int().positive(),
+        url: z.url({ protocol: /^https$/u }),
+        /** Open while Sourcey reads it as an open pull request; merged once admission merged it. */
+        state: z.enum(["open", "merged", "closed"]),
+        /** The head Sourcey checks now; null once closed. */
+        head_sha: pullRequestHeadSchema.nullable(),
+    })
+        .strict(),
+    /** What admission concluded for the current head, or for the last head it checked. */
+    result: admissionSummarySchema.nullable(),
+    /** The current head is being checked, so `result` is for an earlier head or absent. */
+    checking: z.boolean(),
+    verification: z
+        .object({
+        phase: z.enum(["checkout_open", "paid", "approved", "refused", "refunding", "refunded"]),
+        company: z.string().trim().min(1).max(240),
+        /** The head a person approved or refused. */
+        reviewed_head_sha: pullRequestHeadSchema.nullable(),
+        checkout_expires_at: instantSchema.nullable(),
+        /** When the person's decision is due, once paid. */
+        due_at: instantSchema.nullable(),
+        /** The person's finding, when they refused it. */
+        finding: z.string().trim().min(1).max(2_000).nullable(),
+        refund_reason: z
+            .string()
+            .regex(/^[a-z0-9]+(?:_[a-z0-9]+)*$/u)
+            .nullable(),
+    })
+        .strict()
+        .nullable(),
+    /** The signed-in reader's own purchase for it. */
+    purchase: z
+        .object({
+        order_id: z.string().regex(/^ord_[a-f0-9]{64}$/u),
+        checkout_url: z.url({ protocol: /^https$/u }).nullable(),
+    })
+        .strict()
+        .nullable(),
+})
+    .strict();
+export const startupCreditsPullRequestStatusResponseSchema = z
+    .object({ data: startupCreditsPullRequestStatusSchema })
+    .strict();
 const startupCreditsX402ReviewTargetSchema = z.discriminatedUnion("kind", [
     startupCreditsNewListingReviewTargetCoreSchema,
     startupCreditsExistingRecordReviewTargetSchema,
+    startupCreditsGitPullRequestReviewTargetSchema,
 ]);
 const startupCreditsStripeReviewTargetSchema = z.discriminatedUnion("kind", [
     startupCreditsNewListingReviewTargetCoreSchema
         .extend({ expected_draft: startupCreditsExpectedDraftSchema })
         .strict(),
     startupCreditsExistingRecordReviewTargetSchema,
+    startupCreditsGitPullRequestReviewTargetSchema,
 ]);
 const startupCreditsReviewRequestCoreSchema = z.object({
     request_id: startupCreditsReviewRequestIdSchema,

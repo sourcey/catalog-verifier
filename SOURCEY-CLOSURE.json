@@ -3,6 +3,22 @@
   "distribution_id": "catalog-verifier",
   "files": [
     {
+      "path": "dist/contracts/admission-results/src/index.d.ts",
+      "sha256": "sha256:6ec83cc23be96bead6b9ca7cbff78f82d7faf8e26aed075ce2b734177ab58134"
+    },
+    {
+      "path": "dist/contracts/admission-results/src/index.d.ts.map",
+      "sha256": "sha256:e72a410bf1e9b8d3df6367dbd8c4f7dfc2e7da67a83634ece90859c37fbce961"
+    },
+    {
+      "path": "dist/contracts/admission-results/src/index.js",
+      "sha256": "sha256:8f995973f9978257559740fafe8b4106923a59d6b4bda83bc0723e1b2205c452"
+    },
+    {
+      "path": "dist/contracts/admission-results/src/index.js.map",
+      "sha256": "sha256:4f2b1dd5e99ce26435d145eb4516eaf770f029a297fdd7bec647c01f24684b3e"
+    },
+    {
       "path": "dist/contracts/agent-readiness/src/authority.d.ts",
       "sha256": "sha256:f543c704057c4fa951ac135a871697121252fb65d51827f60f96d749568476cb"
     },
@@ -164,19 +180,19 @@
     },
     {
       "path": "dist/contracts/api/src/index.d.ts",
-      "sha256": "sha256:78bb2098e2ad38be080c6ae39f0796db41b4e418b5cb45da83968546116de599"
+      "sha256": "sha256:749dcf39623408581a212657d96efa57e1dcbe0bdbb870b918f040ef097b01e4"
     },
     {
       "path": "dist/contracts/api/src/index.d.ts.map",
-      "sha256": "sha256:67440f9e670a0090b00fe90d508dbb937dddcd3c18a0a4f480eb045b7a093c37"
+      "sha256": "sha256:bf8ab85de5f158b6362386b2340e1b8f87e97ceb533130436911ed0f4bc4be0a"
     },
     {
       "path": "dist/contracts/api/src/index.js",
-      "sha256": "sha256:dd8af302c07c3640de3632e133ede2424c927f8fecdf0deb10e439b0ff7fcaaa"
+      "sha256": "sha256:24c9a1cdbb2429355eacda17f103dfc73a79e953e6cfc8832c7eee446f1380f8"
     },
     {
       "path": "dist/contracts/api/src/index.js.map",
-      "sha256": "sha256:efa4d77bca66579bad13d8b2ef80d6defed1610074f4699545141811dfb1eb07"
+      "sha256": "sha256:9d8a5dda6d799c3db5848496b86b4ad3dc1c43c5965312cb0092ef10c73012a3"
     },
     {
       "path": "dist/contracts/artifact/src/distribution.d.ts",
@@ -372,19 +388,19 @@
     },
     {
       "path": "dist/contracts/company-standing/src/index.d.ts",
-      "sha256": "sha256:ccfc26574e5a81b379682c308e171e9c51f17d7055ebba88e86a3f094f7ffeb6"
+      "sha256": "sha256:4dea6429f1e8baed79847d58f76393e27a08b5d8716eb1918f394ec657f061be"
     },
     {
       "path": "dist/contracts/company-standing/src/index.d.ts.map",
-      "sha256": "sha256:88b8697a7a7f31222ca0f6897095f3bf747d96dba7f05bc078866bea26caf391"
+      "sha256": "sha256:bba804a26cf673c9e8e14a62da38ddd5a2980d316f9d26748c243d91227d76fc"
     },
     {
       "path": "dist/contracts/company-standing/src/index.js",
-      "sha256": "sha256:71220eb9869c162b763379bef82569f475e38ef5afbde7934e8d3f5252c00ad4"
+      "sha256": "sha256:7c5e987be08d279b5934b21874749ebd24dc20f9d131b8d321f4a8715f047ec3"
     },
     {
       "path": "dist/contracts/company-standing/src/index.js.map",
-      "sha256": "sha256:0b72c6d74bcce037711405505a8d3e1d933b0bfadbcdbc6c54123cc60ee20a0e"
+      "sha256": "sha256:77f104ce25f05ad1731dddf3e625339818d87499079109ae40b4e7d881fe2b9d"
     },
     {
       "path": "dist/contracts/company-verification/src/index.d.ts",
@@ -644,19 +660,19 @@
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.d.ts",
-      "sha256": "sha256:28806148b847bceade09573fdc925ccb60a132640b993f51ceee9686b79dcd6d"
+      "sha256": "sha256:7a5fe2cc97257df65b98e867476048481f812a355b7ab1cf4a5104e51bf421f6"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.d.ts.map",
-      "sha256": "sha256:6f447abe8f995d24660d435bc5e1194893c04314f610001fcab7715f1f1ab2d2"
+      "sha256": "sha256:d5e6995f232d901582ce95472653fd7b19e23db329c6869fa44bcac2731ddf50"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.js",
-      "sha256": "sha256:5ebdac3f96c7d36131519907ee351d47838ac51c9722af53ea48b0b6f92a8eed"
+      "sha256": "sha256:53e5dd50b5d43416c20bc1dabfbff99d726046aa8a92bf3f70b17c5bed781622"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.js.map",
-      "sha256": "sha256:6e7fba0c0ae221b4005014dbc0391c1bdbab1e4a86904bcad8db2c69ac073173"
+      "sha256": "sha256:a1faed1e4e1b758ca40aa9a62da90596dd85ebd602f16b4a1b35f4f0fed69b78"
     },
     {
       "path": "dist/contracts/taxonomy/src/index.d.ts",
@@ -2211,5 +2227,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:77b7a630c0a0d047ec5f7b1fcf0da14178664160e9a34a75e9a908cf20a2feca"
+  "closure_digest": "sha256:4be42ed7cdd97cf53a8cfb5ba91a6030bbf9871ae9c75e1eecdaef9b25d5e046"
 }

@@ -99,7 +99,22 @@ export declare const standingResultSchema: z.ZodObject<{
     expires_at: z.ZodISODateTime;
     result_digest: z.ZodString;
 }, z.core.$strict>;
+/** One rule of the standing bar as a company's contributor reads it, from `standingCriteria`. */
+export declare const standingCriterionSchema: z.ZodObject<{
+    key: z.ZodEnum<{
+        certificate_age: "certificate_age";
+        domain_age: "domain_age";
+        mx: "mx";
+        reach: "reach";
+        source: "source";
+    }>;
+    label: z.ZodString;
+    value: z.ZodString;
+    requirement: z.ZodString;
+    met: z.ZodNullable<z.ZodBoolean>;
+}, z.core.$strict>;
 export type StandingPolicy = z.infer<typeof standingPolicySchema>;
+export type StandingCriterion = z.infer<typeof standingCriterionSchema>;
 export type StandingEvidence = z.infer<typeof standingEvidenceSchema>;
 export type StandingResult = z.infer<typeof standingResultSchema>;
 export declare function isFirstPartyUrlForDomain(value: string, domain: string): boolean;
