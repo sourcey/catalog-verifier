@@ -1,8 +1,8 @@
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
 import { analyzeCatalogCandidateChanges } from "./publication.js";
+import { CATALOG_ENTITY_ROOT } from "./repository.js";
 import { catalogSubmissionCandidates, catalogSubmissionReviewCandidates, verifyCatalogSubmissionWorkItem, } from "./submission-input.js";
 import { verifyCatalogSubmissionPublicationState } from "./submission-state.js";
-const CATALOG_ENTITY_ROOT = "entities";
 /**
  * Analyze retained non-Git submission bytes through the same compiler and
  * semantic diff used by Git admission. This adapter contains no transport

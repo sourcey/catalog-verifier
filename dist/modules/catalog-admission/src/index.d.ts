@@ -9,12 +9,13 @@ import { type CatalogPublicationImpactIndex, type CatalogPublicationPlanningInpu
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
 export * from "./admission-conflicts.js";
 export * from "./change-analysis.js";
+export * from "./contribution.js";
 export * from "./machine-admission.js";
 export * from "./publication.js";
 export * from "./publication-composition.js";
+export { CATALOG_ENTITY_ROOT } from "./repository.js";
 export * from "./submission.js";
 export * from "./taxonomy.js";
-export declare const CATALOG_ENTITY_ROOT = "entities";
 /**
  * Resolve a deterministic Git tree containing only the exact changed Entity
  * files. This is the admission identity: unrelated repository and Catalog
@@ -187,6 +188,8 @@ export declare function catalogChangedPaths(input: {
     readonly otherFiles: string[];
     /** Entity-root changes the policy cannot admit (renames, copies, deletions), as `status:path`. */
     readonly unsupportedChanges: string[];
+    /** Every Entity file whose content differs, a deleted one or a renamed one's old path included. */
+    readonly touchedEntityFiles: string[];
 }>;
 /**
  * A PR may independently trail the live release when its changed vendor paths

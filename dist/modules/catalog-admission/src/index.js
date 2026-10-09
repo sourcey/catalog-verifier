@@ -1,28 +1,30 @@
 import { execFile } from "node:child_process";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { isAbsolute, join, relative, resolve, sep } from "node:path";
+import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { assertExactGitCheckout, gitComparisonBase } from "provenry/git";
-import { canonicalJson, compareCanonicalStrings, mapLimit } from "provenry/primitives";
-import { parse } from "yaml";
+import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
 import { assertCatalogContributionAuthoring, assertCatalogTaxonomy, } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
-import { ENTITY_ID_PATTERN } from "../../catalog-primitives/src/index.js";
-import { compileAuthoringFiles } from "../../compiler/src/index.js";
+import { compileAuthoringFiles, compileAuthoringSources, } from "../../compiler/src/index.js";
 import { catalogChangedEntitiesFromCurrent, catalogChangedRevisions, } from "./change-analysis.js";
+import { CatalogContributionError, changedAuthoringFindings } from "./contribution.js";
+import { assertChangedRoleClosure, assertFileIdentityContinuity, changedIdentityCollision, identityDependencyFiles, } from "./identity.js";
 import { buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
 import { verifyCatalogPublicationCurrentState } from "./publication-state.js";
+import { assertGitRevision, CATALOG_ENTITY_ROOT, entityPath, gitIsAncestor, gitRevision, gitSourceAtRevision, repositoryPath, resolveInside, } from "./repository.js";
 const execFileAsync = promisify(execFile);
 export { validateCatalogCandidateSources } from "../../catalog-authoring-validation/src/index.js";
 export * from "./admission-conflicts.js";
 export * from "./change-analysis.js";
+export * from "./contribution.js";
 export * from "./machine-admission.js";
 export * from "./publication.js";
 export * from "./publication-composition.js";
+export { CATALOG_ENTITY_ROOT } from "./repository.js";
 export * from "./submission.js";
 export * from "./taxonomy.js";
-export const CATALOG_ENTITY_ROOT = "entities";
 /**
  * Resolve a deterministic Git tree containing only the exact changed Entity
  * files. This is the admission identity: unrelated repository and Catalog
@@ -134,26 +136,85 @@ export async function analyzeCatalogPrAgainstCurrent(input) {
         headRevision: input.pullRequestHeadRevision,
     });
     if (pullRequestChanges.entityFiles.length > 0 && pullRequestChanges.otherFiles.length > 0) {
-        throw new Error(`Catalog data changes cannot be mixed with other repository paths: ${pullRequestChanges.otherFiles.join(", ")}.`);
+        throw new CatalogContributionError("person", [
+            {
+                file: null,
+                field: null,
+                message: `It changes company files together with ${pullRequestChanges.otherFiles.join(", ")}, so a maintainer reviews it.`,
+            },
+        ]);
     }
     if (pullRequestChanges.unsupportedChanges.length > 0) {
-        throw new Error(`Unsupported Entity change status ${pullRequestChanges.unsupportedChanges.join(", ")}.`);
+        throw new CatalogContributionError("person", pullRequestChanges.unsupportedChanges.map((change) => ({
+            file: change.slice(change.indexOf(":") + 1),
+            field: null,
+            message: "Renaming, copying or deleting a company file is for a maintainer to review.",
+        })));
     }
     if (pullRequestChanges.entityFiles.length === 0) {
-        throw new Error("Catalog PR admission requires a changed Entity file.");
+        throw new CatalogContributionError("person", [
+            {
+                file: null,
+                field: null,
+                message: "It changes no company file, so a maintainer reviews it.",
+            },
+        ]);
     }
-    const { changedAuthoring, identityClosure, dependencyFiles } = await catalogChangedHeadClosure({
-        repositoryRoot: input.repositoryRoot,
-        baseRevision: input.liveRevision,
-        headRevision: input.pullRequestHeadRevision,
+    await assertExactGitCheckout(resolve(input.repositoryRoot), input.pullRequestHeadRevision);
+    const findings = await changedAuthoringFindings({
+        authoringRoot: resolveInside(resolve(input.repositoryRoot), CATALOG_ENTITY_ROOT),
+        changedFiles: pullRequestChanges.entityFiles,
         taxonomy: input.taxonomy,
-    }, false, pullRequestChanges.entityFiles);
-    assertCatalogContributionAuthoring(changedAuthoring.authoring);
+    });
+    if (findings.length > 0) {
+        throw new CatalogContributionError("revise", findings.map((finding) => ({ ...finding, file: finding.file && entityPath(finding.file) })));
+    }
+    const authoringRoot = resolveInside(resolve(input.repositoryRoot), CATALOG_ENTITY_ROOT);
+    const changedAuthoring = await compileAuthoringFiles(authoringRoot, pullRequestChanges.entityFiles, { allowExternalRoleEntities: true });
+    // The companies a change names are found where the branch names them and where main lists
+    // them now, so one main added since the branch is a dependency too.
+    const dependencyFiles = await identityDependencyFiles({
+        repositoryRoot: input.repositoryRoot,
+        authoringRoot,
+        revisions: [input.pullRequestHeadRevision, input.liveRevision],
+        changedFiles: pullRequestChanges.entityFiles,
+        changedAuthoring,
+    });
     await Promise.all([comparisonBase, input.liveRevision].map((baseRevision) => assertFileIdentityContinuity({
         repositoryRoot: input.repositoryRoot,
         baseRevision,
         changedAuthoring,
     })));
+    // A dependency the pull request does not change merges as it stands live, not as it stood when
+    // the pull request branched. The changed files are judged against that live copy, so a company
+    // edited on main since sends its contributor back only when their change no longer fits it.
+    const read = (revision, sourceFile) => gitSourceAtRevision({ repositoryRoot: input.repositoryRoot, revision, sourceFile });
+    const sources = await Promise.all([
+        ...pullRequestChanges.entityFiles.map(async (source) => ({
+            source,
+            content: await read(input.pullRequestHeadRevision, source),
+        })),
+        ...dependencyFiles.map(async (source) => ({
+            source,
+            content: await read(input.liveRevision, source),
+        })),
+    ]);
+    const removed = sources.filter(({ content }) => content === null).map(({ source }) => source);
+    if (removed.length > 0) {
+        throw new CatalogContributionError("revise", removed.map((source) => ({
+            file: entityPath(source),
+            field: null,
+            message: "Your change refers to this company, which Sourcey no longer lists. Update your branch from main and push.",
+        })));
+    }
+    let identityClosure;
+    try {
+        identityClosure = compileAuthoringSources(sources.map(({ source, content }) => ({ source, content: content })), { allowExternalRoleEntities: true });
+    }
+    catch (error) {
+        throw changedIdentityCollision(error, pullRequestChanges.entityFiles);
+    }
+    assertChangedRoleClosure(changedAuthoring, identityClosure);
     const entityIds = identityClosure.entities
         .map(({ revision }) => revision.entity_id)
         .sort(compareCanonicalStrings);
@@ -167,13 +228,12 @@ export async function analyzeCatalogPrAgainstCurrent(input) {
         throw new Error("Catalog PR analysis did not receive the exact live authoring slice.");
     }
     const currentById = new Map(state.current_entities.map((entity) => [entity.entity.entity_id, entity]));
+    // Read live, each dependency must be what live state publishes; a difference is Sourcey's own.
     for (const sourceFile of dependencyFiles) {
-        const head = identityClosure.entities.find((entity) => identityClosure.sourceFiles.get(entity.revision.entity_id) === sourceFile);
-        if (!head)
-            throw new Error(`Catalog identity dependency ${sourceFile} is unavailable.`);
-        const live = currentById.get(head.revision.entity_id);
-        if (!live || canonicalJson(compileEntity(live)) !== canonicalJson(head)) {
-            throw new Error(`Catalog identity dependency changed outside this pull request: ${sourceFile}.`);
+        const live = identityClosure.entities.find((entity) => identityClosure.sourceFiles.get(entity.revision.entity_id) === sourceFile);
+        const published = live && currentById.get(live.revision.entity_id);
+        if (!live || !published || canonicalJson(compileEntity(published)) !== canonicalJson(live)) {
+            throw new Error(`Live Git and live state disagree on Catalog dependency ${sourceFile}.`);
         }
     }
     const changedEntities = catalogChangedEntitiesFromCurrent({
@@ -266,7 +326,7 @@ export async function planCatalogGitPublication(input) {
         }),
     };
 }
-async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selectedVendorFiles) {
+async function catalogChangedHeadClosure(input, rejectMixedPullRequest) {
     const repositoryRoot = resolve(input.repositoryRoot);
     await assertExactGitCheckout(repositoryRoot, input.headRevision);
     const authoringRoot = resolveInside(repositoryRoot, CATALOG_ENTITY_ROOT);
@@ -278,7 +338,7 @@ async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selected
     if (rejectMixedPullRequest && changes.entityFiles.length > 0 && changes.otherFiles.length > 0) {
         throw new Error(`Catalog data changes cannot be mixed with other repository paths: ${changes.otherFiles.join(", ")}.`);
     }
-    const changedFiles = selectedVendorFiles ?? changes.entityFiles;
+    const changedFiles = changes.entityFiles;
     const changedAuthoring = await compileAuthoringFiles(authoringRoot, changedFiles, {
         allowExternalRoleEntities: true,
     });
@@ -286,13 +346,13 @@ async function catalogChangedHeadClosure(input, rejectMixedPullRequest, selected
     const dependencyFiles = await identityDependencyFiles({
         repositoryRoot,
         authoringRoot,
-        headRevision: input.headRevision,
+        revisions: [input.headRevision],
         changedFiles,
         changedAuthoring,
     });
     const identityClosure = await compileAuthoringFiles(authoringRoot, [...changedFiles, ...dependencyFiles], { allowExternalRoleEntities: true });
     assertChangedRoleClosure(changedAuthoring, identityClosure);
-    return { changes, changedAuthoring, identityClosure, dependencyFiles };
+    return { changes, changedAuthoring, identityClosure };
 }
 async function catalogPullRequestComparisonBase(input) {
     return gitComparisonBase(input);
@@ -317,6 +377,8 @@ export async function catalogChangedPaths(input) {
     const entityFiles = new Set();
     const otherFiles = new Set();
     const unsupportedChanges = new Set();
+    const touchedEntityFiles = new Set();
+    const inEntityRoot = (candidate) => candidate === authoringPath || candidate?.startsWith(`${authoringPath}/`);
     for (let index = 0; index < fields.length;) {
         const status = fields[index++];
         if (!status)
@@ -326,8 +388,13 @@ export async function catalogChangedPaths(input) {
         const path = kind === "R" || kind === "C" ? fields[index++] : oldPath;
         if (!path)
             throw new Error("Git produced an incomplete catalog change path.");
-        const touchesEntityRoot = [oldPath, path].some((candidate) => candidate === authoringPath || candidate?.startsWith(`${authoringPath}/`));
-        if (touchesEntityRoot) {
+        // A copy leaves its source as it was; every other change touches both of its paths.
+        for (const touched of kind === "C" ? [path] : [oldPath, path]) {
+            if (touched && inEntityRoot(touched)) {
+                touchedEntityFiles.add(repositoryPath(authoringRoot, resolve(input.repositoryRoot, touched)));
+            }
+        }
+        if ([oldPath, path].some(inEntityRoot)) {
             // Renames, copies and deletions are contributor mistakes the scope
             // policy names, not analyzer failures.
             if (!["A", "M"].includes(kind)) {
@@ -343,6 +410,7 @@ export async function catalogChangedPaths(input) {
         entityFiles: [...entityFiles].sort(compareCanonicalStrings),
         otherFiles: [...otherFiles].sort(compareCanonicalStrings),
         unsupportedChanges: [...unsupportedChanges].sort(compareCanonicalStrings),
+        touchedEntityFiles: [...touchedEntityFiles].sort(compareCanonicalStrings),
     };
 }
 /**
@@ -366,7 +434,13 @@ export async function validateCatalogPrReleaseBase(input) {
         return;
     }
     if (!(await gitIsAncestor(input.repositoryRoot, comparisonBase, input.liveRevision))) {
-        throw new Error("Catalog pull-request base and live source revision have diverged.");
+        throw new CatalogContributionError("person", [
+            {
+                file: null,
+                field: null,
+                message: "Its branch and Sourcey's main have diverged, so a maintainer reviews it.",
+            },
+        ]);
     }
     const [pullRequestChanges, liveChanges] = await Promise.all([
         catalogChangedPaths({
@@ -380,186 +454,14 @@ export async function validateCatalogPrReleaseBase(input) {
             headRevision: input.liveRevision,
         }),
     ]);
-    const liveVendorFiles = new Set(liveChanges.entityFiles);
+    const liveVendorFiles = new Set(liveChanges.touchedEntityFiles);
     const overlaps = pullRequestChanges.entityFiles.filter((file) => liveVendorFiles.has(file));
     if (overlaps.length > 0) {
-        throw new Error(`Catalog pull request overlaps live Entity changes: ${overlaps.join(", ")}.`);
-    }
-}
-async function gitIsAncestor(root, ancestor, descendant) {
-    try {
-        await execFileAsync("git", ["merge-base", "--is-ancestor", ancestor, descendant], {
-            cwd: resolve(root),
-            encoding: "utf8",
-            maxBuffer: 4 * 1024 * 1024,
-        });
-        return true;
-    }
-    catch (error) {
-        if (error.code === 1)
-            return false;
-        throw error;
-    }
-}
-/** Git binds a file to one identity; its old payload is not the semantic parent. */
-async function assertFileIdentityContinuity(input) {
-    await mapLimit(input.changedAuthoring.entities, 8, async (entity) => {
-        const entityId = entity.revision.entity_id;
-        const sourceFile = input.changedAuthoring.sourceFiles.get(entityId);
-        if (!sourceFile)
-            throw new Error(`Changed Entity '${entityId}' has no source file.`);
-        const source = await gitSourceAtRevision({
-            repositoryRoot: input.repositoryRoot,
-            revision: input.baseRevision,
-            sourceFile,
-        });
-        if (source === null)
-            return;
-        const parsed = parse(source);
-        const priorEntity = typeof parsed === "object" && parsed !== null && "entity" in parsed ? parsed.entity : null;
-        const priorId = typeof priorEntity === "object" && priorEntity !== null && "entity_id" in priorEntity
-            ? priorEntity.entity_id
-            : null;
-        if (typeof priorId !== "string" || !ENTITY_ID_PATTERN.test(priorId)) {
-            throw new Error(`Historical Entity file ${sourceFile} has no valid Entity ID.`);
-        }
-        if (priorId !== entityId) {
-            throw new Error(`Entity file ${sourceFile} cannot replace Entity '${priorId}' with '${entityId}'.`);
-        }
-    });
-}
-async function gitSourceAtRevision(input) {
-    const path = `${CATALOG_ENTITY_ROOT}/${input.sourceFile}`;
-    try {
-        const { stdout } = await execFileAsync("git", ["show", `${input.revision}:${path}`], {
-            cwd: input.repositoryRoot,
-            encoding: "utf8",
-            maxBuffer: 4 * 1024 * 1024,
-        });
-        return stdout;
-    }
-    catch (error) {
-        if (error.code === 128)
-            return null;
-        throw error;
-    }
-}
-async function identityDependencyFiles(input) {
-    const needles = identityNeedles(input.changedAuthoring);
-    if (needles.length === 0)
-        return [];
-    const authoringPath = repositoryPath(input.repositoryRoot, input.authoringRoot);
-    // Whole values only, in any case: domain needles are lower-cased, authoring need not be.
-    const arguments_ = [
-        "grep",
-        "-l",
-        "-F",
-        "-w",
-        "-i",
-        ...needles.flatMap((value) => ["-e", value]),
-        input.headRevision,
-        "--",
-        authoringPath,
-    ];
-    let stdout = "";
-    try {
-        ({ stdout } = await execFileAsync("git", arguments_, {
-            cwd: input.repositoryRoot,
-            encoding: "utf8",
-            maxBuffer: 16 * 1024 * 1024,
-        }));
-    }
-    catch (error) {
-        if (error.code !== 1)
-            throw error;
-    }
-    const changed = new Set(input.changedFiles);
-    const revisionPrefix = `${input.headRevision}:`;
-    const candidates = stdout
-        .split("\n")
-        .filter(Boolean)
-        .map((path) => {
-        if (!path.startsWith(revisionPrefix)) {
-            throw new Error("Git identity lookup returned a path outside the requested revision.");
-        }
-        return repositoryPath(input.authoringRoot, resolve(input.repositoryRoot, path.slice(revisionPrefix.length)));
-    })
-        .filter((path) => !changed.has(path))
-        .sort(compareCanonicalStrings);
-    const needlesByIdentity = new Set(needles);
-    const owners = await mapLimit(candidates, 8, async (path) => {
-        const facts = await compileAuthoringFiles(input.authoringRoot, [path], {
-            allowExternalRoleEntities: true,
-        });
-        return ownedIdentityKeys(facts).some((key) => needlesByIdentity.has(key)) ? path : null;
-    });
-    return owners.filter((path) => path !== null);
-}
-function ownedIdentityKeys(facts) {
-    return [
-        ...new Set(facts.entities.flatMap((entity) => [
-            entity.revision.entity_id,
-            entity.slug,
-            ...entity.slugAliases,
-            ...entity.revision.content.domains
-                .filter((domain) => domain.valid_until === undefined)
-                .map((domain) => domain.value.toLowerCase()),
-            ...entity.programs.map((program) => program.revision.program_id),
-            ...entity.offers.map((offer) => offer.revision.offer_id),
-        ])),
-    ].sort(compareCanonicalStrings);
-}
-function identityNeedles(facts) {
-    return [
-        ...new Set([
-            ...ownedIdentityKeys(facts),
-            ...facts.entities.flatMap((entity) => entity.offers.flatMap((offer) => [
-                offer.revision.content.roles.terms_authority_entity_id,
-                offer.revision.content.roles.access_operator_entity_id,
-            ])),
-        ]),
-    ].sort(compareCanonicalStrings);
-}
-function assertChangedRoleClosure(changed, closure) {
-    const entityIds = new Set(closure.entities.map((entity) => entity.revision.entity_id));
-    for (const entity of changed.entities) {
-        for (const offer of entity.offers) {
-            for (const roleEntityId of [
-                offer.revision.content.roles.terms_authority_entity_id,
-                offer.revision.content.roles.access_operator_entity_id,
-            ]) {
-                if (!entityIds.has(roleEntityId)) {
-                    throw new Error(`Offer '${offer.revision.offer_id}' references unknown role entity '${roleEntityId}'.`);
-                }
-            }
-        }
-    }
-}
-function repositoryPath(repositoryRoot, path) {
-    return relative(repositoryRoot, path).split(sep).join("/");
-}
-function resolveInside(root, path) {
-    if (isAbsolute(path))
-        throw new Error(`Catalog input must be repository-relative: ${path}.`);
-    const resolved = resolve(root, path);
-    if (!resolved.startsWith(`${root}${sep}`)) {
-        throw new Error(`Catalog input escapes the repository: ${path}.`);
-    }
-    return resolved;
-}
-async function gitRevision(root, revision) {
-    const { stdout } = await execFileAsync("git", ["rev-parse", revision], {
-        cwd: resolve(root),
-        encoding: "utf8",
-        maxBuffer: 4 * 1024 * 1024,
-    });
-    const value = stdout.trim();
-    assertGitRevision(value, "resolved");
-    return value;
-}
-function assertGitRevision(value, label) {
-    if (!/^[a-f0-9]{40,64}$/.test(value)) {
-        throw new Error(`Catalog ${label} revision is not an exact Git object ID.`);
+        throw new CatalogContributionError("revise", overlaps.map((file) => ({
+            file: entityPath(file),
+            field: null,
+            message: "Sourcey changed this company file after your branch was made. Update your branch from main and push.",
+        })));
     }
 }
 //# sourceMappingURL=index.js.map
