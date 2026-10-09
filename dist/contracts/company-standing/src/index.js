@@ -111,4 +111,25 @@ export function isFirstPartyUrlForDomain(value, domain) {
     const canonicalDomain = domainNameSchema.parse(domain);
     return hostname === canonicalDomain || hostname.endsWith(`.${canonicalDomain}`);
 }
+/**
+ * What admitted a new company: the Sourcey-retained standing assessment of its domain and
+ * official source that routed it, bound to the Entity identity Sourcey derived for it. A company
+ * below the bar also names the person's verification that admitted it. Final admission verifies
+ * the binding again against the same retained assessment.
+ */
+export const companyAdmissionBindingSchema = z
+    .object({
+    binding_contract: z.literal("sourcey.company-admission-binding/v1alpha1"),
+    entity_id: entityIdSchema,
+    registrable_domain: domainNameSchema,
+    official_source_url: catalogAuthoringUrlSchema,
+    route: z.enum(["free_machine_review", "human_verification_required"]),
+    result_digest: digestSchema,
+    evidence_digest: digestSchema,
+    policy_digest: digestSchema,
+    expires_at: instantSchema,
+    /** The person's verification that admits a company below the bar: its exact approval. */
+    verification_digest: digestSchema.optional(),
+})
+    .strict();
 //# sourceMappingURL=index.js.map

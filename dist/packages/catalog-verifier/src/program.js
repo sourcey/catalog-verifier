@@ -49,6 +49,37 @@ async function run(arguments_) {
             process.exitCode = 2;
         return;
     }
+    if (command === "pull-request") {
+        const repositoryKind = verifierRepositoryKindSchema.parse(subject);
+        const repositoryRoot = requiredPath(args, "--repository");
+        const [baseRevision, headRevision, taxonomy] = await Promise.all([
+            resolveCatalogVerifierCommit(repositoryRoot, requiredFlag(args, "--base")),
+            resolveCatalogVerifierCommit(repositoryRoot, requiredFlag(args, "--head")),
+            repositoryKind === "startup-credits"
+                ? readCatalogTaxonomy(requiredPath(args, "--taxonomy"))
+                : undefined,
+        ]);
+        const candidate = candidateIdentity(repositoryKind, baseRevision, headRevision, args);
+        if (candidate.kind !== "git_pull_request") {
+            throw new Error("pull-request requires --candidate-repository and --pull-request.");
+        }
+        const result = await application.validatePullRequest({
+            repositoryKind,
+            repositoryRoot,
+            baseRevision,
+            headRevision,
+            ...(taxonomy ? { taxonomy } : {}),
+            repository: candidate.repository,
+            pullRequestNumber: candidate.pullRequestNumber,
+            rootSet: await readJson(requiredPath(args, "--root-set")),
+            trustedRootDigest: requiredFlag(args, "--trusted-root-digest"),
+            api: new URL(optionalFlag(args, "--api") ?? "https://api.sourcey.com"),
+        });
+        renderResult(result, outputFormat(args));
+        if (result.status === "invalid")
+            process.exitCode = 2;
+        return;
+    }
     if (command === "identity-context-request") {
         const repositoryKind = verifierRepositoryKindSchema.parse(subject);
         const repositoryRoot = requiredPath(args, "--repository");
@@ -195,6 +226,8 @@ function renderCriteria(criteria, format) {
 function usage() {
     return [
         "Usage:",
+        "  sourcey-catalog-verify pull-request startup-credits --repository DIR --base COMMIT --head COMMIT --taxonomy FILE --candidate-repository OWNER/REPO --pull-request NUMBER --root-set FILE --trusted-root-digest DIGEST [--api URL] [--format human|json]",
+        "  sourcey-catalog-verify pull-request agent-readiness --repository DIR --base COMMIT --head COMMIT --candidate-repository OWNER/REPO --pull-request NUMBER --root-set FILE --trusted-root-digest DIGEST [--api URL] [--format human|json]",
         "  sourcey-catalog-verify identity-context-request startup-credits --repository DIR --base COMMIT --head COMMIT --taxonomy FILE --live-parent-release-id DIGEST [--candidate-repository OWNER/REPO --pull-request NUMBER]",
         "  sourcey-catalog-verify identity-context-request agent-readiness --repository DIR --base COMMIT --head COMMIT --live-parent-release-id DIGEST [--candidate-repository OWNER/REPO --pull-request NUMBER]",
         "  sourcey-catalog-verify validate startup-credits --repository DIR --base COMMIT --head COMMIT --taxonomy FILE --identity-context FILE --root-set FILE --trusted-root-digest DIGEST --verified-at INSTANT [--candidate-repository OWNER/REPO --pull-request NUMBER] [--format human|json]",

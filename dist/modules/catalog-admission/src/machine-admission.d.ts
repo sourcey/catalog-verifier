@@ -586,6 +586,21 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>;
+    company_admission: z.ZodOptional<z.ZodObject<{
+        binding_contract: z.ZodLiteral<"sourcey.company-admission-binding/v1alpha1">;
+        entity_id: z.ZodString;
+        registrable_domain: z.ZodString;
+        official_source_url: z.ZodURL;
+        route: z.ZodEnum<{
+            free_machine_review: "free_machine_review";
+            human_verification_required: "human_verification_required";
+        }>;
+        result_digest: z.ZodString;
+        evidence_digest: z.ZodString;
+        policy_digest: z.ZodString;
+        expires_at: z.ZodISODateTime;
+        verification_digest: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
     asset: z.ZodObject<{
         kind: z.ZodEnum<{
             sourcey_monogram: "sourcey_monogram";
@@ -1162,6 +1177,21 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>;
+    company_admission: z.ZodOptional<z.ZodObject<{
+        binding_contract: z.ZodLiteral<"sourcey.company-admission-binding/v1alpha1">;
+        entity_id: z.ZodString;
+        registrable_domain: z.ZodString;
+        official_source_url: z.ZodURL;
+        route: z.ZodEnum<{
+            free_machine_review: "free_machine_review";
+            human_verification_required: "human_verification_required";
+        }>;
+        result_digest: z.ZodString;
+        evidence_digest: z.ZodString;
+        policy_digest: z.ZodString;
+        expires_at: z.ZodISODateTime;
+        verification_digest: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
     asset: z.ZodObject<{
         kind: z.ZodEnum<{
             sourcey_monogram: "sourcey_monogram";
@@ -1731,6 +1761,21 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         key_digest: z.ZodString;
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
+    }, z.core.$strict>>;
+    company_admission: z.ZodOptional<z.ZodObject<{
+        binding_contract: z.ZodLiteral<"sourcey.company-admission-binding/v1alpha1">;
+        entity_id: z.ZodString;
+        registrable_domain: z.ZodString;
+        official_source_url: z.ZodURL;
+        route: z.ZodEnum<{
+            free_machine_review: "free_machine_review";
+            human_verification_required: "human_verification_required";
+        }>;
+        result_digest: z.ZodString;
+        evidence_digest: z.ZodString;
+        policy_digest: z.ZodString;
+        expires_at: z.ZodISODateTime;
+        verification_digest: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>;
     asset: z.ZodObject<{
         kind: z.ZodEnum<{
@@ -2302,6 +2347,21 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         target_references: z.ZodArray<z.ZodString>;
         source_references: z.ZodArray<z.ZodString>;
     }, z.core.$strict>>;
+    company_admission: z.ZodOptional<z.ZodObject<{
+        binding_contract: z.ZodLiteral<"sourcey.company-admission-binding/v1alpha1">;
+        entity_id: z.ZodString;
+        registrable_domain: z.ZodString;
+        official_source_url: z.ZodURL;
+        route: z.ZodEnum<{
+            free_machine_review: "free_machine_review";
+            human_verification_required: "human_verification_required";
+        }>;
+        result_digest: z.ZodString;
+        evidence_digest: z.ZodString;
+        policy_digest: z.ZodString;
+        expires_at: z.ZodISODateTime;
+        verification_digest: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
     asset: z.ZodObject<{
         kind: z.ZodEnum<{
             sourcey_monogram: "sourcey_monogram";
@@ -2334,6 +2394,9 @@ export declare const startupCreditsMachineAdmissionReasonSchema: z.ZodEnum<{
     claim_contradicted: "claim_contradicted";
     claim_unresolved: "claim_unresolved";
     claim_unsupported: "claim_unsupported";
+    company_correction_required: "company_correction_required";
+    company_standing_unavailable: "company_standing_unavailable";
+    company_verification_required: "company_verification_required";
     declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
     entity_summary_required: "entity_summary_required";
     exact_conflict: "exact_conflict";
@@ -2369,6 +2432,9 @@ export declare const startupCreditsMachineAdmissionResultCoreSchema: z.ZodObject
         claim_contradicted: "claim_contradicted";
         claim_unresolved: "claim_unresolved";
         claim_unsupported: "claim_unsupported";
+        company_correction_required: "company_correction_required";
+        company_standing_unavailable: "company_standing_unavailable";
+        company_verification_required: "company_verification_required";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
@@ -2408,6 +2474,9 @@ export declare const startupCreditsMachineAdmissionResultSchema: z.ZodObject<{
         claim_contradicted: "claim_contradicted";
         claim_unresolved: "claim_unresolved";
         claim_unsupported: "claim_unsupported";
+        company_correction_required: "company_correction_required";
+        company_standing_unavailable: "company_standing_unavailable";
+        company_verification_required: "company_verification_required";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
@@ -2448,6 +2517,9 @@ export declare const startupCreditsAdmissionCandidateResultCoreSchema: z.ZodObje
         claim_contradicted: "claim_contradicted";
         claim_unresolved: "claim_unresolved";
         claim_unsupported: "claim_unsupported";
+        company_correction_required: "company_correction_required";
+        company_standing_unavailable: "company_standing_unavailable";
+        company_verification_required: "company_verification_required";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
@@ -2487,6 +2559,9 @@ export declare const startupCreditsAdmissionCandidateResultSchema: z.ZodObject<{
         claim_contradicted: "claim_contradicted";
         claim_unresolved: "claim_unresolved";
         claim_unsupported: "claim_unsupported";
+        company_correction_required: "company_correction_required";
+        company_standing_unavailable: "company_standing_unavailable";
+        company_verification_required: "company_verification_required";
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
