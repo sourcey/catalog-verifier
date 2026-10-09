@@ -103,4 +103,26 @@ export type StandingPolicy = z.infer<typeof standingPolicySchema>;
 export type StandingEvidence = z.infer<typeof standingEvidenceSchema>;
 export type StandingResult = z.infer<typeof standingResultSchema>;
 export declare function isFirstPartyUrlForDomain(value: string, domain: string): boolean;
+/**
+ * What admitted a new company: the Sourcey-retained standing assessment of its domain and
+ * official source that routed it, bound to the Entity identity Sourcey derived for it. A company
+ * below the bar also names the person's verification that admitted it. Final admission verifies
+ * the binding again against the same retained assessment.
+ */
+export declare const companyAdmissionBindingSchema: z.ZodObject<{
+    binding_contract: z.ZodLiteral<"sourcey.company-admission-binding/v1alpha1">;
+    entity_id: z.ZodString;
+    registrable_domain: z.ZodString;
+    official_source_url: z.ZodURL;
+    route: z.ZodEnum<{
+        free_machine_review: "free_machine_review";
+        human_verification_required: "human_verification_required";
+    }>;
+    result_digest: z.ZodString;
+    evidence_digest: z.ZodString;
+    policy_digest: z.ZodString;
+    expires_at: z.ZodISODateTime;
+    verification_digest: z.ZodOptional<z.ZodString>;
+}, z.core.$strict>;
+export type CompanyAdmissionBinding = z.infer<typeof companyAdmissionBindingSchema>;
 //# sourceMappingURL=index.d.ts.map
