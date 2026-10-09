@@ -2,7 +2,7 @@ import { lstat, readdir, readFile } from "node:fs/promises";
 import { extname, isAbsolute, join, relative, resolve, sep } from "node:path";
 import { compareCanonicalStrings } from "provenry/primitives";
 import { entityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
-import { assertCatalogAuthoringIdentity, parseCatalogAuthoringSources, } from "../../catalog-authoring-validation/src/index.js";
+import { assertCatalogAuthoringIdentity, CatalogAuthoringError, parseCatalogAuthoringSources, } from "../../catalog-authoring-validation/src/index.js";
 import { compileEntity } from "../../catalog-model/src/index.js";
 export async function compileAuthoringTree(entityRoot) {
     const files = (await filesUnder(entityRoot))
@@ -20,7 +20,7 @@ export async function compileAuthoringFiles(entityRoot, sourceFiles, options = {
     for (const source of files) {
         const file = resolveAuthoringFile(root, source);
         if ((await lstat(file)).isSymbolicLink()) {
-            throw new Error(`Authoring file cannot be a symbolic link: ${source}.`);
+            throw new CatalogAuthoringError(`Authoring file cannot be a symbolic link: ${source}.`, source);
         }
         sources.push({ source, content: await readFile(file, "utf8") });
     }
