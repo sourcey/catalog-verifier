@@ -55,7 +55,7 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
                 assertions: {
                     name: string;
                     statement: string;
-                    proof: "dns_answer" | "dns_success" | "message_accepted" | "model_selected" | "resource_created" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+                    proof: "dns_answer" | "dns_success" | "message_accepted" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
                 }[];
                 observation_links: {
                     from: {

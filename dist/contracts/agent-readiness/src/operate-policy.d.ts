@@ -42,6 +42,7 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                     message_accepted: "message_accepted";
                     model_selected: "model_selected";
                     resource_created: "resource_created";
+                    resource_found_by_query: "resource_found_by_query";
                     resource_read_back: "resource_read_back";
                     sink_received: "sink_received";
                     stream_chunks: "stream_chunks";
@@ -162,6 +163,7 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                     message_accepted: "message_accepted";
                     model_selected: "model_selected";
                     resource_created: "resource_created";
+                    resource_found_by_query: "resource_found_by_query";
                     resource_read_back: "resource_read_back";
                     sink_received: "sink_received";
                     stream_chunks: "stream_chunks";

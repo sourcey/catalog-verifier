@@ -1,4 +1,10 @@
 import { ipAddressVersion } from "provenry/primitives";
+/** The HTTP methods an observed call may use; a query may send its terms in a body. */
+export const OBSERVED_CALL_METHODS = {
+    read: ["GET", "HEAD"],
+    write: ["POST", "PUT", "PATCH", "DELETE"],
+    query: ["GET", "POST"],
+};
 const pass = () => ({ holds: true, reason: "The canonical assertion holds." });
 const fail = (reason) => ({ holds: false, reason });
 const identifier = (value) => typeof value === "string" && value.trim().length > 0 && value.length <= 512;
@@ -6,6 +12,21 @@ const resourceIdentifier = (value) => identifier(value) || (typeof value === "nu
 const object = (value) => value !== null && typeof value === "object" && !Array.isArray(value)
     ? value
     : null;
+/**
+ * Whether a sent value carries an identifier: it occurs there, and not as part
+ * of a longer run of letters and digits, so `id:rec-1` carries `rec-1` and
+ * `rec-10` does not.
+ */
+function carries(text, id) {
+    const word = /^[A-Za-z0-9]$/u;
+    for (let at = text.indexOf(id); at >= 0; at = text.indexOf(id, at + 1)) {
+        const joinsBefore = word.test(id[0]) && word.test(text[at - 1] ?? "");
+        const joinsAfter = word.test(id.at(-1)) && word.test(text[at + id.length] ?? "");
+        if (!joinsBefore && !joinsAfter)
+            return true;
+    }
+    return false;
+}
 const created = {
     observations: [{ name: "id", source: "json", method: "write" }],
     evaluate: ({ values }) => resourceIdentifier(values.get("id"))
@@ -126,6 +147,41 @@ const proofs = {
             values.get("content") === context.nonce
             ? pass()
             : fail("The readback does not establish the created resource with this run's nonce."),
+    },
+    /**
+     * Found by what was asked, not by the key: the query the call sent is the
+     * run's nonce, and nothing it sent carries the created identifier, which the
+     * request's templates alone cannot rule out (a literal or another response
+     * can still hold it).
+     */
+    resource_found_by_query: {
+        observations: [
+            { name: "created_id", source: "json", method: "write" },
+            { name: "query", source: "request", method: "query" },
+            { name: "found_id", source: "json", method: "query" },
+            { name: "content", source: "json", method: "query" },
+        ],
+        sameCall: [
+            ["query", "found_id"],
+            ["found_id", "content"],
+        ],
+        differentCall: [["created_id", "found_id"]],
+        independentCall: [["query", "created_id"]],
+        evaluate({ values, requests, context }) {
+            const id = values.get("created_id");
+            const sent = requests.get("query");
+            if (!resourceIdentifier(id))
+                return fail("The creation did not return a resource identifier.");
+            if (values.get("query") !== context.nonce || sent === undefined) {
+                return fail("The query did not send this run's nonce.");
+            }
+            if (sent.some((text) => carries(text, String(id)))) {
+                return fail("The query sent the created identifier, so it did not find the resource.");
+            }
+            return values.get("found_id") === id && values.get("content") === context.nonce
+                ? pass()
+                : fail("The query did not return the created resource with this run's nonce.");
+        },
     },
     message_accepted: created,
     sink_received: {

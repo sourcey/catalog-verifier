@@ -3769,7 +3769,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -4265,7 +4267,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -10628,7 +10632,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 onboard_level: z.ZodNullable<z.ZodNumber>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -10765,6 +10771,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                                 call: z.ZodString;
                                 source: z.ZodEnum<{
                                     json: "json";
+                                    request: "request";
                                     stream: "stream";
                                 }>;
                                 pointer: z.ZodString;
@@ -16882,7 +16889,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -17579,7 +17588,9 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     }, z.core.$strict>;
                     discovery: z.ZodArray<z.ZodObject<{
                         fact: z.ZodEnum<{
+                            agent_documentation: "agent_documentation";
                             agent_registration: "agent_registration";
+                            agent_skill: "agent_skill";
                             api_catalog_link: "api_catalog_link";
                             ard_entry: "ard_entry";
                             mcp_endpoint: "mcp_endpoint";
@@ -18032,6 +18043,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                                 call: z.ZodString;
                                 source: z.ZodEnum<{
                                     json: "json";
+                                    request: "request";
                                     stream: "stream";
                                 }>;
                                 pointer: z.ZodString;
@@ -19279,6 +19291,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                             call: z.ZodString;
                             source: z.ZodEnum<{
                                 json: "json";
+                                request: "request";
                                 stream: "stream";
                             }>;
                             pointer: z.ZodString;
@@ -25970,7 +25983,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -26466,7 +26481,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -32829,7 +32846,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 onboard_level: z.ZodNullable<z.ZodNumber>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -32966,6 +32985,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 call: z.ZodString;
                                 source: z.ZodEnum<{
                                     json: "json";
+                                    request: "request";
                                     stream: "stream";
                                 }>;
                                 pointer: z.ZodString;
@@ -39083,7 +39103,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }, z.core.$strict>;
                 discovery: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -39780,7 +39802,9 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>;
                     discovery: z.ZodArray<z.ZodObject<{
                         fact: z.ZodEnum<{
+                            agent_documentation: "agent_documentation";
                             agent_registration: "agent_registration";
+                            agent_skill: "agent_skill";
                             api_catalog_link: "api_catalog_link";
                             ard_entry: "ard_entry";
                             mcp_endpoint: "mcp_endpoint";
@@ -40231,6 +40255,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                                 call: z.ZodString;
                                 source: z.ZodEnum<{
                                     json: "json";
+                                    request: "request";
                                     stream: "stream";
                                 }>;
                                 pointer: z.ZodString;
@@ -41476,6 +41501,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             call: z.ZodString;
                             source: z.ZodEnum<{
                                 json: "json";
+                                request: "request";
                                 stream: "stream";
                             }>;
                             pointer: z.ZodString;

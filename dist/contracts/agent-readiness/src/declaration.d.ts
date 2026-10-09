@@ -239,6 +239,7 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 call: z.ZodString;
                 source: z.ZodEnum<{
                     json: "json";
+                    request: "request";
                     stream: "stream";
                 }>;
                 pointer: z.ZodString;
@@ -929,6 +930,7 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     call: z.ZodString;
                     source: z.ZodEnum<{
                         json: "json";
+                        request: "request";
                         stream: "stream";
                     }>;
                     pointer: z.ZodString;
@@ -1613,6 +1615,7 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     call: z.ZodString;
                     source: z.ZodEnum<{
                         json: "json";
+                        request: "request";
                         stream: "stream";
                     }>;
                     pointer: z.ZodString;
@@ -2317,6 +2320,7 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     call: z.ZodString;
                     source: z.ZodEnum<{
                         json: "json";
+                        request: "request";
                         stream: "stream";
                     }>;
                     pointer: z.ZodString;

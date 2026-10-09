@@ -7,8 +7,176 @@ import { AGENT_READINESS_JOB_LIBRARY_CONTRACT, agentReadinessJobLibraryCoreSchem
  */
 export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
     library_contract: AGENT_READINESS_JOB_LIBRARY_CONTRACT,
-    library_version: "2026-10-06",
+    library_version: "2026-10-09",
     jobs: [
+        {
+            job_id: "bounty-claim",
+            category: "bounty-board",
+            name: "Claim a bounty",
+            statement: "Claim an open bounty with a note that is the run's nonce, then read the claim back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "bounty_claimed",
+                    statement: "The board accepts the claim and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The claim reads back under that identifier with the nonce as its note.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "bounty_claimed", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A claim on a bounty that does not exist." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "bucket-create",
+            category: "cloud-platform",
+            name: "Create a storage bucket",
+            statement: "Create a storage bucket named with the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "bucket_created",
+                    statement: "The platform creates the bucket and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The bucket reads back under that identifier with the nonce as its name.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "bucket_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A bucket request with a name the platform does not allow." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "chat-message-post",
+            category: "team-chat",
+            name: "Post a message",
+            statement: "Post a message whose text is the run's nonce to a channel, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "message_posted",
+                    statement: "The service posts the message and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The message reads back under that identifier with the nonce as its text.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "message_posted", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A message to a channel that does not exist." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "crm-contact-create",
+            category: "crm",
+            name: "Create a contact",
+            statement: "Create a contact with a field set to the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "contact_created",
+                    statement: "The service creates the contact and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The contact reads back under that identifier with the nonce in that field.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "contact_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A contact request with an email address that is not valid." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "database-create",
+            category: "database",
+            name: "Create a database deployment",
+            statement: "Create a database deployment named with the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "deployment_created",
+                    statement: "The service creates the deployment and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The deployment reads back under that identifier with the nonce as its name.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "deployment_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A database request with a name the service does not allow." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "deployment-create",
+            category: "frontend-hosting",
+            name: "Create a deployment",
+            statement: "Create a deployment named with the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "deployment_created",
+                    statement: "The service creates the deployment and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The deployment reads back under that identifier with the nonce as its name.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "deployment_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A deployment request for a project that does not exist." },
+            effect: "consequential",
+            cleanup: "required",
+        },
         {
             job_id: "dns-resolve",
             category: "dns-resolver",
@@ -36,6 +204,88 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             error_probe: { statement: "A query for a record type the resolver does not define." },
             effect: "read",
             cleanup: "none",
+        },
+        {
+            job_id: "email-send",
+            category: "email",
+            name: "Send an email",
+            statement: "Send an email whose body carries the run's nonce to a Sourcey-controlled mailbox.",
+            inputs: [
+                { kind: "nonce", name: "nonce" },
+                { kind: "sink", name: "recipient", sink: "email" },
+            ],
+            assertions: [
+                {
+                    name: "message_accepted",
+                    statement: "The service accepts the email and returns its identifier.",
+                    proof: "message_accepted",
+                },
+                {
+                    name: "delivered_to_sink",
+                    statement: "The email reaches the Sourcey-controlled mailbox, carrying the nonce.",
+                    proof: "sink_received",
+                },
+            ],
+            observation_links: [],
+            error_probe: { statement: "An email to a recipient address that is not valid." },
+            effect: "billable",
+            cleanup: "none",
+        },
+        {
+            job_id: "error-event-report",
+            category: "error-tracking",
+            name: "Report an error",
+            statement: "Report an error event whose message is the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "event_reported",
+                    statement: "The service accepts the event and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The event reads back under that identifier with the nonce as its message.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "event_reported", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "An event sent to a project that does not exist." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "feature-flag-create",
+            category: "feature-flags",
+            name: "Create a feature flag",
+            statement: "Create a feature flag keyed by the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "flag_created",
+                    statement: "The service creates the flag and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The flag reads back under that identifier with the nonce as its key.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "flag_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A flag request with a key the service does not allow." },
+            effect: "consequential",
+            cleanup: "required",
         },
         {
             job_id: "model-chat-stream-tool",
@@ -75,20 +325,76 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             cleanup: "none",
         },
         {
-            job_id: "repository-create",
-            category: "repository-hosting",
-            name: "Create a repository",
-            statement: "Create a repository named for the run and read it back.",
+            job_id: "monitor-create",
+            category: "monitoring",
+            name: "Create a monitor",
+            statement: "Create a monitor named with the run's nonce, then read it back.",
             inputs: [{ kind: "nonce", name: "nonce" }],
             assertions: [
                 {
-                    name: "repository_created",
-                    statement: "The service creates the repository.",
+                    name: "monitor_created",
+                    statement: "The service creates the monitor and returns its identifier.",
                     proof: "resource_created",
                 },
                 {
                     name: "read_back",
-                    statement: "The repository reads back under the name that carries the run's nonce.",
+                    statement: "The monitor reads back under that identifier with the nonce as its name.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "monitor_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A monitor request with a query the service cannot parse." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "payment-create",
+            category: "payments",
+            name: "Create a payment link",
+            statement: "Create a payment link with a field set to the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "link_created",
+                    statement: "The service creates the payment link and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The payment link reads back under that identifier with the nonce in that field.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "link_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A payment link with an amount the service does not accept." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "repository-create",
+            category: "repository-hosting",
+            name: "Create a repository",
+            statement: "Create a repository named with the run's nonce, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "repository_created",
+                    statement: "The service creates the repository and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The repository reads back under that identifier with the nonce as its name.",
                     proof: "resource_read_back",
                 },
             ],
@@ -99,6 +405,34 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
                 },
             ],
             error_probe: { statement: "A repository request with a name the service does not allow." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "search-record-find",
+            category: "search",
+            name: "Find a record by search",
+            statement: "Index a record whose content is the run's nonce, then search for the nonce.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "record_indexed",
+                    statement: "The service indexes the record and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "record_found",
+                    statement: "A search whose query is the nonce, sent without the created identifier, returns the record under that identifier with the nonce as its content.",
+                    proof: "resource_found_by_query",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "record_indexed", observation: "id" },
+                    to: { assertion: "record_found", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A search against an index that does not exist." },
             effect: "consequential",
             cleanup: "required",
         },
@@ -129,20 +463,76 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             cleanup: "none",
         },
         {
-            job_id: "workspace-page-create",
-            category: "workspace",
-            name: "Create a page",
-            statement: "Create a page carrying the run's nonce in a shared container and read it back.",
+            job_id: "user-create",
+            category: "auth",
+            name: "Create a user",
+            statement: "Create a user with a field set to the run's nonce, then read it back.",
             inputs: [{ kind: "nonce", name: "nonce" }],
             assertions: [
                 {
-                    name: "page_created",
-                    statement: "The service creates the page in the container.",
+                    name: "user_created",
+                    statement: "The service creates the user and returns its identifier.",
                     proof: "resource_created",
                 },
                 {
                     name: "read_back",
-                    statement: "The page reads back with the content that carries the nonce.",
+                    statement: "The user reads back under that identifier with the nonce in that field.",
+                    proof: "resource_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "user_created", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A user request with an email address that is not valid." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "vector-upsert-query",
+            category: "vector-database",
+            name: "Find a vector by query",
+            statement: "Write a vector whose metadata value is the run's nonce, then query for the nonce.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "vector_written",
+                    statement: "The service writes the vector and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "vector_found",
+                    statement: "A query for the nonce, sent without the created identifier, returns the vector under that identifier with the nonce as its metadata value.",
+                    proof: "resource_found_by_query",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "vector_written", observation: "id" },
+                    to: { assertion: "vector_found", observation: "created_id" },
+                },
+            ],
+            error_probe: { statement: "A query against an index that does not exist." },
+            effect: "consequential",
+            cleanup: "required",
+        },
+        {
+            job_id: "workspace-page-create",
+            category: "workspace",
+            name: "Create a page",
+            statement: "Create a page whose title is the run's nonce in a shared container, then read it back.",
+            inputs: [{ kind: "nonce", name: "nonce" }],
+            assertions: [
+                {
+                    name: "page_created",
+                    statement: "The service creates the page in the container and returns its identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The page reads back under that identifier with the nonce as its title.",
                     proof: "resource_read_back",
                 },
             ],

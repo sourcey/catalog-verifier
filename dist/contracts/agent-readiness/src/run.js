@@ -13,6 +13,8 @@ const AGENT_READINESS_RUN_CONTRACT = "sourcey.agent-readiness-run/v1alpha1";
 const nameSchema = z.string().regex(/^[a-z][a-z0-9_]{0,63}$/u);
 const reasonSchema = z.string().trim().min(1).max(300);
 export const agentReadinessRunKindSchema = z.enum(["operate", "onboard", "operate_onboard"]);
+/** The most descriptor retrievals, and the most facts, one run records. */
+export const AGENT_READINESS_DISCOVERY_LIMIT = 64;
 /** An agent-facing fact a descriptor on the service's domain states. */
 export const agentReadinessDiscoveryFactSchema = z
     .object({
@@ -24,6 +26,10 @@ export const agentReadinessDiscoveryFactSchema = z
         "ard_entry",
         "api_catalog_link",
         "agent_registration",
+        /** An llms.txt overview written for agents. */
+        "agent_documentation",
+        /** A skill an agent-skills index publishes. */
+        "agent_skill",
         "payment_manifest",
         /** A descriptor was found in a version or shape no adapter reads. */
         "unsupported_descriptor",
@@ -143,8 +149,8 @@ export const agentReadinessRunRecordCoreSchema = z
     discovery: z
         .object({
         /** Every descriptor retrieval attempted, found or not, by its capture attempt digest. */
-        attempts: z.array(agentReadinessDigestSchema).max(64),
-        facts: z.array(agentReadinessDiscoveryFactSchema).max(64),
+        attempts: z.array(agentReadinessDigestSchema).max(AGENT_READINESS_DISCOVERY_LIMIT),
+        facts: z.array(agentReadinessDiscoveryFactSchema).max(AGENT_READINESS_DISCOVERY_LIMIT),
     })
         .strict(),
     exchanges: z.array(agentReadinessRunExchangeSchema).max(64),

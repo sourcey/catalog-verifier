@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.7";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.8";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -6000,7 +6000,9 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
         }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -6415,7 +6417,9 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
         }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -7013,7 +7017,9 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
             }, z.core.$strict>;
             discovery: z.ZodArray<z.ZodObject<{
                 fact: z.ZodEnum<{
+                    agent_documentation: "agent_documentation";
                     agent_registration: "agent_registration";
+                    agent_skill: "agent_skill";
                     api_catalog_link: "api_catalog_link";
                     ard_entry: "ard_entry";
                     mcp_endpoint: "mcp_endpoint";
@@ -7546,7 +7552,9 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
     onboard_level: z.ZodNullable<z.ZodNumber>;
     discovery: z.ZodArray<z.ZodObject<{
         fact: z.ZodEnum<{
+            agent_documentation: "agent_documentation";
             agent_registration: "agent_registration";
+            agent_skill: "agent_skill";
             api_catalog_link: "api_catalog_link";
             ard_entry: "ard_entry";
             mcp_endpoint: "mcp_endpoint";
@@ -7683,6 +7691,7 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
                     call: z.ZodString;
                     source: z.ZodEnum<{
                         json: "json";
+                        request: "request";
                         stream: "stream";
                     }>;
                     pointer: z.ZodString;
@@ -8718,7 +8727,9 @@ export declare const revisionResponseSchema: z.ZodObject<{
         onboard_level: z.ZodNullable<z.ZodNumber>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -8855,6 +8866,7 @@ export declare const revisionResponseSchema: z.ZodObject<{
                         call: z.ZodString;
                         source: z.ZodEnum<{
                             json: "json";
+                            request: "request";
                             stream: "stream";
                         }>;
                         pointer: z.ZodString;

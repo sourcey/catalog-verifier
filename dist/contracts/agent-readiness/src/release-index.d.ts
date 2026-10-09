@@ -138,7 +138,9 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
         onboard_level: z.ZodNullable<z.ZodNumber>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -244,7 +246,9 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                 attempts: z.ZodArray<z.ZodString>;
                 facts: z.ZodArray<z.ZodObject<{
                     fact: z.ZodEnum<{
+                        agent_documentation: "agent_documentation";
                         agent_registration: "agent_registration";
+                        agent_skill: "agent_skill";
                         api_catalog_link: "api_catalog_link";
                         ard_entry: "ard_entry";
                         mcp_endpoint: "mcp_endpoint";
@@ -638,7 +642,9 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
         }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -1037,7 +1043,9 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
         }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -1229,6 +1237,7 @@ export declare const agentReadinessDeltaObjectSchema: z.ZodObject<{
                             call: z.ZodString;
                             source: z.ZodEnum<{
                                 json: "json";
+                                request: "request";
                                 stream: "stream";
                             }>;
                             pointer: z.ZodString;

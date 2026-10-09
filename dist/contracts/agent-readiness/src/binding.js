@@ -47,6 +47,49 @@ export function agentReadinessJsonTemplates(value) {
     }
     return [];
 }
+/**
+ * What a request observation's pointer reads in what a call sends. For an HTTP
+ * call, `/query` holds each URL query parameter by name and `/body` the JSON
+ * body, each form field by name, or null; for an MCP call, `/arguments` holds
+ * the tool's arguments. A name sent more than once holds its values in order.
+ */
+export function agentReadinessRequestDocument(request) {
+    if ("arguments" in request)
+        return { arguments: request.arguments };
+    const { body } = request;
+    return {
+        query: byName(request.query),
+        body: body === null ? null : "json" in body ? body.json : byName(body.form),
+    };
+}
+/** A call's request document as its templates write it: the template each location sends. */
+export function agentReadinessRequestTemplate(call) {
+    if (call.kind === "mcp")
+        return agentReadinessRequestDocument({ arguments: call.arguments });
+    // A `?` or `#` inside a placeholder's pointer is not the URL's own.
+    const masked = call.url.replaceAll(PLACEHOLDER, (placeholder) => " ".repeat(placeholder.length));
+    const start = masked.indexOf("?");
+    const end = masked.indexOf("#");
+    return agentReadinessRequestDocument({
+        query: start < 0
+            ? []
+            : [...new URLSearchParams(call.url.slice(start + 1, end < 0 ? undefined : end))],
+        body: call.body === null
+            ? null
+            : call.body.media_type === "application/json"
+                ? { json: call.body.json }
+                : { form: call.body.form.map(({ name, value }) => [name, value]) },
+    });
+}
+function byName(fields) {
+    const named = new Map();
+    for (const [name, value] of fields)
+        named.set(name, [...(named.get(name) ?? []), value]);
+    return Object.fromEntries([...named].map(([name, values]) => [
+        name,
+        values.length === 1 ? values[0] : values,
+    ]));
+}
 const templateSchema = (maximum) => z
     .string()
     .max(maximum)
@@ -141,12 +184,16 @@ const agentReadinessCallSchema = z.discriminatedUnion("kind", [
     agentReadinessHttpCallSchema,
     agentReadinessMcpCallSchema,
 ]);
-/** A binding locates evidence; it cannot supply a predicate or expected value. */
+/**
+ * A binding locates evidence; it cannot supply a predicate or expected value.
+ * An observation reads the call's JSON response, its event stream, or what the
+ * call sent (`request`, by {@link agentReadinessRequestDocument}).
+ */
 const agentReadinessAssertionObservationSchema = z
     .object({
     name: nameSchema,
     call: callIdSchema,
-    source: z.enum(["json", "stream"]),
+    source: z.enum(["json", "stream", "request"]),
     pointer: pointerSchema,
 })
     .strict();
@@ -356,7 +403,7 @@ function validateBinding(binding, context) {
             }
         }
         const readable = new Set(mayRead);
-        for (const template of callTemplates(call)) {
+        for (const template of agentReadinessCallTemplates(call)) {
             const references = agentReadinessTemplateReferences(template);
             if (references === null) {
                 context.addIssue({
@@ -446,7 +493,8 @@ function validateBinding(binding, context) {
         }
     }
 }
-function callTemplates(call) {
+/** Every template string a call sends. */
+export function agentReadinessCallTemplates(call) {
     if (call.kind === "mcp")
         return agentReadinessJsonTemplates(call.arguments);
     return [

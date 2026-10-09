@@ -5,10 +5,14 @@ export declare const agentReadinessRunKindSchema: z.ZodEnum<{
     operate: "operate";
     operate_onboard: "operate_onboard";
 }>;
+/** The most descriptor retrievals, and the most facts, one run records. */
+export declare const AGENT_READINESS_DISCOVERY_LIMIT = 64;
 /** An agent-facing fact a descriptor on the service's domain states. */
 export declare const agentReadinessDiscoveryFactSchema: z.ZodObject<{
     fact: z.ZodEnum<{
+        agent_documentation: "agent_documentation";
         agent_registration: "agent_registration";
+        agent_skill: "agent_skill";
         api_catalog_link: "api_catalog_link";
         ard_entry: "ard_entry";
         mcp_endpoint: "mcp_endpoint";
@@ -133,7 +137,9 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
         attempts: z.ZodArray<z.ZodString>;
         facts: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";
@@ -262,7 +268,9 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
         attempts: z.ZodArray<z.ZodString>;
         facts: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
+                agent_documentation: "agent_documentation";
                 agent_registration: "agent_registration";
+                agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
                 mcp_endpoint: "mcp_endpoint";

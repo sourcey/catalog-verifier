@@ -14,7 +14,7 @@ import { sourceyReleaseEnvelopeSchemas } from "../../release/src/index.js";
 import { catalogRevisionContracts, eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
 import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
 import { agentReadinessProfileId, apiEnvelope, catalogApiContractSchema, digest, entityId, identifier, instant, nonEmpty, offerId, operationId, pagedApiEnvelope, programId, slug, } from "./values.js";
-export const SOURCEY_PUBLIC_API_VERSION = "1.2.7";
+export const SOURCEY_PUBLIC_API_VERSION = "1.2.8";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402

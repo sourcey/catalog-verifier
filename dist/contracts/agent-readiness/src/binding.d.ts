@@ -16,6 +16,25 @@ type AgentReadinessTemplateReference = {
 export declare function agentReadinessTemplateReferences(template: string): readonly AgentReadinessTemplateReference[] | null;
 /** Every template string in a JSON template value. */
 export declare function agentReadinessJsonTemplates(value: unknown): readonly string[];
+type AgentReadinessFields = readonly (readonly [string, string])[];
+/**
+ * What a request observation's pointer reads in what a call sends. For an HTTP
+ * call, `/query` holds each URL query parameter by name and `/body` the JSON
+ * body, each form field by name, or null; for an MCP call, `/arguments` holds
+ * the tool's arguments. A name sent more than once holds its values in order.
+ */
+export declare function agentReadinessRequestDocument(request: {
+    readonly query: AgentReadinessFields;
+    readonly body: {
+        readonly json: unknown;
+    } | {
+        readonly form: AgentReadinessFields;
+    } | null;
+} | {
+    readonly arguments: unknown;
+}): Readonly<Record<string, unknown>>;
+/** A call's request document as its templates write it: the template each location sends. */
+export declare function agentReadinessRequestTemplate(call: AgentReadinessCall): Readonly<Record<string, unknown>>;
 declare const agentReadinessCallSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"http">;
     call_id: z.ZodString;
@@ -155,6 +174,7 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
             call: z.ZodString;
             source: z.ZodEnum<{
                 json: "json";
+                request: "request";
                 stream: "stream";
             }>;
             pointer: z.ZodString;
@@ -596,5 +616,7 @@ export declare function agentReadinessBindingCalls(binding: Pick<AgentReadinessJ
     readonly call: AgentReadinessCall;
     readonly mayRead: readonly string[];
 }[];
+/** Every template string a call sends. */
+export declare function agentReadinessCallTemplates(call: AgentReadinessCall): readonly string[];
 export {};
 //# sourceMappingURL=binding.d.ts.map
