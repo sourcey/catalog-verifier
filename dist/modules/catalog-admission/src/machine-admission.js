@@ -1,5 +1,6 @@
 import { DIGEST_PATTERN, digest, IDENTIFIER_PATTERN } from "provenry/primitives";
 import { z } from "zod";
+import { companyAdmissionBindingSchema } from "../../../contracts/company-standing/src/index.js";
 import { evidenceCaptureMethodSchema } from "../../../contracts/evidence/src/index.js";
 import { coveragePolicySchema } from "../../../contracts/policies/src/index.js";
 import { entityRevisionSchema, offerRevisionSchema, programRevisionSchema, } from "../../../contracts/revisions/src/index.js";
@@ -172,6 +173,8 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
     claim_evaluations: z.array(claimEvaluationSchema).min(1).max(8),
     sources: z.array(sourceEvaluationSchema).min(1).max(32),
     conflicts: z.array(conflictSchema).max(64),
+    /** A new company's standing binding, from Sourcey's company gate; absent in earlier inputs. */
+    company_admission: companyAdmissionBindingSchema.optional(),
     asset: z
         .object({
         kind: z.enum(["sourcey_monogram", "vendor_asset"]),
@@ -236,6 +239,7 @@ const startupCreditsAdmissionCandidateFieldsSchema = startupCreditsMachineAdmiss
     claim_evaluations: true,
     sources: true,
     conflicts: true,
+    company_admission: true,
     asset: true,
 })
     .strict();
@@ -276,6 +280,9 @@ export const startupCreditsMachineAdmissionReasonSchema = z.enum([
     "claim_contradicted",
     "exact_conflict",
     "ambiguous_conflict",
+    "company_verification_required",
+    "company_correction_required",
+    "company_standing_unavailable",
     "safe_asset_required",
     "vendor_asset_requires_authority_review",
 ]);
