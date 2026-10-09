@@ -32,7 +32,6 @@ export const PUBLICATION_STAGES = [
     "validation",
     "evidence",
     "identity",
-    "content",
     "readiness",
     "authorization",
     "publication",
