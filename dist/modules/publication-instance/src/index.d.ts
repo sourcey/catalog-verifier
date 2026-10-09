@@ -346,6 +346,43 @@ export declare const sourceyReleaseEnvelope: Readonly<{
         };
         readonly files: ReadonlyMap<string, Buffer>;
     };
+    verifyBundle(bundleBytes: Buffer): {
+        bundle_contract: string;
+        admitted_input_digests: string[];
+        verifier_digest: string;
+        object_manifest_digest: string;
+        release: {
+            descriptor_contract: string;
+            snapshot_core: {
+                snapshot_contract: string;
+                release_sequence: number;
+                compiler_version: string;
+                artifact_contract: string;
+                input_set_digest: string;
+                artifact_digest: string;
+                resource_digests: Record<string, string>;
+                root_set_digest: string;
+                signer_registry_digest: string;
+                trust_transition_digest: string | null;
+                policy_as_of: string;
+            };
+            snapshot_id: string;
+            release_core: {
+                release_contract: string;
+                release_sequence: number;
+                snapshot_id: string;
+                parent_release_id: string | null;
+                diff_digest: string;
+            };
+            release_id: string;
+        };
+        resource_digests: Record<string, string>;
+        files: Record<string, {
+            sha256: string;
+            bytes: number;
+        }>;
+        bundle_digest: string;
+    };
     verify(releaseFiles: ReadonlyMap<string, Buffer>): Readonly<{
         bundle: {
             bundle_contract: string;

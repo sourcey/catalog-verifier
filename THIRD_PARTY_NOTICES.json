@@ -37,10 +37,10 @@
     },
     {
       "name": "provenry",
-      "version": "0.2.0",
+      "version": "0.2.1",
       "license": "MIT",
-      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.2.0.tgz",
-      "integrity": "sha512-+Z2o6BLUf1NqkunyjtzZrgqo3/th81qPM44RnxdfUhJOwb4Q2zWnMWM7E47GGj9JCYyCQ5IuROiWI5tcwNG1UQ==",
+      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.2.1.tgz",
+      "integrity": "sha512-3qpNxUpQ8CxsaD8YrYj7z6Le/YGdM1fpx4gVwWJBOBhlYosEAExGYIvXNBpRJ6jEU6MisAj70LNK5LEIJBGypA==",
       "lock_path": "node_modules/provenry",
       "license_files": [
         {
