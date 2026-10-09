@@ -32,6 +32,16 @@ const agentReadinessCanonicalPathInputSchema = z
 })
     .strict();
 const entityIconCurrentPathInputSchema = z.object({ entity_id: entityId }).strict();
+const pullRequestJourneySchema = z
+    .object({
+    repository: z.string().regex(/^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/u),
+    pull_request_number: z.number().int().min(1).max(Number.MAX_SAFE_INTEGER),
+    head_sha: z
+        .string()
+        .regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u)
+        .nullable(),
+})
+    .strict();
 export function catalogCanonicalPath() {
     return "/companies";
 }
@@ -160,6 +170,32 @@ export function parseEntityIconCurrentPath(path) {
     if (!match?.[1])
         return null;
     const parsed = entityIconCurrentPathInputSchema.safeParse({ entity_id: match[1] });
+    return parsed.success ? parsed.data : null;
+}
+/**
+ * Sourcey's page for a data repository's pull request, from its check to its result. A link from
+ * the pull request's own check or notice names the head it was made for; one from a checkout or
+ * an account may not.
+ */
+export function pullRequestJourneyPath(input) {
+    if (!input)
+        return "/submit/pull-request";
+    const parsed = pullRequestJourneySchema.parse({ ...input, head_sha: input.head_sha ?? null });
+    // Every character the schema admits stands for itself in a query, so the link is written with no
+    // escapes and reads back exactly as written wherever it is stored, as a GitHub check's link is.
+    const head = parsed.head_sha ? `&head=${parsed.head_sha}` : "";
+    return `${pullRequestJourneyPath()}?repository=${parsed.repository}&pull=${parsed.pull_request_number}${head}`;
+}
+/** The pull request a journey link names, or null when it does not name one exactly. */
+export function parsePullRequestJourneyQuery(search) {
+    const pull = search.get("pull") ?? "";
+    if (!/^[1-9][0-9]{0,15}$/u.test(pull))
+        return null;
+    const parsed = pullRequestJourneySchema.safeParse({
+        repository: search.get("repository") ?? "",
+        pull_request_number: Number(pull),
+        head_sha: search.get("head"),
+    });
     return parsed.success ? parsed.data : null;
 }
 export function jsonTwinPath(canonicalPath) {
