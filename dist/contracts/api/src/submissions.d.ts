@@ -219,6 +219,7 @@ export declare const submissionRequestSchema: z.ZodDiscriminatedUnion<[z.ZodObje
                         call: z.ZodString;
                         source: z.ZodEnum<{
                             json: "json";
+                            request: "request";
                             stream: "stream";
                         }>;
                         pointer: z.ZodString;

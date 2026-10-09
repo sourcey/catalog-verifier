@@ -3,6 +3,7 @@ import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { gitComparisonBase } from "provenry/git";
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
+import { ZodError } from "zod";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
 import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
@@ -35,9 +36,7 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
     const paths = await Promise.all(pathStatuses.map(async ({ status, path }) => {
         const file = path.slice("entities/".length);
         const [base, head] = await Promise.all([
-            status === "added"
-                ? null
-                : readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, comparisonBase, file),
+            status === "added" ? null : readBaseBlob(repositoryRoot, comparisonBase, file),
             status === "removed"
                 ? null
                 : readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, headRevision, file),
@@ -212,6 +211,23 @@ async function resolveOptionalGitObject(repositoryRoot, revision) {
         if (candidate.code === 128 && candidate.stderr?.includes("exists on disk, but not in")) {
             return null;
         }
+        throw error;
+    }
+}
+/**
+ * The base is historical authoring, and a contributor must be able to bring
+ * its head onto the current contract. Bytes the current contract cannot read
+ * yield no base: the head reads as adding every declaration it makes, and
+ * admission sends a modified file with no readable base to a person, since
+ * what it stopped declaring cannot be read from it.
+ */
+async function readBaseBlob(repositoryRoot, revision, file) {
+    try {
+        return await readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, revision, file);
+    }
+    catch (error) {
+        if (error instanceof ZodError)
+            return null;
         throw error;
     }
 }

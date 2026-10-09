@@ -47,6 +47,7 @@ const agentReadinessJobAssertionSchema = z
         "tool_called",
         "resource_created",
         "resource_read_back",
+        "resource_found_by_query",
         "message_accepted",
         "sink_received",
     ]),

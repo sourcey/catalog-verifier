@@ -91,6 +91,7 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
                     call: z.ZodString;
                     source: z.ZodEnum<{
                         json: "json";
+                        request: "request";
                         stream: "stream";
                     }>;
                     pointer: z.ZodString;

@@ -1,10 +1,12 @@
-import { agentReadinessBindingCalls, agentReadinessJsonTemplates, agentReadinessTemplateReferences, } from "../../../contracts/agent-readiness/src/index.js";
-import { agentReadinessAssertionProof } from "./assertions.js";
+import { agentReadinessBindingCalls, agentReadinessCallTemplates, agentReadinessRequestTemplate, agentReadinessTemplateReferences, } from "../../../contracts/agent-readiness/src/index.js";
+import { agentReadinessAssertionProof, OBSERVED_CALL_METHODS } from "./assertions.js";
+import { valueAtPointer } from "./templates.js";
 /**
  * Why a binding cannot perform its library job, or nothing. A binding maps
  * every library observation exactly once, reads only the job's inputs and sinks,
- * and cleans up when the job is consequential. Whether its calls stay on its
- * declared surface is the declaration's own rule, checked where it is parsed.
+ * places the run's nonce wherever it locates a request observation, and cleans
+ * up when the job is consequential. Whether its calls stay on its declared
+ * surface is the declaration's own rule, checked where it is parsed.
  */
 export function agentReadinessBindingIssues(input) {
     const { job, binding } = input;
@@ -20,6 +22,10 @@ export function agentReadinessBindingIssues(input) {
             issues.push(`Assertion ${name} is not one of ${job.job_id}'s.`);
     }
     const calls = new Map(binding.calls.map((call) => [call.call_id, call]));
+    const nonces = new Set([
+        "{{run.nonce}}",
+        ...job.inputs.flatMap(({ kind, name }) => (kind === "nonce" ? [`{{input.${name}}}`] : [])),
+    ]);
     for (const assertion of job.assertions) {
         const located = binding.assertions.find(({ assertion: name }) => name === assertion.name);
         if (!located)
@@ -36,10 +42,15 @@ export function agentReadinessBindingIssues(input) {
                 issues.push(`Assertion ${assertion.name}'s ${required.name} must read ${required.source}.`);
             }
             const call = calls.get(observed.call);
-            if (call?.kind === "http" && required.method) {
-                const read = call.method === "GET" || call.method === "HEAD";
-                if (read !== (required.method === "read")) {
-                    issues.push(`Assertion ${assertion.name}'s ${required.name} needs a ${required.method} call.`);
+            if (call?.kind === "http" &&
+                required.method &&
+                !OBSERVED_CALL_METHODS[required.method].includes(call.method)) {
+                issues.push(`Assertion ${assertion.name}'s ${required.name} needs a ${required.method} call.`);
+            }
+            if (call && required.source === "request" && observed.source === "request") {
+                const template = valueAtPointer(agentReadinessRequestTemplate(call), observed.pointer);
+                if (typeof template !== "string" || !nonces.has(template)) {
+                    issues.push(`Assertion ${assertion.name}'s ${required.name} must locate the run's nonce in the request.`);
                 }
             }
         }
@@ -60,6 +71,14 @@ export function agentReadinessBindingIssues(input) {
             if (a && b && a.call === b.call)
                 issues.push(`Assertion ${assertion.name}'s ${left} and ${right} must read different calls.`);
         }
+        for (const [left, right] of proof.independentCall ?? []) {
+            const a = observations.get(left);
+            const b = observations.get(right);
+            const sent = a && calls.get(a.call);
+            const reads = (template) => agentReadinessTemplateReferences(template)?.some((reference) => reference.kind === "call" && reference.callId === b?.call);
+            if (b && sent && agentReadinessCallTemplates(sent).some(reads))
+                issues.push(`Assertion ${assertion.name}'s ${left} must not read ${right}'s call.`);
+        }
     }
     for (const { from, to } of job.observation_links) {
         const locate = (reference) => binding.assertions
@@ -73,19 +92,7 @@ export function agentReadinessBindingIssues(input) {
     }
     const values = new Set(job.inputs.filter(({ kind }) => kind !== "sink").map(({ name }) => name));
     const sinks = new Set(job.inputs.filter(({ kind }) => kind === "sink").map(({ name }) => name));
-    const templates = [];
-    for (const { call } of agentReadinessBindingCalls(binding)) {
-        if (call.kind === "http") {
-            templates.push(call.url, ...call.headers.map(({ value }) => value), ...(call.body === null
-                ? []
-                : call.body.media_type === "application/json"
-                    ? agentReadinessJsonTemplates(call.body.json)
-                    : call.body.form.map(({ value }) => value)));
-        }
-        else {
-            templates.push(...agentReadinessJsonTemplates(call.arguments));
-        }
-    }
+    const templates = agentReadinessBindingCalls(binding).flatMap(({ call }) => agentReadinessCallTemplates(call));
     for (const template of templates) {
         for (const reference of agentReadinessTemplateReferences(template) ?? []) {
             if (reference.kind === "input" && !values.has(reference.name)) {
