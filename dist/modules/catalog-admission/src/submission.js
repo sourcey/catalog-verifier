@@ -19,8 +19,7 @@ export function catalogSubmissionAwaitingReviewResult(input) {
             stage,
             status: stage === "validation"
                 ? "passed"
-                : (stage === "evidence" || stage === "content") &&
-                    workItem.request.authoring_files.length === 0
+                : stage === "evidence" && workItem.request.authoring_files.length === 0
                     ? "not_required"
                     : "pending",
             diagnostics: stage === "authorization" && workItem.operator_admission
@@ -301,13 +300,9 @@ function submissionStages(planned, state) {
             diagnostics: [],
         },
         {
-            stage: "content",
-            status: requiredStage(affectedDomains.has("content")),
-            diagnostics: [],
-        },
-        {
             stage: "readiness",
-            status: requiredStage(affectedDomains.has("readiness")),
+            status: requiredStage(affectedDomains.has("agent-readiness") ||
+                affectedDomains.has("agent-readiness-offer-relation")),
             diagnostics: [],
         },
         {

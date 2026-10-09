@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { type PayableProductDescriptor } from "../../startup-credits-commercial/src/index.js";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.6";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.7";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -15233,7 +15233,7 @@ declare const agentReadinessOfferRelationListQuerySchema: z.ZodObject<{
     cursor: z.ZodOptional<z.ZodString>;
     limit: z.ZodDefault<z.ZodCoercedNumber<unknown>>;
 }, z.core.$strict>;
-export declare const CATALOG_SUBMISSION_STAGES: readonly ["validation", "evidence", "identity", "content", "readiness", "authorization", "publication", "readback"];
+export declare const CATALOG_SUBMISSION_STAGES: readonly ["validation", "evidence", "identity", "readiness", "authorization", "publication", "readback"];
 export declare const catalogSubmissionAuthoringFileSchema: z.ZodObject<{
     path: z.ZodString;
     content: z.ZodString;
@@ -16749,7 +16749,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
     stages: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -16767,7 +16766,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
         diagnostics: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -16786,7 +16784,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
         closure_cardinality: z.ZodNumber;
         stages_invoked: z.ZodArray<z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -16813,7 +16810,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
     stages: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -16831,7 +16827,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
         diagnostics: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -16850,7 +16845,6 @@ export declare const catalogSubmissionProcessingResultSchema: z.ZodDiscriminated
         closure_cardinality: z.ZodNumber;
         stages_invoked: z.ZodArray<z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -16894,7 +16888,6 @@ export declare const catalogSubmissionStatusSchema: z.ZodObject<{
     stages: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -16912,7 +16905,6 @@ export declare const catalogSubmissionStatusSchema: z.ZodObject<{
         diagnostics: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -16932,7 +16924,6 @@ export declare const catalogSubmissionStatusSchema: z.ZodObject<{
         closure_cardinality: z.ZodNumber;
         stages_invoked: z.ZodArray<z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -17019,7 +17010,6 @@ export declare const submissionStatusSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
     stages: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -17037,7 +17027,6 @@ export declare const submissionStatusSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
         diagnostics: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -17057,7 +17046,6 @@ export declare const submissionStatusSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
         closure_cardinality: z.ZodNumber;
         stages_invoked: z.ZodArray<z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
@@ -17142,7 +17130,6 @@ export declare const submissionResponseSchema: z.ZodObject<{
         stages: z.ZodArray<z.ZodObject<{
             stage: z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -17160,7 +17147,6 @@ export declare const submissionResponseSchema: z.ZodObject<{
             diagnostics: z.ZodArray<z.ZodObject<{
                 stage: z.ZodEnum<{
                     authorization: "authorization";
-                    content: "content";
                     evidence: "evidence";
                     identity: "identity";
                     publication: "publication";
@@ -17180,7 +17166,6 @@ export declare const submissionResponseSchema: z.ZodObject<{
             closure_cardinality: z.ZodNumber;
             stages_invoked: z.ZodArray<z.ZodEnum<{
                 authorization: "authorization";
-                content: "content";
                 evidence: "evidence";
                 identity: "identity";
                 publication: "publication";
@@ -36009,7 +35994,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 stages: z.ZodArray<z.ZodObject<{
                     stage: z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -36027,7 +36011,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     diagnostics: z.ZodArray<z.ZodObject<{
                         stage: z.ZodEnum<{
                             authorization: "authorization";
-                            content: "content";
                             evidence: "evidence";
                             identity: "identity";
                             publication: "publication";
@@ -36047,7 +36030,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     closure_cardinality: z.ZodNumber;
                     stages_invoked: z.ZodArray<z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -36275,7 +36257,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 stages: z.ZodArray<z.ZodObject<{
                     stage: z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -36293,7 +36274,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     diagnostics: z.ZodArray<z.ZodObject<{
                         stage: z.ZodEnum<{
                             authorization: "authorization";
-                            content: "content";
                             evidence: "evidence";
                             identity: "identity";
                             publication: "publication";
@@ -36313,7 +36293,6 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     closure_cardinality: z.ZodNumber;
                     stages_invoked: z.ZodArray<z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -57673,7 +57652,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 stages: z.ZodArray<z.ZodObject<{
                     stage: z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -57691,7 +57669,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     diagnostics: z.ZodArray<z.ZodObject<{
                         stage: z.ZodEnum<{
                             authorization: "authorization";
-                            content: "content";
                             evidence: "evidence";
                             identity: "identity";
                             publication: "publication";
@@ -57711,7 +57688,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     closure_cardinality: z.ZodNumber;
                     stages_invoked: z.ZodArray<z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -57939,7 +57915,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 stages: z.ZodArray<z.ZodObject<{
                     stage: z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";
@@ -57957,7 +57932,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     diagnostics: z.ZodArray<z.ZodObject<{
                         stage: z.ZodEnum<{
                             authorization: "authorization";
-                            content: "content";
                             evidence: "evidence";
                             identity: "identity";
                             publication: "publication";
@@ -57977,7 +57951,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     closure_cardinality: z.ZodNumber;
                     stages_invoked: z.ZodArray<z.ZodEnum<{
                         authorization: "authorization";
-                        content: "content";
                         evidence: "evidence";
                         identity: "identity";
                         publication: "publication";

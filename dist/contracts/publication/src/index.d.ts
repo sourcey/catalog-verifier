@@ -15,11 +15,10 @@ export declare const catalogGitSyncResultSchema: z.ZodDiscriminatedUnion<[z.ZodO
     release_id: z.ZodString;
 }, z.core.$strict>], "status">;
 export type CatalogGitSyncResult = z.infer<typeof catalogGitSyncResultSchema>;
-export declare const PUBLICATION_STAGES: readonly ["validation", "evidence", "identity", "content", "readiness", "authorization", "publication", "readback"];
+export declare const PUBLICATION_STAGES: readonly ["validation", "evidence", "identity", "readiness", "authorization", "publication", "readback"];
 export declare const publicationStageResultSchema: z.ZodObject<{
     stage: z.ZodEnum<{
         authorization: "authorization";
-        content: "content";
         evidence: "evidence";
         identity: "identity";
         publication: "publication";
@@ -37,7 +36,6 @@ export declare const publicationStageResultSchema: z.ZodObject<{
     diagnostics: z.ZodArray<z.ZodObject<{
         stage: z.ZodEnum<{
             authorization: "authorization";
-            content: "content";
             evidence: "evidence";
             identity: "identity";
             publication: "publication";
