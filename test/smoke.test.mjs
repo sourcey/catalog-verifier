@@ -10,6 +10,7 @@ test("the public package exposes both exact contribution criteria sets", () => {
       "startup-credits.changed-closure",
       "startup-credits.taxonomy",
       "startup-credits.identity-context",
+      "startup-credits.sign-off",
     ],
   );
   assert.deepEqual(
@@ -18,6 +19,7 @@ test("the public package exposes both exact contribution criteria sets", () => {
       "agent-readiness.changed-closure",
       "agent-readiness.policy-closure",
       "agent-readiness.identity-context",
+      "agent-readiness.sign-off",
     ],
   );
 });

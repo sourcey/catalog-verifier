@@ -25,6 +25,22 @@ export declare class CatalogVerifierApplication {
         readonly candidate: CatalogAdmissionCandidate;
         readonly identityContext: CatalogVerifierIdentityContextInput;
     }): Promise<CatalogVerifierResult>;
+    /**
+     * The whole public check of one pull request head, as each data repository's validation
+     * workflow runs it: every commit it adds is signed off, the live Catalog is signed under the
+     * root the repository trusts, Sourcey issues the identity context for the exact candidate keys,
+     * and the change closes against that context.
+     */
+    validatePullRequest(input: CatalogVerifierRepositoryInput & {
+        readonly repository: string;
+        readonly pullRequestNumber: number;
+        readonly rootSet: unknown;
+        readonly trustedRootDigest: string;
+        /** Sourcey's API origin, such as https://api.sourcey.com. */
+        readonly api: URL;
+        readonly fetch?: typeof fetch;
+        readonly now?: () => Date;
+    }): Promise<CatalogVerifierResult>;
     createRepositoryIdentityContextRequest(input: CatalogVerifierRepositoryInput & {
         readonly liveParentReleaseId: string;
         readonly candidate: CatalogAdmissionCandidate;
