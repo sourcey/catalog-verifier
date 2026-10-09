@@ -3,6 +3,13 @@ export declare const offerCanonicalPathInputSchema: z.ZodObject<{
     entity_slug: z.ZodString;
     offer_slug: z.ZodString;
 }, z.core.$strict>;
+declare const pullRequestJourneySchema: z.ZodObject<{
+    repository: z.ZodString;
+    pull_request_number: z.ZodNumber;
+    head_sha: z.ZodNullable<z.ZodString>;
+}, z.core.$strict>;
+/** A Sourcey data repository's pull request, and the head a link was made for when it names one. */
+export type PullRequestJourney = z.infer<typeof pullRequestJourneySchema>;
 export declare function catalogCanonicalPath(): string;
 export declare function companiesJsonCanonicalPath(): string;
 export declare function startupCreditsJsonCanonicalPath(): string;
@@ -96,6 +103,18 @@ export declare function entityIconCurrentPath(input: {
 export declare function parseEntityIconCurrentPath(path: string): {
     readonly entity_id: string;
 } | null;
+/**
+ * Sourcey's page for a data repository's pull request, from its check to its result. A link from
+ * the pull request's own check or notice names the head it was made for; one from a checkout or
+ * an account may not.
+ */
+export declare function pullRequestJourneyPath(input?: {
+    readonly repository: string;
+    readonly pull_request_number: number;
+    readonly head_sha?: string | null;
+}): string;
+/** The pull request a journey link names, or null when it does not name one exactly. */
+export declare function parsePullRequestJourneyQuery(search: URLSearchParams): PullRequestJourney | null;
 export declare function jsonTwinPath(canonicalPath: string): string;
 export declare const routeEntrySchema: z.ZodObject<{
     kind: z.ZodEnum<{
@@ -142,4 +161,5 @@ export declare const routeIndexSchema: z.ZodObject<{
 }, z.core.$strict>;
 export type RouteEntry = z.infer<typeof routeEntrySchema>;
 export type RouteIndex = z.infer<typeof routeIndexSchema>;
+export {};
 //# sourceMappingURL=index.d.ts.map

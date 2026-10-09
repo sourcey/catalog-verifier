@@ -724,19 +724,19 @@
     },
     {
       "path": "dist/contracts/routes/src/index.d.ts",
-      "sha256": "sha256:a0ff1cca1309053c65872ddc49316e9cc28a4813df30ad80aa0caa762acd1b4a"
+      "sha256": "sha256:bbee4d9f6bd16c30b10733efcc1024fe3ec84ed0bf8b9861ef16d9b53857c4df"
     },
     {
       "path": "dist/contracts/routes/src/index.d.ts.map",
-      "sha256": "sha256:34f03a6615418f8b684c76f01e11db2ac6b6ef99d3a967df6aca3aa7f0a04d65"
+      "sha256": "sha256:86eb110da40671cafc47db0375e052628aecd6e42126247f245f860de8a750e1"
     },
     {
       "path": "dist/contracts/routes/src/index.js",
-      "sha256": "sha256:0d9048f8e5046bfe7e986ad72be49020ae49e3dcd60696c42a21acc01e6cf390"
+      "sha256": "sha256:53cf0048e1eeac7086d6b07304c5288e50abe1b75d49adc3460fbe8ea3456f22"
     },
     {
       "path": "dist/contracts/routes/src/index.js.map",
-      "sha256": "sha256:e380f6da78d319d9503537a48728cf2af069c069a92d9027f8644f48dd61115d"
+      "sha256": "sha256:b2f3423ad0e065d0e2d91db7d15b2bde32711eed39312492bcea4eebc13b1343"
     },
     {
       "path": "dist/contracts/sourcey-publication/src/index.d.ts",
@@ -2435,5 +2435,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:198a47f020087266c71a83c87b29f42a43aa7803c6701b5889fba8ec5b8f0390"
+  "closure_digest": "sha256:ac5f365de8ab41ea781ee8b5c41649961861efe3a5ff8e2da5171770490c059d"
 }
