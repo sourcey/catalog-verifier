@@ -23,6 +23,7 @@ export declare const catalogApiErrorResponseSchema: z.ZodObject<{
     artifact_sha256: z.ZodString;
     error: z.ZodObject<{
         code: z.ZodEnum<{
+            already_bought: "already_bought";
             already_verified: "already_verified";
             authentication_required: "authentication_required";
             capability_unavailable: "capability_unavailable";
@@ -17435,6 +17436,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -17467,6 +17469,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -18211,6 +18214,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -18270,6 +18274,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -18978,6 +18983,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19060,6 +19066,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19105,6 +19112,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19137,6 +19145,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19217,6 +19226,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19249,6 +19259,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19933,6 +19944,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -19965,6 +19977,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -20691,6 +20704,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -20740,6 +20754,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -20772,6 +20787,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -21234,6 +21250,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -21266,6 +21283,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -21734,6 +21752,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -21766,6 +21785,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -22459,6 +22479,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -22491,6 +22512,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -23183,6 +23205,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -23215,6 +23238,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -24368,6 +24392,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -24400,6 +24425,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -26139,6 +26165,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27149,6 +27176,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27215,6 +27243,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27247,6 +27276,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27312,6 +27342,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27344,6 +27375,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27402,6 +27434,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27434,6 +27467,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27492,6 +27526,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -27524,6 +27559,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -30098,6 +30134,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -30143,6 +30180,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -30175,6 +30213,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -31597,6 +31636,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -31629,6 +31669,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -33507,6 +33548,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -33586,6 +33628,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -33778,6 +33821,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -33823,6 +33867,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -33855,6 +33900,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -34349,6 +34395,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -34394,6 +34441,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -34426,6 +34474,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -34497,6 +34546,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -34529,6 +34579,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -35042,6 +35093,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -35074,6 +35126,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -35106,6 +35159,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -35138,6 +35192,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36087,6 +36142,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36119,6 +36175,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36151,6 +36208,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36183,6 +36241,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36350,6 +36409,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36382,6 +36442,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36414,6 +36475,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -36446,6 +36508,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37296,6 +37359,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37328,6 +37392,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37360,6 +37425,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37417,6 +37483,7 @@ export declare const agentReadinessHostedDeclarationV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37449,6 +37516,7 @@ export declare const agentReadinessHostedDeclarationV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37655,6 +37723,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37687,6 +37756,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37719,6 +37789,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37751,6 +37822,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37783,6 +37855,7 @@ export declare const catalogVerifierV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37898,6 +37971,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37930,6 +38004,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -37962,6 +38037,427 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "prepareStartupCreditsPullRequestReview";
+    readonly method: "POST";
+    readonly path: "/v1/startup-credits/pull-request-review-preparations";
+    readonly summary: "Prepare Human verification for the company a held pull request adds, at its exact current head.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly body: z.ZodObject<{
+            target: z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                target: z.ZodObject<{
+                    kind: z.ZodLiteral<"git_pull_request">;
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    head_sha: z.ZodString;
+                    expected_purchase_preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                purchase_preview: z.ZodObject<{
+                    preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
+                    product_code: z.ZodLiteral<"startup-offer-human-verification">;
+                    purchase_kind: z.ZodLiteral<"one_off">;
+                    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
+                    price: z.ZodObject<{
+                        currency: z.ZodLiteral<"usd">;
+                        minor_units: z.ZodLiteral<2900>;
+                    }, z.core.$strict>;
+                    work_scope: z.ZodLiteral<"one-entity-one-offer">;
+                    passing_results: z.ZodObject<{
+                        entity_identity: z.ZodObject<{
+                            status: z.ZodLiteral<"verified">;
+                            binding: z.ZodLiteral<"identity-epoch">;
+                        }, z.core.$strict>;
+                        offer_terms: z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            binding: z.ZodLiteral<"exact-offer-revision">;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    service_level: z.ZodObject<{
+                        starts_after: z.ZodLiteral<"settled-payment">;
+                        business_days: z.ZodLiteral<3>;
+                        time_zone: z.ZodLiteral<"Australia/Sydney">;
+                    }, z.core.$strict>;
+                    refunds: z.ZodObject<{
+                        material_misrepresentation_refundable: z.ZodLiteral<false>;
+                        service_level_missed_refundable: z.ZodLiteral<true>;
+                        sourcey_error_refundable: z.ZodLiteral<true>;
+                    }, z.core.$strict>;
+                    disclosure: z.ZodLiteral<"Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+                    policy_bindings: z.ZodObject<{
+                        assurance_method: z.ZodString;
+                        purchase_disclosure: z.ZodString;
+                        service: z.ZodString;
+                    }, z.core.$strict>;
+                    preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                offer: z.ZodObject<{
+                    kind: z.ZodLiteral<"git_pull_request">;
+                    base_release_id: z.ZodString;
+                    entity_id: z.ZodString;
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    pull_request: z.ZodObject<{
+                        repository_id: z.ZodString;
+                        repository: z.ZodString;
+                        pull_request_number: z.ZodNumber;
+                        submission_id: z.ZodString;
+                        head_sha: z.ZodString;
+                    }, z.core.$strict>;
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    authoring_digest: z.ZodString;
+                    revisions: z.ZodObject<{
+                        entity_revision_digest: z.ZodString;
+                        offer_revision_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    labels: z.ZodObject<{
+                        company_name: z.ZodString;
+                        company_site_url: z.ZodURL;
+                        offer_title: z.ZodString;
+                        offer_url: z.ZodURL;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 409: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsPullRequest";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/pull-requests";
+    readonly summary: "Read where one Startup Credits pull request stands: its checks, and its company verification.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly query: z.ZodObject<{
+            repository: z.ZodString;
+            pull: z.ZodCoercedNumber<unknown>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                pull_request: z.ZodObject<{
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    url: z.ZodURL;
+                    state: z.ZodEnum<{
+                        closed: "closed";
+                        merged: "merged";
+                        open: "open";
+                    }>;
+                    head_sha: z.ZodNullable<z.ZodString>;
+                }, z.core.$strict>;
+                result: z.ZodNullable<z.ZodObject<{
+                    summary_contract: z.ZodLiteral<"sourcey.pull-request-admission-summary/v1alpha1">;
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    head_sha: z.ZodString;
+                    state: z.ZodEnum<{
+                        needs_change: "needs_change";
+                        needs_person: "needs_person";
+                        passed: "passed";
+                        refused: "refused";
+                        verification_offered: "verification_offered";
+                        verification_refused: "verification_refused";
+                        verifying: "verifying";
+                    }>;
+                    title: z.ZodString;
+                    lead: z.ZodString;
+                    company: z.ZodNullable<z.ZodString>;
+                    checks: z.ZodArray<z.ZodObject<{
+                        key: z.ZodEnum<{
+                            admission: "admission";
+                            company: "company";
+                            conflicts: "conflicts";
+                            facts: "facts";
+                            files: "files";
+                            logo: "logo";
+                            review: "review";
+                            sources: "sources";
+                            standing: "standing";
+                            verification: "verification";
+                        }>;
+                        status: z.ZodEnum<{
+                            attention: "attention";
+                            failed: "failed";
+                            passed: "passed";
+                            pending: "pending";
+                        }>;
+                        title: z.ZodString;
+                        details: z.ZodArray<z.ZodObject<{
+                            text: z.ZodString;
+                            path: z.ZodNullable<z.ZodString>;
+                            url: z.ZodNullable<z.ZodURL>;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                    standing: z.ZodNullable<z.ZodObject<{
+                        evaluated_at: z.ZodISODateTime;
+                        rule: z.ZodString;
+                        criteria: z.ZodArray<z.ZodObject<{
+                            key: z.ZodEnum<{
+                                certificate_age: "certificate_age";
+                                domain_age: "domain_age";
+                                mx: "mx";
+                                reach: "reach";
+                                source: "source";
+                            }>;
+                            label: z.ZodString;
+                            value: z.ZodString;
+                            requirement: z.ZodString;
+                            met: z.ZodNullable<z.ZodBoolean>;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                    report_url: z.ZodNullable<z.ZodURL>;
+                }, z.core.$strict>>;
+                checking: z.ZodBoolean;
+                verification: z.ZodNullable<z.ZodObject<{
+                    phase: z.ZodEnum<{
+                        approved: "approved";
+                        checkout_open: "checkout_open";
+                        paid: "paid";
+                        refunded: "refunded";
+                        refunding: "refunding";
+                        refused: "refused";
+                    }>;
+                    company: z.ZodString;
+                    reviewed_head_sha: z.ZodNullable<z.ZodString>;
+                    checkout_expires_at: z.ZodNullable<z.ZodISODateTime>;
+                    due_at: z.ZodNullable<z.ZodISODateTime>;
+                    finding: z.ZodNullable<z.ZodString>;
+                    refund_reason: z.ZodNullable<z.ZodString>;
+                }, z.core.$strict>>;
+                purchase: z.ZodNullable<z.ZodObject<{
+                    order_id: z.ZodString;
+                    checkout_url: z.ZodNullable<z.ZodURL>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38077,6 +38573,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 offer_id: string;
                 offer_revision_digest: string;
                 expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
+                expected_purchase_preview_digest: string;
             };
         } | {
             request_id: string;
@@ -38088,6 +38590,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 entity_revision_digest: string;
                 offer_id: string;
                 offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
                 expected_purchase_preview_digest: string;
             } | {
                 kind: "new_listing";
@@ -38268,6 +38776,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 offer_id: z.ZodString;
                 offer_revision_digest: z.ZodString;
                 expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>, z.ZodObject<{
             request_id: z.ZodString;
@@ -38357,6 +38871,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 offer_id: z.ZodString;
                 offer_revision_digest: z.ZodString;
                 expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
             }, z.core.$strict>], "kind">;
             replaces_intent: z.ZodOptional<z.ZodObject<{
                 intent_id: z.ZodString;
@@ -38409,6 +38929,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38441,6 +38962,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38473,6 +38995,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38505,6 +39028,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38613,6 +39137,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 offer_id: string;
                 offer_revision_digest: string;
                 expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
+                expected_purchase_preview_digest: string;
             };
         } | {
             request_id: string;
@@ -38624,6 +39154,12 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                 entity_revision_digest: string;
                 offer_id: string;
                 offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
                 expected_purchase_preview_digest: string;
             } | {
                 kind: "new_listing";
@@ -38770,6 +39306,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38802,6 +39339,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38834,6 +39372,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38917,6 +39456,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38949,6 +39489,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -38981,6 +39522,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -39095,6 +39637,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -39127,6 +39670,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -39871,6 +40415,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -39930,6 +40475,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40638,6 +41184,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40720,6 +41267,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40765,6 +41313,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40797,6 +41346,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40877,6 +41427,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -40909,6 +41460,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -41593,6 +42145,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -41625,6 +42178,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -42351,6 +42905,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -42400,6 +42955,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -42432,6 +42988,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -42894,6 +43451,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -42926,6 +43484,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -43394,6 +43953,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -43426,6 +43986,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -44119,6 +44680,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -44151,6 +44713,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -44843,6 +45406,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -44875,6 +45439,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -46028,6 +46593,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -46060,6 +46626,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -47799,6 +48366,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -48809,6 +49377,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -48875,6 +49444,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -48907,6 +49477,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -48972,6 +49543,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -49004,6 +49576,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -49062,6 +49635,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -49094,6 +49668,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -49152,6 +49727,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -49184,6 +49760,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -51758,6 +52335,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -51803,6 +52381,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -51835,6 +52414,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -53257,6 +53837,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -53289,6 +53870,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -55167,6 +55749,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -55246,6 +55829,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -55438,6 +56022,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -55483,6 +56068,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -55515,6 +56101,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56009,6 +56596,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56054,6 +56642,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56086,6 +56675,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56157,6 +56747,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56189,6 +56780,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56700,6 +57292,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56732,6 +57325,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56764,6 +57358,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -56796,6 +57391,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -57745,6 +58341,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -57777,6 +58374,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -57809,6 +58407,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -57841,6 +58440,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58008,6 +58608,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58040,6 +58641,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58072,6 +58674,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58104,6 +58707,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58952,6 +59556,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -58984,6 +59589,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59016,6 +59622,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59071,6 +59678,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59103,6 +59711,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59307,6 +59916,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59339,6 +59949,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59371,6 +59982,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59403,6 +60015,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59435,6 +60048,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59548,6 +60162,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59580,6 +60195,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59612,6 +60228,427 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "prepareStartupCreditsPullRequestReview";
+    readonly method: "POST";
+    readonly path: "/v1/startup-credits/pull-request-review-preparations";
+    readonly summary: "Prepare Human verification for the company a held pull request adds, at its exact current head.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly body: z.ZodObject<{
+            target: z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                target: z.ZodObject<{
+                    kind: z.ZodLiteral<"git_pull_request">;
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    head_sha: z.ZodString;
+                    expected_purchase_preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                purchase_preview: z.ZodObject<{
+                    preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
+                    product_code: z.ZodLiteral<"startup-offer-human-verification">;
+                    purchase_kind: z.ZodLiteral<"one_off">;
+                    price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
+                    price: z.ZodObject<{
+                        currency: z.ZodLiteral<"usd">;
+                        minor_units: z.ZodLiteral<2900>;
+                    }, z.core.$strict>;
+                    work_scope: z.ZodLiteral<"one-entity-one-offer">;
+                    passing_results: z.ZodObject<{
+                        entity_identity: z.ZodObject<{
+                            status: z.ZodLiteral<"verified">;
+                            binding: z.ZodLiteral<"identity-epoch">;
+                        }, z.core.$strict>;
+                        offer_terms: z.ZodObject<{
+                            status: z.ZodLiteral<"checked">;
+                            binding: z.ZodLiteral<"exact-offer-revision">;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>;
+                    service_level: z.ZodObject<{
+                        starts_after: z.ZodLiteral<"settled-payment">;
+                        business_days: z.ZodLiteral<3>;
+                        time_zone: z.ZodLiteral<"Australia/Sydney">;
+                    }, z.core.$strict>;
+                    refunds: z.ZodObject<{
+                        material_misrepresentation_refundable: z.ZodLiteral<false>;
+                        service_level_missed_refundable: z.ZodLiteral<true>;
+                        sourcey_error_refundable: z.ZodLiteral<true>;
+                    }, z.core.$strict>;
+                    disclosure: z.ZodLiteral<"Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+                    policy_bindings: z.ZodObject<{
+                        assurance_method: z.ZodString;
+                        purchase_disclosure: z.ZodString;
+                        service: z.ZodString;
+                    }, z.core.$strict>;
+                    preview_digest: z.ZodString;
+                }, z.core.$strict>;
+                offer: z.ZodObject<{
+                    kind: z.ZodLiteral<"git_pull_request">;
+                    base_release_id: z.ZodString;
+                    entity_id: z.ZodString;
+                    program_id: z.ZodOptional<z.ZodString>;
+                    offer_id: z.ZodString;
+                    pull_request: z.ZodObject<{
+                        repository_id: z.ZodString;
+                        repository: z.ZodString;
+                        pull_request_number: z.ZodNumber;
+                        submission_id: z.ZodString;
+                        head_sha: z.ZodString;
+                    }, z.core.$strict>;
+                    standing_result: z.ZodObject<{
+                        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                        policy_digest: z.ZodString;
+                        evidence_digest: z.ZodString;
+                        registrable_domain: z.ZodString;
+                        official_source_url: z.ZodURL;
+                        route: z.ZodEnum<{
+                            correction_required: "correction_required";
+                            free_machine_review: "free_machine_review";
+                            human_verification_required: "human_verification_required";
+                            repair_required: "repair_required";
+                            temporarily_unavailable: "temporarily_unavailable";
+                        }>;
+                        reasons: z.ZodArray<z.ZodString>;
+                        evaluated_at: z.ZodISODateTime;
+                        expires_at: z.ZodISODateTime;
+                        result_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    authoring_digest: z.ZodString;
+                    revisions: z.ZodObject<{
+                        entity_revision_digest: z.ZodString;
+                        offer_revision_digest: z.ZodString;
+                    }, z.core.$strict>;
+                    labels: z.ZodObject<{
+                        company_name: z.ZodString;
+                        company_site_url: z.ZodURL;
+                        offer_title: z.ZodString;
+                        offer_url: z.ZodURL;
+                    }, z.core.$strict>;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 409: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    };
+}, {
+    readonly operationId: "getStartupCreditsPullRequest";
+    readonly method: "GET";
+    readonly path: "/v1/startup-credits/pull-requests";
+    readonly summary: "Read where one Startup Credits pull request stands: its checks, and its company verification.";
+    readonly tags: readonly ["Catalog"];
+    readonly request: {
+        readonly query: z.ZodObject<{
+            repository: z.ZodString;
+            pull: z.ZodCoercedNumber<unknown>;
+        }, z.core.$strict>;
+    };
+    readonly responses: {
+        readonly 200: z.ZodObject<{
+            data: z.ZodObject<{
+                pull_request: z.ZodObject<{
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    url: z.ZodURL;
+                    state: z.ZodEnum<{
+                        closed: "closed";
+                        merged: "merged";
+                        open: "open";
+                    }>;
+                    head_sha: z.ZodNullable<z.ZodString>;
+                }, z.core.$strict>;
+                result: z.ZodNullable<z.ZodObject<{
+                    summary_contract: z.ZodLiteral<"sourcey.pull-request-admission-summary/v1alpha1">;
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    head_sha: z.ZodString;
+                    state: z.ZodEnum<{
+                        needs_change: "needs_change";
+                        needs_person: "needs_person";
+                        passed: "passed";
+                        refused: "refused";
+                        verification_offered: "verification_offered";
+                        verification_refused: "verification_refused";
+                        verifying: "verifying";
+                    }>;
+                    title: z.ZodString;
+                    lead: z.ZodString;
+                    company: z.ZodNullable<z.ZodString>;
+                    checks: z.ZodArray<z.ZodObject<{
+                        key: z.ZodEnum<{
+                            admission: "admission";
+                            company: "company";
+                            conflicts: "conflicts";
+                            facts: "facts";
+                            files: "files";
+                            logo: "logo";
+                            review: "review";
+                            sources: "sources";
+                            standing: "standing";
+                            verification: "verification";
+                        }>;
+                        status: z.ZodEnum<{
+                            attention: "attention";
+                            failed: "failed";
+                            passed: "passed";
+                            pending: "pending";
+                        }>;
+                        title: z.ZodString;
+                        details: z.ZodArray<z.ZodObject<{
+                            text: z.ZodString;
+                            path: z.ZodNullable<z.ZodString>;
+                            url: z.ZodNullable<z.ZodURL>;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                    standing: z.ZodNullable<z.ZodObject<{
+                        evaluated_at: z.ZodISODateTime;
+                        rule: z.ZodString;
+                        criteria: z.ZodArray<z.ZodObject<{
+                            key: z.ZodEnum<{
+                                certificate_age: "certificate_age";
+                                domain_age: "domain_age";
+                                mx: "mx";
+                                reach: "reach";
+                                source: "source";
+                            }>;
+                            label: z.ZodString;
+                            value: z.ZodString;
+                            requirement: z.ZodString;
+                            met: z.ZodNullable<z.ZodBoolean>;
+                        }, z.core.$strict>>;
+                    }, z.core.$strict>>;
+                    report_url: z.ZodNullable<z.ZodURL>;
+                }, z.core.$strict>>;
+                checking: z.ZodBoolean;
+                verification: z.ZodNullable<z.ZodObject<{
+                    phase: z.ZodEnum<{
+                        approved: "approved";
+                        checkout_open: "checkout_open";
+                        paid: "paid";
+                        refunded: "refunded";
+                        refunding: "refunding";
+                        refused: "refused";
+                    }>;
+                    company: z.ZodString;
+                    reviewed_head_sha: z.ZodNullable<z.ZodString>;
+                    checkout_expires_at: z.ZodNullable<z.ZodISODateTime>;
+                    due_at: z.ZodNullable<z.ZodISODateTime>;
+                    finding: z.ZodNullable<z.ZodString>;
+                    refund_reason: z.ZodNullable<z.ZodString>;
+                }, z.core.$strict>>;
+                purchase: z.ZodNullable<z.ZodObject<{
+                    order_id: z.ZodString;
+                    checkout_url: z.ZodNullable<z.ZodURL>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 400: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 404: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
+                    already_verified: "already_verified";
+                    authentication_required: "authentication_required";
+                    capability_unavailable: "capability_unavailable";
+                    capacity_unavailable: "capacity_unavailable";
+                    draft_changed: "draft_changed";
+                    draft_unavailable: "draft_unavailable";
+                    idempotency_conflict: "idempotency_conflict";
+                    insufficient_scope: "insufficient_scope";
+                    internal_error: "internal_error";
+                    invalid_credential: "invalid_credential";
+                    invalid_credential_format: "invalid_credential_format";
+                    invalid_cursor: "invalid_cursor";
+                    invalid_request: "invalid_request";
+                    method_not_allowed: "method_not_allowed";
+                    not_found: "not_found";
+                    payment_pending: "payment_pending";
+                    payment_refused: "payment_refused";
+                    product_unavailable: "product_unavailable";
+                    rate_limited: "rate_limited";
+                    service_unavailable: "service_unavailable";
+                    standing_stale: "standing_stale";
+                }>;
+                message: z.ZodString;
+                capability: z.ZodOptional<z.ZodString>;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        readonly 503: z.ZodObject<{
+            api_contract: z.ZodLiteral<"sourcey.catalog-api/v1">;
+            release_id: z.ZodString;
+            artifact_sha256: z.ZodString;
+            error: z.ZodObject<{
+                code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -59727,6 +60764,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 offer_id: string;
                 offer_revision_digest: string;
                 expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
+                expected_purchase_preview_digest: string;
             };
         } | {
             request_id: string;
@@ -59738,6 +60781,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 entity_revision_digest: string;
                 offer_id: string;
                 offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
                 expected_purchase_preview_digest: string;
             } | {
                 kind: "new_listing";
@@ -59918,6 +60967,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 offer_id: z.ZodString;
                 offer_revision_digest: z.ZodString;
                 expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>, z.ZodObject<{
             request_id: z.ZodString;
@@ -60007,6 +61062,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 offer_id: z.ZodString;
                 offer_revision_digest: z.ZodString;
                 expected_purchase_preview_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"git_pull_request">;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                expected_purchase_preview_digest: z.ZodString;
             }, z.core.$strict>], "kind">;
             replaces_intent: z.ZodOptional<z.ZodObject<{
                 intent_id: z.ZodString;
@@ -60059,6 +61120,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60091,6 +61153,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60123,6 +61186,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60155,6 +61219,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60263,6 +61328,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 offer_id: string;
                 offer_revision_digest: string;
                 expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
+                expected_purchase_preview_digest: string;
             };
         } | {
             request_id: string;
@@ -60274,6 +61345,12 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 entity_revision_digest: string;
                 offer_id: string;
                 offer_revision_digest: string;
+                expected_purchase_preview_digest: string;
+            } | {
+                kind: "git_pull_request";
+                repository: string;
+                pull_request_number: number;
+                head_sha: string;
                 expected_purchase_preview_digest: string;
             } | {
                 kind: "new_listing";
@@ -60420,6 +61497,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60452,6 +61530,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60484,6 +61563,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60567,6 +61647,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60599,6 +61680,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -60631,6 +61713,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             artifact_sha256: z.ZodString;
             error: z.ZodObject<{
                 code: z.ZodEnum<{
+                    already_bought: "already_bought";
                     already_verified: "already_verified";
                     authentication_required: "authentication_required";
                     capability_unavailable: "capability_unavailable";
@@ -61503,6 +62586,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";
@@ -61535,6 +62619,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";
@@ -61567,6 +62652,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";
@@ -61599,6 +62685,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";
@@ -61631,6 +62718,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";
@@ -61663,6 +62751,7 @@ export declare const publicCatalogV1BoundaryErrors: {
         artifact_sha256: z.ZodString;
         error: z.ZodObject<{
             code: z.ZodEnum<{
+                already_bought: "already_bought";
                 already_verified: "already_verified";
                 authentication_required: "authentication_required";
                 capability_unavailable: "capability_unavailable";

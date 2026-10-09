@@ -18,7 +18,7 @@ import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, 
 import { sourceyReleaseEnvelopeSchemas } from "../../release/src/index.js";
 import { catalogRevisionContracts, eligibilityEvaluationSchema, eligibilityFactsSchema, entityRevisionSchema, lifecycleStatusSchema, offerRevisionSchema, programRevisionSchema, } from "../../revisions/src/index.js";
 import { agentReadinessJsonCanonicalPath, companiesJsonCanonicalPath, startupCreditsJsonCanonicalPath, } from "../../routes/src/index.js";
-import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../startup-credits-commercial/src/index.js";
+import { startupCreditsExistingRecordReviewPreparationRequestSchema, startupCreditsExistingRecordReviewPreparationResponseSchema, startupCreditsGitPullRequestReviewPreparationRequestSchema, startupCreditsGitPullRequestReviewPreparationResponseSchema, startupCreditsPullRequestQuerySchema, startupCreditsPullRequestStatusResponseSchema, startupCreditsReviewProductDescriptor, startupCreditsReviewRequestIdSchema, startupCreditsReviewRequestSchema, startupCreditsReviewResponseSchema, } from "../../startup-credits-commercial/src/index.js";
 import { catalogTaxonomySchema } from "../../taxonomy/src/index.js";
 const digest = z.string().regex(DIGEST_PATTERN);
 const nonEmpty = z.string().min(1);
@@ -49,6 +49,7 @@ export const siteRecordEnvelopeSchema = z
 })
     .strict();
 const catalogApiErrorCodeSchema = z.enum([
+    "already_bought",
     "already_verified",
     "authentication_required",
     "capacity_unavailable",
@@ -1399,6 +1400,34 @@ export const startupCreditsReviewV1Endpoints = [
             200: startupCreditsExistingRecordReviewPreparationResponseSchema,
             400: catalogApiErrorResponseSchema,
             409: catalogApiErrorResponseSchema,
+            503: catalogApiErrorResponseSchema,
+        },
+    },
+    {
+        operationId: "prepareStartupCreditsPullRequestReview",
+        method: "POST",
+        path: "/v1/startup-credits/pull-request-review-preparations",
+        summary: "Prepare Human verification for the company a held pull request adds, at its exact current head.",
+        tags: ["Catalog"],
+        request: { body: startupCreditsGitPullRequestReviewPreparationRequestSchema },
+        responses: {
+            200: startupCreditsGitPullRequestReviewPreparationResponseSchema,
+            400: catalogApiErrorResponseSchema,
+            409: catalogApiErrorResponseSchema,
+            503: catalogApiErrorResponseSchema,
+        },
+    },
+    {
+        operationId: "getStartupCreditsPullRequest",
+        method: "GET",
+        path: "/v1/startup-credits/pull-requests",
+        summary: "Read where one Startup Credits pull request stands: its checks, and its company verification.",
+        tags: ["Catalog"],
+        request: { query: startupCreditsPullRequestQuerySchema },
+        responses: {
+            200: startupCreditsPullRequestStatusResponseSchema,
+            400: catalogApiErrorResponseSchema,
+            404: catalogApiErrorResponseSchema,
             503: catalogApiErrorResponseSchema,
         },
     },
