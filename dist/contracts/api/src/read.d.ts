@@ -9540,23 +9540,6 @@ export declare const eventResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -9674,6 +9657,23 @@ export declare const eventResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -9997,23 +9997,6 @@ export declare const eventResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -10131,6 +10114,23 @@ export declare const eventResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -10454,23 +10454,6 @@ export declare const eventResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -10588,6 +10571,23 @@ export declare const eventResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -10917,23 +10917,6 @@ export declare const eventListResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -11051,6 +11034,23 @@ export declare const eventListResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -11374,23 +11374,6 @@ export declare const eventListResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -11508,6 +11491,23 @@ export declare const eventListResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -11831,23 +11831,6 @@ export declare const eventListResponseSchema: z.ZodObject<{
             assurance_kind: z.ZodLiteral<"offer_terms">;
             revision_digest: z.ZodString;
         }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            identity_epoch_digest: z.ZodString;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
-            assurance_id: z.ZodString;
-            reviewer_id: z.ZodString;
-            method_policy_digest: z.ZodString;
-            receipt_digest: z.ZodString;
-            checked_at: z.ZodISODateTime;
-            coverage_policy_digest: z.ZodString;
-            coverage_paths: z.ZodArray<z.ZodString>;
-        }, z.core.$strict> | z.ZodObject<{
             observation_id: z.ZodString;
             capture_attestation_digest: z.ZodOptional<z.ZodString>;
             review_decision: z.ZodOptional<z.ZodObject<{
@@ -11965,6 +11948,23 @@ export declare const eventListResponseSchema: z.ZodObject<{
             verified_paths: z.ZodArray<z.ZodString>;
             coverage_policy_digest: z.ZodString;
             receipt_digest: z.ZodString;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            identity_epoch_digest: z.ZodString;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
+        }, z.core.$strict> | z.ZodObject<{
+            assurance_id: z.ZodString;
+            reviewer_id: z.ZodString;
+            method_policy_digest: z.ZodString;
+            receipt_digest: z.ZodString;
+            checked_at: z.ZodISODateTime;
+            coverage_policy_digest: z.ZodString;
+            coverage_paths: z.ZodArray<z.ZodString>;
         }, z.core.$strict> | z.ZodObject<{
             paths: z.ZodArray<z.ZodString>;
             valid_until: z.ZodISODateTime;
@@ -12679,23 +12679,6 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 assurance_kind: z.ZodLiteral<"offer_terms">;
                 revision_digest: z.ZodString;
             }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                identity_epoch_digest: z.ZodString;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_attestation_digest: z.ZodOptional<z.ZodString>;
                 review_decision: z.ZodOptional<z.ZodObject<{
@@ -12813,6 +12796,23 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 verified_paths: z.ZodArray<z.ZodString>;
                 coverage_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
@@ -13136,23 +13136,6 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 assurance_kind: z.ZodLiteral<"offer_terms">;
                 revision_digest: z.ZodString;
             }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                identity_epoch_digest: z.ZodString;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_attestation_digest: z.ZodOptional<z.ZodString>;
                 review_decision: z.ZodOptional<z.ZodObject<{
@@ -13270,6 +13253,23 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 verified_paths: z.ZodArray<z.ZodString>;
                 coverage_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
@@ -13593,23 +13593,6 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 assurance_kind: z.ZodLiteral<"offer_terms">;
                 revision_digest: z.ZodString;
             }, z.core.$strict>], "assurance_kind"> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                identity_epoch_digest: z.ZodString;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
-                assurance_id: z.ZodString;
-                reviewer_id: z.ZodString;
-                method_policy_digest: z.ZodString;
-                receipt_digest: z.ZodString;
-                checked_at: z.ZodISODateTime;
-                coverage_policy_digest: z.ZodString;
-                coverage_paths: z.ZodArray<z.ZodString>;
-            }, z.core.$strict> | z.ZodObject<{
                 observation_id: z.ZodString;
                 capture_attestation_digest: z.ZodOptional<z.ZodString>;
                 review_decision: z.ZodOptional<z.ZodObject<{
@@ -13727,6 +13710,23 @@ export declare const catalogClosureResponseSchema: z.ZodObject<{
                 verified_paths: z.ZodArray<z.ZodString>;
                 coverage_policy_digest: z.ZodString;
                 receipt_digest: z.ZodString;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                identity_epoch_digest: z.ZodString;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
+            }, z.core.$strict> | z.ZodObject<{
+                assurance_id: z.ZodString;
+                reviewer_id: z.ZodString;
+                method_policy_digest: z.ZodString;
+                receipt_digest: z.ZodString;
+                checked_at: z.ZodISODateTime;
+                coverage_policy_digest: z.ZodString;
+                coverage_paths: z.ZodArray<z.ZodString>;
             }, z.core.$strict> | z.ZodObject<{
                 paths: z.ZodArray<z.ZodString>;
                 valid_until: z.ZodISODateTime;
