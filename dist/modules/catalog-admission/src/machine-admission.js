@@ -13,11 +13,15 @@ const repositorySchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u)
 export const entityPathSchema = z
     .string()
     .regex(/^entities\/[a-z0-9]{2}\/[a-z0-9]+(?:-[a-z0-9]+)*\.yaml$/u);
-export const startupCreditsMachineAdmissionPolicyCoreSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha1"),
+const policyHeaderShape = {
     policy_id: identifierSchema,
     coverage_policy_digest: digestSchema,
+};
+/** The first strict policy: one new company with exactly one observed Offer. */
+const strictOfferPolicyCoreSchema = z
+    .object({
+    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha1"),
+    ...policyHeaderShape,
     scope: z
         .object({
         added_entity_files: z.literal(1),
@@ -30,7 +34,43 @@ export const startupCreditsMachineAdmissionPolicyCoreSchema = z
         .strict(),
 })
     .strict();
-export const startupCreditsMachineAdmissionPolicySchema = startupCreditsMachineAdmissionPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict();
+/** One new company, alone or with exactly one observed Offer; never a Program alone. */
+const strictNewEntityPolicyCoreSchema = z
+    .object({
+    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha2"),
+    ...policyHeaderShape,
+    scope: z
+        .object({
+        added_entity_files: z.literal(1),
+        added_entities: z.literal(1),
+        allowed_changes: z.tuple([
+            z
+                .object({
+                kind: z.literal("entity_only"),
+                added_programs: z.literal(0),
+                added_offers: z.literal(0),
+            })
+                .strict(),
+            z
+                .object({
+                kind: z.literal("observed_offer"),
+                maximum_added_programs: z.literal(1),
+                added_offers: z.literal(1),
+                offer_evidence_basis: z.literal("observed"),
+            })
+                .strict(),
+        ]),
+        unattended_asset_kind: z.literal("sourcey_monogram"),
+    })
+        .strict(),
+})
+    .strict();
+/** Every retained policy keeps its own contract, so a report bound to its digest still verifies. */
+export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [strictOfferPolicyCoreSchema, strictNewEntityPolicyCoreSchema]);
+export const startupCreditsMachineAdmissionPolicySchema = z.discriminatedUnion("policy_contract", [
+    strictOfferPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
+    strictNewEntityPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
+]);
 const changedSubjectSchema = z.discriminatedUnion("kind", [
     z
         .object({
