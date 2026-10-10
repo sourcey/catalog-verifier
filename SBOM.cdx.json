@@ -99,25 +99,25 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/provenry@0.2.1",
+      "bom-ref": "pkg:npm/provenry@0.2.2",
       "name": "provenry",
       "licenses": [
         {
           "expression": "MIT"
         }
       ],
-      "version": "0.2.1",
-      "purl": "pkg:npm/provenry@0.2.1",
+      "version": "0.2.2",
+      "purl": "pkg:npm/provenry@0.2.2",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "deaa4dc54a50f02c6c683f18ad88fbcfa2defd819d3357e9c78815c16241381865628b04004c46608bd7341a5127a8c453a322b008fbd0b34ae4b1082411b2a4"
+          "content": "29f7b712498b45438146dfce8258889f9c120e330c3991a4d4a243f28bed25e572fdbaf13672f6be4226d44d6c54324a60870c34ba7f0a53d1494436d46aceb5"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/provenry/-/provenry-0.2.1.tgz"
+          "url": "https://registry.npmjs.org/provenry/-/provenry-0.2.2.tgz"
         }
       ]
     },
@@ -222,7 +222,7 @@
     {
       "ref": "urn:sourcey:code-distribution:catalog-verifier",
       "dependsOn": [
-        "pkg:npm/provenry@0.2.1",
+        "pkg:npm/provenry@0.2.2",
         "pkg:npm/tldts@7.4.16",
         "pkg:npm/yaml@2.9.1",
         "pkg:npm/zod@4.6.5"
@@ -239,7 +239,7 @@
       ]
     },
     {
-      "ref": "pkg:npm/provenry@0.2.1",
+      "ref": "pkg:npm/provenry@0.2.2",
       "dependsOn": [
         "pkg:npm/parse5@8.0.1",
         "pkg:npm/zod@4.6.5"

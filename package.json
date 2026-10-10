@@ -1,6 +1,6 @@
 {
   "name": "@sourcey/catalog-verifier",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "Validate Sourcey data contributions and verify immutable Sourcey Catalog releases.",
   "keywords": [
     "sourcey",
@@ -52,7 +52,7 @@
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "provenry": "0.2.1",
+    "provenry": "0.2.2",
     "tldts": "7.4.16",
     "yaml": "2.9.1",
     "zod": "4.6.5"

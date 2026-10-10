@@ -1,3 +1,4 @@
+import { evaluateIdentityConflicts } from "provenry/identity";
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { canonicalEntityIdentity, entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
@@ -299,66 +300,37 @@ function uniqueAdmissionKeys(keys) {
         compareCanonicalStrings(left.normalizedValue, right.normalizedValue));
 }
 export function evaluateCatalogAdmissionConflicts(input) {
+    const { candidate } = input;
+    if (input.keys.some((key) => key.kind === "entity_id" && !key.candidateIdentityDigest)) {
+        throw new Error("A Catalog Entity ID admission key must carry its identity digest.");
+    }
+    const catalogMatches = new Map(input.matches.map((match) => [identityConflictMatch(match), match]));
+    const conflicts = evaluateIdentityConflicts({
+        keys: input.keys,
+        matches: [...catalogMatches.keys()],
+        candidate: candidate.kind === "git_pull_request"
+            ? {
+                kind: "pull_request",
+                repository: candidate.repository,
+                pullRequestNumber: candidate.pullRequestNumber,
+                headSha: candidate.headSha,
+            }
+            : {
+                kind: "detached",
+                candidateReference: candidate.candidateReference,
+                candidateDigest: candidate.candidateDigest,
+            },
+        liveParentId: input.liveParentReleaseId,
+    });
     const keys = new Map(input.keys.map((key) => [key.keyDigest, key]));
-    if (keys.size !== input.keys.length) {
-        throw new Error("Catalog admission conflict keys must be unique by digest.");
-    }
-    const grouped = new Map();
-    for (const match of input.matches) {
-        const key = keys.get(match.keyDigest);
-        if (!key)
-            throw new Error("Catalog admission conflict result names an unrequested key.");
-        if (match.source.kind === "current_catalog" &&
-            match.source.liveParentReleaseId !== input.liveParentReleaseId) {
-            throw new Error("Catalog admission conflict result targets another live parent.");
-        }
-        if (match.source.kind === "open_pull_request" &&
-            input.candidate.kind === "git_pull_request" &&
-            match.source.repository === input.candidate.repository) {
-            if (match.source.pullRequestNumber === input.candidate.pullRequestNumber) {
-                if (match.source.headSha !== input.candidate.headSha) {
-                    throw new Error("Catalog admission conflict result includes a stale candidate PR head.");
-                }
-                continue;
-            }
-            // The first open pull request for an identity is the one reviewed. A
-            // later one, whether a duplicate or a copy, cannot hold it back; the
-            // later one still meets this one and waits until it merges or closes.
-            if (match.source.pullRequestNumber > input.candidate.pullRequestNumber)
-                continue;
-        }
-        if (match.source.kind === "pending_submission" &&
-            input.candidate.kind === "detached" &&
-            match.source.candidateReference === input.candidate.candidateReference) {
-            if (match.source.candidateDigest !== input.candidate.candidateDigest) {
-                throw new Error("Catalog admission conflict result includes a rebound detached candidate.");
-            }
-            continue;
-        }
-        if ((match.source.kind === "current_catalog" || match.source.kind === "pending_git_lineage") &&
-            match.targetReference === key.candidateReference) {
-            if (key.kind === "entity_id" && match.targetIdentityDigest !== key.candidateIdentityDigest) {
-                const current = grouped.get(match.keyDigest) ?? [];
-                current.push(match);
-                grouped.set(match.keyDigest, current);
-            }
-            continue;
-        }
-        const current = grouped.get(match.keyDigest) ?? [];
-        current.push(match);
-        grouped.set(match.keyDigest, current);
-    }
-    return [...grouped.entries()]
-        .map(([keyDigest, matches]) => {
+    return conflicts
+        .map(({ keyDigest, matches: held, identityChanged }) => {
         const key = keys.get(keyDigest);
         if (!key)
             throw new Error("Catalog admission conflict key disappeared.");
+        const matches = held.map((match) => catalogMatches.get(match));
         return {
-            kind: key.kind === "entity_id" &&
-                matches.some((match) => (match.source.kind === "current_catalog" ||
-                    match.source.kind === "pending_git_lineage") &&
-                    match.targetReference === key.candidateReference &&
-                    match.targetIdentityDigest !== key.candidateIdentityDigest)
+            kind: key.kind === "entity_id" && identityChanged
                 ? "identity"
                 : matches.some(({ source }) => source.kind === "open_pull_request")
                     ? "open_pull_request"
@@ -375,6 +347,25 @@ export function evaluateCatalogAdmissionConflicts(input) {
     })
         .sort((left, right) => compareCanonicalStrings(left.kind, right.kind) ||
         compareCanonicalStrings(left.keyDigest, right.keyDigest));
+}
+/** A Catalog match in the shared rule's terms. */
+function identityConflictMatch(match) {
+    const { source } = match;
+    return {
+        keyDigest: match.keyDigest,
+        targetReference: match.targetReference,
+        targetIdentityDigest: match.targetIdentityDigest,
+        source: source.kind === "current_catalog"
+            ? { kind: "live", parentId: source.liveParentReleaseId }
+            : source.kind === "pending_git_lineage"
+                ? {
+                    kind: "merged_lineage",
+                    repository: source.repository,
+                    liveSourceCommit: source.liveSourceCommit,
+                    targetCommit: source.targetCommit,
+                }
+                : source,
+    };
 }
 /**
  * Exact identity-envelope digest shared by admission projection and verifier
