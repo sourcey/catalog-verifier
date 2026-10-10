@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { humanVerificationServiceCalendarSchema } from "../../company-verification/src/commercial.js";
 import { digestSchema, entityIdSchema, instantSchema } from "./values.js";
 export const startupCreditsProductCode = "startup-offer-human-verification";
 export const startupCreditsPrice = { currency: "usd", minor_units: 2_900 };
@@ -16,26 +17,7 @@ export const startupCreditsServicePolicySchema = z
     product_code: z.literal(startupCreditsProductCode),
     price_lookup_key: z.literal(startupCreditsPriceLookupKey),
     price: startupCreditsPriceSchema,
-    service_calendar: z
-        .object({
-        time_zone: z.literal("Australia/Sydney"),
-        business_days: z.literal(3),
-        counting: z.literal("next-business-day"),
-        deadline: z.literal("end-of-local-day"),
-        holiday_dates: z.array(z.iso.date()).min(1),
-        valid_through: z.iso.date(),
-        source_url: z.literal("https://www.nsw.gov.au/about-nsw/public-holidays"),
-        source_observed_at: instantSchema,
-    })
-        .strict()
-        .superRefine((calendar, context) => {
-        if (new Set(calendar.holiday_dates).size !== calendar.holiday_dates.length) {
-            context.addIssue({ code: "custom", message: "Service holidays must be unique." });
-        }
-        if (calendar.holiday_dates.some((date, index) => index > 0 && (calendar.holiday_dates[index - 1] ?? "") >= date)) {
-            context.addIssue({ code: "custom", message: "Service holidays must be sorted." });
-        }
-    }),
+    service_calendar: humanVerificationServiceCalendarSchema,
     material_misrepresentation_refundable: z.literal(false),
     sla_miss_refundable: z.literal(true),
     sourcey_error_refundable: z.literal(true),
