@@ -3,12 +3,18 @@ import { z } from "zod";
 import { offerTermsAssuranceSchema } from "../../assurance/src/index.js";
 import { companyAuthoringFileSchema, companyDraftDiagnosticSchema, companySubmissionSchema, } from "../../company-authoring/src/index.js";
 import { standingResultSchema } from "../../company-standing/src/index.js";
+import { companyVerificationDraftSchema } from "../../company-verification/src/commercial.js";
 import { companyIdentityReviewDecisionSchema, companyVerificationNewListingTargetSchema, completedCompanyReviewCoreSchema, reviewEvidenceBasisSchema, } from "../../company-verification/src/index.js";
 import { fundedWorkIntentEnvelopeSchema } from "../../funded-work/src/index.js";
 import { expectedPublicationEntitySchema } from "../../publication/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { startupCreditsExistingEntityDraftBaseSchema, startupCreditsPriceLookupKey, startupCreditsProductCode, startupCreditsPurchasePreviewSchema, } from "./product.js";
 import { digestSchema, entityIdSchema, offerIdSchema, programIdSchema } from "./values.js";
+/**
+ * What a person drafts on Sourcey: a company and one Offer (and its Program, if any), or a new
+ * company alone, which is the company-only product. Each draft is materialized under its own
+ * product's preview.
+ */
 export const startupCreditsDraftRequestSchema = z
     .object({
     standing_result: standingResultSchema,
@@ -39,10 +45,18 @@ export const startupCreditsDraftRequestSchema = z
                 message: "A form offer requires its public application URL.",
             });
         }
-    }),
+    })
+        .optional(),
 })
     .strict()
     .superRefine((request, context) => {
+    if (!request.offer && (request.program || request.existing_entity)) {
+        context.addIssue({
+            code: "custom",
+            path: ["offer"],
+            message: "A company drafted alone is a new company with no Program.",
+        });
+    }
     const existingRoute = request.standing_result.route === "correction_required";
     if (existingRoute !== (request.existing_entity !== undefined)) {
         context.addIssue({
@@ -52,26 +66,28 @@ export const startupCreditsDraftRequestSchema = z
         });
     }
 });
-export const startupCreditsDraftResultSchema = z.discriminatedUnion("status", [
+export const startupCreditsOfferDraftSchema = z
+    .object({
+    status: z.literal("materialized"),
+    base_release_id: digestSchema,
+    entity_id: entityIdSchema,
+    program_id: programIdSchema.optional(),
+    offer_id: offerIdSchema,
+    purchase_preview: startupCreditsPurchasePreviewSchema,
+    expected_current_entities: z.array(expectedPublicationEntitySchema).max(1),
+    authoring_file: companyAuthoringFileSchema,
+    diagnostics: z.array(companyDraftDiagnosticSchema).max(20),
+})
+    .strict();
+export const startupCreditsDraftResultSchema = z.union([
     z
         .object({
         status: z.enum(["invalid", "incomplete", "conflict", "ineligible"]),
         diagnostics: z.array(companyDraftDiagnosticSchema).min(1),
     })
         .strict(),
-    z
-        .object({
-        status: z.literal("materialized"),
-        base_release_id: digestSchema,
-        entity_id: entityIdSchema,
-        program_id: programIdSchema.optional(),
-        offer_id: offerIdSchema,
-        purchase_preview: startupCreditsPurchasePreviewSchema,
-        expected_current_entities: z.array(expectedPublicationEntitySchema).max(1),
-        authoring_file: companyAuthoringFileSchema,
-        diagnostics: z.array(companyDraftDiagnosticSchema).max(20),
-    })
-        .strict(),
+    startupCreditsOfferDraftSchema,
+    companyVerificationDraftSchema,
 ]);
 export const startupCreditsVerificationCaseIdSchema = z.string().regex(/^hvc_[a-f0-9]{64}$/u);
 const startupCreditsNewListingIntentTargetSchema = z

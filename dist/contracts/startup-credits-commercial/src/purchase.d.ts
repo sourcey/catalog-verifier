@@ -1,4 +1,9 @@
 import { z } from "zod";
+/**
+ * What a person drafts on Sourcey: a company and one Offer (and its Program, if any), or a new
+ * company alone, which is the company-only product. Each draft is materialized under its own
+ * product's preview.
+ */
 export declare const startupCreditsDraftRequestSchema: z.ZodObject<{
     standing_result: z.ZodObject<{
         result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
@@ -33,7 +38,7 @@ export declare const startupCreditsDraftRequestSchema: z.ZodObject<{
         title: z.ZodString;
         summary: z.ZodString;
     }, z.core.$strict>>;
-    offer: z.ZodObject<{
+    offer: z.ZodOptional<z.ZodObject<{
         title: z.ZodString;
         summary: z.ZodString;
         benefit: z.ZodString;
@@ -45,9 +50,73 @@ export declare const startupCreditsDraftRequestSchema: z.ZodObject<{
             other: "other";
         }>;
         access_url: z.ZodOptional<z.ZodURL>;
-    }, z.core.$strict>;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
-export declare const startupCreditsDraftResultSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+export declare const startupCreditsOfferDraftSchema: z.ZodObject<{
+    status: z.ZodLiteral<"materialized">;
+    base_release_id: z.ZodString;
+    entity_id: z.ZodString;
+    program_id: z.ZodOptional<z.ZodString>;
+    offer_id: z.ZodString;
+    purchase_preview: z.ZodObject<{
+        preview_contract: z.ZodLiteral<"sourcey.startup-credits-purchase-preview/v1alpha1">;
+        product_code: z.ZodLiteral<"startup-offer-human-verification">;
+        purchase_kind: z.ZodLiteral<"one_off">;
+        price_lookup_key: z.ZodLiteral<"startup-offer-human-verification-usd-29">;
+        price: z.ZodObject<{
+            currency: z.ZodLiteral<"usd">;
+            minor_units: z.ZodLiteral<2900>;
+        }, z.core.$strict>;
+        work_scope: z.ZodLiteral<"one-entity-one-offer">;
+        passing_results: z.ZodObject<{
+            entity_identity: z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                binding: z.ZodLiteral<"identity-epoch">;
+            }, z.core.$strict>;
+            offer_terms: z.ZodObject<{
+                status: z.ZodLiteral<"checked">;
+                binding: z.ZodLiteral<"exact-offer-revision">;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        service_level: z.ZodObject<{
+            starts_after: z.ZodLiteral<"settled-payment">;
+            business_days: z.ZodLiteral<3>;
+            time_zone: z.ZodLiteral<"Australia/Sydney">;
+        }, z.core.$strict>;
+        refunds: z.ZodObject<{
+            material_misrepresentation_refundable: z.ZodLiteral<false>;
+            service_level_missed_refundable: z.ZodLiteral<true>;
+            sourcey_error_refundable: z.ZodLiteral<true>;
+        }, z.core.$strict>;
+        disclosure: z.ZodLiteral<"Human verification includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company or offer claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+        policy_bindings: z.ZodObject<{
+            assurance_method: z.ZodString;
+            purchase_disclosure: z.ZodString;
+            service: z.ZodString;
+        }, z.core.$strict>;
+        preview_digest: z.ZodString;
+    }, z.core.$strict>;
+    expected_current_entities: z.ZodArray<z.ZodObject<{
+        entity_id: z.ZodString;
+        snapshot_digest: z.ZodNullable<z.ZodString>;
+    }, z.core.$strict>>;
+    authoring_file: z.ZodObject<{
+        path: z.ZodString;
+        content: z.ZodString;
+        content_digest: z.ZodString;
+    }, z.core.$strict>;
+    diagnostics: z.ZodArray<z.ZodObject<{
+        code: z.ZodEnum<{
+            conflict: "conflict";
+            ineligible: "ineligible";
+            invalid: "invalid";
+            required: "required";
+        }>;
+        path: z.ZodString;
+        message: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+export declare const startupCreditsDraftResultSchema: z.ZodUnion<readonly [z.ZodObject<{
     status: z.ZodEnum<{
         conflict: "conflict";
         incomplete: "incomplete";
@@ -127,7 +196,61 @@ export declare const startupCreditsDraftResultSchema: z.ZodDiscriminatedUnion<[z
         path: z.ZodString;
         message: z.ZodString;
     }, z.core.$strict>>;
-}, z.core.$strict>], "status">;
+}, z.core.$strict>, z.ZodObject<{
+    status: z.ZodLiteral<"materialized">;
+    base_release_id: z.ZodString;
+    entity_id: z.ZodString;
+    purchase_preview: z.ZodObject<{
+        preview_contract: z.ZodLiteral<"sourcey.company-purchase-preview/v1alpha1">;
+        product_code: z.ZodLiteral<"company-human-verification">;
+        purchase_kind: z.ZodLiteral<"one_off">;
+        price_lookup_key: z.ZodLiteral<"company-human-verification-usd-29">;
+        price: z.ZodObject<{
+            currency: z.ZodLiteral<"usd">;
+            minor_units: z.ZodLiteral<2900>;
+        }, z.core.$strict>;
+        work_scope: z.ZodLiteral<"one-entity">;
+        passing_results: z.ZodObject<{
+            entity_identity: z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                binding: z.ZodLiteral<"identity-epoch">;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        service_level: z.ZodObject<{
+            starts_after: z.ZodLiteral<"settled-payment">;
+            business_days: z.ZodLiteral<3>;
+            time_zone: z.ZodLiteral<"Australia/Sydney">;
+        }, z.core.$strict>;
+        refunds: z.ZodObject<{
+            material_misrepresentation_refundable: z.ZodLiteral<false>;
+            service_level_missed_refundable: z.ZodLiteral<true>;
+            sourcey_error_refundable: z.ZodLiteral<true>;
+        }, z.core.$strict>;
+        disclosure: z.ZodLiteral<"Human verification of a company includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+        policy_bindings: z.ZodObject<{
+            assurance_method: z.ZodString;
+            purchase_disclosure: z.ZodString;
+            service: z.ZodString;
+        }, z.core.$strict>;
+        preview_digest: z.ZodString;
+    }, z.core.$strict>;
+    expected_current_entities: z.ZodTuple<[], null>;
+    authoring_file: z.ZodObject<{
+        path: z.ZodString;
+        content: z.ZodString;
+        content_digest: z.ZodString;
+    }, z.core.$strict>;
+    diagnostics: z.ZodArray<z.ZodObject<{
+        code: z.ZodEnum<{
+            conflict: "conflict";
+            ineligible: "ineligible";
+            invalid: "invalid";
+            required: "required";
+        }>;
+        path: z.ZodString;
+        message: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>]>;
 export declare const startupCreditsVerificationCaseIdSchema: z.ZodString;
 export declare const startupCreditsExistingRecordTargetSchema: z.ZodObject<{
     kind: z.ZodLiteral<"existing_record">;
@@ -712,7 +835,12 @@ export declare const startupCreditsReviewCompletionReceiptSchema: z.ZodObject<{
     receipt_digest: z.ZodString;
 }, z.core.$strict>;
 export type StartupCreditsDraftRequest = z.infer<typeof startupCreditsDraftRequestSchema>;
+/** A draft that names its Offer: the Offer product's. */
+export type StartupCreditsOfferDraftRequest = StartupCreditsDraftRequest & {
+    readonly offer: NonNullable<StartupCreditsDraftRequest["offer"]>;
+};
 export type StartupCreditsDraftResult = z.infer<typeof startupCreditsDraftResultSchema>;
+export type StartupCreditsOfferDraft = z.infer<typeof startupCreditsOfferDraftSchema>;
 export type StartupCreditsFundedWorkIntent = z.infer<typeof startupCreditsFundedWorkIntentSchema>;
 export type StartupCreditsReviewCompletionReceipt = z.infer<typeof startupCreditsReviewCompletionReceiptSchema>;
 export type StartupCreditsReviewDecision = z.infer<typeof startupCreditsReviewDecisionSchema>;

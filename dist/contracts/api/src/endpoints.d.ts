@@ -21292,14 +21292,14 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -21377,14 +21377,14 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -21482,7 +21482,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: z.ZodString;
                         summary: z.ZodString;
                     }, z.core.$strict>>;
-                    offer: z.ZodObject<{
+                    offer: z.ZodOptional<z.ZodObject<{
                         title: z.ZodString;
                         summary: z.ZodString;
                         benefit: z.ZodString;
@@ -21494,7 +21494,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                             other: "other";
                         }>;
                         access_url: z.ZodOptional<z.ZodURL>;
-                    }, z.core.$strict>;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 entity_icon: z.ZodOptional<z.ZodObject<{
                     source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -21572,7 +21572,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: z.ZodString;
                         summary: z.ZodString;
                     }, z.core.$strict>>;
-                    offer: z.ZodObject<{
+                    offer: z.ZodOptional<z.ZodObject<{
                         title: z.ZodString;
                         summary: z.ZodString;
                         benefit: z.ZodString;
@@ -21584,7 +21584,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                             other: "other";
                         }>;
                         access_url: z.ZodOptional<z.ZodURL>;
-                    }, z.core.$strict>;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 entity_icon: z.ZodOptional<z.ZodObject<{
                     source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -21856,14 +21856,14 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -21941,14 +21941,14 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -43576,14 +43576,14 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -43661,14 +43661,14 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -43766,7 +43766,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: z.ZodString;
                         summary: z.ZodString;
                     }, z.core.$strict>>;
-                    offer: z.ZodObject<{
+                    offer: z.ZodOptional<z.ZodObject<{
                         title: z.ZodString;
                         summary: z.ZodString;
                         benefit: z.ZodString;
@@ -43778,7 +43778,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             other: "other";
                         }>;
                         access_url: z.ZodOptional<z.ZodURL>;
-                    }, z.core.$strict>;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 entity_icon: z.ZodOptional<z.ZodObject<{
                     source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -43856,7 +43856,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: z.ZodString;
                         summary: z.ZodString;
                     }, z.core.$strict>>;
-                    offer: z.ZodObject<{
+                    offer: z.ZodOptional<z.ZodObject<{
                         title: z.ZodString;
                         summary: z.ZodString;
                         benefit: z.ZodString;
@@ -43868,7 +43868,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             other: "other";
                         }>;
                         access_url: z.ZodOptional<z.ZodURL>;
-                    }, z.core.$strict>;
+                    }, z.core.$strict>>;
                 }, z.core.$strict>;
                 entity_icon: z.ZodOptional<z.ZodObject<{
                     source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -44140,14 +44140,14 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {
@@ -44225,14 +44225,14 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         title: string;
                         summary: string;
                     } | undefined;
-                    offer: {
+                    offer?: {
                         title: string;
                         summary: string;
                         benefit: string;
                         eligibility: string;
                         access_method: "automatic" | "contact" | "form" | "other";
                         access_url?: string | undefined;
-                    };
+                    } | undefined;
                 };
                 entity_icon?: {
                     source: {

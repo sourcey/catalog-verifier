@@ -587,7 +587,7 @@ export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<
                 title: z.ZodString;
                 summary: z.ZodString;
             }, z.core.$strict>>;
-            offer: z.ZodObject<{
+            offer: z.ZodOptional<z.ZodObject<{
                 title: z.ZodString;
                 summary: z.ZodString;
                 benefit: z.ZodString;
@@ -599,7 +599,7 @@ export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<
                     other: "other";
                 }>;
                 access_url: z.ZodOptional<z.ZodURL>;
-            }, z.core.$strict>;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         entity_icon: z.ZodOptional<z.ZodObject<{
             source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -677,7 +677,7 @@ export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<
                 title: z.ZodString;
                 summary: z.ZodString;
             }, z.core.$strict>>;
-            offer: z.ZodObject<{
+            offer: z.ZodOptional<z.ZodObject<{
                 title: z.ZodString;
                 summary: z.ZodString;
                 benefit: z.ZodString;
@@ -689,7 +689,7 @@ export declare const startupCreditsReviewRequestSchema: z.ZodDiscriminatedUnion<
                     other: "other";
                 }>;
                 access_url: z.ZodOptional<z.ZodURL>;
-            }, z.core.$strict>;
+            }, z.core.$strict>>;
         }, z.core.$strict>;
         entity_icon: z.ZodOptional<z.ZodObject<{
             source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -877,7 +877,7 @@ export declare const payableProductDescriptorSchema: z.ZodObject<{
                     title: z.ZodString;
                     summary: z.ZodString;
                 }, z.core.$strict>>;
-                offer: z.ZodObject<{
+                offer: z.ZodOptional<z.ZodObject<{
                     title: z.ZodString;
                     summary: z.ZodString;
                     benefit: z.ZodString;
@@ -889,7 +889,7 @@ export declare const payableProductDescriptorSchema: z.ZodObject<{
                         other: "other";
                     }>;
                     access_url: z.ZodOptional<z.ZodURL>;
-                }, z.core.$strict>;
+                }, z.core.$strict>>;
             }, z.core.$strict>;
             entity_icon: z.ZodOptional<z.ZodObject<{
                 source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -967,7 +967,7 @@ export declare const payableProductDescriptorSchema: z.ZodObject<{
                     title: z.ZodString;
                     summary: z.ZodString;
                 }, z.core.$strict>>;
-                offer: z.ZodObject<{
+                offer: z.ZodOptional<z.ZodObject<{
                     title: z.ZodString;
                     summary: z.ZodString;
                     benefit: z.ZodString;
@@ -979,7 +979,7 @@ export declare const payableProductDescriptorSchema: z.ZodObject<{
                         other: "other";
                     }>;
                     access_url: z.ZodOptional<z.ZodURL>;
-                }, z.core.$strict>;
+                }, z.core.$strict>>;
             }, z.core.$strict>;
             entity_icon: z.ZodOptional<z.ZodObject<{
                 source: z.ZodDiscriminatedUnion<[z.ZodObject<{
@@ -1117,14 +1117,14 @@ export declare const startupCreditsReviewProductDescriptor: {
                     title: string;
                     summary: string;
                 } | undefined;
-                offer: {
+                offer?: {
                     title: string;
                     summary: string;
                     benefit: string;
                     eligibility: string;
                     access_method: "automatic" | "contact" | "form" | "other";
                     access_url?: string | undefined;
-                };
+                } | undefined;
             };
             entity_icon?: {
                 source: {
@@ -1202,14 +1202,14 @@ export declare const startupCreditsReviewProductDescriptor: {
                     title: string;
                     summary: string;
                 } | undefined;
-                offer: {
+                offer?: {
                     title: string;
                     summary: string;
                     benefit: string;
                     eligibility: string;
                     access_method: "automatic" | "contact" | "form" | "other";
                     access_url?: string | undefined;
-                };
+                } | undefined;
             };
             entity_icon?: {
                 source: {
