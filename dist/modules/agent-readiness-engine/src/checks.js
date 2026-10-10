@@ -1,7 +1,7 @@
 import { FORM_MEDIA_TYPE, } from "provenry/exchange/records";
 import { sha256Bytes } from "provenry/primitives";
 import { agentReadinessRequestDocument, } from "../../../contracts/agent-readiness/src/index.js";
-import { agentReadinessAssertionProof } from "./assertions.js";
+import { agentReadinessAssertionProof, operandReads } from "./assertions.js";
 import { valueAtPointer } from "./templates.js";
 /** An HTTP exchange as a call result: its response as JSON by content, or the events of a stream. */
 export function httpCallResult(handed, record, body) {
@@ -146,7 +146,11 @@ export async function evaluateAssertions(input) {
                 ? call.status !== null && call.status >= 200 && call.status <= 299
                 : call?.mcpOk === true;
             const sent = observation?.source === "request" ? call?.request : undefined;
-            if (!observation || observation.source !== required.source || !call || !ok || sent === null) {
+            if (!observation ||
+                !operandReads(required, observation.source) ||
+                !call ||
+                !ok ||
+                sent === null) {
                 failure = {
                     check: index,
                     reason: `No successful ${required.source} observation establishes ${required.name}.`,

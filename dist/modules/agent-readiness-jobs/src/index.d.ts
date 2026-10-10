@@ -8,7 +8,7 @@ import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJo
  */
 export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
     readonly library_contract: "sourcey.agent-readiness-job-library/v1alpha1";
-    readonly library_version: "2026-10-09";
+    readonly library_version: "2026-10-10";
     readonly jobs: [{
         readonly job_id: "bounty-claim";
         readonly category: "bounty-board";
@@ -20,7 +20,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "bounty_claimed";
-            readonly statement: "The board accepts the claim and returns its identifier.";
+            readonly statement: "The board accepts the claim under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -53,7 +53,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "bucket_created";
-            readonly statement: "The platform creates the bucket and returns its identifier.";
+            readonly statement: "The platform creates the bucket under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -86,7 +86,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "message_posted";
-            readonly statement: "The service posts the message and returns its identifier.";
+            readonly statement: "The service posts the message under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -119,7 +119,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "contact_created";
-            readonly statement: "The service creates the contact and returns its identifier.";
+            readonly statement: "The service creates the contact under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -152,7 +152,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "deployment_created";
-            readonly statement: "The service creates the deployment and returns its identifier.";
+            readonly statement: "The service creates the deployment under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -185,7 +185,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "deployment_created";
-            readonly statement: "The service creates the deployment and returns its identifier.";
+            readonly statement: "The service creates the deployment under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -280,7 +280,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "event_reported";
-            readonly statement: "The service accepts the event and returns its identifier.";
+            readonly statement: "The service accepts the event under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -313,7 +313,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "flag_created";
-            readonly statement: "The service creates the flag and returns its identifier.";
+            readonly statement: "The service creates the flag under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -392,7 +392,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "monitor_created";
-            readonly statement: "The service creates the monitor and returns its identifier.";
+            readonly statement: "The service creates the monitor under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -425,7 +425,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "link_created";
-            readonly statement: "The service creates the payment link and returns its identifier.";
+            readonly statement: "The service creates the payment link under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -458,7 +458,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "repository_created";
-            readonly statement: "The service creates the repository and returns its identifier.";
+            readonly statement: "The service creates the repository under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -491,7 +491,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "record_indexed";
-            readonly statement: "The service indexes the record and returns its identifier.";
+            readonly statement: "The service indexes the record under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "record_found";
@@ -552,7 +552,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "user_created";
-            readonly statement: "The service creates the user and returns its identifier.";
+            readonly statement: "The service creates the user under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";
@@ -585,7 +585,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "vector_written";
-            readonly statement: "The service writes the vector and returns its identifier.";
+            readonly statement: "The service writes the vector under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "vector_found";
@@ -618,7 +618,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly assertions: [{
             readonly name: "page_created";
-            readonly statement: "The service creates the page in the container and returns its identifier.";
+            readonly statement: "The service creates the page in the container under an identifier it returns or was given.";
             readonly proof: "resource_created";
         }, {
             readonly name: "read_back";

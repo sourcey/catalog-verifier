@@ -7,7 +7,7 @@ import { AGENT_READINESS_JOB_LIBRARY_CONTRACT, agentReadinessJobLibraryCoreSchem
  */
 export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
     library_contract: AGENT_READINESS_JOB_LIBRARY_CONTRACT,
-    library_version: "2026-10-09",
+    library_version: "2026-10-10",
     jobs: [
         {
             job_id: "bounty-claim",
@@ -18,7 +18,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "bounty_claimed",
-                    statement: "The board accepts the claim and returns its identifier.",
+                    statement: "The board accepts the claim under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -46,7 +46,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "bucket_created",
-                    statement: "The platform creates the bucket and returns its identifier.",
+                    statement: "The platform creates the bucket under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -74,7 +74,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "message_posted",
-                    statement: "The service posts the message and returns its identifier.",
+                    statement: "The service posts the message under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -102,7 +102,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "contact_created",
-                    statement: "The service creates the contact and returns its identifier.",
+                    statement: "The service creates the contact under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -130,7 +130,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "deployment_created",
-                    statement: "The service creates the deployment and returns its identifier.",
+                    statement: "The service creates the deployment under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -158,7 +158,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "deployment_created",
-                    statement: "The service creates the deployment and returns its identifier.",
+                    statement: "The service creates the deployment under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -240,7 +240,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "event_reported",
-                    statement: "The service accepts the event and returns its identifier.",
+                    statement: "The service accepts the event under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -268,7 +268,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "flag_created",
-                    statement: "The service creates the flag and returns its identifier.",
+                    statement: "The service creates the flag under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -333,7 +333,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "monitor_created",
-                    statement: "The service creates the monitor and returns its identifier.",
+                    statement: "The service creates the monitor under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -361,7 +361,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "link_created",
-                    statement: "The service creates the payment link and returns its identifier.",
+                    statement: "The service creates the payment link under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -389,7 +389,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "repository_created",
-                    statement: "The service creates the repository and returns its identifier.",
+                    statement: "The service creates the repository under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -417,7 +417,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "record_indexed",
-                    statement: "The service indexes the record and returns its identifier.",
+                    statement: "The service indexes the record under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -471,7 +471,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "user_created",
-                    statement: "The service creates the user and returns its identifier.",
+                    statement: "The service creates the user under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -499,7 +499,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "vector_written",
-                    statement: "The service writes the vector and returns its identifier.",
+                    statement: "The service writes the vector under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
@@ -527,7 +527,7 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             assertions: [
                 {
                     name: "page_created",
-                    statement: "The service creates the page in the container and returns its identifier.",
+                    statement: "The service creates the page in the container under an identifier it returns or was given.",
                     proof: "resource_created",
                 },
                 {
