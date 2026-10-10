@@ -1476,19 +1476,19 @@
     },
     {
       "path": "dist/modules/catalog-admission/src/contribution.d.ts",
-      "sha256": "sha256:be5ce7477c13adf4ff19fabb96a0487cf04374503256b64fdec92d8bbca993e3"
+      "sha256": "sha256:00e685f691f42883acbadc93ca204a1931152bd43af086687283ba5491182724"
     },
     {
       "path": "dist/modules/catalog-admission/src/contribution.d.ts.map",
-      "sha256": "sha256:f10735759677bc27afe50f4b4a66d261102925839fa629764425080f3072f618"
+      "sha256": "sha256:18c26cdb532c96b94972bd6afbe9996691c58cfe983cd98fbdaa1e130ba6418b"
     },
     {
       "path": "dist/modules/catalog-admission/src/contribution.js",
-      "sha256": "sha256:29b0829a0210781263a5ec4935ba5468c211812a92094602e1ee49af2c493ecd"
+      "sha256": "sha256:8fd7abd1c55c39da4654b5e5790f9c98603017a4435b066575c627a966a5cfac"
     },
     {
       "path": "dist/modules/catalog-admission/src/contribution.js.map",
-      "sha256": "sha256:9891d48175c21068343c56f22e0f412565dcdd3e8f8c3cc7a39670d43085c616"
+      "sha256": "sha256:05d0357cd4f28eee0a9bf3cc0993391ca41392c79705589a9b5b06e78c251995"
     },
     {
       "path": "dist/modules/catalog-admission/src/identity.d.ts",
@@ -1512,15 +1512,15 @@
     },
     {
       "path": "dist/modules/catalog-admission/src/index.d.ts.map",
-      "sha256": "sha256:21eac823fc80f22b8a828b12bf2fb30ec4d9f300be0e084d70bd3d012975507f"
+      "sha256": "sha256:0de0554fa47d3759bc5641a3ece4a28d2e4d05d555e2cc4475492a6d54a3b48f"
     },
     {
       "path": "dist/modules/catalog-admission/src/index.js",
-      "sha256": "sha256:791b42d219c434b473f28dec9eb688d662712979cb5e62da1f01991b809a106d"
+      "sha256": "sha256:aa3ec4d10344e4ffc4a9a13c2faadb272ec3586af8e6ae1500bc11db45cc333b"
     },
     {
       "path": "dist/modules/catalog-admission/src/index.js.map",
-      "sha256": "sha256:242fb6f841e458ad86b79a657c159f0e237b1013df89911e1145b1319d0b6051"
+      "sha256": "sha256:08ab0df785ccc659baa1110d401faec7f8790d98ebcba8ffbcf6dfb69ebc9dda"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.d.ts",
@@ -2483,5 +2483,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:fd9770097b5e2c50fc6c01a60afc3d68efdbc4c68ab90245612dc0c3c4370610"
+  "closure_digest": "sha256:d54f29282b7f831ff25d08af76897f967c5494b52f6d5cfd3e62fd6b6820d896"
 }
