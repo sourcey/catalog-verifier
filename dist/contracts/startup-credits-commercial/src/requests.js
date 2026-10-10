@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { admissionSummarySchema } from "../../admission-results/src/index.js";
 import { entityAssetSubmissionSourceSchema } from "../../assets/src/index.js";
+import { companyVerificationGitPullRequestTargetSchema, companyVerificationPurchasePreviewSchema, } from "../../company-verification/src/commercial.js";
 import { fundedWorkIntentEnvelopeSchema } from "../../funded-work/src/index.js";
 import { startupCreditsPrice, startupCreditsPriceLookupKey, startupCreditsPriceSchema, startupCreditsProductCode, startupCreditsPurchasePreviewSchema, } from "./product.js";
 import { startupCreditsDraftRequestSchema, startupCreditsExistingRecordReferenceSchema, startupCreditsGitPullRequestTargetSchema, startupCreditsVerificationCaseIdSchema, } from "./purchase.js";
@@ -66,16 +67,29 @@ const startupCreditsGitPullRequestReviewTargetSchema = startupCreditsGitPullRequ
 export const startupCreditsGitPullRequestReviewPreparationRequestSchema = z
     .object({ target: startupCreditsGitPullRequestReferenceSchema })
     .strict();
-/** What one held pull request head's verification buys, before checkout. */
+/**
+ * What one held pull request head's verification buys, before checkout: its company and Offer
+ * (`offer`), or its company alone (`company`), each under its own product's preview. The held
+ * head decides which; both are bought through the same review request.
+ */
 export const startupCreditsGitPullRequestReviewPreparationResponseSchema = z
     .object({
-    data: z
-        .object({
-        target: startupCreditsGitPullRequestReviewTargetSchema,
-        purchase_preview: startupCreditsPurchasePreviewSchema,
-        offer: startupCreditsGitPullRequestTargetSchema,
-    })
-        .strict(),
+    data: z.union([
+        z
+            .object({
+            target: startupCreditsGitPullRequestReviewTargetSchema,
+            purchase_preview: startupCreditsPurchasePreviewSchema,
+            offer: startupCreditsGitPullRequestTargetSchema,
+        })
+            .strict(),
+        z
+            .object({
+            target: startupCreditsGitPullRequestReviewTargetSchema,
+            purchase_preview: companyVerificationPurchasePreviewSchema,
+            company: companyVerificationGitPullRequestTargetSchema,
+        })
+            .strict(),
+    ]),
 })
     .strict();
 const pullRequestHeadSchema = z.string().regex(/^(?:[a-f0-9]{40}|[a-f0-9]{64})$/u);
@@ -291,7 +305,7 @@ export const startupCreditsReviewProductDescriptor = payableProductDescriptorSch
     path: "/v1/startup-credits/reviews",
     success_status: 202,
     service_name: "Sourcey Human Verification",
-    description: "Human verification and publication for a startup credit or program with Verified status.",
+    description: "Human verification and publication with Verified status for a company, and for its startup credit or program when it names one.",
     tags: ["startup-credits", "startup-programs", "listing", "human-review", "sourcey"],
     floor_price: startupCreditsPrice,
     service_policy_url: "https://sourcey.com/startup-credits",

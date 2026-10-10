@@ -167,9 +167,13 @@ export declare const startupCreditsGitPullRequestReviewPreparationRequestSchema:
         head_sha: z.ZodString;
     }, z.core.$strict>;
 }, z.core.$strict>;
-/** What one held pull request head's verification buys, before checkout. */
+/**
+ * What one held pull request head's verification buys, before checkout: its company and Offer
+ * (`offer`), or its company alone (`company`), each under its own product's preview. The held
+ * head decides which; both are bought through the same review request.
+ */
 export declare const startupCreditsGitPullRequestReviewPreparationResponseSchema: z.ZodObject<{
-    data: z.ZodObject<{
+    data: z.ZodUnion<readonly [z.ZodObject<{
         target: z.ZodObject<{
             kind: z.ZodLiteral<"git_pull_request">;
             repository: z.ZodString;
@@ -258,7 +262,87 @@ export declare const startupCreditsGitPullRequestReviewPreparationResponseSchema
                 offer_url: z.ZodURL;
             }, z.core.$strict>;
         }, z.core.$strict>;
-    }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        target: z.ZodObject<{
+            kind: z.ZodLiteral<"git_pull_request">;
+            repository: z.ZodString;
+            pull_request_number: z.ZodNumber;
+            head_sha: z.ZodString;
+            expected_purchase_preview_digest: z.ZodString;
+        }, z.core.$strict>;
+        purchase_preview: z.ZodObject<{
+            preview_contract: z.ZodLiteral<"sourcey.company-purchase-preview/v1alpha1">;
+            product_code: z.ZodLiteral<"company-human-verification">;
+            purchase_kind: z.ZodLiteral<"one_off">;
+            price_lookup_key: z.ZodLiteral<"company-human-verification-usd-29">;
+            price: z.ZodObject<{
+                currency: z.ZodLiteral<"usd">;
+                minor_units: z.ZodLiteral<2900>;
+            }, z.core.$strict>;
+            work_scope: z.ZodLiteral<"one-entity">;
+            passing_results: z.ZodObject<{
+                entity_identity: z.ZodObject<{
+                    status: z.ZodLiteral<"verified">;
+                    binding: z.ZodLiteral<"identity-epoch">;
+                }, z.core.$strict>;
+            }, z.core.$strict>;
+            service_level: z.ZodObject<{
+                starts_after: z.ZodLiteral<"settled-payment">;
+                business_days: z.ZodLiteral<3>;
+                time_zone: z.ZodLiteral<"Australia/Sydney">;
+            }, z.core.$strict>;
+            refunds: z.ZodObject<{
+                material_misrepresentation_refundable: z.ZodLiteral<false>;
+                service_level_missed_refundable: z.ZodLiteral<true>;
+                sourcey_error_refundable: z.ZodLiteral<true>;
+            }, z.core.$strict>;
+            disclosure: z.ZodLiteral<"Human verification of a company includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+            policy_bindings: z.ZodObject<{
+                assurance_method: z.ZodString;
+                purchase_disclosure: z.ZodString;
+                service: z.ZodString;
+            }, z.core.$strict>;
+            preview_digest: z.ZodString;
+        }, z.core.$strict>;
+        company: z.ZodObject<{
+            kind: z.ZodLiteral<"git_pull_request">;
+            base_release_id: z.ZodString;
+            entity_id: z.ZodString;
+            pull_request: z.ZodObject<{
+                repository_id: z.ZodString;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                submission_id: z.ZodString;
+                head_sha: z.ZodString;
+            }, z.core.$strict>;
+            standing_result: z.ZodObject<{
+                result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+                policy_digest: z.ZodString;
+                evidence_digest: z.ZodString;
+                registrable_domain: z.ZodString;
+                official_source_url: z.ZodURL;
+                route: z.ZodEnum<{
+                    correction_required: "correction_required";
+                    free_machine_review: "free_machine_review";
+                    human_verification_required: "human_verification_required";
+                    repair_required: "repair_required";
+                    temporarily_unavailable: "temporarily_unavailable";
+                }>;
+                reasons: z.ZodArray<z.ZodString>;
+                evaluated_at: z.ZodISODateTime;
+                expires_at: z.ZodISODateTime;
+                result_digest: z.ZodString;
+            }, z.core.$strict>;
+            authoring_digest: z.ZodString;
+            revisions: z.ZodObject<{
+                entity_revision_digest: z.ZodString;
+            }, z.core.$strict>;
+            labels: z.ZodObject<{
+                company_name: z.ZodString;
+                company_site_url: z.ZodURL;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+    }, z.core.$strict>]>;
 }, z.core.$strict>;
 /** Which pull request of a Sourcey data repository a reader asks about. */
 export declare const startupCreditsPullRequestQuerySchema: z.ZodObject<{

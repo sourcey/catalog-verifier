@@ -244,11 +244,11 @@
     },
     {
       "path": "dist/contracts/api/src/endpoints.d.ts",
-      "sha256": "sha256:1f729bfdc8a0a313e8d559c021255e0046ebbfddc6259e263bc1943746ced91c"
+      "sha256": "sha256:f7aad3b137ca063a22dd1143f27957a662921879a7869b2493c254d13bbdcbe6"
     },
     {
       "path": "dist/contracts/api/src/endpoints.d.ts.map",
-      "sha256": "sha256:5296a325d06febe03b38dacfe1346f4fa9e616bde1961a0747a2c44a61aaeb40"
+      "sha256": "sha256:dc30194c0051934dff8b14c41fd03bdea2eac471dbc79887772e789caff54739"
     },
     {
       "path": "dist/contracts/api/src/endpoints.js",
@@ -547,6 +547,22 @@
       "sha256": "sha256:77f104ce25f05ad1731dddf3e625339818d87499079109ae40b4e7d881fe2b9d"
     },
     {
+      "path": "dist/contracts/company-verification/src/commercial.d.ts",
+      "sha256": "sha256:69ca66a7a18222a68bf5ce7581f676791870842be6714b84e55594a0435c316b"
+    },
+    {
+      "path": "dist/contracts/company-verification/src/commercial.d.ts.map",
+      "sha256": "sha256:38cfaabff3689a4b21b044e719becb3f36376ac8565e08f9eeb6760f2c92cce3"
+    },
+    {
+      "path": "dist/contracts/company-verification/src/commercial.js",
+      "sha256": "sha256:1b96a3997c7bfc0675c36f9be807d4e6d4a7cd4681ad8978b2bb80d0a3d695b3"
+    },
+    {
+      "path": "dist/contracts/company-verification/src/commercial.js.map",
+      "sha256": "sha256:800e4fe5ab688f97fe692e6f4f103fb3993d4b39aabfd54ebc015aebaea76682"
+    },
+    {
       "path": "dist/contracts/company-verification/src/index.d.ts",
       "sha256": "sha256:e7126a765d3c8532af0f359ad84c958da4d6def410f0a1ea11c79190a1d63b80"
     },
@@ -824,15 +840,15 @@
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/product.d.ts.map",
-      "sha256": "sha256:bedc7ec5118740ce869a1e8e741010e7bec1ba801f2eada39f1d467fcb0f86b1"
+      "sha256": "sha256:1251c825fc22438dcd341a909ba3834e8cc7f13bf5c15729c46166256c2c5833"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/product.js",
-      "sha256": "sha256:9901041eb50ac51018130d0af7c650e9b8a6295f4fbad6db52106185368e6043"
+      "sha256": "sha256:50358c32d522fd8bd0ec5813dc86ca1a1f37ce38d0c3453146ba1fe56fa27084"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/product.js.map",
-      "sha256": "sha256:c164a78ffbe0512945ef8601fc405a3fe6f9b2c6d991adf0e45b612a3c15bf05"
+      "sha256": "sha256:41e22f13572afa6f97c2faa28c98b6341794a4b644d8af57a696719ec352ad59"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/purchase.d.ts",
@@ -852,19 +868,19 @@
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.d.ts",
-      "sha256": "sha256:9315ccf0c193c50e43bb8d006d1698ecf997d3b28f598682dc05da5807514b07"
+      "sha256": "sha256:af4afd3b032ef112e984498b6dd865f70dcde97e414c889d41607ae1fdfdfa4c"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.d.ts.map",
-      "sha256": "sha256:3a9f3a435c5a402bd9d2a2fa9f7f4fbc5481fa4ea632afc080f9e431e77a41fb"
+      "sha256": "sha256:d006bdd72fccee798753e7557f646dee90e66997c10dd53e601023a590e44d7a"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.js",
-      "sha256": "sha256:8c363b926716ba18870172d23c456acfadf901ca7eda96a409df5f9428e3510c"
+      "sha256": "sha256:98e020425ddf1e00ea751617b1d4c2932736aee477d1715d56622ab705b241fa"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.js.map",
-      "sha256": "sha256:5164d787385ddad0211e626d85d326e021fd15c9957fc51ac0fce2b76995f42f"
+      "sha256": "sha256:586626ed6b7bd21e8a5293ac78ca4f75156fe1e067802ffe077a4064f1f69803"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/values.d.ts",
@@ -2483,5 +2499,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:d54f29282b7f831ff25d08af76897f967c5494b52f6d5cfd3e62fd6b6820d896"
+  "closure_digest": "sha256:08c72818679bab51cdf278d2ecb27e9da905efac87be8e63f2cf986131a5d342"
 }
