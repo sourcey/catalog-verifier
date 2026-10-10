@@ -244,7 +244,7 @@
     },
     {
       "path": "dist/contracts/api/src/endpoints.d.ts",
-      "sha256": "sha256:f7aad3b137ca063a22dd1143f27957a662921879a7869b2493c254d13bbdcbe6"
+      "sha256": "sha256:7e6f967a53afc46b14120c30da6b8b558e15e30d3f04e445c017e090bf22434b"
     },
     {
       "path": "dist/contracts/api/src/endpoints.d.ts.map",
@@ -548,19 +548,19 @@
     },
     {
       "path": "dist/contracts/company-verification/src/commercial.d.ts",
-      "sha256": "sha256:69ca66a7a18222a68bf5ce7581f676791870842be6714b84e55594a0435c316b"
+      "sha256": "sha256:e087ef216adf47b4a42a5693460c980ecc340b5770841884bba932f8e2456732"
     },
     {
       "path": "dist/contracts/company-verification/src/commercial.d.ts.map",
-      "sha256": "sha256:38cfaabff3689a4b21b044e719becb3f36376ac8565e08f9eeb6760f2c92cce3"
+      "sha256": "sha256:27e24afedd570457066b05dfaf641396a5a256ddf2def248d5d4c484e5127679"
     },
     {
       "path": "dist/contracts/company-verification/src/commercial.js",
-      "sha256": "sha256:1b96a3997c7bfc0675c36f9be807d4e6d4a7cd4681ad8978b2bb80d0a3d695b3"
+      "sha256": "sha256:6ce51fc1b7b2e55d6a0d3cb6e360ca4ed310cea065655d3c6f3cdbc15a9b00a1"
     },
     {
       "path": "dist/contracts/company-verification/src/commercial.js.map",
-      "sha256": "sha256:800e4fe5ab688f97fe692e6f4f103fb3993d4b39aabfd54ebc015aebaea76682"
+      "sha256": "sha256:0a7ee1a3fb9c93a0426a86a87e3559044a7e563bd507d6ed6d8afc429ac3d186"
     },
     {
       "path": "dist/contracts/company-verification/src/index.d.ts",
@@ -820,19 +820,19 @@
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.d.ts",
-      "sha256": "sha256:572c8c498b11257b22a6e206d2812b0a9581ca4925c20aac5da1ef7cc8062595"
+      "sha256": "sha256:7d831167d9700e7aa9f9aa941cf960ea46a6740321de5371781f1af1bf82a6ce"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.d.ts.map",
-      "sha256": "sha256:08798231c420e266e257cccb0a4aa14eef49842083f49b160f53ee91d7990618"
+      "sha256": "sha256:b81fa09d96af700d2899ef019f924059691ffdfcdee4d126ed5e2733c306f335"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.js",
-      "sha256": "sha256:6a95c44fd932eaa42b09e4e2c7d313a6aa7b98a1579b6e3c19e107db100778b7"
+      "sha256": "sha256:830a8fbed8f1574018d18a003af6f8075289fdba52d0edf6a593852b1ac13368"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/index.js.map",
-      "sha256": "sha256:950e127f886054c139d831789aab881817908466d6efb4c917c2e143cc288a04"
+      "sha256": "sha256:7fd1e762c53d94a6e5064ea36d1c8a437269c2a52526296113dd67b59372c6d9"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/product.d.ts",
@@ -852,23 +852,23 @@
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/purchase.d.ts",
-      "sha256": "sha256:ae463a3fe0bb59fd66a015f531b6bfc6f5b19fa4b7b14f85d7ba18ac45a211ff"
+      "sha256": "sha256:42d5900e11951b8deba149f39b1fc538eca22e2926cc72d5409ab2f2ba70ca8c"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/purchase.d.ts.map",
-      "sha256": "sha256:c41523c62fe3e0435486b9ea717e833528e0b101464045d5be59ff0e3b69a3d8"
+      "sha256": "sha256:5664abe55e877c1a0d5148ae65b264d1c43f98490b226fa1f59dfd1f86de1791"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/purchase.js",
-      "sha256": "sha256:32f78b5de10e84c9a419c605189983ef363a9c831a33e39bbfb4b60b91c9f354"
+      "sha256": "sha256:870bcd2cc1d73790c726121d122081f36895195f373b4c5ca647ae8b2bd9c7a0"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/purchase.js.map",
-      "sha256": "sha256:e092246f81c5589d3a02b9cda71b8a309173a496a0f8735fb413c684d0509aa6"
+      "sha256": "sha256:0dd71cd7d5f2ebdc654f165c389161ef9d044acdcac3a43c86cbee342433633c"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.d.ts",
-      "sha256": "sha256:af4afd3b032ef112e984498b6dd865f70dcde97e414c889d41607ae1fdfdfa4c"
+      "sha256": "sha256:bbc2b64a5fa6d208395fcf09d4678477877e3a63964d0183c8958079282f6852"
     },
     {
       "path": "dist/contracts/startup-credits-commercial/src/requests.d.ts.map",
@@ -2499,5 +2499,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:08c72818679bab51cdf278d2ecb27e9da905efac87be8e63f2cf986131a5d342"
+  "closure_digest": "sha256:283075e546f853b0997522441fb4c99c108750b2e3025331c70ec9dca456185f"
 }

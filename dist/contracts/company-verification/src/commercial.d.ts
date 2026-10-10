@@ -133,6 +133,95 @@ export declare const companyVerificationGitPullRequestTargetSchema: z.ZodObject<
         company_site_url: z.ZodURL;
     }, z.core.$strict>;
 }, z.core.$strict>;
+/**
+ * A company alone drafted on Sourcey (`companyDraftRequestSchema`), materialized as its one
+ * Entity-only authoring file under this product's preview. A company alone is always new.
+ */
+export declare const companyVerificationDraftSchema: z.ZodObject<{
+    status: z.ZodLiteral<"materialized">;
+    base_release_id: z.ZodString;
+    entity_id: z.ZodString;
+    purchase_preview: z.ZodObject<{
+        preview_contract: z.ZodLiteral<"sourcey.company-purchase-preview/v1alpha1">;
+        product_code: z.ZodLiteral<"company-human-verification">;
+        purchase_kind: z.ZodLiteral<"one_off">;
+        price_lookup_key: z.ZodLiteral<"company-human-verification-usd-29">;
+        price: z.ZodObject<{
+            currency: z.ZodLiteral<"usd">;
+            minor_units: z.ZodLiteral<2900>;
+        }, z.core.$strict>;
+        work_scope: z.ZodLiteral<"one-entity">;
+        passing_results: z.ZodObject<{
+            entity_identity: z.ZodObject<{
+                status: z.ZodLiteral<"verified">;
+                binding: z.ZodLiteral<"identity-epoch">;
+            }, z.core.$strict>;
+        }, z.core.$strict>;
+        service_level: z.ZodObject<{
+            starts_after: z.ZodLiteral<"settled-payment">;
+            business_days: z.ZodLiteral<3>;
+            time_zone: z.ZodLiteral<"Australia/Sydney">;
+        }, z.core.$strict>;
+        refunds: z.ZodObject<{
+            material_misrepresentation_refundable: z.ZodLiteral<false>;
+            service_level_missed_refundable: z.ZodLiteral<true>;
+            sourcey_error_refundable: z.ZodLiteral<true>;
+        }, z.core.$strict>;
+        disclosure: z.ZodLiteral<"Human verification of a company includes publication of a supportable company record with verified status for a legitimate company. Sourcey cannot publish false, unsafe, conflicting, duplicate, or non-existent company claims. Refunds apply when Sourcey cannot deliver the purchased service or misses the review deadline.">;
+        policy_bindings: z.ZodObject<{
+            assurance_method: z.ZodString;
+            purchase_disclosure: z.ZodString;
+            service: z.ZodString;
+        }, z.core.$strict>;
+        preview_digest: z.ZodString;
+    }, z.core.$strict>;
+    expected_current_entities: z.ZodTuple<[], null>;
+    authoring_file: z.ZodObject<{
+        path: z.ZodString;
+        content: z.ZodString;
+        content_digest: z.ZodString;
+    }, z.core.$strict>;
+    diagnostics: z.ZodArray<z.ZodObject<{
+        code: z.ZodEnum<{
+            conflict: "conflict";
+            ineligible: "ineligible";
+            invalid: "invalid";
+            required: "required";
+        }>;
+        path: z.ZodString;
+        message: z.ZodString;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+/** A hosted company alone, bought for its exact retained submission. */
+export declare const companyVerificationNewListingIntentTargetSchema: z.ZodObject<{
+    kind: z.ZodLiteral<"new_listing">;
+    base_release_id: z.ZodString;
+    entity_id: z.ZodString;
+    submission: z.ZodObject<{
+        submission_id: z.ZodString;
+        payload_digest: z.ZodString;
+        authorization_policy: z.ZodLiteral<"proposal">;
+    }, z.core.$strict>;
+    standing_result: z.ZodObject<{
+        result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+        policy_digest: z.ZodString;
+        evidence_digest: z.ZodString;
+        registrable_domain: z.ZodString;
+        official_source_url: z.ZodURL;
+        route: z.ZodEnum<{
+            correction_required: "correction_required";
+            free_machine_review: "free_machine_review";
+            human_verification_required: "human_verification_required";
+            repair_required: "repair_required";
+            temporarily_unavailable: "temporarily_unavailable";
+        }>;
+        reasons: z.ZodArray<z.ZodString>;
+        evaluated_at: z.ZodISODateTime;
+        expires_at: z.ZodISODateTime;
+        result_digest: z.ZodString;
+    }, z.core.$strict>;
+    authoring_file_digest: z.ZodString;
+}, z.core.$strict>;
 /** The exact pull request head a person verified, and the Entity revision it compiles to. */
 export declare const companyVerificationReviewedRevisionSchema: z.ZodObject<{
     submission_id: z.ZodString;
@@ -173,7 +262,7 @@ export declare const companyVerificationFundedWorkIntentSchema: z.ZodObject<{
         expires_at: z.ZodISODateTime;
         intent_digest: z.ZodString;
     }, z.core.$strict>;
-    target: z.ZodObject<{
+    target: z.ZodUnion<readonly [z.ZodObject<{
         kind: z.ZodLiteral<"git_pull_request">;
         base_release_id: z.ZodString;
         entity_id: z.ZodString;
@@ -210,7 +299,35 @@ export declare const companyVerificationFundedWorkIntentSchema: z.ZodObject<{
             company_name: z.ZodString;
             company_site_url: z.ZodURL;
         }, z.core.$strict>;
-    }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"new_listing">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        submission: z.ZodObject<{
+            submission_id: z.ZodString;
+            payload_digest: z.ZodString;
+            authorization_policy: z.ZodLiteral<"proposal">;
+        }, z.core.$strict>;
+        standing_result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.standing-result/v1alpha1">;
+            policy_digest: z.ZodString;
+            evidence_digest: z.ZodString;
+            registrable_domain: z.ZodString;
+            official_source_url: z.ZodURL;
+            route: z.ZodEnum<{
+                correction_required: "correction_required";
+                free_machine_review: "free_machine_review";
+                human_verification_required: "human_verification_required";
+                repair_required: "repair_required";
+                temporarily_unavailable: "temporarily_unavailable";
+            }>;
+            reasons: z.ZodArray<z.ZodString>;
+            evaluated_at: z.ZodISODateTime;
+            expires_at: z.ZodISODateTime;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
+        authoring_file_digest: z.ZodString;
+    }, z.core.$strict>]>;
     purchase_preview_digest: z.ZodString;
     disclosure_digest: z.ZodString;
     product_intent_digest: z.ZodString;
@@ -287,7 +404,7 @@ export declare const companyVerificationReviewCompletionReceiptCoreSchema: z.Zod
         }, z.core.$strict>;
     }, z.core.$strict>], "status">;
     receipt_contract: z.ZodLiteral<"sourcey.company-review-completion/v1alpha1">;
-    target: z.ZodObject<{
+    target: z.ZodUnion<readonly [z.ZodObject<{
         kind: z.ZodLiteral<"git_pull_request">;
         base_release_id: z.ZodString;
         entity_id: z.ZodString;
@@ -324,13 +441,19 @@ export declare const companyVerificationReviewCompletionReceiptCoreSchema: z.Zod
             company_name: z.ZodString;
             company_site_url: z.ZodURL;
         }, z.core.$strict>;
-    }, z.core.$strict>;
-    reviewed_revision: z.ZodObject<{
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"new_listing">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        submission_id: z.ZodString;
+        submission_payload_digest: z.ZodString;
+    }, z.core.$strict>]>;
+    reviewed_revision: z.ZodOptional<z.ZodObject<{
         submission_id: z.ZodString;
         revision_digest: z.ZodString;
         head_sha: z.ZodString;
         entity_revision_digest: z.ZodString;
-    }, z.core.$strict>;
+    }, z.core.$strict>>;
 }, z.core.$strict>;
 export declare const companyVerificationReviewCompletionReceiptSchema: z.ZodObject<{
     order_id: z.ZodString;
@@ -384,7 +507,7 @@ export declare const companyVerificationReviewCompletionReceiptSchema: z.ZodObje
         }, z.core.$strict>;
     }, z.core.$strict>], "status">;
     receipt_contract: z.ZodLiteral<"sourcey.company-review-completion/v1alpha1">;
-    target: z.ZodObject<{
+    target: z.ZodUnion<readonly [z.ZodObject<{
         kind: z.ZodLiteral<"git_pull_request">;
         base_release_id: z.ZodString;
         entity_id: z.ZodString;
@@ -421,18 +544,26 @@ export declare const companyVerificationReviewCompletionReceiptSchema: z.ZodObje
             company_name: z.ZodString;
             company_site_url: z.ZodURL;
         }, z.core.$strict>;
-    }, z.core.$strict>;
-    reviewed_revision: z.ZodObject<{
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"new_listing">;
+        base_release_id: z.ZodString;
+        entity_id: z.ZodString;
+        submission_id: z.ZodString;
+        submission_payload_digest: z.ZodString;
+    }, z.core.$strict>]>;
+    reviewed_revision: z.ZodOptional<z.ZodObject<{
         submission_id: z.ZodString;
         revision_digest: z.ZodString;
         head_sha: z.ZodString;
         entity_revision_digest: z.ZodString;
-    }, z.core.$strict>;
+    }, z.core.$strict>>;
     receipt_digest: z.ZodString;
 }, z.core.$strict>;
 export type CompanyVerificationServicePolicy = z.infer<typeof companyVerificationServicePolicySchema>;
 export type CompanyVerificationPurchasePreview = z.infer<typeof companyVerificationPurchasePreviewSchema>;
 export type CompanyVerificationGitPullRequestTarget = z.infer<typeof companyVerificationGitPullRequestTargetSchema>;
+export type CompanyVerificationDraft = z.infer<typeof companyVerificationDraftSchema>;
+export type CompanyVerificationNewListingIntentTarget = z.infer<typeof companyVerificationNewListingIntentTargetSchema>;
 export type CompanyVerificationReviewedRevision = z.infer<typeof companyVerificationReviewedRevisionSchema>;
 export type CompanyVerificationFundedWorkIntent = z.infer<typeof companyVerificationFundedWorkIntentSchema>;
 export type CompanyVerificationReviewDecision = z.infer<typeof companyVerificationReviewDecisionSchema>;

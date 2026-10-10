@@ -1,9 +1,10 @@
 import { DIGEST_PATTERN } from "provenry/primitives";
 import { z } from "zod";
 import { ENTITY_ID_PATTERN } from "../../../modules/catalog-primitives/src/index.js";
+import { companyAuthoringFileSchema, companyDraftDiagnosticSchema, } from "../../company-authoring/src/index.js";
 import { standingResultSchema } from "../../company-standing/src/index.js";
 import { fundedWorkIntentEnvelopeSchema } from "../../funded-work/src/index.js";
-import { companyIdentityReviewDecisionSchema, completedCompanyReviewCoreSchema } from "./index.js";
+import { companyIdentityReviewDecisionSchema, companyVerificationNewListingTargetSchema, completedCompanyReviewCoreSchema, } from "./index.js";
 /**
  * Sourcey's company-only Human Verification: a person verifies one company that falls below the
  * standing bar, with no Offer, and the verified company is published. Its records are its own
@@ -146,6 +147,38 @@ export const companyVerificationGitPullRequestTargetSchema = z
         .strict(),
 })
     .strict();
+/**
+ * A company alone drafted on Sourcey (`companyDraftRequestSchema`), materialized as its one
+ * Entity-only authoring file under this product's preview. A company alone is always new.
+ */
+export const companyVerificationDraftSchema = z
+    .object({
+    status: z.literal("materialized"),
+    base_release_id: digestSchema,
+    entity_id: entityIdSchema,
+    purchase_preview: companyVerificationPurchasePreviewSchema,
+    expected_current_entities: z.tuple([]),
+    authoring_file: companyAuthoringFileSchema,
+    diagnostics: z.array(companyDraftDiagnosticSchema).max(20),
+})
+    .strict();
+/** A hosted company alone, bought for its exact retained submission. */
+export const companyVerificationNewListingIntentTargetSchema = z
+    .object({
+    kind: z.literal("new_listing"),
+    base_release_id: digestSchema,
+    entity_id: entityIdSchema,
+    submission: z
+        .object({
+        submission_id: z.string().regex(/^sub_[a-f0-9]{64}$/u),
+        payload_digest: digestSchema,
+        authorization_policy: z.literal("proposal"),
+    })
+        .strict(),
+    standing_result: standingResultSchema,
+    authoring_file_digest: digestSchema,
+})
+    .strict();
 /** The exact pull request head a person verified, and the Entity revision it compiles to. */
 export const companyVerificationReviewedRevisionSchema = z
     .object({
@@ -160,7 +193,10 @@ export const companyVerificationFundedWorkIntentSchema = z
     product_intent_contract: z.literal("sourcey.company-human-verification-intent/v1alpha1"),
     verification_case_id: z.string().regex(/^hvc_[a-f0-9]{64}$/u),
     billing: fundedWorkIntentEnvelopeSchema,
-    target: companyVerificationGitPullRequestTargetSchema,
+    target: z.union([
+        companyVerificationGitPullRequestTargetSchema,
+        companyVerificationNewListingIntentTargetSchema,
+    ]),
     purchase_preview_digest: digestSchema,
     disclosure_digest: digestSchema,
     product_intent_digest: digestSchema,
@@ -211,13 +247,19 @@ export const companyVerificationReviewDecisionSchema = z
 export const companyVerificationReviewCompletionReceiptCoreSchema = completedCompanyReviewCoreSchema
     .safeExtend({
     receipt_contract: z.literal("sourcey.company-review-completion/v1alpha1"),
-    target: companyVerificationGitPullRequestTargetSchema,
-    /** The exact head the person verified, which may follow the one bought. */
-    reviewed_revision: companyVerificationReviewedRevisionSchema,
+    target: z.union([
+        companyVerificationGitPullRequestTargetSchema,
+        companyVerificationNewListingTargetSchema,
+    ]),
+    /** A pull request's exact head the person verified, which may follow the one bought. */
+    reviewed_revision: companyVerificationReviewedRevisionSchema.optional(),
 })
     .strict()
     .superRefine((receipt, context) => {
-    if (receipt.reviewed_revision.submission_id !== receipt.target.pull_request.submission_id) {
+    const pullRequest = receipt.target.kind === "git_pull_request" ? receipt.target : null;
+    if ((pullRequest === null) !== (receipt.reviewed_revision === undefined) ||
+        (pullRequest !== null &&
+            receipt.reviewed_revision?.submission_id !== pullRequest.pull_request.submission_id)) {
         context.addIssue({
             code: "custom",
             path: ["reviewed_revision"],
