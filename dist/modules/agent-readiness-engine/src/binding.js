@@ -1,5 +1,5 @@
 import { agentReadinessBindingCalls, agentReadinessCallTemplates, agentReadinessRequestTemplate, agentReadinessTemplateReferences, } from "../../../contracts/agent-readiness/src/index.js";
-import { agentReadinessAssertionProof, OBSERVED_CALL_METHODS } from "./assertions.js";
+import { agentReadinessAssertionProof, OBSERVED_CALL_METHODS, operandReads } from "./assertions.js";
 import { valueAtPointer } from "./templates.js";
 /**
  * Why a binding cannot perform its library job, or nothing. A binding maps
@@ -38,7 +38,7 @@ export function agentReadinessBindingIssues(input) {
                 issues.push(`Assertion ${assertion.name} does not locate ${required.name}.`);
                 continue;
             }
-            if (observed.source !== required.source) {
+            if (!operandReads(required, observed.source)) {
                 issues.push(`Assertion ${assertion.name}'s ${required.name} must read ${required.source}.`);
             }
             const call = calls.get(observed.call);
@@ -47,9 +47,14 @@ export function agentReadinessBindingIssues(input) {
                 !OBSERVED_CALL_METHODS[required.method].includes(call.method)) {
                 issues.push(`Assertion ${assertion.name}'s ${required.name} needs a ${required.method} call.`);
             }
-            if (call && required.source === "request" && observed.source === "request") {
+            if (call && observed.source === "request" && operandReads(required, "request")) {
+                // A query is the nonce itself; a name the caller gives carries it.
                 const template = valueAtPointer(agentReadinessRequestTemplate(call), observed.pointer);
-                if (typeof template !== "string" || !nonces.has(template)) {
+                const placed = typeof template === "string" &&
+                    (required.source === "request"
+                        ? nonces.has(template)
+                        : [...nonces].some((nonce) => template.includes(nonce)));
+                if (!placed) {
                     issues.push(`Assertion ${assertion.name}'s ${required.name} must locate the run's nonce in the request.`);
                 }
             }

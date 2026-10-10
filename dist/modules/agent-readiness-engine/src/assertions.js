@@ -5,6 +5,10 @@ export const OBSERVED_CALL_METHODS = {
     write: ["POST", "PUT", "PATCH", "DELETE"],
     query: ["GET", "POST"],
 };
+/** Whether an observation may locate the operand from this source. */
+export function operandReads(operand, source) {
+    return source === operand.source || (operand.callerNamed === true && source === "request");
+}
 const pass = () => ({ holds: true, reason: "The canonical assertion holds." });
 const fail = (reason) => ({ holds: false, reason });
 const identifier = (value) => typeof value === "string" && value.trim().length > 0 && value.length <= 512;
@@ -27,11 +31,28 @@ function carries(text, id) {
     }
     return false;
 }
+/**
+ * The identifier a creation established: one its response returned, or one the caller named
+ * in what it sent, which must then carry the run's nonce so it is this run's.
+ */
+function createdIdentifier(input, name) {
+    const id = input.values.get(name);
+    if (!resourceIdentifier(id))
+        return undefined;
+    return input.requests.has(name) && !carries(String(id), input.context.nonce) ? undefined : id;
+}
 const created = {
+    observations: [{ name: "id", source: "json", method: "write", callerNamed: true }],
+    evaluate: (input) => createdIdentifier(input, "id") !== undefined
+        ? pass()
+        : fail("The creation established no resource identifier of this run's."),
+};
+/** A message's identifier is the service's: a caller never names it. */
+const accepted = {
     observations: [{ name: "id", source: "json", method: "write" }],
     evaluate: ({ values }) => resourceIdentifier(values.get("id"))
         ? pass()
-        : fail("The creation did not return a resource identifier."),
+        : fail("The service did not return the message's identifier."),
 };
 /**
  * Portable Sourcey job semantics. A binding supplies locations only: never a
@@ -136,27 +157,31 @@ const proofs = {
     resource_created: created,
     resource_read_back: {
         observations: [
-            { name: "created_id", source: "json", method: "write" },
+            { name: "created_id", source: "json", method: "write", callerNamed: true },
             { name: "read_id", source: "json", method: "read" },
             { name: "content", source: "json", method: "read" },
         ],
         sameCall: [["read_id", "content"]],
         differentCall: [["created_id", "read_id"]],
-        evaluate: ({ values, context }) => resourceIdentifier(values.get("created_id")) &&
-            values.get("created_id") === values.get("read_id") &&
-            values.get("content") === context.nonce
-            ? pass()
-            : fail("The readback does not establish the created resource with this run's nonce."),
+        evaluate: (input) => {
+            const id = createdIdentifier(input, "created_id");
+            return id !== undefined &&
+                id === input.values.get("read_id") &&
+                input.values.get("content") === input.context.nonce
+                ? pass()
+                : fail("The readback does not establish the created resource with this run's nonce.");
+        },
     },
     /**
      * Found by what was asked, not by the key: the query the call sent is the
      * run's nonce, and nothing it sent carries the created identifier, which the
      * request's templates alone cannot rule out (a literal or another response
-     * can still hold it).
+     * can still hold it). A name the caller gave carries the nonce, so it must
+     * add to it: the bare nonce would be the query itself.
      */
     resource_found_by_query: {
         observations: [
-            { name: "created_id", source: "json", method: "write" },
+            { name: "created_id", source: "json", method: "write", callerNamed: true },
             { name: "query", source: "request", method: "query" },
             { name: "found_id", source: "json", method: "query" },
             { name: "content", source: "json", method: "query" },
@@ -167,11 +192,12 @@ const proofs = {
         ],
         differentCall: [["created_id", "found_id"]],
         independentCall: [["query", "created_id"]],
-        evaluate({ values, requests, context }) {
-            const id = values.get("created_id");
+        evaluate(input) {
+            const { values, requests, context } = input;
+            const id = createdIdentifier(input, "created_id");
             const sent = requests.get("query");
-            if (!resourceIdentifier(id))
-                return fail("The creation did not return a resource identifier.");
+            if (id === undefined)
+                return fail("The creation established no resource identifier of this run's.");
             if (values.get("query") !== context.nonce || sent === undefined) {
                 return fail("The query did not send this run's nonce.");
             }
@@ -183,7 +209,7 @@ const proofs = {
                 : fail("The query did not return the created resource with this run's nonce.");
         },
     },
-    message_accepted: created,
+    message_accepted: accepted,
     sink_received: {
         observations: [],
         async evaluate({ context, sink }) {

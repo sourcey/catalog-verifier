@@ -14,7 +14,16 @@ interface Operand {
      */
     readonly source: "json" | "stream" | "request";
     readonly method?: keyof typeof OBSERVED_CALL_METHODS;
+    /**
+     * An identifier the caller may name, as a storage bucket or a vector is named: a binding
+     * may locate it in what the write call sent instead of its response, and then the value
+     * must carry the run's nonce. A call is observed only once it succeeded, so the service
+     * accepted that name.
+     */
+    readonly callerNamed?: true;
 }
+/** Whether an observation may locate the operand from this source. */
+export declare function operandReads(operand: Operand, source: Operand["source"]): boolean;
 interface AssertionInput {
     readonly values: ReadonlyMap<string, unknown>;
     /** Every operation input the call behind each request observation sent, as text. */
