@@ -6,13 +6,15 @@ import { compileAuthoringFiles } from "../../compiler/src/index.js";
 /**
  * A pull request its contributor can fix (`revise`), or one admission cannot judge on its own
  * (`person`). It is raised only where a finding is about what the pull request changed; a fault in
- * live state, Git, policy or Sourcey's own derivation stays an ordinary error.
+ * live state, Git, policy or Sourcey's own derivation stays an ordinary error. A person's hold that
+ * changes nothing Sourcey publishes is `mergeOnly`: a person's Accept merges the head as it is.
  */
 export class CatalogContributionError extends Error {
     route;
     findings;
+    options;
     name = "CatalogContributionError";
-    constructor(route, findings) {
+    constructor(route, findings, options = {}) {
         super(findings
             .map(({ file, field, message }) => [file, field].filter(Boolean).length > 0
             ? `${[file, field].filter(Boolean).join(" ")}: ${message}`
@@ -20,6 +22,7 @@ export class CatalogContributionError extends Error {
             .join(" "));
         this.route = route;
         this.findings = findings;
+        this.options = options;
     }
 }
 /**

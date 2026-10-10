@@ -135,20 +135,22 @@ export async function analyzeCatalogPrAgainstCurrent(input) {
         baseRevision: comparisonBase,
         headRevision: input.pullRequestHeadRevision,
     });
+    // A publication lands company files alone, so a mixed head is split by its contributor.
     if (pullRequestChanges.entityFiles.length > 0 && pullRequestChanges.otherFiles.length > 0) {
-        throw new CatalogContributionError("person", [
+        throw new CatalogContributionError("revise", [
             {
                 file: null,
                 field: null,
-                message: `It changes company files together with ${pullRequestChanges.otherFiles.join(", ")}, so a maintainer reviews it.`,
+                message: `It changes company files together with ${pullRequestChanges.otherFiles.join(", ")}. Put the company files in a pull request of their own.`,
             },
         ]);
     }
     if (pullRequestChanges.unsupportedChanges.length > 0) {
-        throw new CatalogContributionError("person", pullRequestChanges.unsupportedChanges.map((change) => ({
+        // No Git publication retires or re-identifies a company, so no person could admit this head.
+        throw new CatalogContributionError("revise", pullRequestChanges.unsupportedChanges.map((change) => ({
             file: change.slice(change.indexOf(":") + 1),
             field: null,
-            message: "Renaming, copying or deleting a company file is for a maintainer to review.",
+            message: "Sourcey cannot publish a renamed, copied or deleted company file. Keep the file where it is and change only its contents.",
         })));
     }
     if (pullRequestChanges.entityFiles.length === 0) {
@@ -158,7 +160,7 @@ export async function analyzeCatalogPrAgainstCurrent(input) {
                 field: null,
                 message: "It changes no company file, so a maintainer reviews it.",
             },
-        ]);
+        ], { mergeOnly: true });
     }
     await assertExactGitCheckout(resolve(input.repositoryRoot), input.pullRequestHeadRevision);
     const findings = await changedAuthoringFindings({
@@ -434,11 +436,12 @@ export async function validateCatalogPrReleaseBase(input) {
         return;
     }
     if (!(await gitIsAncestor(input.repositoryRoot, comparisonBase, input.liveRevision))) {
-        throw new CatalogContributionError("person", [
+        // Publication needs the head to descend from the live release, so only a new head can pass.
+        throw new CatalogContributionError("revise", [
             {
                 file: null,
                 field: null,
-                message: "Its branch and Sourcey's main have diverged, so a maintainer reviews it.",
+                message: "Its branch has diverged from Sourcey's main. Update it from main and Sourcey reads it again.",
             },
         ]);
     }

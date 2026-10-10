@@ -8,13 +8,19 @@ export interface CatalogContributionFinding {
 /**
  * A pull request its contributor can fix (`revise`), or one admission cannot judge on its own
  * (`person`). It is raised only where a finding is about what the pull request changed; a fault in
- * live state, Git, policy or Sourcey's own derivation stays an ordinary error.
+ * live state, Git, policy or Sourcey's own derivation stays an ordinary error. A person's hold that
+ * changes nothing Sourcey publishes is `mergeOnly`: a person's Accept merges the head as it is.
  */
 export declare class CatalogContributionError extends Error {
     readonly route: "revise" | "person";
     readonly findings: readonly CatalogContributionFinding[];
+    readonly options: {
+        readonly mergeOnly?: true;
+    };
     readonly name = "CatalogContributionError";
-    constructor(route: "revise" | "person", findings: readonly CatalogContributionFinding[]);
+    constructor(route: "revise" | "person", findings: readonly CatalogContributionFinding[], options?: {
+        readonly mergeOnly?: true;
+    });
 }
 /**
  * Every way the changed files break what a contribution keeps, file by file: each parses on its own
