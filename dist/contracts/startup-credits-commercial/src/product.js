@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { humanVerificationServiceCalendarSchema } from "../../company-verification/src/commercial.js";
-import { digestSchema, entityIdSchema, instantSchema } from "./values.js";
+import { digestSchema, entityIdSchema } from "./values.js";
 export const startupCreditsProductCode = "startup-offer-human-verification";
 export const startupCreditsPrice = { currency: "usd", minor_units: 2_900 };
 export const startupCreditsPriceLookupKey = "startup-offer-human-verification-usd-29";

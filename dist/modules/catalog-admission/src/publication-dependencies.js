@@ -169,7 +169,7 @@ export class CatalogPublicationImpactIndex {
 export function orderedUnique(values) {
     return [...new Set(values)].sort(compareCanonicalStrings);
 }
-export function dependentKey(value) {
+function dependentKey(value) {
     return `${value.domain}\0${value.key}`;
 }
 //# sourceMappingURL=publication-dependencies.js.map

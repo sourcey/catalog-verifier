@@ -10,7 +10,6 @@ export interface RevisionHistory {
     readonly currentRevisionDigests: readonly Digest[];
 }
 type ParentIdentityState = Pick<VerifiedCatalogRelease, "artifact" | "agentReadinessProfiles">;
-export declare function projectIdentities(graph: EventGraph, prior?: IdentityIndex): IdentityIndex;
 /** Release projection cannot admit two active claims across connected Entity identities. */
 export declare function projectAuthorityClosedIdentities(graph: EventGraph, prior?: IdentityIndex): IdentityIndex;
 export declare function validateIdentityClosure(identities: IdentityIndex, revisions: RevisionHistory, facts: CompiledCatalogFacts, agentReadinessProfiles: readonly AgentReadinessProjection[], parent: ParentIdentityState | null, retainedIdentityFloor?: IdentityIndex): void;

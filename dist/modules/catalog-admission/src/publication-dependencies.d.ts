@@ -100,8 +100,4 @@ export declare class CatalogPublicationImpactIndex {
     };
 }
 export declare function orderedUnique(values: Iterable<string>): string[];
-export declare function dependentKey(value: {
-    readonly domain: string;
-    readonly key: string;
-}): string;
 //# sourceMappingURL=publication-dependencies.d.ts.map
