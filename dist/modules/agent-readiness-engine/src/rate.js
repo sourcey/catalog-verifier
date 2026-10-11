@@ -1,57 +1,39 @@
-import { AGENT_READINESS_STEPS } from "../../../contracts/agent-readiness/src/index.js";
+import { AGENT_READINESS_STEPS, agentReadinessLetterSchema, } from "../../../contracts/agent-readiness/src/index.js";
 /**
- * The Operate letter of a path, by the policy's rules: a blocked Delegation or
- * Pay is D and a blocked Job is F; otherwise the job must have been exercised,
- * and the first letter, best first, whose condition and coverage both hold is
- * the letter. A lower letter is never inferred: each asserts a recurring
- * workaround that would have to be observed.
+ * The letter of a path (north star §5.7): its person-steps counted, and the
+ * first letter, best first, whose allowance covers them. The job
+ * `unavailable` is F whatever else the path holds, once every step it can
+ * show is assessed: all of them, or none where the listing names no interface
+ * for the job. Any path is null (not publishable) until then.
  */
-export function rateOperate(policy, steps) {
-    const outcome = new Map(steps.map((step) => [step.step, step]));
-    if (outcome.size !== AGENT_READINESS_STEPS.length) {
+export function rateGrade(policy, steps, job) {
+    if (steps.length !== AGENT_READINESS_STEPS.length) {
         throw new Error("A path has exactly one result per step.");
     }
-    const missing = AGENT_READINESS_STEPS.filter((step) => outcome.get(step)?.outcome === "not_assessed");
-    const blocked = (step) => outcome.get(step)?.outcome === "blocked";
-    if (blocked("delegation") || blocked("pay"))
-        return { letter: "D", missing };
-    if (blocked("job"))
-        return { letter: "F", missing };
-    const job = outcome.get("job")?.outcome;
-    if (job !== "machine" && job !== "approval" && job !== "workaround") {
-        return { letter: null, missing };
-    }
+    const unavailable = job.outcome === "unavailable";
+    const unassessed = steps.filter(({ outcome }) => outcome === "not_assessed").length;
+    const interfaceless = unavailable && unassessed === steps.length;
+    if (job.outcome === "not_assessed" || (unassessed > 0 && !interfaceless))
+        return null;
+    const approvals = steps.filter(({ outcome }) => outcome === "approval").length;
     const workarounds = steps.filter(({ outcome }) => outcome === "workaround");
-    const recurring = workarounds
-        .filter(({ timing }) => timing === "recurring")
-        .map(({ step }) => step);
     const setup = workarounds.filter(({ timing }) => timing === "setup").length;
-    for (const rule of policy.letters) {
-        const { condition } = rule;
-        const holds = (condition.workarounds_allowed || workarounds.length === 0) &&
-            recurring.every((step) => condition.recurring_allowed_in.includes(step)) &&
-            (condition.recurring_required_in === null ||
-                recurring.some((step) => condition.recurring_required_in?.includes(step))) &&
-            setup >= condition.setup_workarounds.minimum &&
-            (condition.setup_workarounds.maximum === null ||
-                setup <= condition.setup_workarounds.maximum) &&
-            rule.coverage.every((step) => outcome.get(step)?.outcome !== "not_assessed");
-        if (holds)
-            return { letter: rule.letter, missing };
+    const recurring = workarounds.some(({ timing }) => timing === "recurring");
+    const gated = steps.some(({ outcome }) => outcome === "gated");
+    for (const { letter, allows } of policy.letters) {
+        if ((allows.approvals === null || approvals <= allows.approvals) &&
+            (allows.setup_workarounds === null || setup <= allows.setup_workarounds) &&
+            (allows.recurring_workarounds || !recurring) &&
+            (allows.gated || !gated) &&
+            (allows.unavailable || !unavailable)) {
+            return letter;
+        }
     }
-    return { letter: null, missing };
+    throw new Error("The policy's last letter allows every path.");
 }
-/**
- * The Onboard level the Operate path alone establishes: 1 when the exercised
- * job needed no account (no credential, and no payment or payment per call).
- * Levels 2 to 6 come only from onboarding runs; otherwise not yet assessed.
- */
-export function onboardLevelFromOperate(binding, steps) {
-    const outcome = new Map(steps.map((step) => [step.step, step.outcome]));
-    const exercised = ["machine", "approval", "workaround"].includes(outcome.get("job") ?? "");
-    const accountless = outcome.get("delegation") === "not_applicable";
-    const payment = outcome.get("pay") === "not_applicable" ||
-        (binding.payment.kind === "per_call" && outcome.get("pay") === "machine");
-    return exercised && accountless && payment ? 1 : null;
+/** Best first: the scale's order, then a path not yet graded. */
+export function agentReadinessLetterRank(letter) {
+    const order = agentReadinessLetterSchema.options;
+    return letter === null ? order.length : order.indexOf(letter);
 }
 //# sourceMappingURL=rate.js.map

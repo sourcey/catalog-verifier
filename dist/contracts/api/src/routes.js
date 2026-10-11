@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessOnboardLevelSchema, agentReadinessOperateLetterSchema, agentReadinessPublicationVisibilitySchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
+import { agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessLetterSchema, agentReadinessPublicationVisibilitySchema, agentReadinessScopeKeySchema, } from "../../agent-readiness/src/index.js";
 import { agentReadinessDatasetSchema, companiesDatasetSchema, startupCreditsDatasetSchema, } from "../../datasets/src/index.js";
 import { lifecycleStatusSchema } from "../../revisions/src/index.js";
 import { agentReadinessJsonCanonicalPath, companiesJsonCanonicalPath, startupCreditsJsonCanonicalPath, } from "../../routes/src/index.js";
@@ -87,8 +87,7 @@ export const agentReadinessProfileListQuerySchema = z
     offer_id: offerId.optional(),
     product_key: agentReadinessScopeKeySchema.optional(),
     job_key: agentReadinessScopeKeySchema.optional(),
-    operate_letter: agentReadinessOperateLetterSchema.optional(),
-    onboard_level: z.coerce.number().pipe(agentReadinessOnboardLevelSchema).optional(),
+    letter: agentReadinessLetterSchema.optional(),
     label: agentReadinessEvidenceLabelSchema.optional(),
     visibility: agentReadinessPublicationVisibilitySchema.exclude(["private"]).optional().meta({
         description: "Publication visibility. Defaults to discoverable. Select resolvable_only to enumerate public records retained outside discovery, including stale report cards. Private candidates are never returned.",

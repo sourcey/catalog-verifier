@@ -7,7 +7,7 @@ import { AGENT_READINESS_JOB_LIBRARY_CONTRACT, agentReadinessJobLibraryCoreSchem
  */
 export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
     library_contract: AGENT_READINESS_JOB_LIBRARY_CONTRACT,
-    library_version: "2026-10-10",
+    library_version: "2026-10-10.2",
     jobs: [
         {
             job_id: "bounty-claim",
@@ -440,10 +440,10 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             job_id: "sms-send",
             category: "sms-messaging",
             name: "Send a text message",
-            statement: "Send a text message carrying the run's nonce to a Sourcey-controlled number.",
+            statement: "Send a text message carrying the run's nonce to the number its runner supplies, then read its delivery status.",
             inputs: [
                 { kind: "nonce", name: "nonce" },
-                { kind: "sink", name: "recipient", sink: "phone" },
+                { kind: "supplied", name: "recipient" },
             ],
             assertions: [
                 {
@@ -452,12 +452,17 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
                     proof: "message_accepted",
                 },
                 {
-                    name: "delivered_to_sink",
-                    statement: "The message reaches the Sourcey-controlled number, carrying the nonce.",
-                    proof: "sink_received",
+                    name: "message_delivered",
+                    statement: "The service's own status for that message reads delivered.",
+                    proof: "message_delivered",
                 },
             ],
-            observation_links: [],
+            observation_links: [
+                {
+                    from: { assertion: "message_accepted", observation: "id" },
+                    to: { assertion: "message_delivered", observation: "message_id" },
+                },
+            ],
             error_probe: { statement: "A message to a recipient number that cannot exist." },
             effect: "billable",
             cleanup: "none",

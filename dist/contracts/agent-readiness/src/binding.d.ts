@@ -35,6 +35,8 @@ export declare function agentReadinessRequestDocument(request: {
 }): Readonly<Record<string, unknown>>;
 /** A call's request document as its templates write it: the template each location sends. */
 export declare function agentReadinessRequestTemplate(call: AgentReadinessCall): Readonly<Record<string, unknown>>;
+/** Headers a binding or a job operation never sets: the transport and the runner's custody do. */
+export declare const AGENT_READINESS_RESERVED_HEADERS: ReadonlySet<string>;
 declare const agentReadinessCallSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"http">;
     call_id: z.ZodString;
@@ -99,7 +101,7 @@ declare const agentReadinessCredentialDeclarationSchema: z.ZodObject<{
     }>>;
 }, z.core.$strict>;
 export type AgentReadinessCredentialDeclaration = z.infer<typeof agentReadinessCredentialDeclarationSchema>;
-/** A credential a successful response issues, kept by custody under its role. */
+/** A credential a successful response issues, kept under its role by the runner's custody. */
 declare const agentReadinessKeptCredentialSchema: z.ZodObject<{
     role: z.ZodString;
     placement: z.ZodUnion<readonly [z.ZodObject<{
@@ -618,5 +620,30 @@ export declare function agentReadinessBindingCalls(binding: Pick<AgentReadinessJ
 }[];
 /** Every template string a call sends. */
 export declare function agentReadinessCallTemplates(call: AgentReadinessCall): readonly string[];
+/** The declared surfaces a job operation or binding resolves against. */
+export interface AgentReadinessDeclaredSurfaces {
+    readonly endpoints: readonly {
+        readonly endpoint_id: string;
+        readonly uri: string;
+        readonly transport: string;
+        readonly roles: readonly string[];
+    }[];
+    readonly interfaces: readonly {
+        readonly interface_id: string;
+        readonly modality: string;
+        readonly functions: readonly string[];
+        readonly endpoint_ids: readonly string[];
+    }[];
+}
+/**
+ * Each binding performs the job through its own interface: that interface is
+ * declared, every call it makes uses one of the interface's HTTP endpoints and
+ * keeps that endpoint's origin, and every credential reaches only declared
+ * endpoints. Whether it performs the right job is checked against the job
+ * library, which a declaration does not carry.
+ */
+export declare function validateDeclaredJobBindings(value: AgentReadinessDeclaredSurfaces & {
+    readonly job_bindings: readonly AgentReadinessJobBinding[];
+}, context: z.RefinementCtx): void;
 export {};
 //# sourceMappingURL=binding.d.ts.map

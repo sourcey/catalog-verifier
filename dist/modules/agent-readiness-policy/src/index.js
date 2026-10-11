@@ -1,21 +1,21 @@
 import { canonicalJson, digest } from "provenry/primitives";
 import { agentReadinessDeclarationRevisionCoreSchema, agentReadinessDeclarationRevisionSchema, agentReadinessProjectionCoreSchema, agentReadinessProjectionSchema, agentReadinessRevisionSchema, sameAgentReadinessScopeIdentity, } from "../../../contracts/agent-readiness/src/index.js";
 import { agentReadinessCanonicalPath } from "../../../contracts/routes/src/index.js";
-import { rateOperate } from "../../agent-readiness-engine/src/rate.js";
+import { rateGrade } from "../../agent-readiness-engine/src/rate.js";
 import { agentReadinessJobDigest } from "../../agent-readiness-jobs/src/index.js";
 import { deriveSubjectStanding } from "../../provenance/src/index.js";
 import { priorAgentReadinessVisibility } from "./prior-projection.js";
 export * from "./current-policy.js";
 export * from "./declaration-jobs.js";
+export * from "./grade-policy.js";
 export * from "./impact.js";
 export * from "./offer-relations.js";
-export * from "./operate-policy.js";
 export * from "./prior-projection.js";
 export * from "./revision.js";
 /**
- * The projection a release publishes for one revision: the Operate letter the
- * pinned policy gives its steps, its Onboard level and evidence label, the
- * human boundaries a reader sees, and whether it is discoverable. Freshness is
+ * The projection a release publishes for one revision: the letter the pinned
+ * policy gives its steps and its statement, the evidence label, where a person
+ * or the vendor steps in, and whether it is discoverable. Freshness is
  * served from the freshness index, never released. Nothing here reads
  * documentation or calls out.
  */
@@ -35,17 +35,22 @@ export function deriveAgentReadinessProjection(input) {
     if (job && agentReadinessJobDigest(job) !== revision.job_digest) {
         throw new Error(`Agent Readiness profile ${revision.agent_readiness_profile_id} ran a job this policy changed; it needs new runs.`);
     }
-    const binding = revision.binding_id === null
-        ? null
-        : declarationRevision.declaration.job_bindings.find(({ binding_id }) => binding_id === revision.binding_id);
-    if (!job || binding === undefined) {
-        throw new Error("Agent Readiness projection names a job or binding it cannot resolve.");
+    const { declaration } = declarationRevision;
+    if (!job ||
+        (revision.binding_id !== null &&
+            !declaration.job_bindings.some(({ binding_id }) => binding_id === revision.binding_id)) ||
+        (revision.interface_id !== null &&
+            !declaration.interfaces.some(({ interface_id }) => interface_id === revision.interface_id))) {
+        throw new Error("Agent Readiness projection names a job, interface or binding it cannot resolve.");
     }
     if (!Number.isFinite(Date.parse(input.policyAsOf))) {
         throw new Error("Agent Readiness projection policy time is invalid.");
     }
-    const rating = rateOperate(policy, revision.steps);
-    const rule = policy.letters.find(({ letter }) => letter === rating.letter);
+    const letter = rateGrade(policy, revision.steps, revision.job);
+    const rule = policy.letters.find((candidate) => candidate.letter === letter);
+    if (!rule) {
+        throw new Error(`Agent Readiness profile ${revision.agent_readiness_profile_id} has a step not yet assessed.`);
+    }
     const latest = revision.runs.at(-1);
     const standing = deriveSubjectStanding({
         revisionDigest: revision.revision_digest,
@@ -58,7 +63,16 @@ export function deriveAgentReadinessProjection(input) {
         ...(standing.dispute === "open" ? ["open_dispute"] : []),
     ];
     const prior = priorAgentReadinessVisibility(revision, input.priorProjection);
-    const { declaration } = declarationRevision;
+    // The label follows the job: the latest verified run it cites, or the probes.
+    const jobRuns = new Set(revision.job.evidence.map(({ run_digest }) => run_digest));
+    const labelRun = [...revision.runs]
+        .reverse()
+        .find(({ run_digest, label }) => jobRuns.has(run_digest) && label !== "probed");
+    const label = labelRun?.label ?? "probed";
+    // The card's discovery facts are an earlier refresh's when the latest one's reads went
+    // unanswered. The runs of one refresh share its discovery.
+    const latestProbe = revision.runs.findLast(({ label }) => label === "probed");
+    const discoveredEarlier = revision.runs.find(({ run_digest }) => run_digest === revision.discovery_run_digest && run_digest !== latestProbe?.run_digest);
     const core = agentReadinessProjectionCoreSchema.parse({
         projection_contract: "sourcey.agent-readiness-projection/v1alpha1",
         agent_readiness_profile_id: revision.agent_readiness_profile_id,
@@ -89,22 +103,21 @@ export function deriveAgentReadinessProjection(input) {
             name: job.name,
             statement: job.statement,
         },
-        interface_id: binding?.interface_id ?? null,
-        label: latest.label,
-        operate: {
-            letter: rating.letter,
-            statement: rating.letter === "D" || rating.letter === "F"
-                ? policy.blocked.statements[rating.letter]
-                : (rule?.statement ?? null),
+        interface_id: revision.interface_id,
+        label,
+        label_run_at: labelRun?.finished_at ?? null,
+        grade: {
+            letter: rule.letter,
+            statement: rule.statement,
             steps: revision.steps.map(({ step, outcome, timing }) => ({ step, outcome, timing })),
-            missing: rating.missing,
+            job: revision.job.outcome,
             approvals: revision.steps
                 .filter(({ outcome }) => outcome === "approval")
                 .map(({ step }) => step),
             workarounds: revision.steps.flatMap(({ step, outcome, timing }) => outcome === "workaround" && timing ? [{ step, timing }] : []),
         },
-        onboard: { level: revision.onboard_level },
         discovery: revision.discovery,
+        discovery_run_at: discoveredEarlier?.finished_at ?? null,
         run: {
             ...revision.latest_run,
             assertions: revision.latest_run.assertions.map((result) => {

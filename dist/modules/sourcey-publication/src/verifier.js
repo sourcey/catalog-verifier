@@ -211,6 +211,7 @@ export async function verifyCatalogDelta(release, trust) {
         capturesProven: true,
     });
     verifyCatalogPublicationAuthoringChanges({ publication, priorAuthoring });
+    assertNoRetiredAgentReadinessProfileReturns(agentReadinessObjects, delta.identities.retired_agent_readiness_profiles);
     const readinessTransitions = verifiedAgentReadinessTransitions(agentReadinessObjects);
     const relationTransitions = verifiedAgentReadinessOfferRelationTransitions(agentReadinessOfferRelationObjects);
     verifyReleaseChain(bundle, delta, descriptor, readinessTransitions, relationTransitions, assetDelta);
@@ -538,5 +539,17 @@ function appendTo(lists, key, value) {
         list.push(value);
     else
         lists.set(key, [value]);
+}
+/**
+ * A retired Agent Readiness profile id is never current again: the scope it
+ * held starts a new profile with a new id.
+ */
+export function assertNoRetiredAgentReadinessProfileReturns(objects, retiredProfileIds) {
+    const retired = new Set(retiredProfileIds);
+    for (const [profileId, object] of objects) {
+        if (object.projection !== null && retired.has(profileId)) {
+            throw new Error(`Catalog delta makes retired Agent Readiness profile ${profileId} current.`);
+        }
+    }
 }
 //# sourceMappingURL=verifier.js.map

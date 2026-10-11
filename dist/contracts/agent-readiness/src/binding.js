@@ -3,12 +3,14 @@ import { canonicalJson } from "provenry/primitives";
 import { z } from "zod";
 import { agentReadinessScopeKeySchema } from "./shared.js";
 /**
- * How one interface performs one library job: the exact calls, locations of
- * observations consumed by Sourcey's assertions, the safe invalid request that must fail
- * typed, and how authority, payment and credential upkeep work. A binding says
- * where and how; the job library says what success is. Origins are literal, so
- * a binding can never send a credential anywhere its declared endpoints do not
- * name.
+ * How one interface performs one library job, for a verified run: the exact
+ * calls, locations of observations consumed by Sourcey's assertions, the safe
+ * invalid request that must fail typed, and how authority, payment and
+ * credential upkeep work. A binding says where and how; the job library says
+ * what success is. Sourcey runs a binding only where it needs no account; any
+ * other is run by its account holder with their own credentials, which Sourcey
+ * never holds. Origins are literal, so a binding can never send a credential
+ * anywhere its declared endpoints do not name.
  *
  * Templates substitute only `{{input.<name>}}`, `{{run.nonce}}`,
  * `{{sink.<name>}}` and `{{call.<call id><json pointer>}}` (an earlier call's
@@ -98,8 +100,8 @@ const nameSchema = z.string().regex(/^[a-z][a-z0-9_]{0,63}$/u);
 const pointerSchema = z.string().max(256).regex(JSON_POINTER);
 const callIdSchema = agentReadinessScopeKeySchema;
 const methodsSchema = z.array(z.enum(EXCHANGE_METHODS)).min(1);
-/** Headers a binding never sets: the transport and custody own them. */
-const RESERVED_HEADERS = new Set([
+/** Headers a binding or a job operation never sets: the transport and the runner's custody do. */
+export const AGENT_READINESS_RESERVED_HEADERS = new Set([
     "accept-encoding",
     "authorization",
     "connection",
@@ -142,13 +144,13 @@ const agentReadinessHttpCallSchema = z
         name: z
             .string()
             .regex(HEADER_NAME_PATTERN)
-            .refine((name) => !RESERVED_HEADERS.has(name), "This header is not a binding's."),
+            .refine((name) => !AGENT_READINESS_RESERVED_HEADERS.has(name), "This header is not a binding's."),
         value: templateSchema(512),
     })
         .strict())
         .max(16),
     body: httpBodySchema.nullable(),
-    /** Credential roles the call carries; custody attaches each by its grant. */
+    /** Credential roles the call carries; the runner's custody attaches each by its grant. */
     credentials: z.array(nameSchema).max(4),
 })
     .strict()
@@ -223,7 +225,7 @@ const agentReadinessCredentialDeclarationSchema = z
     methods: methodsSchema,
 })
     .strict();
-/** A credential a successful response issues, kept by custody under its role. */
+/** A credential a successful response issues, kept under its role by the runner's custody. */
 const agentReadinessKeptCredentialSchema = agentReadinessCredentialDeclarationSchema
     .safeExtend({
     pointer: pointerSchema,
@@ -237,14 +239,20 @@ const issuingCall = {
 const agentReadinessDelegationSchema = z.discriminatedUnion("kind", [
     /** The job needs no authority. */
     z.object({ kind: z.literal("none") }).strict(),
-    /** A person enters a credential the service issued, such as a key copied from a dashboard. */
+    /**
+     * The account holder enters a credential the service issued, such as a key
+     * from its dashboard, as a secret of their own run.
+     */
     z
         .object({
         kind: z.literal("entered"),
         credentials: z.array(agentReadinessCredentialDeclarationSchema).min(1).max(4),
     })
         .strict(),
-    /** The principal consents through OAuth, MCP authorization included; custody keeps the tokens. */
+    /**
+     * The principal consents through OAuth, MCP authorization included; the
+     * runner's custody keeps the tokens.
+     */
     z
         .object({
         kind: z.literal("oauth"),
@@ -255,7 +263,7 @@ const agentReadinessDelegationSchema = z.discriminatedUnion("kind", [
         keep: z.array(agentReadinessKeptCredentialSchema).min(1).max(4),
     })
         .strict(),
-    /** An entered credential mints the one the job uses, through the service's own API. */
+    /** A credential the account holder entered mints the job's, through the service's own API. */
     z
         .object({
         kind: z.literal("minted"),
@@ -267,7 +275,7 @@ const agentReadinessDelegationSchema = z.discriminatedUnion("kind", [
 const agentReadinessPaymentSchema = z.discriminatedUnion("kind", [
     /** The job costs nothing at the exercised use. */
     z.object({ kind: z.literal("none") }).strict(),
-    /** The account holds a balance; a manual top-up is a recorded human step. */
+    /** The account holds a balance a person set up; the run leaves Pay to the probes. */
     z.object({ kind: z.literal("prepaid_balance") }).strict(),
     /** The agent pays per call inside the exchange. */
     z.object({ kind: z.literal("per_call"), protocol: z.enum(["x402", "mpp"]) }).strict(),
@@ -280,12 +288,13 @@ const agentReadinessSustainSchema = z
         z.object({ kind: z.literal("refresh"), ...issuingCall }).strict(),
         /** The service's API mints a replacement credential. */
         z.object({ kind: z.literal("mint"), ...issuingCall }).strict(),
-        /** Only a person can rotate it; a run records that step. */
+        /** Only a person can rotate it; no run witnesses that, so Sustain stays not assessed. */
         z.object({ kind: z.literal("manual") }).strict(),
     ]),
     revocation: z.discriminatedUnion("kind", [
         z.object({ kind: z.literal("not_applicable") }).strict(),
         z.object({ kind: z.literal("call"), call: agentReadinessHttpCallSchema }).strict(),
+        /** Only a person can revoke it; Sustain stays not assessed. */
         z.object({ kind: z.literal("manual") }).strict(),
     ]),
     /** Read-only effect witnesses; without them a 2xx establishes no upkeep. */
@@ -510,5 +519,55 @@ export function agentReadinessCallTemplates(call) {
 function unique(values, context, path, message) {
     if (new Set(values).size !== values.length)
         context.addIssue({ code: "custom", path, message });
+}
+/**
+ * Each binding performs the job through its own interface: that interface is
+ * declared, every call it makes uses one of the interface's HTTP endpoints and
+ * keeps that endpoint's origin, and every credential reaches only declared
+ * endpoints. Whether it performs the right job is checked against the job
+ * library, which a declaration does not carry.
+ */
+export function validateDeclaredJobBindings(value, context) {
+    const endpoints = new Map(value.endpoints.map((endpoint) => [endpoint.endpoint_id, endpoint]));
+    const interfaces = new Map(value.interfaces.map((declared) => [declared.interface_id, declared.endpoint_ids]));
+    for (const [index, binding] of value.job_bindings.entries()) {
+        const issue = (message) => context.addIssue({ code: "custom", path: ["job_bindings", index], message });
+        const reachable = interfaces.get(binding.interface_id);
+        if (!reachable)
+            issue(`Job binding references unknown interface '${binding.interface_id}'.`);
+        for (const { call } of agentReadinessBindingCalls(binding)) {
+            const endpoint = endpoints.get(call.endpoint_id);
+            if (!endpoint) {
+                issue(`Call '${call.call_id}' uses unknown endpoint '${call.endpoint_id}'.`);
+                continue;
+            }
+            if (reachable && !reachable.includes(call.endpoint_id)) {
+                issue(`Call '${call.call_id}' uses '${call.endpoint_id}', outside its interface.`);
+            }
+            if (endpoint.transport !== "http") {
+                issue(`Call '${call.call_id}' needs an HTTP endpoint.`);
+            }
+            if (call.kind === "http" &&
+                call.url.match(/^https:\/\/[^/?#]+/u)?.[0] !== new URL(endpoint.uri).origin) {
+                issue(`Call '${call.call_id}' leaves the origin of '${call.endpoint_id}'.`);
+            }
+        }
+        const { delegation, sustain } = binding;
+        const credentialEndpoints = [
+            ...(delegation.kind === "entered" ? delegation.credentials : []),
+            ...(delegation.kind === "oauth" ? delegation.keep : []),
+            ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
+            ...(sustain.rotation.kind === "refresh" || sustain.rotation.kind === "mint"
+                ? sustain.rotation.keep
+                : []),
+        ].flatMap(({ endpoint_ids }) => endpoint_ids);
+        if (delegation.kind === "oauth") {
+            credentialEndpoints.push(delegation.authorization_endpoint_id, delegation.token_endpoint_id);
+        }
+        for (const id of new Set(credentialEndpoints)) {
+            if (!endpoints.has(id))
+                issue(`Credentials reach unknown endpoint '${id}'.`);
+        }
+    }
 }
 //# sourceMappingURL=binding.js.map

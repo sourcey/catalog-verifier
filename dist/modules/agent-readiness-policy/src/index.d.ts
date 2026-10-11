@@ -3,15 +3,15 @@ import type { EntityRevision } from "../../../contracts/revisions/src/index.js";
 import { type EvidenceStandingGraph } from "../../provenance/src/index.js";
 export * from "./current-policy.js";
 export * from "./declaration-jobs.js";
+export * from "./grade-policy.js";
 export * from "./impact.js";
 export * from "./offer-relations.js";
-export * from "./operate-policy.js";
 export * from "./prior-projection.js";
 export * from "./revision.js";
 /**
- * The projection a release publishes for one revision: the Operate letter the
- * pinned policy gives its steps, its Onboard level and evidence label, the
- * human boundaries a reader sees, and whether it is discoverable. Freshness is
+ * The projection a release publishes for one revision: the letter the pinned
+ * policy gives its steps and its statement, the evidence label, where a person
+ * or the vendor steps in, and whether it is discoverable. Freshness is
  * served from the freshness index, never released. Nothing here reads
  * documentation or calls out.
  */

@@ -8,7 +8,7 @@ import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJo
  */
 export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
     readonly library_contract: "sourcey.agent-readiness-job-library/v1alpha1";
-    readonly library_version: "2026-10-10";
+    readonly library_version: "2026-10-10.2";
     readonly jobs: [{
         readonly job_id: "bounty-claim";
         readonly category: "bounty-board";
@@ -517,25 +517,33 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         readonly job_id: "sms-send";
         readonly category: "sms-messaging";
         readonly name: "Send a text message";
-        readonly statement: "Send a text message carrying the run's nonce to a Sourcey-controlled number.";
+        readonly statement: "Send a text message carrying the run's nonce to the number its runner supplies, then read its delivery status.";
         readonly inputs: [{
             readonly kind: "nonce";
             readonly name: "nonce";
         }, {
-            readonly kind: "sink";
+            readonly kind: "supplied";
             readonly name: "recipient";
-            readonly sink: "phone";
         }];
         readonly assertions: [{
             readonly name: "message_accepted";
             readonly statement: "The service accepts the message and returns its identifier.";
             readonly proof: "message_accepted";
         }, {
-            readonly name: "delivered_to_sink";
-            readonly statement: "The message reaches the Sourcey-controlled number, carrying the nonce.";
-            readonly proof: "sink_received";
+            readonly name: "message_delivered";
+            readonly statement: "The service's own status for that message reads delivered.";
+            readonly proof: "message_delivered";
         }];
-        readonly observation_links: [];
+        readonly observation_links: [{
+            readonly from: {
+                readonly assertion: "message_accepted";
+                readonly observation: "id";
+            };
+            readonly to: {
+                readonly assertion: "message_delivered";
+                readonly observation: "message_id";
+            };
+        }];
         readonly error_probe: {
             readonly statement: "A message to a recipient number that cannot exist.";
         };

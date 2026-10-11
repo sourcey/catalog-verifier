@@ -66,45 +66,74 @@ export const agentReadinessSurfaceReferenceSchema = z
     node_id: agentReadinessScopeKeySchema,
 })
     .strict();
-/** A revision rests on at most this many runs: its latest and the earlier refusals it reproduces. */
-export const AGENT_READINESS_MAXIMUM_REVISION_RUNS = 4;
-/** The Operate path, in order: how a principal's authority becomes a completed, confirmed job. */
+/**
+ * The earlier runs of each group a refresh reads, newest first: the profile's
+ * probe runs, and each binding's (north star §5.4).
+ */
+export const AGENT_READINESS_PRIOR_RUNS_READ = 4;
+/** The most runs a policy asks to hold one finding before it counts (its reproduction's `attempts`). */
+export const AGENT_READINESS_MAXIMUM_ATTEMPTS = 2;
+/**
+ * A revision rests on at most this many runs: its probe runs from the earliest
+ * its grade rests on through the latest (the earlier ones a refresh reads, and
+ * its own), and its binding's runs that decide.
+ */
+export const AGENT_READINESS_MAXIMUM_REVISION_RUNS = AGENT_READINESS_PRIOR_RUNS_READ + 1 + AGENT_READINESS_MAXIMUM_ATTEMPTS;
+/**
+ * The roles of the pages a person's or a vendor's step happens on, which a
+ * listing names and the probe requests (north star §5.3).
+ */
+export const AGENT_READINESS_PAGE_ROLES = [
+    "registration",
+    "access_request",
+    "access_setting",
+    "checkout",
+];
+/** A probe run requests each declared page once, and a listing names at most this many. */
+export const AGENT_READINESS_MAXIMUM_PAGES = 8;
+/**
+ * The path, in the shape's order: the agent finds the job, gets authority for
+ * it, registers, pays, confirms, and keeps its access up (north star §5.1).
+ */
 export const AGENT_READINESS_STEPS = [
     "discover",
-    "delegation",
+    "authority",
+    "onboard",
     "pay",
-    "job",
     "confirm",
     "sustain",
 ];
 export const agentReadinessStepSchema = z.enum(AGENT_READINESS_STEPS);
 /**
- * What happened at one step: done by the agent, a legitimate principal decision,
- * a human doing the agent's work, reproducibly impossible, proved absent by the
- * executed path, or not yet evidenced.
+ * What happened at one step (north star §5.2): done by the agent, absent
+ * (nothing to do), a principal's one-time decision, a person doing the
+ * agent's work, or a vendor's decision standing in the way. `not_assessed` is
+ * a step a run did not settle; a published revision holds one only on an F
+ * card whose listing names no interface for the job.
  */
 export const agentReadinessStepOutcomeSchema = z.enum([
     "machine",
+    "not_applicable",
     "approval",
     "workaround",
-    "blocked",
-    "not_applicable",
+    "gated",
     "not_assessed",
 ]);
-/** Once per principal or credential lifetime, or on every job, purchase or period. */
-export const agentReadinessHandoffTimingSchema = z.enum(["setup", "recurring"]);
-export const agentReadinessOperateLetterSchema = z.enum([
-    "A+",
-    "A",
-    "B+",
-    "B",
-    "C+",
-    "C",
-    "D",
-    "F",
+/**
+ * The job itself, which is not a step (north star §5.1): an interface for it
+ * answers and the job has not been run, a run did it, or no machine interface
+ * performs it (F). `not_assessed` until the probes settle it.
+ */
+export const agentReadinessJobOutcomeSchema = z.enum([
+    "reachable",
+    "verified",
+    "unavailable",
+    "not_assessed",
 ]);
-/** 1 no account needed … 6 sales-gated; absence is "not yet assessed". */
-export const agentReadinessOnboardLevelSchema = z.number().int().min(1).max(6);
+/** Once (per principal or credential lifetime), or every run, purchase or period. */
+export const agentReadinessHumanStepTimingSchema = z.enum(["setup", "recurring"]);
+/** The scale, best first (north star §5.7). */
+export const agentReadinessLetterSchema = z.enum(["A+", "A", "B+", "B", "C", "D", "F"]);
 export const agentReadinessEvidenceLabelSchema = z.enum([
     "sourcey_run",
     "vendor_run_verified",

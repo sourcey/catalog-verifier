@@ -24,9 +24,11 @@ declare const agentReadinessJobSchema: z.ZodObject<{
         name: z.ZodString;
         sink: z.ZodEnum<{
             email: "email";
-            phone: "phone";
             webhook: "webhook";
         }>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"supplied">;
+        name: z.ZodString;
     }, z.core.$strict>], "kind">>;
     assertions: z.ZodArray<z.ZodObject<{
         name: z.ZodString;
@@ -35,6 +37,7 @@ declare const agentReadinessJobSchema: z.ZodObject<{
             dns_answer: "dns_answer";
             dns_success: "dns_success";
             message_accepted: "message_accepted";
+            message_delivered: "message_delivered";
             model_selected: "model_selected";
             resource_created: "resource_created";
             resource_found_by_query: "resource_found_by_query";
@@ -88,9 +91,11 @@ export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
             name: z.ZodString;
             sink: z.ZodEnum<{
                 email: "email";
-                phone: "phone";
                 webhook: "webhook";
             }>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"supplied">;
+            name: z.ZodString;
         }, z.core.$strict>], "kind">>;
         assertions: z.ZodArray<z.ZodObject<{
             name: z.ZodString;
@@ -99,6 +104,7 @@ export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
                 dns_answer: "dns_answer";
                 dns_success: "dns_success";
                 message_accepted: "message_accepted";
+                message_delivered: "message_delivered";
                 model_selected: "model_selected";
                 resource_created: "resource_created";
                 resource_found_by_query: "resource_found_by_query";
@@ -152,9 +158,11 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
             name: z.ZodString;
             sink: z.ZodEnum<{
                 email: "email";
-                phone: "phone";
                 webhook: "webhook";
             }>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"supplied">;
+            name: z.ZodString;
         }, z.core.$strict>], "kind">>;
         assertions: z.ZodArray<z.ZodObject<{
             name: z.ZodString;
@@ -163,6 +171,7 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
                 dns_answer: "dns_answer";
                 dns_success: "dns_success";
                 message_accepted: "message_accepted";
+                message_delivered: "message_delivered";
                 model_selected: "model_selected";
                 resource_created: "resource_created";
                 resource_found_by_query: "resource_found_by_query";

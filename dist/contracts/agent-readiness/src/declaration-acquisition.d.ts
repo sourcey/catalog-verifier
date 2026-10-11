@@ -44,6 +44,95 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
         payment_provider: "payment_provider";
         provisioning_provider: "provisioning_provider";
     }>>>;
+    job_operations: z.ZodDefault<z.ZodArray<z.ZodObject<{
+        operation: z.ZodDiscriminatedUnion<[z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"http">;
+            endpoint_id: z.ZodString;
+            method: z.ZodEnum<{
+                GET: "GET";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>;
+            url: z.ZodURL;
+            headers: z.ZodArray<z.ZodObject<{
+                name: z.ZodString;
+                value: z.ZodString;
+            }, z.core.$strict>>;
+            body: z.ZodNullable<z.ZodObject<{
+                media_type: z.ZodString;
+            }, z.core.$strict>>;
+            spec: z.ZodNullable<z.ZodObject<{
+                url: z.ZodURL;
+                key_operations: z.ZodNullable<z.ZodObject<{
+                    create: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                    revoke: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"mcp">;
+            endpoint_id: z.ZodString;
+            tool: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"spec">;
+            spec_url: z.ZodURL;
+            method: z.ZodEnum<{
+                DELETE: "DELETE";
+                GET: "GET";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>;
+            path: z.ZodString;
+            key_operations: z.ZodNullable<z.ZodObject<{
+                create: z.ZodObject<{
+                    method: z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    path: z.ZodString;
+                }, z.core.$strict>;
+                revoke: z.ZodObject<{
+                    method: z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    path: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>], "kind">;
+        source_uris: z.ZodArray<z.ZodURL>;
+    }, z.core.$strict>>>;
     job_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
         binding: z.ZodObject<{
             binding_id: z.ZodString;
@@ -589,6 +678,8 @@ export declare const agentReadinessDeclarationDraftRequestSchema: z.ZodObject<{
             websocket: "websocket";
         }>;
         roles: z.ZodArray<z.ZodEnum<{
+            access_request: "access_request";
+            access_setting: "access_setting";
             authorization: "authorization";
             checkout: "checkout";
             protected_resource: "protected_resource";
