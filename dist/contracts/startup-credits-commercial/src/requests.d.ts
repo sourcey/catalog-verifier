@@ -372,6 +372,7 @@ export declare const startupCreditsPullRequestStatusSchema: z.ZodObject<{
         pull_request_number: z.ZodNumber;
         head_sha: z.ZodString;
         state: z.ZodEnum<{
+            company_pending: "company_pending";
             needs_change: "needs_change";
             needs_person: "needs_person";
             passed: "passed";
@@ -469,6 +470,7 @@ export declare const startupCreditsPullRequestStatusResponseSchema: z.ZodObject<
             pull_request_number: z.ZodNumber;
             head_sha: z.ZodString;
             state: z.ZodEnum<{
+                company_pending: "company_pending";
                 needs_change: "needs_change";
                 needs_person: "needs_person";
                 passed: "passed";

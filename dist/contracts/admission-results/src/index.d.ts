@@ -310,6 +310,7 @@ export declare const admissionSummarySchema: z.ZodObject<{
     pull_request_number: z.ZodNumber;
     head_sha: z.ZodString;
     state: z.ZodEnum<{
+        company_pending: "company_pending";
         needs_change: "needs_change";
         needs_person: "needs_person";
         passed: "passed";
@@ -368,6 +369,36 @@ export declare const admissionSummarySchema: z.ZodObject<{
 }, z.core.$strict>;
 export type AdmissionSummaryCheck = z.infer<typeof admissionSummaryCheckSchema>;
 export type AdmissionSummary = z.infer<typeof admissionSummarySchema>;
+/** The Agent Readiness declaration head and file a company listing comes from. */
+export declare const readinessCompanySourceSchema: z.ZodObject<{
+    repository_id: z.ZodString;
+    repository: z.ZodString;
+    pull_request_number: z.ZodNumber;
+    head_sha: z.ZodString;
+    path: z.ZodString;
+    entity_id: z.ZodString;
+    identity_digest: z.ZodString;
+}, z.core.$strict>;
+/**
+ * An Agent Readiness declaration head held while Sourcey lists the company it names: the exact
+ * head and file, the company's identity, and the companion submission that lists it. The head is
+ * admitted again once that company is live, or once its companion can no longer publish.
+ */
+export declare const readinessCompanyHoldSchema: z.ZodObject<{
+    repository_id: z.ZodString;
+    repository: z.ZodString;
+    pull_request_number: z.ZodNumber;
+    head_sha: z.ZodString;
+    path: z.ZodString;
+    entity_id: z.ZodString;
+    identity_digest: z.ZodString;
+    hold_contract: z.ZodLiteral<"sourcey.readiness-company-hold/v1alpha1">;
+    companion: z.ZodObject<{
+        submission_id: z.ZodString;
+        payload_digest: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>;
+export type ReadinessCompanyHold = z.infer<typeof readinessCompanyHoldSchema>;
 export declare function verifyStartupCreditsAdmissionReport(input: unknown): StartupCreditsAdmissionReport;
 export {};
 //# sourceMappingURL=index.d.ts.map

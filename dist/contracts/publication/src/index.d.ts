@@ -1126,6 +1126,18 @@ export declare const publicationIngressReceiptCoreSchema: z.ZodDiscriminatedUnio
 }, z.core.$strict>, z.ZodObject<{
     proposal_digest: z.ZodString;
     semantic_input_digest: z.ZodString;
+    kind: z.ZodLiteral<"catalog_operator">;
+    submission_work_item_digest: z.ZodString;
+    schema_digest: z.ZodString;
+    payload_digest: z.ZodString;
+    authentication_digest: z.ZodString;
+    authorization_digest: z.ZodString;
+    operator_admission_digest: z.ZodNullable<z.ZodString>;
+    source_digest: z.ZodString;
+    idempotency_key: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
     kind: z.ZodLiteral<"governed_ops">;
     submission_work_item_digest: z.ZodNullable<z.ZodString>;
     command_digest: z.ZodString;
@@ -1191,6 +1203,19 @@ export declare const publicationIngressReceiptSchema: z.ZodDiscriminatedUnion<[z
     authorization_digest: z.ZodString;
     operator_admission_digest: z.ZodNullable<z.ZodString>;
     request_id: z.ZodString;
+    idempotency_key: z.ZodString;
+    receipt_digest: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
+    proposal_digest: z.ZodString;
+    semantic_input_digest: z.ZodString;
+    kind: z.ZodLiteral<"catalog_operator">;
+    submission_work_item_digest: z.ZodString;
+    schema_digest: z.ZodString;
+    payload_digest: z.ZodString;
+    authentication_digest: z.ZodString;
+    authorization_digest: z.ZodString;
+    operator_admission_digest: z.ZodNullable<z.ZodString>;
+    source_digest: z.ZodString;
     idempotency_key: z.ZodString;
     receipt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
@@ -2723,6 +2748,19 @@ declare const catalogPublicationIngressSchema: z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         proposal_digest: z.ZodString;
         semantic_input_digest: z.ZodString;
+        kind: z.ZodLiteral<"catalog_operator">;
+        submission_work_item_digest: z.ZodString;
+        schema_digest: z.ZodString;
+        payload_digest: z.ZodString;
+        authentication_digest: z.ZodString;
+        authorization_digest: z.ZodString;
+        operator_admission_digest: z.ZodNullable<z.ZodString>;
+        source_digest: z.ZodString;
+        idempotency_key: z.ZodString;
+        receipt_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        proposal_digest: z.ZodString;
+        semantic_input_digest: z.ZodString;
         kind: z.ZodLiteral<"governed_ops">;
         submission_work_item_digest: z.ZodNullable<z.ZodString>;
         command_digest: z.ZodString;
@@ -3939,6 +3977,19 @@ export declare const catalogPublicationCompositionSchema: z.ZodObject<{
             authorization_digest: z.ZodString;
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             request_id: z.ZodString;
+            idempotency_key: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
+            kind: z.ZodLiteral<"catalog_operator">;
+            submission_work_item_digest: z.ZodString;
+            schema_digest: z.ZodString;
+            payload_digest: z.ZodString;
+            authentication_digest: z.ZodString;
+            authorization_digest: z.ZodString;
+            operator_admission_digest: z.ZodNullable<z.ZodString>;
+            source_digest: z.ZodString;
             idempotency_key: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
@@ -5162,6 +5213,19 @@ export declare const catalogPublicationAdmissionInputSchema: z.ZodObject<{
             authorization_digest: z.ZodString;
             operator_admission_digest: z.ZodNullable<z.ZodString>;
             request_id: z.ZodString;
+            idempotency_key: z.ZodString;
+            receipt_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            proposal_digest: z.ZodString;
+            semantic_input_digest: z.ZodString;
+            kind: z.ZodLiteral<"catalog_operator">;
+            submission_work_item_digest: z.ZodString;
+            schema_digest: z.ZodString;
+            payload_digest: z.ZodString;
+            authentication_digest: z.ZodString;
+            authorization_digest: z.ZodString;
+            operator_admission_digest: z.ZodNullable<z.ZodString>;
+            source_digest: z.ZodString;
             idempotency_key: z.ZodString;
             receipt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{

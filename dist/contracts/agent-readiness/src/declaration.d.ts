@@ -2527,6 +2527,10 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
         }, z.core.$strict>>;
         category: z.ZodString;
     }, z.core.$strict>;
+    company: z.ZodOptional<z.ZodObject<{
+        summary: z.ZodString;
+        site_url: z.ZodURL;
+    }, z.core.$strict>>;
     sources: z.ZodArray<z.ZodObject<{
         source_id: z.ZodString;
         url: z.ZodURL;

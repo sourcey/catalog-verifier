@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.9";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.10";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
