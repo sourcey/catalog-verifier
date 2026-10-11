@@ -85,12 +85,4 @@ export declare function evaluateAssertions(input: {
         readonly reason: string;
     } | null;
 }[]>;
-/**
- * Whether the safe invalid request failed typed: true or false is a fact about
- * the service; null (a transport failure, a 5xx, an unanswered call) is residue.
- */
-export declare function evaluateErrorProbe(probe: AgentReadinessJobBinding["error_probe"], result: CallResult): {
-    readonly typed: boolean;
-    readonly reason: string;
-} | null;
 //# sourceMappingURL=checks.d.ts.map

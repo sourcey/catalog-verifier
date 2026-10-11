@@ -1,9 +1,11 @@
 import { z } from "zod";
 /**
  * The rating rules as data (north star §5.7): the jobs a profile is rated on,
- * the person-steps each letter allows, how a finding is reproduced, and how
- * long a run stays fresh. The engine applies them; the published file is what
- * every reader, the verifier included, applies.
+ * the kind of each person-step a path can hold, the kinds each letter allows
+ * (and, for A, how many),
+ * how a finding is reproduced, and how long a run stays fresh. The engine
+ * applies them; the published file is what every reader, the verifier
+ * included, applies.
  */
 export declare const AGENT_READINESS_POLICY_CONTRACT: "sourcey.agent-readiness-policy/v1alpha1";
 export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
@@ -62,9 +64,6 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                     observation: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
-            error_probe: z.ZodObject<{
-                statement: z.ZodString;
-            }, z.core.$strict>;
             effect: z.ZodEnum<{
                 billable: "billable";
                 consequential: "consequential";
@@ -77,6 +76,33 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
         }, z.core.$strict>>;
         library_digest: z.ZodString;
     }, z.core.$strict>;
+    person_steps: z.ZodArray<z.ZodObject<{
+        step: z.ZodEnum<{
+            authority: "authority";
+            confirm: "confirm";
+            discover: "discover";
+            onboard: "onboard";
+            pay: "pay";
+            sustain: "sustain";
+        }>;
+        outcome: z.ZodEnum<{
+            approval: "approval";
+            gated: "gated";
+            workaround: "workaround";
+        }>;
+        timing: z.ZodNullable<z.ZodEnum<{
+            recurring: "recurring";
+            setup: "setup";
+        }>>;
+        kind: z.ZodEnum<{
+            card: "card";
+            gated: "gated";
+            key: "key";
+            light: "light";
+            recurring: "recurring";
+            sign_up: "sign_up";
+        }>;
+    }, z.core.$strict>>;
     letters: z.ZodArray<z.ZodObject<{
         letter: z.ZodEnum<{
             A: "A";
@@ -88,10 +114,15 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
             F: "F";
         }>;
         allows: z.ZodObject<{
-            approvals: z.ZodNullable<z.ZodNumber>;
-            setup_workarounds: z.ZodNullable<z.ZodNumber>;
-            recurring_workarounds: z.ZodBoolean;
-            gated: z.ZodBoolean;
+            kinds: z.ZodArray<z.ZodEnum<{
+                card: "card";
+                gated: "gated";
+                key: "key";
+                light: "light";
+                recurring: "recurring";
+                sign_up: "sign_up";
+            }>>;
+            most_steps: z.ZodNullable<z.ZodNumber>;
             unavailable: z.ZodBoolean;
         }, z.core.$strict>;
         statement: z.ZodString;
@@ -99,7 +130,6 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
     reproduction: z.ZodObject<{
         attempts: z.ZodNumber;
         minimum_interval_seconds: z.ZodNumber;
-        statuses: z.ZodArray<z.ZodNumber>;
     }, z.core.$strict>;
     fresh_for_days: z.ZodNumber;
 }, z.core.$strict>;
@@ -159,9 +189,6 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                     observation: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
-            error_probe: z.ZodObject<{
-                statement: z.ZodString;
-            }, z.core.$strict>;
             effect: z.ZodEnum<{
                 billable: "billable";
                 consequential: "consequential";
@@ -174,6 +201,33 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
         }, z.core.$strict>>;
         library_digest: z.ZodString;
     }, z.core.$strict>;
+    person_steps: z.ZodArray<z.ZodObject<{
+        step: z.ZodEnum<{
+            authority: "authority";
+            confirm: "confirm";
+            discover: "discover";
+            onboard: "onboard";
+            pay: "pay";
+            sustain: "sustain";
+        }>;
+        outcome: z.ZodEnum<{
+            approval: "approval";
+            gated: "gated";
+            workaround: "workaround";
+        }>;
+        timing: z.ZodNullable<z.ZodEnum<{
+            recurring: "recurring";
+            setup: "setup";
+        }>>;
+        kind: z.ZodEnum<{
+            card: "card";
+            gated: "gated";
+            key: "key";
+            light: "light";
+            recurring: "recurring";
+            sign_up: "sign_up";
+        }>;
+    }, z.core.$strict>>;
     letters: z.ZodArray<z.ZodObject<{
         letter: z.ZodEnum<{
             A: "A";
@@ -185,10 +239,15 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
             F: "F";
         }>;
         allows: z.ZodObject<{
-            approvals: z.ZodNullable<z.ZodNumber>;
-            setup_workarounds: z.ZodNullable<z.ZodNumber>;
-            recurring_workarounds: z.ZodBoolean;
-            gated: z.ZodBoolean;
+            kinds: z.ZodArray<z.ZodEnum<{
+                card: "card";
+                gated: "gated";
+                key: "key";
+                light: "light";
+                recurring: "recurring";
+                sign_up: "sign_up";
+            }>>;
+            most_steps: z.ZodNullable<z.ZodNumber>;
             unavailable: z.ZodBoolean;
         }, z.core.$strict>;
         statement: z.ZodString;
@@ -196,7 +255,6 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
     reproduction: z.ZodObject<{
         attempts: z.ZodNumber;
         minimum_interval_seconds: z.ZodNumber;
-        statuses: z.ZodArray<z.ZodNumber>;
     }, z.core.$strict>;
     fresh_for_days: z.ZodNumber;
     policy_digest: z.ZodString;

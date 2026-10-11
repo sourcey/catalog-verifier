@@ -1,7 +1,7 @@
 import { EXCHANGE_METHODS, verifyExchangeRecord, } from "provenry/exchange/records";
 import { compareInstants } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_MAXIMUM_PAGES, AGENT_READINESS_PAGE_ROLES, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessHostnameSchema, agentReadinessHumanStepTimingSchema, agentReadinessInstantSchema, agentReadinessJobOutcomeSchema, agentReadinessScopeKeySchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, } from "./shared.js";
+import { AGENT_READINESS_MAXIMUM_PAGES, AGENT_READINESS_PAGE_ROLES, AGENT_READINESS_PERSON_STEPS, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessHostnameSchema, agentReadinessHumanStepTimingSchema, agentReadinessInstantSchema, agentReadinessJobOutcomeSchema, agentReadinessPersonStepKey, agentReadinessScopeKeySchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, } from "./shared.js";
 /**
  * One assessment run as evidence: what was discovered, every exchange made (by
  * its sealed exchange record and retained outcome), and what was read from the
@@ -71,19 +71,8 @@ export const AGENT_READINESS_PROBE_PURPOSES = [
     "probe_authorization",
     "probe_page",
 ];
-/** A verified run's exchanges: the binding's delegation, job, error probe, upkeep and cleanup. */
-const AGENT_READINESS_BINDING_PURPOSES = [
-    "delegation",
-    "job",
-    "error_probe",
-    "sustain_rotation",
-    "sustain_revocation",
-    "sustain_baseline",
-    "sustain_rotated_probe",
-    "sustain_revoked_probe",
-    "sustain_control_probe",
-    "cleanup",
-];
+/** A verified run's exchanges: the binding's delegation, job and cleanup. */
+const AGENT_READINESS_BINDING_PURPOSES = ["delegation", "job", "cleanup"];
 export const agentReadinessRunExchangeSchema = z
     .object({
     purpose: z.enum([...AGENT_READINESS_BINDING_PURPOSES, ...AGENT_READINESS_PROBE_PURPOSES]),
@@ -238,7 +227,9 @@ export const agentReadinessOperationProbeSchema = z
         /**
          * The server's auth.md registration (`agent_auth`): `agent` when it
          * registers an agent with no person (`anonymous`), `claimable` when a
-         * person claims or confirms the registration once; null when it has none.
+         * person claims what the agent made later (an `anonymous` registration
+         * with a `claim_endpoint`) or confirms the registration once; null when
+         * it has none.
          */
         registration: z.enum(["agent", "claimable"]).nullable(),
         /** How the agent identified itself as an OAuth client, or null when it could not. */
@@ -311,7 +302,8 @@ export const agentReadinessAssertionResultSchema = z
 /**
  * A page the listing names for a person's or a vendor's step, as the probe
  * requested it (north star §5.3): its sign-up or registration endpoint, its
- * sales or approval page, its checkout.
+ * sales or approval page, an access setting, a claim page, its checkout or
+ * top-up page, a key renewal page.
  */
 export const agentReadinessPageProbeSchema = z
     .object({
@@ -379,7 +371,6 @@ export const agentReadinessRunRecordCoreSchema = z
     pages: z.array(agentReadinessPageProbeSchema).max(AGENT_READINESS_MAXIMUM_PAGES),
     /** Empty when the job's calls did not all complete. */
     assertions: z.array(agentReadinessAssertionResultSchema).max(8),
-    error_probe: z.object({ typed: z.boolean(), reason: reasonSchema }).strict().nullable(),
     residue: z.array(agentReadinessRunResidueSchema).max(16),
 })
     .strict()
@@ -422,12 +413,11 @@ export const agentReadinessRunRecordCoreSchema = z
             message: "A probe run makes only probe exchanges, and a verified run none.",
         });
     }
-    if (probe &&
-        (run.credentials.length > 0 || run.assertions.length > 0 || run.error_probe !== null)) {
+    if (probe && (run.credentials.length > 0 || run.assertions.length > 0)) {
         context.addIssue({
             code: "custom",
             path: ["credentials"],
-            message: "A probe run holds no credential and checks no assertion or error probe.",
+            message: "A probe run holds no credential and checks no assertion.",
         });
     }
     if (!probe && (run.probes.length > 0 || run.pages.length > 0)) {
@@ -512,7 +502,6 @@ export const agentReadinessRunSummarySchema = z
     }))
         .max(96),
     assertions: z.array(agentReadinessAssertionResultSchema).max(8),
-    error_probe: agentReadinessRunRecordCoreSchema.shape.error_probe,
 })
     .strict();
 /** What a step outcome rests on: entries of a run record, by reference. */
@@ -549,6 +538,7 @@ export const agentReadinessStepEvidenceSchema = z.discriminatedUnion("kind", [
     })
         .strict(),
 ]);
+const AGENT_READINESS_PERSON_STEP_KEYS = new Set(AGENT_READINESS_PERSON_STEPS.map(agentReadinessPersonStepKey));
 export const agentReadinessStepResultSchema = z
     .object({
     step: agentReadinessStepSchema,
@@ -574,11 +564,14 @@ export const agentReadinessStepResultSchema = z
             message: "Every assessed step rests on evidence; a step not assessed has none.",
         });
     }
-    if (step.outcome === "gated" && step.step !== "authority" && step.step !== "onboard") {
+    if (step.outcome !== "machine" &&
+        step.outcome !== "not_applicable" &&
+        step.outcome !== "not_assessed" &&
+        !AGENT_READINESS_PERSON_STEP_KEYS.has(agentReadinessPersonStepKey(step))) {
         context.addIssue({
             code: "custom",
             path: ["outcome"],
-            message: "Only Authority and Onboard are gated by a vendor's decision.",
+            message: "A step holds only a person-step the scale names for it (north star §5.7).",
         });
     }
 });

@@ -76,7 +76,7 @@ export declare const AGENT_READINESS_MAXIMUM_REVISION_RUNS: number;
  * The roles of the pages a person's or a vendor's step happens on, which a
  * listing names and the probe requests (north star §5.3).
  */
-export declare const AGENT_READINESS_PAGE_ROLES: readonly ["registration", "access_request", "access_setting", "checkout"];
+export declare const AGENT_READINESS_PAGE_ROLES: readonly ["registration", "access_request", "access_setting", "claim", "checkout", "top_up", "key_renewal"];
 /** A probe run requests each declared page once, and a listing names at most this many. */
 export declare const AGENT_READINESS_MAXIMUM_PAGES = 8;
 /**
@@ -126,6 +126,76 @@ export declare const agentReadinessHumanStepTimingSchema: z.ZodEnum<{
     recurring: "recurring";
     setup: "setup";
 }>;
+/**
+ * The kinds of person-step on the shape's scale (north star §5.7), lightest
+ * first: a light, one-time step; a person signing up; a person handing over a
+ * key; a card on file; a step that recurs; a vendor's decision.
+ */
+export declare const AGENT_READINESS_PERSON_STEP_KINDS: readonly ["light", "sign_up", "key", "card", "recurring", "gated"];
+export declare const agentReadinessPersonStepKindSchema: z.ZodEnum<{
+    card: "card";
+    gated: "gated";
+    key: "key";
+    light: "light";
+    recurring: "recurring";
+    sign_up: "sign_up";
+}>;
+export type AgentReadinessPersonStepKind = z.infer<typeof agentReadinessPersonStepKindSchema>;
+/**
+ * Every person-step a step can need (north star §5.7): the outcomes, besides
+ * `machine`, `not_applicable` and `not_assessed`, that a step result may hold.
+ */
+export declare const AGENT_READINESS_PERSON_STEPS: readonly [{
+    readonly step: "discover";
+    readonly outcome: "workaround";
+    readonly timing: "setup";
+}, {
+    readonly step: "authority";
+    readonly outcome: "approval";
+    readonly timing: "setup";
+}, {
+    readonly step: "authority";
+    readonly outcome: "workaround";
+    readonly timing: "setup";
+}, {
+    readonly step: "onboard";
+    readonly outcome: "approval";
+    readonly timing: "setup";
+}, {
+    readonly step: "onboard";
+    readonly outcome: "workaround";
+    readonly timing: "setup";
+}, {
+    readonly step: "onboard";
+    readonly outcome: "gated";
+    readonly timing: null;
+}, {
+    readonly step: "pay";
+    readonly outcome: "workaround";
+    readonly timing: "setup";
+}, {
+    readonly step: "pay";
+    readonly outcome: "workaround";
+    readonly timing: "recurring";
+}, {
+    readonly step: "confirm";
+    readonly outcome: "workaround";
+    readonly timing: "recurring";
+}, {
+    readonly step: "sustain";
+    readonly outcome: "workaround";
+    readonly timing: "setup";
+}, {
+    readonly step: "sustain";
+    readonly outcome: "workaround";
+    readonly timing: "recurring";
+}];
+/** One person-step, keyed as `step:outcome:timing`. */
+export declare function agentReadinessPersonStepKey(step: {
+    readonly step: AgentReadinessStep;
+    readonly outcome: AgentReadinessStepOutcome;
+    readonly timing: z.infer<typeof agentReadinessHumanStepTimingSchema> | null;
+}): string;
 /** The scale, best first (north star §5.7). */
 export declare const agentReadinessLetterSchema: z.ZodEnum<{
     A: "A";

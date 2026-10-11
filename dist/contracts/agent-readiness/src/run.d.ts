@@ -41,7 +41,6 @@ export declare const agentReadinessRunExchangeSchema: z.ZodObject<{
     purpose: z.ZodEnum<{
         cleanup: "cleanup";
         delegation: "delegation";
-        error_probe: "error_probe";
         job: "job";
         probe_authorization: "probe_authorization";
         probe_authorization_server: "probe_authorization_server";
@@ -50,12 +49,6 @@ export declare const agentReadinessRunExchangeSchema: z.ZodObject<{
         probe_operation: "probe_operation";
         probe_page: "probe_page";
         probe_resource_metadata: "probe_resource_metadata";
-        sustain_baseline: "sustain_baseline";
-        sustain_control_probe: "sustain_control_probe";
-        sustain_revocation: "sustain_revocation";
-        sustain_revoked_probe: "sustain_revoked_probe";
-        sustain_rotated_probe: "sustain_rotated_probe";
-        sustain_rotation: "sustain_rotation";
     }>;
     call_id: z.ZodString;
     role: z.ZodEnum<{
@@ -199,7 +192,8 @@ export declare const agentReadinessAssertionResultSchema: z.ZodObject<{
 /**
  * A page the listing names for a person's or a vendor's step, as the probe
  * requested it (north star §5.3): its sign-up or registration endpoint, its
- * sales or approval page, its checkout.
+ * sales or approval page, an access setting, a claim page, its checkout or
+ * top-up page, a key renewal page.
  */
 export declare const agentReadinessPageProbeSchema: z.ZodObject<{
     page_id: z.ZodString;
@@ -207,7 +201,10 @@ export declare const agentReadinessPageProbeSchema: z.ZodObject<{
         access_request: "access_request";
         access_setting: "access_setting";
         checkout: "checkout";
+        claim: "claim";
+        key_renewal: "key_renewal";
         registration: "registration";
+        top_up: "top_up";
     }>;
     answer: z.ZodEnum<{
         authority: "authority";
@@ -285,7 +282,6 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
         purpose: z.ZodEnum<{
             cleanup: "cleanup";
             delegation: "delegation";
-            error_probe: "error_probe";
             job: "job";
             probe_authorization: "probe_authorization";
             probe_authorization_server: "probe_authorization_server";
@@ -294,12 +290,6 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
             probe_operation: "probe_operation";
             probe_page: "probe_page";
             probe_resource_metadata: "probe_resource_metadata";
-            sustain_baseline: "sustain_baseline";
-            sustain_control_probe: "sustain_control_probe";
-            sustain_revocation: "sustain_revocation";
-            sustain_revoked_probe: "sustain_revoked_probe";
-            sustain_rotated_probe: "sustain_rotated_probe";
-            sustain_rotation: "sustain_rotation";
         }>;
         call_id: z.ZodString;
         role: z.ZodEnum<{
@@ -392,7 +382,10 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
             access_request: "access_request";
             access_setting: "access_setting";
             checkout: "checkout";
+            claim: "claim";
+            key_renewal: "key_renewal";
             registration: "registration";
+            top_up: "top_up";
         }>;
         answer: z.ZodEnum<{
             authority: "authority";
@@ -411,10 +404,6 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
             check: z.ZodNumber;
             reason: z.ZodString;
         }, z.core.$strict>>;
-    }, z.core.$strict>>;
-    error_probe: z.ZodNullable<z.ZodObject<{
-        typed: z.ZodBoolean;
-        reason: z.ZodString;
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
         step: z.ZodUnion<readonly [z.ZodEnum<{
@@ -481,7 +470,6 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
         purpose: z.ZodEnum<{
             cleanup: "cleanup";
             delegation: "delegation";
-            error_probe: "error_probe";
             job: "job";
             probe_authorization: "probe_authorization";
             probe_authorization_server: "probe_authorization_server";
@@ -490,12 +478,6 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
             probe_operation: "probe_operation";
             probe_page: "probe_page";
             probe_resource_metadata: "probe_resource_metadata";
-            sustain_baseline: "sustain_baseline";
-            sustain_control_probe: "sustain_control_probe";
-            sustain_revocation: "sustain_revocation";
-            sustain_revoked_probe: "sustain_revoked_probe";
-            sustain_rotated_probe: "sustain_rotated_probe";
-            sustain_rotation: "sustain_rotation";
         }>;
         call_id: z.ZodString;
         role: z.ZodEnum<{
@@ -588,7 +570,10 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
             access_request: "access_request";
             access_setting: "access_setting";
             checkout: "checkout";
+            claim: "claim";
+            key_renewal: "key_renewal";
             registration: "registration";
+            top_up: "top_up";
         }>;
         answer: z.ZodEnum<{
             authority: "authority";
@@ -607,10 +592,6 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
             check: z.ZodNumber;
             reason: z.ZodString;
         }, z.core.$strict>>;
-    }, z.core.$strict>>;
-    error_probe: z.ZodNullable<z.ZodObject<{
-        typed: z.ZodBoolean;
-        reason: z.ZodString;
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
         step: z.ZodUnion<readonly [z.ZodEnum<{
@@ -640,7 +621,6 @@ export declare const agentReadinessRunSummarySchema: z.ZodObject<{
         purpose: z.ZodEnum<{
             cleanup: "cleanup";
             delegation: "delegation";
-            error_probe: "error_probe";
             job: "job";
             probe_authorization: "probe_authorization";
             probe_authorization_server: "probe_authorization_server";
@@ -649,12 +629,6 @@ export declare const agentReadinessRunSummarySchema: z.ZodObject<{
             probe_operation: "probe_operation";
             probe_page: "probe_page";
             probe_resource_metadata: "probe_resource_metadata";
-            sustain_baseline: "sustain_baseline";
-            sustain_control_probe: "sustain_control_probe";
-            sustain_revocation: "sustain_revocation";
-            sustain_revoked_probe: "sustain_revoked_probe";
-            sustain_rotated_probe: "sustain_rotated_probe";
-            sustain_rotation: "sustain_rotation";
         }>;
         role: z.ZodEnum<{
             request: "request";
@@ -689,10 +663,6 @@ export declare const agentReadinessRunSummarySchema: z.ZodObject<{
             check: z.ZodNumber;
             reason: z.ZodString;
         }, z.core.$strict>>;
-    }, z.core.$strict>>;
-    error_probe: z.ZodNullable<z.ZodObject<{
-        typed: z.ZodBoolean;
-        reason: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>;
 export type AgentReadinessRunSummary = z.infer<typeof agentReadinessRunSummarySchema>;

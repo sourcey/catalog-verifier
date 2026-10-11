@@ -39,7 +39,6 @@ export function summarizeAgentReadinessRun(record) {
             exchange_digest: exchange.exchange_digest,
         })),
         assertions: record.assertions,
-        error_probe: record.error_probe,
     });
 }
 //# sourceMappingURL=run.js.map

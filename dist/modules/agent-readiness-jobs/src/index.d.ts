@@ -8,7 +8,7 @@ import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJo
  */
 export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
     readonly library_contract: "sourcey.agent-readiness-job-library/v1alpha1";
-    readonly library_version: "2026-10-10.2";
+    readonly library_version: "2026-10-12.1";
     readonly jobs: [{
         readonly job_id: "bounty-claim";
         readonly category: "bounty-board";
@@ -37,9 +37,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A claim on a bounty that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -70,9 +67,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A bucket request with a name the platform does not allow.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -103,9 +97,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A message to a channel that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -136,9 +127,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A contact request with an email address that is not valid.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -169,9 +157,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A database request with a name the service does not allow.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -202,9 +187,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A deployment request for a project that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -236,9 +218,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "status";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A query for a record type the resolver does not define.";
-        };
         readonly effect: "read";
         readonly cleanup: "none";
     }, {
@@ -264,9 +243,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
             readonly proof: "sink_received";
         }];
         readonly observation_links: [];
-        readonly error_probe: {
-            readonly statement: "An email to a recipient address that is not valid.";
-        };
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
@@ -297,9 +273,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "An event sent to a project that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -330,9 +303,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A flag request with a key the service does not allow.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -376,9 +346,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "tool_name";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A completion request naming a model that does not exist.";
-        };
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
@@ -409,9 +376,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A monitor request with a query the service cannot parse.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -442,9 +406,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A payment link with an amount the service does not accept.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -475,9 +436,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A repository request with a name the service does not allow.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -508,9 +466,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A search against an index that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -544,9 +499,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "message_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A message to a recipient number that cannot exist.";
-        };
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
@@ -577,9 +529,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A user request with an email address that is not valid.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -610,9 +559,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A query against an index that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
@@ -643,9 +589,6 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
                 readonly observation: "created_id";
             };
         }];
-        readonly error_probe: {
-            readonly statement: "A page request for a container that does not exist.";
-        };
         readonly effect: "consequential";
         readonly cleanup: "required";
     }];

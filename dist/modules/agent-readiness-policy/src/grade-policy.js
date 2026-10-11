@@ -7,59 +7,92 @@ import { verifyAgentReadinessJobLibrary } from "../../agent-readiness-jobs/src/i
  * configuration, never this object.
  */
 export function agentReadinessPolicySource(input) {
-    const allows = (overrides) => ({
-        approvals: null,
-        setup_workarounds: null,
-        recurring_workarounds: false,
-        gated: false,
-        unavailable: false,
-        ...overrides,
-    });
     return {
         policy_contract: AGENT_READINESS_POLICY_CONTRACT,
-        policy_version: "grade-2026-10-11",
+        policy_version: "kind-2026-10-12",
         job_library: verifyAgentReadinessJobLibrary(input.jobLibrary),
+        // The kind of each person-step (north star §5.7), in the shape's words where it names one.
+        person_steps: [
+            // Not named by the shape: a person tells the agent where the interface is (north star §11).
+            { step: "discover", outcome: "workaround", timing: "setup", kind: "light" },
+            // "OAuth consent with a self-registering client".
+            { step: "authority", outcome: "approval", timing: "setup", kind: "light" },
+            // "hands over a key".
+            { step: "authority", outcome: "workaround", timing: "setup", kind: "key" },
+            // "claiming the account later"; confirming a registration or turning access on, once.
+            { step: "onboard", outcome: "approval", timing: "setup", kind: "light" },
+            // "a person signs up".
+            { step: "onboard", outcome: "workaround", timing: "setup", kind: "sign_up" },
+            // "access depends on sales or approval".
+            { step: "onboard", outcome: "gated", timing: null, kind: "gated" },
+            // "a card on file".
+            { step: "pay", outcome: "workaround", timing: "setup", kind: "card" },
+            // "manual top-ups".
+            { step: "pay", outcome: "workaround", timing: "recurring", kind: "recurring" },
+            // Not named by the shape: untyped errors, a person checks each failure (north star §11).
+            { step: "confirm", outcome: "workaround", timing: "recurring", kind: "recurring" },
+            // Not named by the shape: a person replaces a key that never expires (north star §11).
+            { step: "sustain", outcome: "workaround", timing: "setup", kind: "light" },
+            // "keys that expire with no renewal API".
+            { step: "sustain", outcome: "workaround", timing: "recurring", kind: "recurring" },
+        ],
         letters: [
             {
                 letter: "A+",
-                allows: allows({ approvals: 0, setup_workarounds: 0 }),
-                statement: "An agent gets in, pays and keeps going with no person.",
+                allows: { kinds: [], most_steps: 0, unavailable: false },
+                statement: "An agent gets in, pays and recovers with no person: anonymous, pay-per-call or agent registration.",
             },
             {
                 letter: "A",
-                allows: allows({ approvals: 1, setup_workarounds: 0 }),
-                statement: "One light, one-time decision by a person, such as consenting to the agent's own client or claiming the account it made.",
+                // "one light, one-time human step": one person-step at most.
+                allows: { kinds: ["light"], most_steps: 1, unavailable: false },
+                statement: "One light, one-time human step: OAuth consent with the agent's own client, or claiming the account later.",
             },
             {
                 letter: "B+",
-                allows: allows({ setup_workarounds: 2 }),
-                statement: "A person sets up at most two things once, such as signing up and handing over a key, or decides more than once.",
+                allows: { kinds: ["light", "sign_up", "key"], most_steps: null, unavailable: false },
+                statement: "A person signs up and hands over a key.",
             },
             {
                 letter: "B",
-                allows: allows({}),
-                statement: "A person sets up three or more things once, such as signing up, handing over a key and putting a card on file.",
+                allows: {
+                    kinds: ["light", "sign_up", "key", "card"],
+                    most_steps: null,
+                    unavailable: false,
+                },
+                statement: "A card on file.",
             },
             {
                 letter: "C",
-                allows: allows({ recurring_workarounds: true }),
-                statement: "A person is needed again and again: to renew access, top up, or check that the job worked.",
+                allows: {
+                    kinds: ["light", "sign_up", "key", "card", "recurring"],
+                    most_steps: null,
+                    unavailable: false,
+                },
+                statement: "Human steps that recur, such as manual top-ups or keys that expire with no renewal API.",
             },
             {
                 letter: "D",
-                allows: allows({ recurring_workarounds: true, gated: true }),
-                statement: "Access is the vendor's decision: sales or approval.",
+                allows: {
+                    kinds: ["light", "sign_up", "key", "card", "recurring", "gated"],
+                    most_steps: null,
+                    unavailable: false,
+                },
+                statement: "Access depends on sales or approval.",
             },
             {
                 letter: "F",
-                allows: allows({ recurring_workarounds: true, gated: true, unavailable: true }),
-                statement: "No machine interface performs the job.",
+                allows: {
+                    kinds: ["light", "sign_up", "key", "card", "recurring", "gated"],
+                    most_steps: null,
+                    unavailable: true,
+                },
+                statement: "No machine interface for the job.",
             },
         ],
         reproduction: {
             attempts: 2,
             minimum_interval_seconds: 3_600,
-            statuses: [403],
         },
         fresh_for_days: 30,
     };

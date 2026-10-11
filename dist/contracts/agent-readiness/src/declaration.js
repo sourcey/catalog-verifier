@@ -53,8 +53,14 @@ const agentReadinessEndpointTransportSchema = z.enum(["http", "websocket", "grpc
  * request is answered (north star §5.6, Onboard `gated`); `access_setting` is
  * where a person on the account turns the interface that lists it on for
  * agents once, such as an organization setting that allows an MCP server's
- * write tools (Onboard `approval`); `checkout` is where a person puts a card on
- * file (Pay).
+ * write tools (Onboard `approval`); `claim` is where a person claims later what
+ * the agent made alone through the interface that lists it, such as an
+ * ephemeral cluster (Onboard `approval`); `checkout` is where a person puts a
+ * card on file (Pay); `top_up` is where a person tops up a prepaid balance by
+ * hand, named only where the vendor offers no automatic top-up (Pay, recurring);
+ * `key_renewal` is where a person replaces a key the vendor expires on a fixed
+ * lifetime with no API to renew it, listed by the interface whose key it is
+ * (Sustain, recurring). Each is bound to the vendor's own documentation.
  */
 const agentReadinessEndpointRoleSchema = z.enum([
     "service",
@@ -63,8 +69,11 @@ const agentReadinessEndpointRoleSchema = z.enum([
     "registration",
     "access_request",
     "access_setting",
+    "claim",
     "protected_resource",
     "checkout",
+    "top_up",
+    "key_renewal",
     "status",
     "recovery",
     "webhook",

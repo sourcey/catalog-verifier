@@ -1,9 +1,9 @@
 import { AGENT_READINESS_MAXIMUM_PAGES, AGENT_READINESS_PAGE_ROLES } from "./shared.js";
 /**
  * What the probe reads of a listing's own surfaces: the roles it rules out, its
- * checkout or that the job needs none, and the pages a person's or a vendor's
- * step happens on, each requested once, an access setting on the interface it
- * turns on.
+ * checkout or top-up page or that the job needs none, and the pages a person's
+ * or a vendor's step happens on, each requested once, an access setting, a
+ * claim page and a key renewal page on the interface they serve.
  */
 export function validateProbedSurfaces(value, context) {
     const ruledOut = value.surface_exclusions;
@@ -33,33 +33,38 @@ export function validateProbedSurfaces(value, context) {
             });
         }
     }
-    // An access setting turns on the interface that lists it (north star §5.6, Onboard).
+    // An access setting turns on, a claim page claims what the agent made through, and a key renewal
+    // page replaces the key of, the interface that lists it (north star §5.6, Onboard and Sustain).
     const listed = new Set(value.interfaces.flatMap(({ endpoint_ids }) => endpoint_ids));
+    const listedBy = {
+        access_setting: "An access setting is listed by the interface it turns on.",
+        claim: "A claim page is listed by the interface it claims for.",
+        key_renewal: "A key renewal page is listed by the interface whose key it replaces.",
+    };
     for (const [index, endpoint] of value.endpoints.entries()) {
-        if (endpoint.roles.includes("access_setting") && !listed.has(endpoint.endpoint_id)) {
-            context.addIssue({
-                code: "custom",
-                path: ["endpoints", index, "roles"],
-                message: "An access setting is listed by the interface it turns on.",
-            });
+        for (const [role, message] of Object.entries(listedBy)) {
+            if (endpoint.roles.includes(role) && !listed.has(endpoint.endpoint_id)) {
+                context.addIssue({ code: "custom", path: ["endpoints", index, "roles"], message });
+            }
         }
     }
-    // Pay rests on the checkout the listing names, or on the listing ruling it out (north star §5.6).
+    // Pay rests on the checkout or the top-up page the listing names, or on the listing ruling a
+    // checkout out (north star §5.6).
     const checkoutNamed = declared.has("checkout") ||
-        value.endpoints.some((endpoint) => endpoint.roles.includes("checkout"));
+        value.endpoints.some((endpoint) => endpoint.roles.includes("checkout") || endpoint.roles.includes("top_up"));
     const checkoutRuledOut = roles.includes("checkout");
     if (checkoutNamed && checkoutRuledOut) {
         context.addIssue({
             code: "custom",
             path: ["surface_exclusions"],
-            message: "A declaration names its checkout or rules it out, not both.",
+            message: "A declaration names its checkout or top-up page, or rules a checkout out, not both.",
         });
     }
     if (value.job_operations.length > 0 && !checkoutNamed && !checkoutRuledOut) {
         context.addIssue({
             code: "custom",
             path: ["surface_exclusions"],
-            message: "A declaration with job operations names its checkout, or rules it out where the job needs none.",
+            message: "A declaration with job operations names its checkout or top-up page, or rules a checkout out where the job needs none.",
         });
     }
     const pageRole = (role) => AGENT_READINESS_PAGE_ROLES.includes(role);

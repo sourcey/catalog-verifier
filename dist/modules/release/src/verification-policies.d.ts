@@ -70,21 +70,22 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
                         observation: string;
                     };
                 }[];
-                error_probe: {
-                    statement: string;
-                };
                 effect: "billable" | "consequential" | "read";
                 cleanup: "none" | "required";
             }[];
             library_digest: string;
         };
+        person_steps: {
+            step: "authority" | "confirm" | "discover" | "onboard" | "pay" | "sustain";
+            outcome: "approval" | "gated" | "workaround";
+            timing: "recurring" | "setup" | null;
+            kind: "card" | "gated" | "key" | "light" | "recurring" | "sign_up";
+        }[];
         letters: {
             letter: "A" | "A+" | "B" | "B+" | "C" | "D" | "F";
             allows: {
-                approvals: number | null;
-                setup_workarounds: number | null;
-                recurring_workarounds: boolean;
-                gated: boolean;
+                kinds: ("card" | "gated" | "key" | "light" | "recurring" | "sign_up")[];
+                most_steps: number | null;
                 unavailable: boolean;
             };
             statement: string;
@@ -92,7 +93,6 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
         reproduction: {
             attempts: number;
             minimum_interval_seconds: number;
-            statuses: number[];
         };
         fresh_for_days: number;
         policy_digest: string;

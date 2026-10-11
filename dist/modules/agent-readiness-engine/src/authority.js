@@ -104,7 +104,11 @@ export function readAuthorizationServer(document, issuer) {
 }
 /**
  * auth.md's `agent_auth` block: an `identity_endpoint` the agent registers at,
- * and the registration types it accepts (`identity_types_supported`).
+ * and the registration types it accepts (`identity_types_supported`). An
+ * `anonymous` registration is the agent's own, unless the block names a
+ * `claim_endpoint`: what the agent made then lasts until a person claims it
+ * later (north star §5.6, Onboard `approval`), as does a registration a person
+ * confirms (`service_auth`, `identity_assertion`).
  */
 function agentRegistration(value) {
     const block = record(value);
@@ -112,7 +116,7 @@ function agentRegistration(value) {
         return null;
     const types = Array.isArray(block.identity_types_supported) ? block.identity_types_supported : [];
     if (types.includes("anonymous"))
-        return "agent";
+        return oauthUrl(block.claim_endpoint) ? "claimable" : "agent";
     return types.includes("service_auth") || types.includes("identity_assertion")
         ? "claimable"
         : null;
