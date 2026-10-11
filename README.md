@@ -3,7 +3,10 @@
 `@sourcey/catalog-verifier` is Sourcey's deterministic contribution preflight for
 the [Startup Credits](https://github.com/sourcey/startup-credits) and
 [Agent Ready Services](https://github.com/sourcey/agent-ready-services) data
-repositories. It also verifies immutable Sourcey Catalog release bundles.
+repositories. It also verifies immutable Sourcey Catalog release bundles, and
+re-derives every Agent Readiness card in them from the declarations and run
+records they carry: the probed path from the declaration and its probe runs,
+and the verified path from any run of a job binding.
 
 The verifier checks exact local candidate bytes. It does not crawl vendors,
 judge factual truth, prove submitter authority, run an Agent Readiness

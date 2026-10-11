@@ -4,16 +4,18 @@ import { lifecycleStatusSchema } from "../../revisions/src/index.js";
 import { validateOfferRelationInterval } from "./checks.js";
 import { agentReadinessDeclarationRevisionSchema, agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationPurposeSchema, agentReadinessParticipantSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
 import { agentReadinessDeclarationStateSchema } from "./declaration-reference.js";
-import { agentReadinessAssertionResultSchema, agentReadinessDiscoveryFactSchema, agentReadinessRunKindSchema, agentReadinessRunRecordSchema, agentReadinessRunSummarySchema, agentReadinessStepResultSchema, } from "./run.js";
-import { AGENT_READINESS_MAXIMUM_REVISION_RUNS, AGENT_READINESS_STEPS, agentReadinessCatalogBindingSchema, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessHandoffTimingSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessOnboardLevelSchema, agentReadinessOperateLetterSchema, agentReadinessProfileIdSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, sameAgentReadinessScopeIdentity, } from "./shared.js";
+import { AGENT_READINESS_DISCOVERY_LIMIT, agentReadinessAssertionResultSchema, agentReadinessDiscoveryFactSchema, agentReadinessJobResultSchema, agentReadinessRunRecordSchema, agentReadinessRunSummarySchema, agentReadinessStepResultSchema, } from "./run.js";
+import { AGENT_READINESS_MAXIMUM_REVISION_RUNS, AGENT_READINESS_STEPS, agentReadinessCatalogBindingSchema, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessFreshnessSchema, agentReadinessHumanStepTimingSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessJobOutcomeSchema, agentReadinessLetterSchema, agentReadinessOfferIdSchema, agentReadinessProfileIdSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, sameAgentReadinessScopeIdentity, } from "./shared.js";
 /** Canonical discriminant for a published Agent Readiness revision. */
 export const agentReadinessRevisionContract = "sourcey.agent-readiness-revision/v1alpha1";
-/** A run the revision rests on: the latest, and earlier ones a reproduced refusal needs. */
+/**
+ * A run the revision rests on: its probe runs and any verified runs of its
+ * binding, the latest of each and the earlier ones a reproduced finding needs.
+ */
 const agentReadinessRunReferenceSchema = z
     .object({
     run_digest: agentReadinessDigestSchema,
     label: agentReadinessEvidenceLabelSchema,
-    run_kind: agentReadinessRunKindSchema,
     finished_at: agentReadinessInstantSchema,
 })
     .strict();
@@ -37,20 +39,36 @@ const agentReadinessRevisionFields = {
     /** The exact library job the runs performed; a changed job needs new runs. */
     job_digest: agentReadinessDigestSchema,
     engine: agentReadinessEngineIdentitySchema,
-    /** The binding the rating rests on; null for a listing no binding has run yet. */
+    /**
+     * The interface whose path the steps are: the best one the profile's runs
+     * establish. Null when the declaration names no API or MCP server for the
+     * job (the job `unavailable`, F).
+     */
+    interface_id: agentReadinessScopeKeySchema.nullable(),
+    /** The binding whose verified runs the steps also rest on; null when they rest on probes alone. */
     binding_id: agentReadinessScopeKeySchema.nullable(),
     binding_digest: agentReadinessDigestSchema.nullable(),
-    /** Oldest first; the last is the run every step's outcome is read from. */
+    /** Oldest first: probe runs and the binding's verified runs. */
     runs: z.array(agentReadinessRunReferenceSchema).min(1).max(AGENT_READINESS_MAXIMUM_REVISION_RUNS),
-    /** One result per step, in path order. */
+    /** One result per step, in path order, every one assessed (an F card with no interface excepted). */
     steps: z.array(agentReadinessStepResultSchema).length(AGENT_READINESS_STEPS.length),
-    onboard_level: agentReadinessOnboardLevelSchema.nullable(),
-    /** What the latest run found on the service's own descriptors. */
-    discovery: z.array(agentReadinessDiscoveryFactSchema).max(64),
+    /** The job itself: reachable, verified or unavailable. */
+    job: agentReadinessJobResultSchema,
+    /** What discovery found on the service's own domains: the run's that decided Discover. */
+    discovery: z.array(agentReadinessDiscoveryFactSchema).max(AGENT_READINESS_DISCOVERY_LIMIT),
+    /** The probe run whose discovery those facts are, one of `runs`. */
+    discovery_run_digest: agentReadinessDigestSchema,
     /** What the latest run asked and what came back, as the card shows it. */
     latest_run: agentReadinessRunSummarySchema,
 };
 function validateAgentReadinessRevision(value, context) {
+    if (!value.runs.some(({ run_digest, label }) => run_digest === value.discovery_run_digest && label === "probed")) {
+        context.addIssue({
+            code: "custom",
+            path: ["discovery_run_digest"],
+            message: "A revision's discovery facts are one of its probe runs'.",
+        });
+    }
     if ((value.binding_id === null) !== (value.binding_digest === null)) {
         context.addIssue({
             code: "custom",
@@ -58,12 +76,11 @@ function validateAgentReadinessRevision(value, context) {
             message: "A revision names its binding and its digest together, or neither.",
         });
     }
-    if (value.binding_id === null &&
-        (value.onboard_level !== null || value.steps.some(({ outcome }) => outcome !== "not_assessed"))) {
+    if (value.binding_id !== null && value.interface_id === null) {
         context.addIssue({
             code: "custom",
-            path: ["steps"],
-            message: "A listing no binding has run assesses no step and no Onboard level.",
+            path: ["interface_id"],
+            message: "A revision that rests on a binding names the binding's interface.",
         });
     }
     if (value.latest_run.finished_at !== value.runs.at(-1)?.finished_at) {
@@ -78,6 +95,28 @@ function validateAgentReadinessRevision(value, context) {
             code: "custom",
             path: ["steps"],
             message: "A revision lists one result per step, in path order.",
+        });
+    }
+    if (value.job.outcome === "not_assessed") {
+        context.addIssue({
+            code: "custom",
+            path: ["job"],
+            message: "A revision is published once its job is assessed.",
+        });
+    }
+    const interfaceless = value.interface_id === null && value.job.outcome === "unavailable";
+    if (!interfaceless && value.steps.some(({ outcome }) => outcome === "not_assessed")) {
+        context.addIssue({
+            code: "custom",
+            path: ["steps"],
+            message: "A revision is published once every step is assessed, unless no interface performs the job (F).",
+        });
+    }
+    if (value.interface_id === null && value.job.outcome !== "unavailable") {
+        context.addIssue({
+            code: "custom",
+            path: ["job"],
+            message: "With no interface, the job is unavailable.",
         });
     }
     const digests = value.runs.map(({ run_digest }) => run_digest);
@@ -99,6 +138,13 @@ function validateAgentReadinessRevision(value, context) {
                 message: "Step evidence rests only on the revision's own runs.",
             });
         }
+    }
+    if (value.job.evidence.some(({ run_digest }) => !runs.has(run_digest))) {
+        context.addIssue({
+            code: "custom",
+            path: ["job", "evidence"],
+            message: "The job's evidence rests only on the revision's own runs.",
+        });
     }
     if (value.effective_until &&
         Date.parse(value.effective_until) <= Date.parse(value.effective_from)) {
@@ -129,19 +175,27 @@ export const agentReadinessProfileInputSchema = z
             return (!reference ||
                 record.run_digest !== reference.run_digest ||
                 record.label !== reference.label ||
-                record.run_kind !== reference.run_kind ||
                 record.finished_at !== reference.finished_at ||
                 record.entity_id !== value.entity_id ||
                 record.product_key !== value.scope.product.key ||
                 record.job_id !== value.scope.job.key ||
-                record.binding_id !== value.binding_id ||
-                record.binding_digest !== value.binding_digest ||
-                record.job_digest !== value.job_digest);
+                record.job_digest !== value.job_digest ||
+                record.declaration_revision_digest !== value.declaration_revision_digest ||
+                (record.binding_id !== null &&
+                    (record.binding_id !== value.binding_id ||
+                        record.binding_digest !== value.binding_digest)));
         })) {
         context.addIssue({
             code: "custom",
             path: ["run_records"],
-            message: "Each run record is exactly the run its revision names, for this profile.",
+            message: "Each run record is exactly the run its revision names, for this profile: a probe run or a run of its binding.",
+        });
+    }
+    if (!records.some(({ binding_id }) => binding_id === null)) {
+        context.addIssue({
+            code: "custom",
+            path: ["run_records"],
+            message: "A revision rests on at least one probe run.",
         });
     }
 });
@@ -228,7 +282,7 @@ const agentReadinessProjectedStepSchema = z
     .object({
     step: agentReadinessStepSchema,
     outcome: agentReadinessStepOutcomeSchema,
-    timing: agentReadinessHandoffTimingSchema.nullable(),
+    timing: agentReadinessHumanStepTimingSchema.nullable(),
 })
     .strict();
 /** The latest run as the card shows it, each assertion with the job library's statement. */
@@ -284,28 +338,34 @@ export const agentReadinessProjectionCoreSchema = z
         statement: z.string().min(1).max(400),
     })
         .strict(),
-    /** The interface the rated binding uses; null until a binding has run. */
+    /** The interface whose path the card shows; null when the declaration names none (F). */
     interface_id: agentReadinessScopeKeySchema.nullable(),
+    /** What the job's outcome rests on: `probed`, or the label of the verified run it cites. */
     label: agentReadinessEvidenceLabelSchema,
-    operate: z
+    /** When that verified run finished; null for a probed job, which the latest check dates. */
+    label_run_at: agentReadinessInstantSchema.nullable(),
+    grade: z
         .object({
-        /** Null shows the dash: not yet exercised, or no letter's coverage met. */
-        letter: agentReadinessOperateLetterSchema.nullable(),
-        /** The letter's exact definition from the policy; null with the dash. */
-        statement: z.string().min(1).max(280).nullable(),
+        letter: agentReadinessLetterSchema,
+        /** The letter's exact definition from the policy. */
+        statement: z.string().min(1).max(280),
         steps: z.array(agentReadinessProjectedStepSchema).length(AGENT_READINESS_STEPS.length),
-        /** Steps not yet assessed. */
-        missing: z.array(agentReadinessStepSchema),
-        /** Where the principal stays in the loop; never lowers the letter. */
+        /** The job itself: reachable (not yet run), verified, or unavailable (F). */
+        job: agentReadinessJobOutcomeSchema.exclude(["not_assessed"]),
+        /** Where a principal decides once. */
         approvals: z.array(agentReadinessStepSchema),
         /** Where a person does the agent's work, and how often. */
         workarounds: z.array(z
-            .object({ step: agentReadinessStepSchema, timing: agentReadinessHandoffTimingSchema })
+            .object({ step: agentReadinessStepSchema, timing: agentReadinessHumanStepTimingSchema })
             .strict()),
     })
         .strict(),
-    onboard: z.object({ level: agentReadinessOnboardLevelSchema.nullable() }).strict(),
-    discovery: z.array(agentReadinessDiscoveryFactSchema).max(64),
+    discovery: z.array(agentReadinessDiscoveryFactSchema).max(AGENT_READINESS_DISCOVERY_LIMIT),
+    /**
+     * When the probe run whose discovery decided Discover finished, when that is
+     * an earlier run than the latest (its reads went unanswered); null otherwise.
+     */
+    discovery_run_at: agentReadinessInstantSchema.nullable(),
     run: agentReadinessProjectedRunSchema,
     /** When the published facts were established: the revision's latest run. */
     last_run_at: agentReadinessInstantSchema,
@@ -334,7 +394,9 @@ export const agentReadinessProfileSummarySchema = agentReadinessProjectionSchema
     policy_digest: true,
     policy_version: true,
     policy_as_of: true,
+    interface_id: true,
     label: true,
+    label_run_at: true,
     last_run_at: true,
     publication: true,
     provenance: true,
@@ -342,13 +404,13 @@ export const agentReadinessProfileSummarySchema = agentReadinessProjectionSchema
     projection_digest: true,
 })
     .safeExtend({
-    operate: z
+    grade: z
         .object({
-        letter: agentReadinessOperateLetterSchema.nullable(),
+        letter: agentReadinessLetterSchema,
         steps: z.array(agentReadinessProjectedStepSchema).length(AGENT_READINESS_STEPS.length),
+        job: agentReadinessJobOutcomeSchema.exclude(["not_assessed"]),
     })
         .strict(),
-    onboard: z.object({ level: agentReadinessOnboardLevelSchema.nullable() }).strict(),
 })
     .strict();
 /** The freshness index's namespace for report cards; each subject is a profile id. */
@@ -402,9 +464,10 @@ export function summarizeAgentReadinessProfile(profile) {
         policy_digest: profile.policy_digest,
         policy_version: profile.policy_version,
         policy_as_of: profile.policy_as_of,
+        interface_id: profile.interface_id,
         label: profile.label,
-        operate: { letter: profile.operate.letter, steps: profile.operate.steps },
-        onboard: profile.onboard,
+        label_run_at: profile.label_run_at,
+        grade: { letter: profile.grade.letter, steps: profile.grade.steps, job: profile.grade.job },
         last_run_at: profile.last_run_at,
         publication: profile.publication,
         provenance: profile.provenance,

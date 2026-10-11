@@ -2,7 +2,7 @@ import { digest, parseJsonFile } from "provenry/primitives";
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
 import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
 import { releasePolicyInputsSchema } from "../../../contracts/sourcey-publication/src/index.js";
-import { verifyAgentReadinessPolicy } from "../../agent-readiness-policy/src/operate-policy.js";
+import { verifyAgentReadinessPolicy } from "../../agent-readiness-policy/src/grade-policy.js";
 import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
 import { CATALOG_RELEASE } from "./release-directory-files.js";
 /**

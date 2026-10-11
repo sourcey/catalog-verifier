@@ -770,11 +770,13 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
         policy_digest: z.ZodString;
         policy_version: z.ZodString;
         policy_as_of: z.ZodISODateTime;
+        interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
             sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
+        label_run_at: z.ZodNullable<z.ZodISODateTime>;
         last_run_at: z.ZodISODateTime;
         publication: z.ZodObject<{
             visibility: z.ZodEnum<{
@@ -804,29 +806,28 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         projection_digest: z.ZodString;
-        operate: z.ZodObject<{
-            letter: z.ZodNullable<z.ZodEnum<{
+        grade: z.ZodObject<{
+            letter: z.ZodEnum<{
                 A: "A";
                 "A+": "A+";
                 B: "B";
                 "B+": "B+";
                 C: "C";
-                "C+": "C+";
                 D: "D";
                 F: "F";
-            }>>;
+            }>;
             steps: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
                 outcome: z.ZodEnum<{
                     approval: "approval";
-                    blocked: "blocked";
+                    gated: "gated";
                     machine: "machine";
                     not_applicable: "not_applicable";
                     not_assessed: "not_assessed";
@@ -837,9 +838,11 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
                     setup: "setup";
                 }>>;
             }, z.core.$strict>>;
-        }, z.core.$strict>;
-        onboard: z.ZodObject<{
-            level: z.ZodNullable<z.ZodNumber>;
+            job: z.ZodEnum<{
+                reachable: "reachable";
+                unavailable: "unavailable";
+                verified: "verified";
+            }>;
         }, z.core.$strict>;
     }, z.core.$strict>>;
     offer_relations: z.ZodArray<z.ZodObject<{

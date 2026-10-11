@@ -59,54 +59,88 @@ export declare const agentReadinessSurfaceReferenceSchema: z.ZodObject<{
     }>;
     node_id: z.ZodString;
 }, z.core.$strict>;
-/** A revision rests on at most this many runs: its latest and the earlier refusals it reproduces. */
-export declare const AGENT_READINESS_MAXIMUM_REVISION_RUNS = 4;
-/** The Operate path, in order: how a principal's authority becomes a completed, confirmed job. */
-export declare const AGENT_READINESS_STEPS: readonly ["discover", "delegation", "pay", "job", "confirm", "sustain"];
+/**
+ * The earlier runs of each group a refresh reads, newest first: the profile's
+ * probe runs, and each binding's (north star §5.4).
+ */
+export declare const AGENT_READINESS_PRIOR_RUNS_READ = 4;
+/** The most runs a policy asks to hold one finding before it counts (its reproduction's `attempts`). */
+export declare const AGENT_READINESS_MAXIMUM_ATTEMPTS = 2;
+/**
+ * A revision rests on at most this many runs: its probe runs from the earliest
+ * its grade rests on through the latest (the earlier ones a refresh reads, and
+ * its own), and its binding's runs that decide.
+ */
+export declare const AGENT_READINESS_MAXIMUM_REVISION_RUNS: number;
+/**
+ * The roles of the pages a person's or a vendor's step happens on, which a
+ * listing names and the probe requests (north star §5.3).
+ */
+export declare const AGENT_READINESS_PAGE_ROLES: readonly ["registration", "access_request", "access_setting", "checkout"];
+/** A probe run requests each declared page once, and a listing names at most this many. */
+export declare const AGENT_READINESS_MAXIMUM_PAGES = 8;
+/**
+ * The path, in the shape's order: the agent finds the job, gets authority for
+ * it, registers, pays, confirms, and keeps its access up (north star §5.1).
+ */
+export declare const AGENT_READINESS_STEPS: readonly ["discover", "authority", "onboard", "pay", "confirm", "sustain"];
 export declare const agentReadinessStepSchema: z.ZodEnum<{
+    authority: "authority";
     confirm: "confirm";
-    delegation: "delegation";
     discover: "discover";
-    job: "job";
+    onboard: "onboard";
     pay: "pay";
     sustain: "sustain";
 }>;
 export type AgentReadinessStep = z.infer<typeof agentReadinessStepSchema>;
 /**
- * What happened at one step: done by the agent, a legitimate principal decision,
- * a human doing the agent's work, reproducibly impossible, proved absent by the
- * executed path, or not yet evidenced.
+ * What happened at one step (north star §5.2): done by the agent, absent
+ * (nothing to do), a principal's one-time decision, a person doing the
+ * agent's work, or a vendor's decision standing in the way. `not_assessed` is
+ * a step a run did not settle; a published revision holds one only on an F
+ * card whose listing names no interface for the job.
  */
 export declare const agentReadinessStepOutcomeSchema: z.ZodEnum<{
     approval: "approval";
-    blocked: "blocked";
+    gated: "gated";
     machine: "machine";
     not_applicable: "not_applicable";
     not_assessed: "not_assessed";
     workaround: "workaround";
 }>;
 export type AgentReadinessStepOutcome = z.infer<typeof agentReadinessStepOutcomeSchema>;
-/** Once per principal or credential lifetime, or on every job, purchase or period. */
-export declare const agentReadinessHandoffTimingSchema: z.ZodEnum<{
+/**
+ * The job itself, which is not a step (north star §5.1): an interface for it
+ * answers and the job has not been run, a run did it, or no machine interface
+ * performs it (F). `not_assessed` until the probes settle it.
+ */
+export declare const agentReadinessJobOutcomeSchema: z.ZodEnum<{
+    not_assessed: "not_assessed";
+    reachable: "reachable";
+    unavailable: "unavailable";
+    verified: "verified";
+}>;
+export type AgentReadinessJobOutcome = z.infer<typeof agentReadinessJobOutcomeSchema>;
+/** Once (per principal or credential lifetime), or every run, purchase or period. */
+export declare const agentReadinessHumanStepTimingSchema: z.ZodEnum<{
     recurring: "recurring";
     setup: "setup";
 }>;
-export declare const agentReadinessOperateLetterSchema: z.ZodEnum<{
+/** The scale, best first (north star §5.7). */
+export declare const agentReadinessLetterSchema: z.ZodEnum<{
     A: "A";
     "A+": "A+";
     B: "B";
     "B+": "B+";
     C: "C";
-    "C+": "C+";
     D: "D";
     F: "F";
 }>;
-export type AgentReadinessOperateLetter = z.infer<typeof agentReadinessOperateLetterSchema>;
-/** 1 no account needed … 6 sales-gated; absence is "not yet assessed". */
-export declare const agentReadinessOnboardLevelSchema: z.ZodNumber;
+export type AgentReadinessLetter = z.infer<typeof agentReadinessLetterSchema>;
 export declare const agentReadinessEvidenceLabelSchema: z.ZodEnum<{
     probed: "probed";
     sourcey_run: "sourcey_run";
     vendor_run_verified: "vendor_run_verified";
 }>;
+export type AgentReadinessEvidenceLabel = z.infer<typeof agentReadinessEvidenceLabelSchema>;
 //# sourceMappingURL=shared.d.ts.map

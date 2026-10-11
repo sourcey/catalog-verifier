@@ -1,9 +1,9 @@
 import { z } from "zod";
 /**
- * The rating rules as data: the jobs a profile can be rated on, which letter a
- * path earns and what it must have assessed to earn it, when a step counts as
- * blocked, and how long a run stays fresh. The engine applies them; the
- * published file is what every reader, the verifier included, applies.
+ * The rating rules as data (north star §5.7): the jobs a profile is rated on,
+ * the person-steps each letter allows, how a finding is reproduced, and how
+ * long a run stays fresh. The engine applies them; the published file is what
+ * every reader, the verifier included, applies.
  */
 export declare const AGENT_READINESS_POLICY_CONTRACT: "sourcey.agent-readiness-policy/v1alpha1";
 export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
@@ -29,9 +29,11 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                 name: z.ZodString;
                 sink: z.ZodEnum<{
                     email: "email";
-                    phone: "phone";
                     webhook: "webhook";
                 }>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"supplied">;
+                name: z.ZodString;
             }, z.core.$strict>], "kind">>;
             assertions: z.ZodArray<z.ZodObject<{
                 name: z.ZodString;
@@ -40,6 +42,7 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
                     dns_answer: "dns_answer";
                     dns_success: "dns_success";
                     message_accepted: "message_accepted";
+                    message_delivered: "message_delivered";
                     model_selected: "model_selected";
                     resource_created: "resource_created";
                     resource_found_by_query: "resource_found_by_query";
@@ -81,49 +84,22 @@ export declare const agentReadinessPolicyCoreSchema: z.ZodObject<{
             B: "B";
             "B+": "B+";
             C: "C";
-            "C+": "C+";
+            D: "D";
+            F: "F";
         }>;
-        condition: z.ZodObject<{
-            workarounds_allowed: z.ZodBoolean;
-            recurring_allowed_in: z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>;
-            recurring_required_in: z.ZodNullable<z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>>;
-            setup_workarounds: z.ZodObject<{
-                minimum: z.ZodNumber;
-                maximum: z.ZodNullable<z.ZodNumber>;
-            }, z.core.$strict>;
+        allows: z.ZodObject<{
+            approvals: z.ZodNullable<z.ZodNumber>;
+            setup_workarounds: z.ZodNullable<z.ZodNumber>;
+            recurring_workarounds: z.ZodBoolean;
+            gated: z.ZodBoolean;
+            unavailable: z.ZodBoolean;
         }, z.core.$strict>;
-        coverage: z.ZodArray<z.ZodEnum<{
-            confirm: "confirm";
-            delegation: "delegation";
-            discover: "discover";
-            job: "job";
-            pay: "pay";
-            sustain: "sustain";
-        }>>;
         statement: z.ZodString;
     }, z.core.$strict>>;
-    blocked: z.ZodObject<{
+    reproduction: z.ZodObject<{
         attempts: z.ZodNumber;
         minimum_interval_seconds: z.ZodNumber;
         statuses: z.ZodArray<z.ZodNumber>;
-        statements: z.ZodObject<{
-            D: z.ZodString;
-            F: z.ZodString;
-        }, z.core.$strict>;
     }, z.core.$strict>;
     fresh_for_days: z.ZodNumber;
 }, z.core.$strict>;
@@ -150,9 +126,11 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                 name: z.ZodString;
                 sink: z.ZodEnum<{
                     email: "email";
-                    phone: "phone";
                     webhook: "webhook";
                 }>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"supplied">;
+                name: z.ZodString;
             }, z.core.$strict>], "kind">>;
             assertions: z.ZodArray<z.ZodObject<{
                 name: z.ZodString;
@@ -161,6 +139,7 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
                     dns_answer: "dns_answer";
                     dns_success: "dns_success";
                     message_accepted: "message_accepted";
+                    message_delivered: "message_delivered";
                     model_selected: "model_selected";
                     resource_created: "resource_created";
                     resource_found_by_query: "resource_found_by_query";
@@ -202,52 +181,25 @@ export declare const agentReadinessPolicySchema: z.ZodObject<{
             B: "B";
             "B+": "B+";
             C: "C";
-            "C+": "C+";
+            D: "D";
+            F: "F";
         }>;
-        condition: z.ZodObject<{
-            workarounds_allowed: z.ZodBoolean;
-            recurring_allowed_in: z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>;
-            recurring_required_in: z.ZodNullable<z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>>;
-            setup_workarounds: z.ZodObject<{
-                minimum: z.ZodNumber;
-                maximum: z.ZodNullable<z.ZodNumber>;
-            }, z.core.$strict>;
+        allows: z.ZodObject<{
+            approvals: z.ZodNullable<z.ZodNumber>;
+            setup_workarounds: z.ZodNullable<z.ZodNumber>;
+            recurring_workarounds: z.ZodBoolean;
+            gated: z.ZodBoolean;
+            unavailable: z.ZodBoolean;
         }, z.core.$strict>;
-        coverage: z.ZodArray<z.ZodEnum<{
-            confirm: "confirm";
-            delegation: "delegation";
-            discover: "discover";
-            job: "job";
-            pay: "pay";
-            sustain: "sustain";
-        }>>;
         statement: z.ZodString;
     }, z.core.$strict>>;
-    blocked: z.ZodObject<{
+    reproduction: z.ZodObject<{
         attempts: z.ZodNumber;
         minimum_interval_seconds: z.ZodNumber;
         statuses: z.ZodArray<z.ZodNumber>;
-        statements: z.ZodObject<{
-            D: z.ZodString;
-            F: z.ZodString;
-        }, z.core.$strict>;
     }, z.core.$strict>;
     fresh_for_days: z.ZodNumber;
     policy_digest: z.ZodString;
 }, z.core.$strict>;
 export type AgentReadinessPolicy = z.infer<typeof agentReadinessPolicySchema>;
-//# sourceMappingURL=operate-policy.d.ts.map
+//# sourceMappingURL=grade-policy.d.ts.map

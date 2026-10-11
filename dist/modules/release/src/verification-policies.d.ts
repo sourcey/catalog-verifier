@@ -50,12 +50,15 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
                 } | {
                     kind: "sink";
                     name: string;
-                    sink: "email" | "phone" | "webhook";
+                    sink: "email" | "webhook";
+                } | {
+                    kind: "supplied";
+                    name: string;
                 })[];
                 assertions: {
                     name: string;
                     statement: string;
-                    proof: "dns_answer" | "dns_success" | "message_accepted" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+                    proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
                 }[];
                 observation_links: {
                     from: {
@@ -76,27 +79,20 @@ export declare function verifyCatalogDeltaPolicies(bundle: CatalogReleaseBundle,
             library_digest: string;
         };
         letters: {
-            letter: "A" | "A+" | "B" | "B+" | "C" | "C+";
-            condition: {
-                workarounds_allowed: boolean;
-                recurring_allowed_in: ("confirm" | "delegation" | "discover" | "job" | "pay" | "sustain")[];
-                recurring_required_in: ("confirm" | "delegation" | "discover" | "job" | "pay" | "sustain")[] | null;
-                setup_workarounds: {
-                    minimum: number;
-                    maximum: number | null;
-                };
+            letter: "A" | "A+" | "B" | "B+" | "C" | "D" | "F";
+            allows: {
+                approvals: number | null;
+                setup_workarounds: number | null;
+                recurring_workarounds: boolean;
+                gated: boolean;
+                unavailable: boolean;
             };
-            coverage: ("confirm" | "delegation" | "discover" | "job" | "pay" | "sustain")[];
             statement: string;
         }[];
-        blocked: {
+        reproduction: {
             attempts: number;
             minimum_interval_seconds: number;
             statuses: number[];
-            statements: {
-                D: string;
-                F: string;
-            };
         };
         fresh_for_days: number;
         policy_digest: string;

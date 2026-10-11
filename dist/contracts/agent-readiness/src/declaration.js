@@ -2,7 +2,9 @@ import { z } from "zod";
 import { authoringSourceSchema, entityIdentityAuthoringSchema } from "../../authoring/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { standardImplementationBindingSchema } from "../../standards/src/index.js";
-import { agentReadinessBindingCalls, agentReadinessJobBindingSchema } from "./binding.js";
+import { agentReadinessJobBindingSchema, validateDeclaredJobBindings } from "./binding.js";
+import { agentReadinessJobOperationFieldPaths, agentReadinessJobOperationSchema, validateDeclaredJobOperations, } from "./operation.js";
+import { validateProbedSurfaces } from "./surfaces.js";
 export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadinessDeclarationProvenanceSchema, agentReadinessDeclarationReferenceSchema, } from "./declaration-reference.js";
 import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessHostnameSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessResourceRoleSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
 export const agentReadinessParticipantRoleSchema = z.enum([
@@ -43,11 +45,24 @@ export const agentReadinessResourceSchema = z
     assertCanonicalOptionalHosts(value.allowed_redirect_hosts, context);
 });
 const agentReadinessEndpointTransportSchema = z.enum(["http", "websocket", "grpc"]);
+/**
+ * What an endpoint is for. `registration` is where a person or agent signs up
+ * (a sign-up API when it answers as an API); `access_request` is a vendor page
+ * where a person asks the vendor for access (sales or approval): with no
+ * `registration` endpoint beside it, access is the vendor's decision once its
+ * request is answered (north star §5.6, Onboard `gated`); `access_setting` is
+ * where a person on the account turns the interface that lists it on for
+ * agents once, such as an organization setting that allows an MCP server's
+ * write tools (Onboard `approval`); `checkout` is where a person puts a card on
+ * file (Pay).
+ */
 const agentReadinessEndpointRoleSchema = z.enum([
     "service",
     "authorization",
     "token",
     "registration",
+    "access_request",
+    "access_setting",
     "protected_resource",
     "checkout",
     "status",
@@ -146,6 +161,7 @@ const agentReadinessDeclarationSourceTargetSchema = z
         "interface",
         "relation",
         "offer_relation",
+        "job_operation",
         "job_binding",
         "surface_exclusion",
     ]),
@@ -176,6 +192,7 @@ const agentReadinessDeclarationGraphSourceTargetSchema = z
         "endpoint",
         "interface",
         "relation",
+        "job_operation",
         "job_binding",
         "surface_exclusion",
     ]),
@@ -203,9 +220,14 @@ const agentReadinessDeclarationCoreSchema = z
     declaration_id: agentReadinessIdentifierSchema,
     scope: agentReadinessScopeSchema,
     /**
-     * How a declared interface performs the scope's library job. A listing
-     * needs none: it is what a person knows, and the vendor or Sourcey adds a
-     * binding when the job is run.
+     * The job's request on each API or MCP server that performs it (north star
+     * §5.3): what the probe suite reads, and what every listing's letter rests on.
+     */
+    job_operations: z.array(agentReadinessJobOperationSchema).max(4),
+    /**
+     * How a declared interface performs the job end to end, for a verified run.
+     * Optional: a listing is probed and graded without one, and a binding adds
+     * only the proof that the job itself succeeds.
      */
     job_bindings: z.array(agentReadinessJobBindingSchema).max(8),
     participants: z.array(agentReadinessParticipantSchema).min(1),
@@ -220,31 +242,9 @@ const agentReadinessDeclarationCoreSchema = z
     declared_at: agentReadinessInstantSchema,
 })
     .strict();
-function validateSurfaceExclusions(value, context) {
-    const ruledOut = value.surface_exclusions;
-    assertUnique(ruledOut.map(({ exclusion_id }) => exclusion_id), context, ["surface_exclusions"], "Surface exclusion IDs must be unique.");
-    const roles = ruledOut.map(({ role }) => role);
-    if (new Set(roles).size !== roles.length) {
-        context.addIssue({
-            code: "custom",
-            path: ["surface_exclusions"],
-            message: "A surface role may be excluded only once.",
-        });
-    }
-    const declared = new Set(value.resources.flatMap((resource) => resource.roles));
-    for (const [index, surface] of ruledOut.entries()) {
-        if (declared.has(surface.role)) {
-            context.addIssue({
-                code: "custom",
-                path: ["surface_exclusions", index, "role"],
-                message: `Role '${surface.role}' is declared by a resource and cannot also be excluded.`,
-            });
-        }
-    }
-}
 const agentReadinessDeclarationSchema = agentReadinessDeclarationCoreSchema
     .superRefine(validateDeclarationGraph)
-    .superRefine(validateSurfaceExclusions);
+    .superRefine(validateProbedSurfaces);
 const agentReadinessDeclarationGraphCoreSchema = agentReadinessDeclarationCoreSchema
     .omit({ offer_relations: true, source_bindings: true })
     .safeExtend({
@@ -253,7 +253,7 @@ const agentReadinessDeclarationGraphCoreSchema = agentReadinessDeclarationCoreSc
     .strict();
 const agentReadinessDeclarationGraphSchema = agentReadinessDeclarationGraphCoreSchema.superRefine((value, context) => {
     validateDeclarationGraph({ ...value, offer_relations: [] }, context);
-    validateSurfaceExclusions(value, context);
+    validateProbedSurfaces(value, context);
 });
 export const agentReadinessDeclarationRevisionContract = "sourcey.agent-readiness-declaration-revision/v1alpha1";
 const agentReadinessDeclarationRevisionFieldsSchema = z
@@ -351,6 +351,7 @@ export const agentReadinessAuthoringSchema = z
     }
 });
 function validateDeclarationGraph(value, context) {
+    assertUnique(value.job_operations.map((operation) => operation.operation_id), context, ["job_operations"], "Job operation IDs must be unique.");
     assertUnique(value.job_bindings.map((binding) => binding.binding_id), context, ["job_bindings"], "Job binding IDs must be unique.");
     assertUnique(value.participants.map((participant) => participant.participant_id), context, ["participants"], "Participant IDs must be unique.");
     assertUnique(value.resources.map((resource) => resource.resource_id), context, ["resources"], "Resource IDs must be unique.");
@@ -368,7 +369,8 @@ function validateDeclarationGraph(value, context) {
     assertSurfaceOperators(value.interfaces, "interfaces", participants, context);
     const resourceIds = new Set(value.resources.map((resource) => resource.resource_id));
     const endpointIds = new Set(value.endpoints.map((endpoint) => endpoint.endpoint_id));
-    validateJobBindings(value, context);
+    validateDeclaredJobOperations(value, context);
+    validateDeclaredJobBindings(value, context);
     for (const [index, declaredInterface] of value.interfaces.entries()) {
         for (const endpointId of declaredInterface.endpoint_ids) {
             if (!endpointIds.has(endpointId)) {
@@ -439,56 +441,6 @@ function validateDeclarationGraph(value, context) {
     assertAcyclic(value.relations, "precedes", context);
     validateSourceBindings(value, context);
 }
-/**
- * Each binding performs the job through its own interface: that interface is
- * declared, every call it makes uses one of the interface's HTTP endpoints and
- * keeps that endpoint's origin, and every credential reaches only declared
- * endpoints. Whether it performs the right job is checked against the job
- * library, which a declaration does not carry.
- */
-function validateJobBindings(value, context) {
-    const endpoints = new Map(value.endpoints.map((endpoint) => [endpoint.endpoint_id, endpoint]));
-    const interfaces = new Map(value.interfaces.map((declared) => [declared.interface_id, declared.endpoint_ids]));
-    for (const [index, binding] of value.job_bindings.entries()) {
-        const issue = (message) => context.addIssue({ code: "custom", path: ["job_bindings", index], message });
-        const reachable = interfaces.get(binding.interface_id);
-        if (!reachable)
-            issue(`Job binding references unknown interface '${binding.interface_id}'.`);
-        for (const { call } of agentReadinessBindingCalls(binding)) {
-            const endpoint = endpoints.get(call.endpoint_id);
-            if (!endpoint) {
-                issue(`Call '${call.call_id}' uses unknown endpoint '${call.endpoint_id}'.`);
-                continue;
-            }
-            if (reachable && !reachable.includes(call.endpoint_id)) {
-                issue(`Call '${call.call_id}' uses '${call.endpoint_id}', outside its interface.`);
-            }
-            if (endpoint.transport !== "http") {
-                issue(`Call '${call.call_id}' needs an HTTP endpoint.`);
-            }
-            if (call.kind === "http" &&
-                call.url.match(/^https:\/\/[^/?#]+/u)?.[0] !== new URL(endpoint.uri).origin) {
-                issue(`Call '${call.call_id}' leaves the origin of '${call.endpoint_id}'.`);
-            }
-        }
-        const { delegation, sustain } = binding;
-        const credentialEndpoints = [
-            ...(delegation.kind === "entered" ? delegation.credentials : []),
-            ...(delegation.kind === "oauth" ? delegation.keep : []),
-            ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
-            ...(sustain.rotation.kind === "refresh" || sustain.rotation.kind === "mint"
-                ? sustain.rotation.keep
-                : []),
-        ].flatMap(({ endpoint_ids }) => endpoint_ids);
-        if (delegation.kind === "oauth") {
-            credentialEndpoints.push(delegation.authorization_endpoint_id, delegation.token_endpoint_id);
-        }
-        for (const id of new Set(credentialEndpoints)) {
-            if (!endpoints.has(id))
-                issue(`Credentials reach unknown endpoint '${id}'.`);
-        }
-    }
-}
 function validateSourceBindings(value, context) {
     const targets = new Map();
     const required = new Set();
@@ -498,6 +450,9 @@ function validateSourceBindings(value, context) {
             required.add(`${kind}:${id}:${path}`);
     };
     addTarget("declaration", value.declaration_id, ["/scope/product/name", "/scope/job/name"]);
+    for (const operation of value.job_operations) {
+        addTarget("job_operation", operation.operation_id, agentReadinessJobOperationFieldPaths(operation));
+    }
     for (const binding of value.job_bindings) {
         addTarget("job_binding", binding.binding_id, ["/interface_id", "/calls"]);
     }

@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.8";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.9";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -5803,6 +5803,8 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     websocket: "websocket";
                 }>;
                 roles: z.ZodArray<z.ZodEnum<{
+                    access_request: "access_request";
+                    access_setting: "access_setting";
                     authorization: "authorization";
                     checkout: "checkout";
                     protected_resource: "protected_resource";
@@ -5930,30 +5932,30 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
             sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
-        operate: z.ZodObject<{
-            letter: z.ZodNullable<z.ZodEnum<{
+        label_run_at: z.ZodNullable<z.ZodISODateTime>;
+        grade: z.ZodObject<{
+            letter: z.ZodEnum<{
                 A: "A";
                 "A+": "A+";
                 B: "B";
                 "B+": "B+";
                 C: "C";
-                "C+": "C+";
                 D: "D";
                 F: "F";
-            }>>;
-            statement: z.ZodNullable<z.ZodString>;
+            }>;
+            statement: z.ZodString;
             steps: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
                 outcome: z.ZodEnum<{
                     approval: "approval";
-                    blocked: "blocked";
+                    gated: "gated";
                     machine: "machine";
                     not_applicable: "not_applicable";
                     not_assessed: "not_assessed";
@@ -5964,28 +5966,25 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     setup: "setup";
                 }>>;
             }, z.core.$strict>>;
-            missing: z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>;
+            job: z.ZodEnum<{
+                reachable: "reachable";
+                unavailable: "unavailable";
+                verified: "verified";
+            }>;
             approvals: z.ZodArray<z.ZodEnum<{
+                authority: "authority";
                 confirm: "confirm";
-                delegation: "delegation";
                 discover: "discover";
-                job: "job";
+                onboard: "onboard";
                 pay: "pay";
                 sustain: "sustain";
             }>>;
             workarounds: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
@@ -5995,16 +5994,13 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                 }>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
-        onboard: z.ZodObject<{
-            level: z.ZodNullable<z.ZodNumber>;
-        }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
                 agent_documentation: "agent_documentation";
-                agent_registration: "agent_registration";
                 agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
+                documentation_route: "documentation_route";
                 mcp_endpoint: "mcp_endpoint";
                 oauth_authorization_server: "oauth_authorization_server";
                 oauth_protected_resource: "oauth_protected_resource";
@@ -6020,6 +6016,7 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                 version: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>>;
+        discovery_run_at: z.ZodNullable<z.ZodISODateTime>;
         run: z.ZodObject<{
             started_at: z.ZodISODateTime;
             finished_at: z.ZodISODateTime;
@@ -6030,6 +6027,13 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     delegation: "delegation";
                     error_probe: "error_probe";
                     job: "job";
+                    probe_authorization: "probe_authorization";
+                    probe_authorization_server: "probe_authorization_server";
+                    probe_client_registration: "probe_client_registration";
+                    probe_malformed: "probe_malformed";
+                    probe_operation: "probe_operation";
+                    probe_page: "probe_page";
+                    probe_resource_metadata: "probe_resource_metadata";
                     sustain_baseline: "sustain_baseline";
                     sustain_control_probe: "sustain_control_probe";
                     sustain_revocation: "sustain_revocation";
@@ -6220,6 +6224,8 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                     websocket: "websocket";
                 }>;
                 roles: z.ZodArray<z.ZodEnum<{
+                    access_request: "access_request";
+                    access_setting: "access_setting";
                     authorization: "authorization";
                     checkout: "checkout";
                     protected_resource: "protected_resource";
@@ -6347,30 +6353,30 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
             sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
-        operate: z.ZodObject<{
-            letter: z.ZodNullable<z.ZodEnum<{
+        label_run_at: z.ZodNullable<z.ZodISODateTime>;
+        grade: z.ZodObject<{
+            letter: z.ZodEnum<{
                 A: "A";
                 "A+": "A+";
                 B: "B";
                 "B+": "B+";
                 C: "C";
-                "C+": "C+";
                 D: "D";
                 F: "F";
-            }>>;
-            statement: z.ZodNullable<z.ZodString>;
+            }>;
+            statement: z.ZodString;
             steps: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
                 outcome: z.ZodEnum<{
                     approval: "approval";
-                    blocked: "blocked";
+                    gated: "gated";
                     machine: "machine";
                     not_applicable: "not_applicable";
                     not_assessed: "not_assessed";
@@ -6381,28 +6387,25 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                     setup: "setup";
                 }>>;
             }, z.core.$strict>>;
-            missing: z.ZodArray<z.ZodEnum<{
-                confirm: "confirm";
-                delegation: "delegation";
-                discover: "discover";
-                job: "job";
-                pay: "pay";
-                sustain: "sustain";
-            }>>;
+            job: z.ZodEnum<{
+                reachable: "reachable";
+                unavailable: "unavailable";
+                verified: "verified";
+            }>;
             approvals: z.ZodArray<z.ZodEnum<{
+                authority: "authority";
                 confirm: "confirm";
-                delegation: "delegation";
                 discover: "discover";
-                job: "job";
+                onboard: "onboard";
                 pay: "pay";
                 sustain: "sustain";
             }>>;
             workarounds: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
@@ -6412,16 +6415,13 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                 }>;
             }, z.core.$strict>>;
         }, z.core.$strict>;
-        onboard: z.ZodObject<{
-            level: z.ZodNullable<z.ZodNumber>;
-        }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
                 agent_documentation: "agent_documentation";
-                agent_registration: "agent_registration";
                 agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
+                documentation_route: "documentation_route";
                 mcp_endpoint: "mcp_endpoint";
                 oauth_authorization_server: "oauth_authorization_server";
                 oauth_protected_resource: "oauth_protected_resource";
@@ -6437,6 +6437,7 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                 version: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>>;
+        discovery_run_at: z.ZodNullable<z.ZodISODateTime>;
         run: z.ZodObject<{
             started_at: z.ZodISODateTime;
             finished_at: z.ZodISODateTime;
@@ -6447,6 +6448,13 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
                     delegation: "delegation";
                     error_probe: "error_probe";
                     job: "job";
+                    probe_authorization: "probe_authorization";
+                    probe_authorization_server: "probe_authorization_server";
+                    probe_client_registration: "probe_client_registration";
+                    probe_malformed: "probe_malformed";
+                    probe_operation: "probe_operation";
+                    probe_page: "probe_page";
+                    probe_resource_metadata: "probe_resource_metadata";
                     sustain_baseline: "sustain_baseline";
                     sustain_control_probe: "sustain_control_probe";
                     sustain_revocation: "sustain_revocation";
@@ -6572,11 +6580,13 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
         policy_digest: z.ZodString;
         policy_version: z.ZodString;
         policy_as_of: z.ZodISODateTime;
+        interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
             sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
+        label_run_at: z.ZodNullable<z.ZodISODateTime>;
         last_run_at: z.ZodISODateTime;
         publication: z.ZodObject<{
             visibility: z.ZodEnum<{
@@ -6606,29 +6616,28 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
         }, z.core.$strict>;
         canonical_url: z.ZodURL;
         projection_digest: z.ZodString;
-        operate: z.ZodObject<{
-            letter: z.ZodNullable<z.ZodEnum<{
+        grade: z.ZodObject<{
+            letter: z.ZodEnum<{
                 A: "A";
                 "A+": "A+";
                 B: "B";
                 "B+": "B+";
                 C: "C";
-                "C+": "C+";
                 D: "D";
                 F: "F";
-            }>>;
+            }>;
             steps: z.ZodArray<z.ZodObject<{
                 step: z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>;
                 outcome: z.ZodEnum<{
                     approval: "approval";
-                    blocked: "blocked";
+                    gated: "gated";
                     machine: "machine";
                     not_applicable: "not_applicable";
                     not_assessed: "not_assessed";
@@ -6639,9 +6648,11 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
                     setup: "setup";
                 }>>;
             }, z.core.$strict>>;
-        }, z.core.$strict>;
-        onboard: z.ZodObject<{
-            level: z.ZodNullable<z.ZodNumber>;
+            job: z.ZodEnum<{
+                reachable: "reachable";
+                unavailable: "unavailable";
+                verified: "verified";
+            }>;
         }, z.core.$strict>;
     }, z.core.$strict>>;
     query: z.ZodString;
@@ -6820,6 +6831,8 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                         websocket: "websocket";
                     }>;
                     roles: z.ZodArray<z.ZodEnum<{
+                        access_request: "access_request";
+                        access_setting: "access_setting";
                         authorization: "authorization";
                         checkout: "checkout";
                         protected_resource: "protected_resource";
@@ -6947,30 +6960,30 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                 sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
-            operate: z.ZodObject<{
-                letter: z.ZodNullable<z.ZodEnum<{
+            label_run_at: z.ZodNullable<z.ZodISODateTime>;
+            grade: z.ZodObject<{
+                letter: z.ZodEnum<{
                     A: "A";
                     "A+": "A+";
                     B: "B";
                     "B+": "B+";
                     C: "C";
-                    "C+": "C+";
                     D: "D";
                     F: "F";
-                }>>;
-                statement: z.ZodNullable<z.ZodString>;
+                }>;
+                statement: z.ZodString;
                 steps: z.ZodArray<z.ZodObject<{
                     step: z.ZodEnum<{
+                        authority: "authority";
                         confirm: "confirm";
-                        delegation: "delegation";
                         discover: "discover";
-                        job: "job";
+                        onboard: "onboard";
                         pay: "pay";
                         sustain: "sustain";
                     }>;
                     outcome: z.ZodEnum<{
                         approval: "approval";
-                        blocked: "blocked";
+                        gated: "gated";
                         machine: "machine";
                         not_applicable: "not_applicable";
                         not_assessed: "not_assessed";
@@ -6981,28 +6994,25 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                         setup: "setup";
                     }>>;
                 }, z.core.$strict>>;
-                missing: z.ZodArray<z.ZodEnum<{
-                    confirm: "confirm";
-                    delegation: "delegation";
-                    discover: "discover";
-                    job: "job";
-                    pay: "pay";
-                    sustain: "sustain";
-                }>>;
+                job: z.ZodEnum<{
+                    reachable: "reachable";
+                    unavailable: "unavailable";
+                    verified: "verified";
+                }>;
                 approvals: z.ZodArray<z.ZodEnum<{
+                    authority: "authority";
                     confirm: "confirm";
-                    delegation: "delegation";
                     discover: "discover";
-                    job: "job";
+                    onboard: "onboard";
                     pay: "pay";
                     sustain: "sustain";
                 }>>;
                 workarounds: z.ZodArray<z.ZodObject<{
                     step: z.ZodEnum<{
+                        authority: "authority";
                         confirm: "confirm";
-                        delegation: "delegation";
                         discover: "discover";
-                        job: "job";
+                        onboard: "onboard";
                         pay: "pay";
                         sustain: "sustain";
                     }>;
@@ -7012,16 +7022,13 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     }>;
                 }, z.core.$strict>>;
             }, z.core.$strict>;
-            onboard: z.ZodObject<{
-                level: z.ZodNullable<z.ZodNumber>;
-            }, z.core.$strict>;
             discovery: z.ZodArray<z.ZodObject<{
                 fact: z.ZodEnum<{
                     agent_documentation: "agent_documentation";
-                    agent_registration: "agent_registration";
                     agent_skill: "agent_skill";
                     api_catalog_link: "api_catalog_link";
                     ard_entry: "ard_entry";
+                    documentation_route: "documentation_route";
                     mcp_endpoint: "mcp_endpoint";
                     oauth_authorization_server: "oauth_authorization_server";
                     oauth_protected_resource: "oauth_protected_resource";
@@ -7037,6 +7044,7 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                     version: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>>;
+            discovery_run_at: z.ZodNullable<z.ZodISODateTime>;
             run: z.ZodObject<{
                 started_at: z.ZodISODateTime;
                 finished_at: z.ZodISODateTime;
@@ -7047,6 +7055,13 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
                         delegation: "delegation";
                         error_probe: "error_probe";
                         job: "job";
+                        probe_authorization: "probe_authorization";
+                        probe_authorization_server: "probe_authorization_server";
+                        probe_client_registration: "probe_client_registration";
+                        probe_malformed: "probe_malformed";
+                        probe_operation: "probe_operation";
+                        probe_page: "probe_page";
+                        probe_resource_metadata: "probe_resource_metadata";
                         sustain_baseline: "sustain_baseline";
                         sustain_control_probe: "sustain_control_probe";
                         sustain_revocation: "sustain_revocation";
@@ -7494,6 +7509,7 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
         version: z.ZodString;
         engine_digest: z.ZodString;
     }, z.core.$strict>;
+    interface_id: z.ZodNullable<z.ZodString>;
     binding_id: z.ZodNullable<z.ZodString>;
     binding_digest: z.ZodNullable<z.ZodString>;
     runs: z.ZodArray<z.ZodObject<{
@@ -7503,25 +7519,20 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
             sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
-        run_kind: z.ZodEnum<{
-            onboard: "onboard";
-            operate: "operate";
-            operate_onboard: "operate_onboard";
-        }>;
         finished_at: z.ZodISODateTime;
     }, z.core.$strict>>;
     steps: z.ZodArray<z.ZodObject<{
         step: z.ZodEnum<{
+            authority: "authority";
             confirm: "confirm";
-            delegation: "delegation";
             discover: "discover";
-            job: "job";
+            onboard: "onboard";
             pay: "pay";
             sustain: "sustain";
         }>;
         outcome: z.ZodEnum<{
             approval: "approval";
-            blocked: "blocked";
+            gated: "gated";
             machine: "machine";
             not_applicable: "not_applicable";
             not_assessed: "not_assessed";
@@ -7540,23 +7551,45 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
             run_digest: z.ZodString;
             attempt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"handoff">;
+            kind: z.ZodLiteral<"credential">;
             run_digest: z.ZodString;
-            handoff: z.ZodNumber;
+            handle_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"declaration">;
+            run_digest: z.ZodString;
+        }, z.core.$strict>], "kind">>;
+    }, z.core.$strict>>;
+    job: z.ZodObject<{
+        outcome: z.ZodEnum<{
+            not_assessed: "not_assessed";
+            reachable: "reachable";
+            unavailable: "unavailable";
+            verified: "verified";
+        }>;
+        evidence: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            kind: z.ZodLiteral<"exchange">;
+            run_digest: z.ZodString;
+            exchange_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"discovery">;
+            run_digest: z.ZodString;
+            attempt_digest: z.ZodString;
         }, z.core.$strict>, z.ZodObject<{
             kind: z.ZodLiteral<"credential">;
             run_digest: z.ZodString;
             handle_digest: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"declaration">;
+            run_digest: z.ZodString;
         }, z.core.$strict>], "kind">>;
-    }, z.core.$strict>>;
-    onboard_level: z.ZodNullable<z.ZodNumber>;
+    }, z.core.$strict>;
     discovery: z.ZodArray<z.ZodObject<{
         fact: z.ZodEnum<{
             agent_documentation: "agent_documentation";
-            agent_registration: "agent_registration";
             agent_skill: "agent_skill";
             api_catalog_link: "api_catalog_link";
             ard_entry: "ard_entry";
+            documentation_route: "documentation_route";
             mcp_endpoint: "mcp_endpoint";
             oauth_authorization_server: "oauth_authorization_server";
             oauth_protected_resource: "oauth_protected_resource";
@@ -7572,6 +7605,7 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
             version: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>>;
+    discovery_run_digest: z.ZodString;
     latest_run: z.ZodObject<{
         started_at: z.ZodISODateTime;
         finished_at: z.ZodISODateTime;
@@ -7582,6 +7616,13 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
                 delegation: "delegation";
                 error_probe: "error_probe";
                 job: "job";
+                probe_authorization: "probe_authorization";
+                probe_authorization_server: "probe_authorization_server";
+                probe_client_registration: "probe_client_registration";
+                probe_malformed: "probe_malformed";
+                probe_operation: "probe_operation";
+                probe_page: "probe_page";
+                probe_resource_metadata: "probe_resource_metadata";
                 sustain_baseline: "sustain_baseline";
                 sustain_control_probe: "sustain_control_probe";
                 sustain_revocation: "sustain_revocation";
@@ -7645,6 +7686,92 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
                 name: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>;
+        job_operations: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"http">;
+            endpoint_id: z.ZodString;
+            method: z.ZodEnum<{
+                GET: "GET";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>;
+            url: z.ZodURL;
+            headers: z.ZodArray<z.ZodObject<{
+                name: z.ZodString;
+                value: z.ZodString;
+            }, z.core.$strict>>;
+            body: z.ZodNullable<z.ZodObject<{
+                media_type: z.ZodString;
+            }, z.core.$strict>>;
+            spec: z.ZodNullable<z.ZodObject<{
+                url: z.ZodURL;
+                key_operations: z.ZodNullable<z.ZodObject<{
+                    create: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                    revoke: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>, z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"mcp">;
+            endpoint_id: z.ZodString;
+            tool: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            operation_id: z.ZodString;
+            interface_id: z.ZodString;
+            kind: z.ZodLiteral<"spec">;
+            spec_url: z.ZodURL;
+            method: z.ZodEnum<{
+                DELETE: "DELETE";
+                GET: "GET";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>;
+            path: z.ZodString;
+            key_operations: z.ZodNullable<z.ZodObject<{
+                create: z.ZodObject<{
+                    method: z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    path: z.ZodString;
+                }, z.core.$strict>;
+                revoke: z.ZodObject<{
+                    method: z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    path: z.ZodString;
+                }, z.core.$strict>;
+            }, z.core.$strict>>;
+        }, z.core.$strict>], "kind">>;
         job_bindings: z.ZodArray<z.ZodObject<{
             binding_id: z.ZodString;
             interface_id: z.ZodString;
@@ -8184,6 +8311,8 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
                 websocket: "websocket";
             }>;
             roles: z.ZodArray<z.ZodEnum<{
+                access_request: "access_request";
+                access_setting: "access_setting";
                 authorization: "authorization";
                 checkout: "checkout";
                 protected_resource: "protected_resource";
@@ -8301,6 +8430,7 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
                     endpoint: "endpoint";
                     interface: "interface";
                     job_binding: "job_binding";
+                    job_operation: "job_operation";
                     participant: "participant";
                     relation: "relation";
                     resource: "resource";
@@ -8669,6 +8799,7 @@ export declare const revisionResponseSchema: z.ZodObject<{
             version: z.ZodString;
             engine_digest: z.ZodString;
         }, z.core.$strict>;
+        interface_id: z.ZodNullable<z.ZodString>;
         binding_id: z.ZodNullable<z.ZodString>;
         binding_digest: z.ZodNullable<z.ZodString>;
         runs: z.ZodArray<z.ZodObject<{
@@ -8678,25 +8809,20 @@ export declare const revisionResponseSchema: z.ZodObject<{
                 sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
-            run_kind: z.ZodEnum<{
-                onboard: "onboard";
-                operate: "operate";
-                operate_onboard: "operate_onboard";
-            }>;
             finished_at: z.ZodISODateTime;
         }, z.core.$strict>>;
         steps: z.ZodArray<z.ZodObject<{
             step: z.ZodEnum<{
+                authority: "authority";
                 confirm: "confirm";
-                delegation: "delegation";
                 discover: "discover";
-                job: "job";
+                onboard: "onboard";
                 pay: "pay";
                 sustain: "sustain";
             }>;
             outcome: z.ZodEnum<{
                 approval: "approval";
-                blocked: "blocked";
+                gated: "gated";
                 machine: "machine";
                 not_applicable: "not_applicable";
                 not_assessed: "not_assessed";
@@ -8715,23 +8841,45 @@ export declare const revisionResponseSchema: z.ZodObject<{
                 run_digest: z.ZodString;
                 attempt_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"handoff">;
+                kind: z.ZodLiteral<"credential">;
                 run_digest: z.ZodString;
-                handoff: z.ZodNumber;
+                handle_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"declaration">;
+                run_digest: z.ZodString;
+            }, z.core.$strict>], "kind">>;
+        }, z.core.$strict>>;
+        job: z.ZodObject<{
+            outcome: z.ZodEnum<{
+                not_assessed: "not_assessed";
+                reachable: "reachable";
+                unavailable: "unavailable";
+                verified: "verified";
+            }>;
+            evidence: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                kind: z.ZodLiteral<"exchange">;
+                run_digest: z.ZodString;
+                exchange_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"discovery">;
+                run_digest: z.ZodString;
+                attempt_digest: z.ZodString;
             }, z.core.$strict>, z.ZodObject<{
                 kind: z.ZodLiteral<"credential">;
                 run_digest: z.ZodString;
                 handle_digest: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"declaration">;
+                run_digest: z.ZodString;
             }, z.core.$strict>], "kind">>;
-        }, z.core.$strict>>;
-        onboard_level: z.ZodNullable<z.ZodNumber>;
+        }, z.core.$strict>;
         discovery: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
                 agent_documentation: "agent_documentation";
-                agent_registration: "agent_registration";
                 agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
+                documentation_route: "documentation_route";
                 mcp_endpoint: "mcp_endpoint";
                 oauth_authorization_server: "oauth_authorization_server";
                 oauth_protected_resource: "oauth_protected_resource";
@@ -8747,6 +8895,7 @@ export declare const revisionResponseSchema: z.ZodObject<{
                 version: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>>;
+        discovery_run_digest: z.ZodString;
         latest_run: z.ZodObject<{
             started_at: z.ZodISODateTime;
             finished_at: z.ZodISODateTime;
@@ -8757,6 +8906,13 @@ export declare const revisionResponseSchema: z.ZodObject<{
                     delegation: "delegation";
                     error_probe: "error_probe";
                     job: "job";
+                    probe_authorization: "probe_authorization";
+                    probe_authorization_server: "probe_authorization_server";
+                    probe_client_registration: "probe_client_registration";
+                    probe_malformed: "probe_malformed";
+                    probe_operation: "probe_operation";
+                    probe_page: "probe_page";
+                    probe_resource_metadata: "probe_resource_metadata";
                     sustain_baseline: "sustain_baseline";
                     sustain_control_probe: "sustain_control_probe";
                     sustain_revocation: "sustain_revocation";
@@ -8820,6 +8976,92 @@ export declare const revisionResponseSchema: z.ZodObject<{
                     name: z.ZodString;
                 }, z.core.$strict>;
             }, z.core.$strict>;
+            job_operations: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+                operation_id: z.ZodString;
+                interface_id: z.ZodString;
+                kind: z.ZodLiteral<"http">;
+                endpoint_id: z.ZodString;
+                method: z.ZodEnum<{
+                    GET: "GET";
+                    PATCH: "PATCH";
+                    POST: "POST";
+                    PUT: "PUT";
+                }>;
+                url: z.ZodURL;
+                headers: z.ZodArray<z.ZodObject<{
+                    name: z.ZodString;
+                    value: z.ZodString;
+                }, z.core.$strict>>;
+                body: z.ZodNullable<z.ZodObject<{
+                    media_type: z.ZodString;
+                }, z.core.$strict>>;
+                spec: z.ZodNullable<z.ZodObject<{
+                    url: z.ZodURL;
+                    key_operations: z.ZodNullable<z.ZodObject<{
+                        create: z.ZodObject<{
+                            method: z.ZodEnum<{
+                                DELETE: "DELETE";
+                                GET: "GET";
+                                PATCH: "PATCH";
+                                POST: "POST";
+                                PUT: "PUT";
+                            }>;
+                            path: z.ZodString;
+                        }, z.core.$strict>;
+                        revoke: z.ZodObject<{
+                            method: z.ZodEnum<{
+                                DELETE: "DELETE";
+                                GET: "GET";
+                                PATCH: "PATCH";
+                                POST: "POST";
+                                PUT: "PUT";
+                            }>;
+                            path: z.ZodString;
+                        }, z.core.$strict>;
+                    }, z.core.$strict>>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>, z.ZodObject<{
+                operation_id: z.ZodString;
+                interface_id: z.ZodString;
+                kind: z.ZodLiteral<"mcp">;
+                endpoint_id: z.ZodString;
+                tool: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                operation_id: z.ZodString;
+                interface_id: z.ZodString;
+                kind: z.ZodLiteral<"spec">;
+                spec_url: z.ZodURL;
+                method: z.ZodEnum<{
+                    DELETE: "DELETE";
+                    GET: "GET";
+                    PATCH: "PATCH";
+                    POST: "POST";
+                    PUT: "PUT";
+                }>;
+                path: z.ZodString;
+                key_operations: z.ZodNullable<z.ZodObject<{
+                    create: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                    revoke: z.ZodObject<{
+                        method: z.ZodEnum<{
+                            DELETE: "DELETE";
+                            GET: "GET";
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        path: z.ZodString;
+                    }, z.core.$strict>;
+                }, z.core.$strict>>;
+            }, z.core.$strict>], "kind">>;
             job_bindings: z.ZodArray<z.ZodObject<{
                 binding_id: z.ZodString;
                 interface_id: z.ZodString;
@@ -9359,6 +9601,8 @@ export declare const revisionResponseSchema: z.ZodObject<{
                     websocket: "websocket";
                 }>;
                 roles: z.ZodArray<z.ZodEnum<{
+                    access_request: "access_request";
+                    access_setting: "access_setting";
                     authorization: "authorization";
                     checkout: "checkout";
                     protected_resource: "protected_resource";
@@ -9476,6 +9720,7 @@ export declare const revisionResponseSchema: z.ZodObject<{
                         endpoint: "endpoint";
                         interface: "interface";
                         job_binding: "job_binding";
+                        job_operation: "job_operation";
                         participant: "participant";
                         relation: "relation";
                         resource: "resource";

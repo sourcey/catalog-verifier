@@ -46,4 +46,9 @@ export declare function verifyCatalogDeltaDirectory(directory: string, trust?: {
 export declare function verifyCatalogDelta(release: VerifiedSourceyRelease, trust?: {
     readonly rootSetDigest: Digest;
 }): Promise<VerifiedCatalogDelta>;
+/**
+ * A retired Agent Readiness profile id is never current again: the scope it
+ * held starts a new profile with a new id.
+ */
+export declare function assertNoRetiredAgentReadinessProfileReturns(objects: ReadonlyMap<string, Pick<AgentReadinessDeltaObject, "projection">>, retiredProfileIds: readonly string[]): void;
 //# sourceMappingURL=verifier.d.ts.map

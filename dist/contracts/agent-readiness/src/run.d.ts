@@ -1,20 +1,19 @@
 import { type ExchangeRecord } from "provenry/exchange/records";
 import { z } from "zod";
-export declare const agentReadinessRunKindSchema: z.ZodEnum<{
-    onboard: "onboard";
-    operate: "operate";
-    operate_onboard: "operate_onboard";
-}>;
-/** The most descriptor retrievals, and the most facts, one run records. */
-export declare const AGENT_READINESS_DISCOVERY_LIMIT = 64;
+/**
+ * The most descriptor retrievals, and the most facts, one run records: above
+ * every listing's plan (the largest, 55 well-known reads on its domains and job
+ * endpoints, reaches about 120 with every follow, route hop and skill).
+ */
+export declare const AGENT_READINESS_DISCOVERY_LIMIT = 128;
 /** An agent-facing fact a descriptor on the service's domain states. */
 export declare const agentReadinessDiscoveryFactSchema: z.ZodObject<{
     fact: z.ZodEnum<{
         agent_documentation: "agent_documentation";
-        agent_registration: "agent_registration";
         agent_skill: "agent_skill";
         api_catalog_link: "api_catalog_link";
         ard_entry: "ard_entry";
+        documentation_route: "documentation_route";
         mcp_endpoint: "mcp_endpoint";
         oauth_authorization_server: "oauth_authorization_server";
         oauth_protected_resource: "oauth_protected_resource";
@@ -30,12 +29,27 @@ export declare const agentReadinessDiscoveryFactSchema: z.ZodObject<{
         version: z.ZodString;
     }, z.core.$strict>;
 }, z.core.$strict>;
+/**
+ * What a probe run's exchanges are for (north star §5.3): the job operation
+ * itself, the malformed request after a success, the authority chain an
+ * answer points to (RFC 9728 metadata, the authorization server's metadata, a
+ * dynamic client registration, the authorization request), and the pages the
+ * listing names for a person's or a vendor's step.
+ */
+export declare const AGENT_READINESS_PROBE_PURPOSES: readonly ["probe_operation", "probe_malformed", "probe_resource_metadata", "probe_authorization_server", "probe_client_registration", "probe_authorization", "probe_page"];
 export declare const agentReadinessRunExchangeSchema: z.ZodObject<{
     purpose: z.ZodEnum<{
         cleanup: "cleanup";
         delegation: "delegation";
         error_probe: "error_probe";
         job: "job";
+        probe_authorization: "probe_authorization";
+        probe_authorization_server: "probe_authorization_server";
+        probe_client_registration: "probe_client_registration";
+        probe_malformed: "probe_malformed";
+        probe_operation: "probe_operation";
+        probe_page: "probe_page";
+        probe_resource_metadata: "probe_resource_metadata";
         sustain_baseline: "sustain_baseline";
         sustain_control_probe: "sustain_control_probe";
         sustain_revocation: "sustain_revocation";
@@ -64,28 +78,116 @@ export declare const agentReadinessCredentialSourceSchema: z.ZodObject<{
         pointer: z.ZodString;
     }, z.core.$strict>], "kind">;
 }, z.core.$strict>;
-/** A human step a runner recorded as it happened. */
-export declare const agentReadinessHandoffSchema: z.ZodObject<{
-    step: z.ZodEnum<{
-        confirm: "confirm";
-        delegation: "delegation";
-        discover: "discover";
-        job: "job";
-        pay: "pay";
-        sustain: "sustain";
+/** How a request answered a probe with no authority (north star §5.4). */
+export declare const agentReadinessProbeAnswerSchema: z.ZodEnum<{
+    authority: "authority";
+    error: "error";
+    offer: "offer";
+    page: "page";
+    success: "success";
+    unanswered: "unanswered";
+}>;
+export type AgentReadinessProbeAnswer = z.infer<typeof agentReadinessProbeAnswerSchema>;
+/** The security an OpenAPI operation requires, by kind: none, a key or token, or OAuth. */
+export declare const agentReadinessSpecSecuritySchema: z.ZodEnum<{
+    key: "key";
+    none: "none";
+    oauth: "oauth";
+}>;
+/**
+ * What the vendor's OpenAPI document states for the job's operation (north
+ * star §5.6), as the probe read it; null fields when the document was not an
+ * OpenAPI 3 document.
+ */
+export declare const agentReadinessSpecReadingSchema: z.ZodObject<{
+    url: z.ZodURL;
+    attempt_digest: z.ZodString;
+    fetched: z.ZodEnum<{
+        absent: "absent";
+        read: "read";
+        unanswered: "unanswered";
     }>;
-    kind: z.ZodEnum<{
-        approval: "approval";
-        workaround: "workaround";
-    }>;
-    timing: z.ZodEnum<{
-        recurring: "recurring";
-        setup: "setup";
-    }>;
-    statement: z.ZodString;
-    recorded_by: z.ZodString;
-    recorded_at: z.ZodISODateTime;
+    covers: z.ZodBoolean;
+    security: z.ZodArray<z.ZodEnum<{
+        key: "key";
+        none: "none";
+        oauth: "oauth";
+    }>>;
+    typed_errors: z.ZodBoolean;
+    payment: z.ZodBoolean;
+    key_operations: z.ZodBoolean;
 }, z.core.$strict>;
+/**
+ * What the probe read for one job operation. Everything else the path needs
+ * (statuses, challenges, the authorization request's outcome) is in the
+ * exchange records themselves. A spec operation sends nothing: its answer is
+ * null and its steps rest on its spec reading.
+ */
+export declare const agentReadinessOperationProbeSchema: z.ZodObject<{
+    operation_id: z.ZodString;
+    request: z.ZodNullable<z.ZodObject<{
+        answer: z.ZodEnum<{
+            authority: "authority";
+            error: "error";
+            offer: "offer";
+            page: "page";
+            success: "success";
+            unanswered: "unanswered";
+        }>;
+        typed: z.ZodNullable<z.ZodBoolean>;
+    }, z.core.$strict>>;
+    tool_listed: z.ZodNullable<z.ZodBoolean>;
+    offer: z.ZodNullable<z.ZodObject<{
+        protocol: z.ZodEnum<{
+            mpp: "mpp";
+            x402: "x402";
+        }>;
+        version: z.ZodString;
+    }, z.core.$strict>>;
+    authority: z.ZodNullable<z.ZodObject<{
+        authorization_server: z.ZodURL;
+        registration: z.ZodNullable<z.ZodEnum<{
+            agent: "agent";
+            claimable: "claimable";
+        }>>;
+        client: z.ZodNullable<z.ZodEnum<{
+            dynamic_registration: "dynamic_registration";
+            metadata_document: "metadata_document";
+        }>>;
+        renewal: z.ZodBoolean;
+        revocation: z.ZodBoolean;
+    }, z.core.$strict>>;
+    malformed: z.ZodNullable<z.ZodObject<{
+        answer: z.ZodEnum<{
+            authority: "authority";
+            error: "error";
+            offer: "offer";
+            page: "page";
+            success: "success";
+            unanswered: "unanswered";
+        }>;
+        typed: z.ZodNullable<z.ZodBoolean>;
+    }, z.core.$strict>>;
+    spec: z.ZodNullable<z.ZodObject<{
+        url: z.ZodURL;
+        attempt_digest: z.ZodString;
+        fetched: z.ZodEnum<{
+            absent: "absent";
+            read: "read";
+            unanswered: "unanswered";
+        }>;
+        covers: z.ZodBoolean;
+        security: z.ZodArray<z.ZodEnum<{
+            key: "key";
+            none: "none";
+            oauth: "oauth";
+        }>>;
+        typed_errors: z.ZodBoolean;
+        payment: z.ZodBoolean;
+        key_operations: z.ZodBoolean;
+    }, z.core.$strict>>;
+}, z.core.$strict>;
+export type AgentReadinessOperationProbe = z.infer<typeof agentReadinessOperationProbeSchema>;
 export declare const agentReadinessAssertionResultSchema: z.ZodObject<{
     assertion: z.ZodString;
     holds: z.ZodBoolean;
@@ -94,16 +196,40 @@ export declare const agentReadinessAssertionResultSchema: z.ZodObject<{
         reason: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>;
+/**
+ * A page the listing names for a person's or a vendor's step, as the probe
+ * requested it (north star §5.3): its sign-up or registration endpoint, its
+ * sales or approval page, its checkout.
+ */
+export declare const agentReadinessPageProbeSchema: z.ZodObject<{
+    page_id: z.ZodString;
+    role: z.ZodEnum<{
+        access_request: "access_request";
+        access_setting: "access_setting";
+        checkout: "checkout";
+        registration: "registration";
+    }>;
+    answer: z.ZodEnum<{
+        authority: "authority";
+        error: "error";
+        offer: "offer";
+        page: "page";
+        success: "success";
+        unanswered: "unanswered";
+    }>;
+    found: z.ZodBoolean;
+}, z.core.$strict>;
+export type AgentReadinessPageProbe = z.infer<typeof agentReadinessPageProbeSchema>;
 /** A runner-side failure: never a fact about the service, always residue to retry. */
 export declare const agentReadinessRunResidueSchema: z.ZodObject<{
-    step: z.ZodEnum<{
+    step: z.ZodUnion<readonly [z.ZodEnum<{
+        authority: "authority";
         confirm: "confirm";
-        delegation: "delegation";
         discover: "discover";
-        job: "job";
+        onboard: "onboard";
         pay: "pay";
         sustain: "sustain";
-    }>;
+    }>, z.ZodLiteral<"job">]>;
     reason: z.ZodString;
 }, z.core.$strict>;
 export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
@@ -111,11 +237,6 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
     entity_id: z.ZodString;
     product_key: z.ZodString;
     job_id: z.ZodString;
-    run_kind: z.ZodEnum<{
-        onboard: "onboard";
-        operate: "operate";
-        operate_onboard: "operate_onboard";
-    }>;
     label: z.ZodEnum<{
         probed: "probed";
         sourcey_run: "sourcey_run";
@@ -134,14 +255,16 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
     started_at: z.ZodISODateTime;
     finished_at: z.ZodISODateTime;
     discovery: z.ZodObject<{
+        domains: z.ZodArray<z.ZodString>;
         attempts: z.ZodArray<z.ZodString>;
+        unanswered: z.ZodArray<z.ZodURL>;
         facts: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
                 agent_documentation: "agent_documentation";
-                agent_registration: "agent_registration";
                 agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
+                documentation_route: "documentation_route";
                 mcp_endpoint: "mcp_endpoint";
                 oauth_authorization_server: "oauth_authorization_server";
                 oauth_protected_resource: "oauth_protected_resource";
@@ -164,6 +287,13 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
             delegation: "delegation";
             error_probe: "error_probe";
             job: "job";
+            probe_authorization: "probe_authorization";
+            probe_authorization_server: "probe_authorization_server";
+            probe_client_registration: "probe_client_registration";
+            probe_malformed: "probe_malformed";
+            probe_operation: "probe_operation";
+            probe_page: "probe_page";
+            probe_resource_metadata: "probe_resource_metadata";
             sustain_baseline: "sustain_baseline";
             sustain_control_probe: "sustain_control_probe";
             sustain_revocation: "sustain_revocation";
@@ -192,26 +322,87 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
             pointer: z.ZodString;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
-    handoffs: z.ZodArray<z.ZodObject<{
-        step: z.ZodEnum<{
-            confirm: "confirm";
-            delegation: "delegation";
-            discover: "discover";
-            job: "job";
-            pay: "pay";
-            sustain: "sustain";
+    probes: z.ZodArray<z.ZodObject<{
+        operation_id: z.ZodString;
+        request: z.ZodNullable<z.ZodObject<{
+            answer: z.ZodEnum<{
+                authority: "authority";
+                error: "error";
+                offer: "offer";
+                page: "page";
+                success: "success";
+                unanswered: "unanswered";
+            }>;
+            typed: z.ZodNullable<z.ZodBoolean>;
+        }, z.core.$strict>>;
+        tool_listed: z.ZodNullable<z.ZodBoolean>;
+        offer: z.ZodNullable<z.ZodObject<{
+            protocol: z.ZodEnum<{
+                mpp: "mpp";
+                x402: "x402";
+            }>;
+            version: z.ZodString;
+        }, z.core.$strict>>;
+        authority: z.ZodNullable<z.ZodObject<{
+            authorization_server: z.ZodURL;
+            registration: z.ZodNullable<z.ZodEnum<{
+                agent: "agent";
+                claimable: "claimable";
+            }>>;
+            client: z.ZodNullable<z.ZodEnum<{
+                dynamic_registration: "dynamic_registration";
+                metadata_document: "metadata_document";
+            }>>;
+            renewal: z.ZodBoolean;
+            revocation: z.ZodBoolean;
+        }, z.core.$strict>>;
+        malformed: z.ZodNullable<z.ZodObject<{
+            answer: z.ZodEnum<{
+                authority: "authority";
+                error: "error";
+                offer: "offer";
+                page: "page";
+                success: "success";
+                unanswered: "unanswered";
+            }>;
+            typed: z.ZodNullable<z.ZodBoolean>;
+        }, z.core.$strict>>;
+        spec: z.ZodNullable<z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+            covers: z.ZodBoolean;
+            security: z.ZodArray<z.ZodEnum<{
+                key: "key";
+                none: "none";
+                oauth: "oauth";
+            }>>;
+            typed_errors: z.ZodBoolean;
+            payment: z.ZodBoolean;
+            key_operations: z.ZodBoolean;
+        }, z.core.$strict>>;
+    }, z.core.$strict>>;
+    pages: z.ZodArray<z.ZodObject<{
+        page_id: z.ZodString;
+        role: z.ZodEnum<{
+            access_request: "access_request";
+            access_setting: "access_setting";
+            checkout: "checkout";
+            registration: "registration";
         }>;
-        kind: z.ZodEnum<{
-            approval: "approval";
-            workaround: "workaround";
+        answer: z.ZodEnum<{
+            authority: "authority";
+            error: "error";
+            offer: "offer";
+            page: "page";
+            success: "success";
+            unanswered: "unanswered";
         }>;
-        timing: z.ZodEnum<{
-            recurring: "recurring";
-            setup: "setup";
-        }>;
-        statement: z.ZodString;
-        recorded_by: z.ZodString;
-        recorded_at: z.ZodISODateTime;
+        found: z.ZodBoolean;
     }, z.core.$strict>>;
     assertions: z.ZodArray<z.ZodObject<{
         assertion: z.ZodString;
@@ -226,14 +417,14 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
         reason: z.ZodString;
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
-        step: z.ZodEnum<{
+        step: z.ZodUnion<readonly [z.ZodEnum<{
+            authority: "authority";
             confirm: "confirm";
-            delegation: "delegation";
             discover: "discover";
-            job: "job";
+            onboard: "onboard";
             pay: "pay";
             sustain: "sustain";
-        }>;
+        }>, z.ZodLiteral<"job">]>;
         reason: z.ZodString;
     }, z.core.$strict>>;
 }, z.core.$strict>;
@@ -242,11 +433,6 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
     entity_id: z.ZodString;
     product_key: z.ZodString;
     job_id: z.ZodString;
-    run_kind: z.ZodEnum<{
-        onboard: "onboard";
-        operate: "operate";
-        operate_onboard: "operate_onboard";
-    }>;
     label: z.ZodEnum<{
         probed: "probed";
         sourcey_run: "sourcey_run";
@@ -265,14 +451,16 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
     started_at: z.ZodISODateTime;
     finished_at: z.ZodISODateTime;
     discovery: z.ZodObject<{
+        domains: z.ZodArray<z.ZodString>;
         attempts: z.ZodArray<z.ZodString>;
+        unanswered: z.ZodArray<z.ZodURL>;
         facts: z.ZodArray<z.ZodObject<{
             fact: z.ZodEnum<{
                 agent_documentation: "agent_documentation";
-                agent_registration: "agent_registration";
                 agent_skill: "agent_skill";
                 api_catalog_link: "api_catalog_link";
                 ard_entry: "ard_entry";
+                documentation_route: "documentation_route";
                 mcp_endpoint: "mcp_endpoint";
                 oauth_authorization_server: "oauth_authorization_server";
                 oauth_protected_resource: "oauth_protected_resource";
@@ -295,6 +483,13 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
             delegation: "delegation";
             error_probe: "error_probe";
             job: "job";
+            probe_authorization: "probe_authorization";
+            probe_authorization_server: "probe_authorization_server";
+            probe_client_registration: "probe_client_registration";
+            probe_malformed: "probe_malformed";
+            probe_operation: "probe_operation";
+            probe_page: "probe_page";
+            probe_resource_metadata: "probe_resource_metadata";
             sustain_baseline: "sustain_baseline";
             sustain_control_probe: "sustain_control_probe";
             sustain_revocation: "sustain_revocation";
@@ -323,26 +518,87 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
             pointer: z.ZodString;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>>;
-    handoffs: z.ZodArray<z.ZodObject<{
-        step: z.ZodEnum<{
-            confirm: "confirm";
-            delegation: "delegation";
-            discover: "discover";
-            job: "job";
-            pay: "pay";
-            sustain: "sustain";
+    probes: z.ZodArray<z.ZodObject<{
+        operation_id: z.ZodString;
+        request: z.ZodNullable<z.ZodObject<{
+            answer: z.ZodEnum<{
+                authority: "authority";
+                error: "error";
+                offer: "offer";
+                page: "page";
+                success: "success";
+                unanswered: "unanswered";
+            }>;
+            typed: z.ZodNullable<z.ZodBoolean>;
+        }, z.core.$strict>>;
+        tool_listed: z.ZodNullable<z.ZodBoolean>;
+        offer: z.ZodNullable<z.ZodObject<{
+            protocol: z.ZodEnum<{
+                mpp: "mpp";
+                x402: "x402";
+            }>;
+            version: z.ZodString;
+        }, z.core.$strict>>;
+        authority: z.ZodNullable<z.ZodObject<{
+            authorization_server: z.ZodURL;
+            registration: z.ZodNullable<z.ZodEnum<{
+                agent: "agent";
+                claimable: "claimable";
+            }>>;
+            client: z.ZodNullable<z.ZodEnum<{
+                dynamic_registration: "dynamic_registration";
+                metadata_document: "metadata_document";
+            }>>;
+            renewal: z.ZodBoolean;
+            revocation: z.ZodBoolean;
+        }, z.core.$strict>>;
+        malformed: z.ZodNullable<z.ZodObject<{
+            answer: z.ZodEnum<{
+                authority: "authority";
+                error: "error";
+                offer: "offer";
+                page: "page";
+                success: "success";
+                unanswered: "unanswered";
+            }>;
+            typed: z.ZodNullable<z.ZodBoolean>;
+        }, z.core.$strict>>;
+        spec: z.ZodNullable<z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+            covers: z.ZodBoolean;
+            security: z.ZodArray<z.ZodEnum<{
+                key: "key";
+                none: "none";
+                oauth: "oauth";
+            }>>;
+            typed_errors: z.ZodBoolean;
+            payment: z.ZodBoolean;
+            key_operations: z.ZodBoolean;
+        }, z.core.$strict>>;
+    }, z.core.$strict>>;
+    pages: z.ZodArray<z.ZodObject<{
+        page_id: z.ZodString;
+        role: z.ZodEnum<{
+            access_request: "access_request";
+            access_setting: "access_setting";
+            checkout: "checkout";
+            registration: "registration";
         }>;
-        kind: z.ZodEnum<{
-            approval: "approval";
-            workaround: "workaround";
+        answer: z.ZodEnum<{
+            authority: "authority";
+            error: "error";
+            offer: "offer";
+            page: "page";
+            success: "success";
+            unanswered: "unanswered";
         }>;
-        timing: z.ZodEnum<{
-            recurring: "recurring";
-            setup: "setup";
-        }>;
-        statement: z.ZodString;
-        recorded_by: z.ZodString;
-        recorded_at: z.ZodISODateTime;
+        found: z.ZodBoolean;
     }, z.core.$strict>>;
     assertions: z.ZodArray<z.ZodObject<{
         assertion: z.ZodString;
@@ -357,14 +613,14 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
         reason: z.ZodString;
     }, z.core.$strict>>;
     residue: z.ZodArray<z.ZodObject<{
-        step: z.ZodEnum<{
+        step: z.ZodUnion<readonly [z.ZodEnum<{
+            authority: "authority";
             confirm: "confirm";
-            delegation: "delegation";
             discover: "discover";
-            job: "job";
+            onboard: "onboard";
             pay: "pay";
             sustain: "sustain";
-        }>;
+        }>, z.ZodLiteral<"job">]>;
         reason: z.ZodString;
     }, z.core.$strict>>;
     run_digest: z.ZodString;
@@ -374,6 +630,7 @@ export type AgentReadinessRunRecord = z.infer<typeof agentReadinessRunRecordSche
  * The latest run as a card shows it: how many descriptors it read, every
  * request it sent and what came back (status, type, size and digest, never the
  * body), and what held. Compiled from the run record, so it is checked with it.
+ * The steps state what a probe run's answers established.
  */
 export declare const agentReadinessRunSummarySchema: z.ZodObject<{
     started_at: z.ZodISODateTime;
@@ -385,6 +642,13 @@ export declare const agentReadinessRunSummarySchema: z.ZodObject<{
             delegation: "delegation";
             error_probe: "error_probe";
             job: "job";
+            probe_authorization: "probe_authorization";
+            probe_authorization_server: "probe_authorization_server";
+            probe_client_registration: "probe_client_registration";
+            probe_malformed: "probe_malformed";
+            probe_operation: "probe_operation";
+            probe_page: "probe_page";
+            probe_resource_metadata: "probe_resource_metadata";
             sustain_baseline: "sustain_baseline";
             sustain_control_probe: "sustain_control_probe";
             sustain_revocation: "sustain_revocation";
@@ -442,26 +706,25 @@ export declare const agentReadinessStepEvidenceSchema: z.ZodDiscriminatedUnion<[
     run_digest: z.ZodString;
     attempt_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
-    kind: z.ZodLiteral<"handoff">;
-    run_digest: z.ZodString;
-    handoff: z.ZodNumber;
-}, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"credential">;
     run_digest: z.ZodString;
     handle_digest: z.ZodString;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"declaration">;
+    run_digest: z.ZodString;
 }, z.core.$strict>], "kind">;
 export declare const agentReadinessStepResultSchema: z.ZodObject<{
     step: z.ZodEnum<{
+        authority: "authority";
         confirm: "confirm";
-        delegation: "delegation";
         discover: "discover";
-        job: "job";
+        onboard: "onboard";
         pay: "pay";
         sustain: "sustain";
     }>;
     outcome: z.ZodEnum<{
         approval: "approval";
-        blocked: "blocked";
+        gated: "gated";
         machine: "machine";
         not_applicable: "not_applicable";
         not_assessed: "not_assessed";
@@ -480,14 +743,39 @@ export declare const agentReadinessStepResultSchema: z.ZodObject<{
         run_digest: z.ZodString;
         attempt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
-        kind: z.ZodLiteral<"handoff">;
+        kind: z.ZodLiteral<"credential">;
         run_digest: z.ZodString;
-        handoff: z.ZodNumber;
+        handle_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"declaration">;
+        run_digest: z.ZodString;
+    }, z.core.$strict>], "kind">>;
+}, z.core.$strict>;
+export type AgentReadinessStepResult = z.infer<typeof agentReadinessStepResultSchema>;
+/** The job's outcome (north star §5.6, the job), beside the steps, with what it rests on. */
+export declare const agentReadinessJobResultSchema: z.ZodObject<{
+    outcome: z.ZodEnum<{
+        not_assessed: "not_assessed";
+        reachable: "reachable";
+        unavailable: "unavailable";
+        verified: "verified";
+    }>;
+    evidence: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
+        kind: z.ZodLiteral<"exchange">;
+        run_digest: z.ZodString;
+        exchange_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"discovery">;
+        run_digest: z.ZodString;
+        attempt_digest: z.ZodString;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"credential">;
         run_digest: z.ZodString;
         handle_digest: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"declaration">;
+        run_digest: z.ZodString;
     }, z.core.$strict>], "kind">>;
 }, z.core.$strict>;
-export type AgentReadinessStepResult = z.infer<typeof agentReadinessStepResultSchema>;
+export type AgentReadinessJobResult = z.infer<typeof agentReadinessJobResultSchema>;
 //# sourceMappingURL=run.d.ts.map

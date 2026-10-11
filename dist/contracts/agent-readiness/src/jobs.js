@@ -30,9 +30,15 @@ const agentReadinessJobInputSchema = z.discriminatedUnion("kind", [
         .object({
         kind: z.literal("sink"),
         name: nameSchema,
-        sink: z.enum(["email", "phone", "webhook"]),
+        sink: z.enum(["email", "webhook"]),
     })
         .strict(),
+    /**
+     * A value whoever runs the job supplies for that run, such as the number a
+     * text message goes to: Sourcey has no phone, so delivery is read from the
+     * service's own status, never from a sink.
+     */
+    z.object({ kind: z.literal("supplied"), name: nameSchema }).strict(),
 ]);
 const agentReadinessJobAssertionSchema = z
     .object({
@@ -49,6 +55,7 @@ const agentReadinessJobAssertionSchema = z
         "resource_read_back",
         "resource_found_by_query",
         "message_accepted",
+        "message_delivered",
         "sink_received",
     ]),
 })

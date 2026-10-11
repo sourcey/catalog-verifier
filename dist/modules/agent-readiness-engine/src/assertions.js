@@ -210,6 +210,31 @@ const proofs = {
         },
     },
     message_accepted: accepted,
+    /**
+     * Delivery as the service itself reports it: a read of the accepted message,
+     * by the identifier the send returned, whose status is `delivered`. Sourcey
+     * has no phone to receive on, so this is the service's own statement and is
+     * recorded as that.
+     */
+    message_delivered: {
+        observations: [
+            { name: "message_id", source: "json", method: "write" },
+            { name: "read_id", source: "json", method: "read" },
+            { name: "status", source: "json", method: "read" },
+        ],
+        sameCall: [["read_id", "status"]],
+        differentCall: [["message_id", "read_id"]],
+        evaluate({ values }) {
+            const id = values.get("message_id");
+            const status = values.get("status");
+            return resourceIdentifier(id) &&
+                id === values.get("read_id") &&
+                typeof status === "string" &&
+                status.toLowerCase() === "delivered"
+                ? pass()
+                : fail("The service does not report the accepted message as delivered.");
+        },
+    },
     sink_received: {
         observations: [],
         async evaluate({ context, sink }) {

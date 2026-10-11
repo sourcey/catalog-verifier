@@ -1,7 +1,7 @@
 import { digest, parseJsonFile } from "provenry/primitives";
 import { coveragePolicyCoreSchema, coveragePolicySchema, freshnessPolicyCoreSchema, freshnessPolicySchema, } from "../../../contracts/policies/src/index.js";
 import { RELEASE_RESOURCES, releasePolicyObjectPath, releaseResourceDigest, } from "../../../contracts/release/src/index.js";
-import { verifyAgentReadinessPolicy } from "../../agent-readiness-policy/src/operate-policy.js";
+import { verifyAgentReadinessPolicy } from "../../agent-readiness-policy/src/grade-policy.js";
 import { CATALOG_RELEASE } from "../../artifact/src/release-directory-files.js";
 import { validateAssuranceMethodPolicy } from "../../assurance/src/index.js";
 export function verifyCatalogDeltaPolicies(bundle, delta, files) {

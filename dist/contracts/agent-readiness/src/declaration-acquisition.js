@@ -3,6 +3,7 @@ import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { agentReadinessJobBindingSchema } from "./binding.js";
 import { agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationProposalSchema, agentReadinessParticipantRoleSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
 import { agentReadinessAuthoringPathSchema } from "./declaration-reference.js";
+import { agentReadinessJobOperationSchema } from "./operation.js";
 import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessInstantSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, } from "./shared.js";
 const sourceUrisSchema = z.array(catalogAuthoringUrlSchema).min(1);
 export const agentReadinessDraftSubjectSchema = z.discriminatedUnion("kind", [
@@ -37,6 +38,10 @@ const agentReadinessDraftEndpointSchema = agentReadinessEndpointSchema
 const agentReadinessDraftInterfaceSchema = agentReadinessDeclaredInterfaceSchema
     .safeExtend({ source_uris: sourceUrisSchema })
     .strict();
+/** A job operation as drafted: sourced from where the service documents the job's request. */
+const agentReadinessDraftJobOperationSchema = z
+    .object({ operation: agentReadinessJobOperationSchema, source_uris: sourceUrisSchema })
+    .strict();
 /** A job binding as drafted: its calls are sourced from where the service documents them. */
 const agentReadinessDraftJobBindingSchema = z
     .object({ binding: agentReadinessJobBindingSchema, source_uris: sourceUrisSchema })
@@ -62,6 +67,7 @@ export const agentReadinessDeclarationDraftRequestSchema = z
     scope: agentReadinessScopeSchema.optional(),
     scope_source_uris: z.array(catalogAuthoringUrlSchema).default([]),
     subject_roles: z.array(agentReadinessParticipantRoleSchema.exclude(["subject"])).default([]),
+    job_operations: z.array(agentReadinessDraftJobOperationSchema).default([]),
     job_bindings: z.array(agentReadinessDraftJobBindingSchema).default([]),
     participants: z.array(agentReadinessDraftParticipantSchema).default([]),
     resources: z.array(agentReadinessDraftResourceSchema).default([]),
