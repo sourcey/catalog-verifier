@@ -14,6 +14,23 @@ export declare function catalogSubmissionInvalidatedResult(input: {
     readonly currentState: CatalogPublicationCurrentState;
     readonly conflict: CatalogPublicationPreconditionError;
 }): CatalogSubmissionProcessingResult;
+/** Why admission could not list a company an Agent Readiness declaration names. */
+export type CatalogSubmissionListingInvalidation = 
+/** Its company fell below the listing rule; its declaration is offered a person's verification. */
+{
+    readonly kind: "standing_changed";
+}
+/** Admission refused the listing, for reasons the declaration's contributor reads. */
+ | {
+    readonly kind: "refused";
+    readonly reasons: readonly string[];
+};
+/** A company listing admission could not admit, settled rather than held for a person. */
+export declare function catalogSubmissionListingInvalidatedResult(input: {
+    readonly workItem: CatalogSubmissionWorkItem;
+    readonly liveParentReleaseId: string;
+    readonly invalidation: CatalogSubmissionListingInvalidation;
+}): CatalogSubmissionProcessingResult;
 export declare function planCatalogSubmissionPublication(input: {
     readonly workItem: CatalogSubmissionWorkItem;
     readonly baseState: CatalogPublicationCurrentState;
@@ -61,6 +78,19 @@ export declare function planCatalogSubmissionPublication(input: {
         authorization_digest: string;
         operator_admission_digest: string | null;
         request_id: string;
+        idempotency_key: string;
+        receipt_digest: string;
+    } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
+        kind: "catalog_operator";
+        submission_work_item_digest: string;
+        schema_digest: string;
+        payload_digest: string;
+        authentication_digest: string;
+        authorization_digest: string;
+        operator_admission_digest: string | null;
+        source_digest: string;
         idempotency_key: string;
         receipt_digest: string;
     } | {

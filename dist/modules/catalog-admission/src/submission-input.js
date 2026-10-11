@@ -99,7 +99,7 @@ export function verifyCatalogSubmissionWorkItem(input) {
             workItem.operator_admission.payload_digest !== workItem.payload_digest ||
             workItem.operator_admission.live_parent_release_id !== workItem.live_parent_release_id ||
             workItem.operator_admission.prior_work_item_digest !== digest(priorCore) ||
-            !["authenticated_form", "paid_agent"].includes(workItem.request.authority.kind)) {
+            !["authenticated_form", "paid_agent", "catalog_operator"].includes(workItem.request.authority.kind)) {
             throw new Error("Catalog submission operator admission differs from its protected work item.");
         }
         assertReviewedAuthoringPathClosure(workItem.request.authoring_files, workItem.operator_admission.reviewed_authoring_files);

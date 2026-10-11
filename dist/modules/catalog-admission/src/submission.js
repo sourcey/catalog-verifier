@@ -1,4 +1,4 @@
-import { canonicalJson, compareCanonicalStrings } from "provenry/primitives";
+import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { CATALOG_SUBMISSION_STAGES, catalogSubmissionProcessingResultSchema, } from "../../../contracts/api/src/index.js";
 import { compileAuthoringEntities } from "../../compiler/src/index.js";
 import { buildPublicationIngressReceipt, planCatalogPublication, } from "./publication.js";
@@ -42,28 +42,39 @@ export function catalogSubmissionAwaitingReviewResult(input) {
     });
 }
 export function catalogSubmissionInvalidatedResult(input) {
-    const { targetEntityIds } = catalogSubmissionCandidates(input.workItem);
+    return invalidatedResult(input.workItem, input.currentState.live_parent_release_id, {
+        code: "target_state_changed",
+        message: input.conflict.role
+            ? "This company's icon changed after submission. Review the current record before continuing."
+            : "This company changed after submission. Review the current record before continuing.",
+        path: input.conflict.entityId,
+    });
+}
+/** A company listing admission could not admit, settled rather than held for a person. */
+export function catalogSubmissionListingInvalidatedResult(input) {
+    const { invalidation } = input;
+    const diagnostics = invalidation.kind === "refused"
+        ? invalidation.reasons.map((message) => ({ code: "listing_refused", message }))
+        : [
+            {
+                code: "standing_changed",
+                message: "This company no longer meets Sourcey's listing rule, so a person verifies it first.",
+            },
+        ];
+    return invalidatedResult(input.workItem, input.liveParentReleaseId, ...diagnostics);
+}
+function invalidatedResult(workItem, liveParentReleaseId, ...diagnostics) {
+    const { targetEntityIds } = catalogSubmissionCandidates(workItem);
     return catalogSubmissionProcessingResultSchema.parse({
         state: "invalidated",
         proposal_digest: null,
         change_set_digest: null,
-        live_parent_release_id: input.currentState.live_parent_release_id,
+        live_parent_release_id: liveParentReleaseId,
         publication_release_id: null,
         stages: CATALOG_SUBMISSION_STAGES.map((stage) => ({
             stage,
             status: stage === "validation" ? "invalidated" : "not_required",
-            diagnostics: stage === "validation"
-                ? [
-                    {
-                        stage,
-                        code: "target_state_changed",
-                        message: input.conflict.role
-                            ? "This company's icon changed after submission. Review the current record before continuing."
-                            : "This company changed after submission. Review the current record before continuing.",
-                        path: input.conflict.entityId,
-                    },
-                ]
-                : [],
+            diagnostics: stage === "validation" ? diagnostics.map((diagnostic) => ({ stage, ...diagnostic })) : [],
         })),
         telemetry: {
             active_ms: 0,
@@ -183,7 +194,9 @@ function submissionIngressReceipt(workItem, proposal) {
             operator_admission_digest: workItem.operator_admission?.operator_admission_digest ?? null,
             ...(authority.kind === "paid_agent"
                 ? { kind: authority.kind, request_id: authority.request_id }
-                : { kind: authority.kind }),
+                : authority.kind === "catalog_operator"
+                    ? { kind: authority.kind, source_digest: digest(authority.source) }
+                    : { kind: authority.kind }),
         });
 }
 function assertAssetSubmissionProposalClosure(submissions, proposals, context) {

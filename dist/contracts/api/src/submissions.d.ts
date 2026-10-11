@@ -67,6 +67,17 @@ export declare const catalogSubmissionRequestSchema: z.ZodObject<{
         approval_digest: z.ZodNullable<z.ZodString>;
         run_receipt_digest: z.ZodString;
         admission_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
+    }, z.core.$strict>, z.ZodObject<{
+        kind: z.ZodLiteral<"catalog_operator">;
+        source: z.ZodObject<{
+            repository_id: z.ZodString;
+            repository: z.ZodString;
+            pull_request_number: z.ZodNumber;
+            head_sha: z.ZodString;
+            path: z.ZodString;
+            entity_id: z.ZodString;
+            identity_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>], "kind">;
 }, z.core.$strict>;
 /**
@@ -1056,6 +1067,17 @@ export declare const catalogSubmissionWorkItemCoreSchema: z.ZodObject<{
             approval_digest: z.ZodNullable<z.ZodString>;
             run_receipt_digest: z.ZodString;
             admission_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog_operator">;
+            source: z.ZodObject<{
+                repository_id: z.ZodString;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                path: z.ZodString;
+                entity_id: z.ZodString;
+                identity_digest: z.ZodString;
+            }, z.core.$strict>;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>;
     payload_digest: z.ZodString;
@@ -1148,6 +1170,17 @@ export declare const catalogSubmissionWorkItemSchema: z.ZodObject<{
             approval_digest: z.ZodNullable<z.ZodString>;
             run_receipt_digest: z.ZodString;
             admission_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
+        }, z.core.$strict>, z.ZodObject<{
+            kind: z.ZodLiteral<"catalog_operator">;
+            source: z.ZodObject<{
+                repository_id: z.ZodString;
+                repository: z.ZodString;
+                pull_request_number: z.ZodNumber;
+                head_sha: z.ZodString;
+                path: z.ZodString;
+                entity_id: z.ZodString;
+                identity_digest: z.ZodString;
+            }, z.core.$strict>;
         }, z.core.$strict>], "kind">;
     }, z.core.$strict>;
     payload_digest: z.ZodString;
@@ -1243,6 +1276,17 @@ declare const catalogSubmissionExecutionSchema: z.ZodObject<{
                 approval_digest: z.ZodNullable<z.ZodString>;
                 run_receipt_digest: z.ZodString;
                 admission_artifact_digests: z.ZodDefault<z.ZodArray<z.ZodString>>;
+            }, z.core.$strict>, z.ZodObject<{
+                kind: z.ZodLiteral<"catalog_operator">;
+                source: z.ZodObject<{
+                    repository_id: z.ZodString;
+                    repository: z.ZodString;
+                    pull_request_number: z.ZodNumber;
+                    head_sha: z.ZodString;
+                    path: z.ZodString;
+                    entity_id: z.ZodString;
+                    identity_digest: z.ZodString;
+                }, z.core.$strict>;
             }, z.core.$strict>], "kind">;
         }, z.core.$strict>;
         payload_digest: z.ZodString;
@@ -1738,6 +1782,7 @@ export declare const catalogSubmissionStatusSchema: z.ZodObject<{
     }>;
     ingress: z.ZodEnum<{
         authenticated_form: "authenticated_form";
+        catalog_operator: "catalog_operator";
         governed_ops: "governed_ops";
         paid_agent: "paid_agent";
     }>;
@@ -1819,6 +1864,7 @@ declare const agentReadinessSubmissionStatusSchema: z.ZodObject<{
     }>;
     ingress: z.ZodEnum<{
         authenticated_form: "authenticated_form";
+        catalog_operator: "catalog_operator";
         governed_ops: "governed_ops";
         paid_agent: "paid_agent";
     }>;
@@ -1860,6 +1906,7 @@ export declare const submissionStatusSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
     }>;
     ingress: z.ZodEnum<{
         authenticated_form: "authenticated_form";
+        catalog_operator: "catalog_operator";
         governed_ops: "governed_ops";
         paid_agent: "paid_agent";
     }>;
@@ -1935,6 +1982,7 @@ export declare const submissionStatusSchema: z.ZodDiscriminatedUnion<[z.ZodObjec
     }>;
     ingress: z.ZodEnum<{
         authenticated_form: "authenticated_form";
+        catalog_operator: "catalog_operator";
         governed_ops: "governed_ops";
         paid_agent: "paid_agent";
     }>;
@@ -1980,6 +2028,7 @@ export declare const submissionResponseSchema: z.ZodObject<{
         }>;
         ingress: z.ZodEnum<{
             authenticated_form: "authenticated_form";
+            catalog_operator: "catalog_operator";
             governed_ops: "governed_ops";
             paid_agent: "paid_agent";
         }>;
@@ -2055,6 +2104,7 @@ export declare const submissionResponseSchema: z.ZodObject<{
         }>;
         ingress: z.ZodEnum<{
             authenticated_form: "authenticated_form";
+            catalog_operator: "catalog_operator";
             governed_ops: "governed_ops";
             paid_agent: "paid_agent";
         }>;

@@ -18929,6 +18929,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -19004,6 +19005,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -19196,6 +19198,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -19271,6 +19274,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -21370,6 +21374,7 @@ export declare const startupCreditsReviewV1Endpoints: readonly [{
                     pull_request_number: z.ZodNumber;
                     head_sha: z.ZodString;
                     state: z.ZodEnum<{
+                        company_pending: "company_pending";
                         needs_change: "needs_change";
                         needs_person: "needs_person";
                         passed: "passed";
@@ -41535,6 +41540,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -41610,6 +41616,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -41802,6 +41809,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -41877,6 +41885,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 }>;
                 ingress: z.ZodEnum<{
                     authenticated_form: "authenticated_form";
+                    catalog_operator: "catalog_operator";
                     governed_ops: "governed_ops";
                     paid_agent: "paid_agent";
                 }>;
@@ -43968,6 +43977,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     pull_request_number: z.ZodNumber;
                     head_sha: z.ZodString;
                     state: z.ZodEnum<{
+                        company_pending: "company_pending";
                         needs_change: "needs_change";
                         needs_person: "needs_person";
                         passed: "passed";

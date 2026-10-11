@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { readinessCompanySourceSchema } from "../../admission-results/src/index.js";
 import { agentReadinessAuthoringPathSchema, agentReadinessDeclarationDraftRequestSchema, agentReadinessDeclarationDraftResultSchema, agentReadinessDraftDiagnosticSchema, } from "../../agent-readiness/src/index.js";
 import { entityAssetSubmissionSchema, entityAssetUploadReceiptSchema, } from "../../assets/src/index.js";
 import { catalogPublicationCurrentStateSchema, expectedPublicationEntitySchema, PUBLICATION_STAGES, publicationStageResultSchema, } from "../../publication/src/index.js";
@@ -12,7 +13,8 @@ export const catalogSubmissionAuthoringFileSchema = z
     content: z.string().min(1),
 })
     .strict();
-const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
+/** The authorities a submission may carry through the public route. */
+const publicSubmissionAuthorities = [
     z.object({ kind: z.literal("authenticated_form") }).strict(),
     z
         .object({
@@ -31,6 +33,23 @@ const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
         approval_digest: digest.nullable(),
         run_receipt_digest: digest,
         admission_artifact_digests: z.array(digest).default([]),
+    })
+        .strict(),
+];
+const publicSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
+    ...publicSubmissionAuthorities,
+]);
+/**
+ * Every authority a retained Catalog record request carries: the public ones, and Sourcey's
+ * admission operator listing the company an Agent Readiness declaration names, which only the
+ * operator retains and the public route cannot express.
+ */
+const catalogSubmissionAuthoritySchema = z.discriminatedUnion("kind", [
+    ...publicSubmissionAuthorities,
+    z
+        .object({
+        kind: z.literal("catalog_operator"),
+        source: readinessCompanySourceSchema,
     })
         .strict(),
 ]);
@@ -85,14 +104,14 @@ export const submissionRequestSchema = z.discriminatedUnion("product", [
         .object({
         product: z.literal("catalog_record"),
         payload: catalogRecordSubmissionPayloadSchema,
-        authority: catalogSubmissionAuthoritySchema,
+        authority: publicSubmissionAuthoritySchema,
     })
         .strict(),
     z
         .object({
         product: z.literal("agent_readiness"),
         payload: agentReadinessDeclarationDraftRequestSchema,
-        authority: catalogSubmissionAuthoritySchema,
+        authority: publicSubmissionAuthoritySchema,
     })
         .strict(),
 ]);
@@ -200,7 +219,12 @@ export const catalogSubmissionProcessingResultSchema = z.discriminatedUnion("sta
 const submissionLinksSchema = z
     .object({ self: z.string().regex(/^\/v1\/submissions\/sub_[a-f0-9]{64}$/) })
     .strict();
-const submissionIngressSchema = z.enum(["authenticated_form", "paid_agent", "governed_ops"]);
+const submissionIngressSchema = z.enum([
+    "authenticated_form",
+    "paid_agent",
+    "catalog_operator",
+    "governed_ops",
+]);
 export const catalogSubmissionStatusSchema = z
     .object({
     submission_id: submissionId,

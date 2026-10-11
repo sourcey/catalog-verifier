@@ -209,6 +209,22 @@ const paidAgentPublicationIngressReceiptCoreSchema = z
     idempotency_key: z.string().trim().min(1),
 })
     .strict();
+/** A company Sourcey's admission operator listed for an Agent Readiness declaration head. */
+const catalogOperatorPublicationIngressReceiptCoreSchema = z
+    .object({
+    ...ingressCommon,
+    kind: z.literal("catalog_operator"),
+    submission_work_item_digest: digestSchema,
+    schema_digest: digestSchema,
+    payload_digest: digestSchema,
+    authentication_digest: digestSchema,
+    authorization_digest: digestSchema,
+    operator_admission_digest: digestSchema.nullable(),
+    /** The declaration head and file it was listed for. */
+    source_digest: digestSchema,
+    idempotency_key: z.string().trim().min(1),
+})
+    .strict();
 const governedOpsPublicationIngressReceiptCoreSchema = z
     .object({
     ...ingressCommon,
@@ -255,6 +271,7 @@ export const publicationIngressReceiptCoreSchema = z.discriminatedUnion("kind", 
     gitPublicationIngressReceiptCoreSchema,
     authenticatedFormPublicationIngressReceiptCoreSchema,
     paidAgentPublicationIngressReceiptCoreSchema,
+    catalogOperatorPublicationIngressReceiptCoreSchema,
     governedOpsPublicationIngressReceiptCoreSchema,
     scannerPublicationIngressReceiptCoreSchema,
     operatorJobPublicationIngressReceiptCoreSchema,
@@ -266,6 +283,9 @@ export const publicationIngressReceiptSchema = z.discriminatedUnion("kind", [
         .extend({ receipt_digest: digestSchema })
         .strict(),
     paidAgentPublicationIngressReceiptCoreSchema.extend({ receipt_digest: digestSchema }).strict(),
+    catalogOperatorPublicationIngressReceiptCoreSchema
+        .extend({ receipt_digest: digestSchema })
+        .strict(),
     governedOpsPublicationIngressReceiptCoreSchema.extend({ receipt_digest: digestSchema }).strict(),
     scannerPublicationIngressReceiptCoreSchema.extend({ receipt_digest: digestSchema }).strict(),
     operatorJobPublicationIngressReceiptCoreSchema.extend({ receipt_digest: digestSchema }).strict(),

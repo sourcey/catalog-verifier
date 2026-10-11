@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authoringSourceSchema, entityIdentityAuthoringSchema } from "../../authoring/src/index.js";
+import { authoringSourceSchema, entityIdentityAuthoringSchema, entityProfileAuthoringSchema, } from "../../authoring/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { standardImplementationBindingSchema } from "../../standards/src/index.js";
 import { agentReadinessJobBindingSchema, validateDeclaredJobBindings } from "./binding.js";
@@ -308,6 +308,18 @@ export const agentReadinessAuthoringSchema = z
     .object({
     schema_version: z.literal("sourcey.agent-readiness-authoring/v1alpha1"),
     entity: entityIdentityAuthoringSchema,
+    /**
+     * The company's listing copy, under the company intake's own rules. Admission reads it only
+     * when Sourcey does not list the Entity yet: Sourcey then lists the company from it and the
+     * Entity's identity before it admits the declaration.
+     */
+    company: z
+        .object({
+        summary: entityProfileAuthoringSchema.shape.summary.unwrap(),
+        site_url: entityProfileAuthoringSchema.shape.links.shape.site,
+    })
+        .strict()
+        .optional(),
     sources: z.array(authoringSourceSchema).min(1),
     declarations: z.array(agentReadinessDeclarationSchema).min(1),
 })

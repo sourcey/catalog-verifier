@@ -186,6 +186,7 @@ export const admissionSummarySchema = z
         "verification_offered",
         "verifying",
         "verification_refused",
+        "company_pending",
     ]),
     title: z.string().min(1).max(120),
     /** What this means for the pull request and what its contributor does next. */
@@ -204,6 +205,34 @@ export const admissionSummarySchema = z
         .nullable(),
     /** The full machine report, for whoever wants every digest. */
     report_url: z.url({ protocol: /^https$/u }).nullable(),
+})
+    .strict();
+/** The Agent Readiness declaration head and file a company listing comes from. */
+export const readinessCompanySourceSchema = z
+    .object({
+    repository_id: z.string().regex(/^[1-9][0-9]*$/u),
+    repository: z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u),
+    pull_request_number: z.number().int().positive(),
+    head_sha: gitObjectSchema,
+    path: z.string().min(1).max(300),
+    entity_id: identifierSchema,
+    identity_digest: digestSchema,
+})
+    .strict();
+/**
+ * An Agent Readiness declaration head held while Sourcey lists the company it names: the exact
+ * head and file, the company's identity, and the companion submission that lists it. The head is
+ * admitted again once that company is live, or once its companion can no longer publish.
+ */
+export const readinessCompanyHoldSchema = readinessCompanySourceSchema
+    .extend({
+    hold_contract: z.literal("sourcey.readiness-company-hold/v1alpha1"),
+    companion: z
+        .object({
+        submission_id: z.string().regex(/^sub_[a-f0-9]{64}$/u),
+        payload_digest: digestSchema,
+    })
+        .strict(),
 })
     .strict();
 export function verifyStartupCreditsAdmissionReport(input) {

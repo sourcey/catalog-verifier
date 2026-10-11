@@ -142,6 +142,19 @@ export declare function planCatalogGitPublication(input: {
     } | {
         proposal_digest: string;
         semantic_input_digest: string;
+        kind: "catalog_operator";
+        submission_work_item_digest: string;
+        schema_digest: string;
+        payload_digest: string;
+        authentication_digest: string;
+        authorization_digest: string;
+        operator_admission_digest: string | null;
+        source_digest: string;
+        idempotency_key: string;
+        receipt_digest: string;
+    } | {
+        proposal_digest: string;
+        semantic_input_digest: string;
         kind: "governed_ops";
         submission_work_item_digest: string | null;
         command_digest: string;
