@@ -1,14 +1,11 @@
 import type { AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/grade-policy.js";
-import { type AgentReadinessJob, type AgentReadinessJobBinding, type AgentReadinessJobOperation, type AgentReadinessJobResult, type AgentReadinessRunRecord, type AgentReadinessStep, type AgentReadinessStepResult } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessJob, type AgentReadinessJobOperation, type AgentReadinessJobResult, type AgentReadinessRunRecord, type AgentReadinessStep, type AgentReadinessStepResult } from "../../../contracts/agent-readiness/src/index.js";
 /** One interface's path, and whether a later run is due soon to settle or reproduce it. */
 export interface EvaluatedPath {
     readonly steps: readonly AgentReadinessStepResult[];
     /** The job itself, beside the steps (north star §5.6, the job). */
     readonly job: AgentReadinessJobResult;
-    /**
-     * A later run can settle what this path leaves open: a page answer not yet
-     * reproduced, or a failure of the job not yet reproduced.
-     */
+    /** A later run can settle what this path leaves open: a page answer not yet reproduced. */
     readonly reproducible: boolean;
     /** The probe run whose discovery decided Discover; null when none did. */
     readonly discoveryRun: AgentReadinessRunRecord | null;
@@ -36,37 +33,35 @@ export declare function evaluateProbePath(input: {
     readonly accessGates: readonly string[];
     /** The settings a person turns on once before an agent can use this interface, by page id. */
     readonly accessSettings: readonly string[];
+    /** The pages where a person claims later what the agent made alone through it, by page id. */
+    readonly claimPages: readonly string[];
+    /** The pages where a person replaces its key, which the vendor expires with no API to renew it. */
+    readonly keyRenewalPages: readonly string[];
     /** The listing rules out a checkout: the job is free, or paid per call by its request's offer. */
     readonly checkoutRuledOut: boolean;
     /** Probe runs of the profile's current declaration revision, any order. */
     readonly runs: readonly AgentReadinessRunRecord[];
 }): EvaluatedPath;
 /**
- * The verified path of one binding: what performing the job with its authority
- * establishes (north star §5.6, precedence). Only the vendor's own runs can
- * lower a letter: a refusal of authority a vendor run proved valid counts when
- * the vendor's latest run holds it and its earlier runs reproduce it (the
- * job's refusal makes the job `unavailable`, Authority's makes that step
- * `gated`, and a 402 is a balance a person tops up: Pay's recurring
- * `workaround`), and so do failed assertions reproduced the same way (the job
- * `unavailable`). Otherwise the latest run that did the job decides while it
- * is fresh; a failing run from anyone else never lowers a letter.
+ * The verified path of one binding: proof, not the grade (north star §5.6). The
+ * latest run that did the job, while it is fresh, makes the job `verified`; a
+ * verified run sets no step and never makes the job `unavailable`, which only
+ * the probes find. The path rests on that run, or on the latest run when none
+ * did the job.
  */
 export declare function evaluatePath(input: {
     readonly job: AgentReadinessJob;
-    readonly binding: AgentReadinessJobBinding;
-    readonly policy: Pick<AgentReadinessPolicy, "reproduction" | "fresh_for_days">;
+    readonly policy: Pick<AgentReadinessPolicy, "fresh_for_days">;
     /** This binding's verified runs, any order. */
     readonly runs: readonly AgentReadinessRunRecord[];
-    /** Declared endpoint URIs by id. */
-    readonly endpoints: ReadonlyMap<string, string>;
     /** When freshness is judged: the refresh's own probe run. */
     readonly asOf: string;
 }): EvaluatedPath;
 /**
- * Verified outcomes replace probed ones for the steps the verified run
- * assessed, and for the job (north star §5.6, precedence); a step it left
- * unassessed keeps its probed outcome.
+ * A binding's path: every step the probes', and the job verified where its run
+ * proved a job the probes found reachable (north star §5.6). A verified job
+ * grades as a reachable one does, so the run never changes the letter: it
+ * cannot lift a probed `unavailable` or settle a job the probes left open.
  */
 export declare function combinePaths(probed: EvaluatedPath, verified: EvaluatedPath): EvaluatedPath;
 export declare function notAssessed(step: AgentReadinessStep): AgentReadinessStepResult;

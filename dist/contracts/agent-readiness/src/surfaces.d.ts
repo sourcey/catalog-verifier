@@ -1,9 +1,9 @@
 import type { z } from "zod";
 /**
  * What the probe reads of a listing's own surfaces: the roles it rules out, its
- * checkout or that the job needs none, and the pages a person's or a vendor's
- * step happens on, each requested once, an access setting on the interface it
- * turns on.
+ * checkout or top-up page or that the job needs none, and the pages a person's
+ * or a vendor's step happens on, each requested once, an access setting, a
+ * claim page and a key renewal page on the interface they serve.
  */
 export declare function validateProbedSurfaces(value: {
     readonly resources: readonly {

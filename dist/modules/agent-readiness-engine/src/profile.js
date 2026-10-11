@@ -20,15 +20,17 @@ export function agentReadinessAccessGates(declaration, interfaceId) {
         .map(({ endpoint_id }) => endpoint_id);
 }
 /**
- * The settings a person on the account turns on once before an agent can use
- * one interface (north star §5.6, Onboard `approval`): the `access_setting`
- * pages the interface lists, each holding once the probe's request for it is
- * answered.
+ * The pages one interface lists for a person's step on it (north star §5.6):
+ * the `access_setting` a person on the account turns on once and the `claim`
+ * page where a person claims later what the agent made alone (Onboard
+ * `approval`), and the `key_renewal` page where a person replaces a key the
+ * vendor expires with no API to renew it (Sustain, recurring). Each holds once
+ * the probe's request for it is answered.
  */
-export function agentReadinessAccessSettings(declaration, interfaceId) {
+export function agentReadinessInterfacePages(declaration, interfaceId, role) {
     const own = new Set(declaration.interfaces.find(({ interface_id }) => interface_id === interfaceId)?.endpoint_ids);
     return declaration.endpoints
-        .filter(({ endpoint_id, roles }) => roles.includes("access_setting") && own.has(endpoint_id))
+        .filter(({ endpoint_id, roles }) => roles.includes(role) && own.has(endpoint_id))
         .map(({ endpoint_id }) => endpoint_id);
 }
 /**
@@ -40,8 +42,8 @@ export function agentReadinessCheckoutRuledOut(declaration) {
     return declaration.surface_exclusions.some(({ role }) => role === "checkout");
 }
 /**
- * The path of one interface (north star §5.6): its probed path, with the
- * binding's verified outcomes replacing probed ones where assessed. With no
+ * The path of one interface (north star §5.6): its probed path, with the job
+ * verified where the binding's run proved it. With no
  * interface, nothing declared performs the job: F on the declaration itself.
  * The verifier re-derives a revision's steps here, for exactly the interface
  * and binding the revision names.
@@ -83,7 +85,9 @@ export function evaluateInterfacePath(input) {
             endpoint,
             policy,
             accessGates: agentReadinessAccessGates(declaration, operation.interface_id),
-            accessSettings: agentReadinessAccessSettings(declaration, operation.interface_id),
+            accessSettings: agentReadinessInterfacePages(declaration, operation.interface_id, "access_setting"),
+            claimPages: agentReadinessInterfacePages(declaration, operation.interface_id, "claim"),
+            keyRenewalPages: agentReadinessInterfacePages(declaration, operation.interface_id, "key_renewal"),
             checkoutRuledOut: agentReadinessCheckoutRuledOut(declaration),
             runs: input.probeRuns,
         });
@@ -94,10 +98,8 @@ export function evaluateInterfacePath(input) {
         }
         return combinePaths(probed, evaluatePath({
             job: input.job,
-            binding,
             policy,
             runs: verifiedRuns,
-            endpoints,
             asOf: latestProbe.finished_at,
         }));
     })();
@@ -134,7 +136,7 @@ export function evaluateInterfacePath(input) {
 }
 /**
  * Every interface that performs the job gives its own path: probes alone, or
- * each binding on it that has verified runs, whose outcomes take precedence.
+ * each binding on it that has verified runs, which can only prove the job.
  * The best letter is the profile's; at the same letter a path whose job a run
  * proved comes first, then the earlier declared operation and binding.
  * `reproducible` holds only while nothing grades, since a reproduced finding

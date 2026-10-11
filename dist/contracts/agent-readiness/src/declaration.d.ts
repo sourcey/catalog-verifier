@@ -69,12 +69,15 @@ export declare const agentReadinessEndpointSchema: z.ZodObject<{
         access_setting: "access_setting";
         authorization: "authorization";
         checkout: "checkout";
+        claim: "claim";
+        key_renewal: "key_renewal";
         protected_resource: "protected_resource";
         recovery: "recovery";
         registration: "registration";
         service: "service";
         status: "status";
         token: "token";
+        top_up: "top_up";
         webhook: "webhook";
     }>>;
     operated_by_participant_id: z.ZodString;
@@ -333,51 +336,6 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 pointer: z.ZodString;
             }, z.core.$strict>>;
         }, z.core.$strict>>;
-        error_probe: z.ZodObject<{
-            call: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                kind: z.ZodLiteral<"http">;
-                call_id: z.ZodString;
-                endpoint_id: z.ZodString;
-                method: z.ZodEnum<{
-                    DELETE: "DELETE";
-                    GET: "GET";
-                    HEAD: "HEAD";
-                    PATCH: "PATCH";
-                    POST: "POST";
-                    PUT: "PUT";
-                }>;
-                url: z.ZodString;
-                headers: z.ZodArray<z.ZodObject<{
-                    name: z.ZodString;
-                    value: z.ZodString;
-                }, z.core.$strict>>;
-                body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    media_type: z.ZodLiteral<"application/json">;
-                    json: z.ZodJSONSchema;
-                }, z.core.$strict>, z.ZodObject<{
-                    media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                    form: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                }, z.core.$strict>], "media_type">>;
-                credentials: z.ZodArray<z.ZodString>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"mcp">;
-                call_id: z.ZodString;
-                endpoint_id: z.ZodString;
-                tool: z.ZodString;
-                arguments: z.ZodJSONSchema;
-                credentials: z.ZodArray<z.ZodString>;
-            }, z.core.$strict>], "kind">;
-            expect: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                kind: z.ZodLiteral<"http_error">;
-                status_class: z.ZodLiteral<"4xx">;
-                error_pointer: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"mcp_error">;
-            }, z.core.$strict>], "kind">;
-        }, z.core.$strict>;
         delegation: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"none">;
         }, z.core.$strict>, z.ZodObject<{
@@ -539,193 +497,6 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 x402: "x402";
             }>;
         }, z.core.$strict>], "kind">;
-        sustain: z.ZodObject<{
-            rotation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                kind: z.ZodLiteral<"not_applicable">;
-            }, z.core.$strict>, z.ZodObject<{
-                call: z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>;
-                keep: z.ZodArray<z.ZodObject<{
-                    role: z.ZodString;
-                    placement: z.ZodUnion<readonly [z.ZodObject<{
-                        scheme: z.ZodEnum<{
-                            basic: "basic";
-                            bearer: "bearer";
-                        }>;
-                        header_name: z.ZodLiteral<"authorization">;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"header">;
-                        header_name: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"form">;
-                        field: z.ZodString;
-                    }, z.core.$strict>]>;
-                    endpoint_ids: z.ZodArray<z.ZodString>;
-                    methods: z.ZodArray<z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>>;
-                    pointer: z.ZodString;
-                    expires_in_pointer: z.ZodOptional<z.ZodString>;
-                }, z.core.$strict>>;
-                kind: z.ZodLiteral<"refresh">;
-            }, z.core.$strict>, z.ZodObject<{
-                call: z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>;
-                keep: z.ZodArray<z.ZodObject<{
-                    role: z.ZodString;
-                    placement: z.ZodUnion<readonly [z.ZodObject<{
-                        scheme: z.ZodEnum<{
-                            basic: "basic";
-                            bearer: "bearer";
-                        }>;
-                        header_name: z.ZodLiteral<"authorization">;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"header">;
-                        header_name: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"form">;
-                        field: z.ZodString;
-                    }, z.core.$strict>]>;
-                    endpoint_ids: z.ZodArray<z.ZodString>;
-                    methods: z.ZodArray<z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>>;
-                    pointer: z.ZodString;
-                    expires_in_pointer: z.ZodOptional<z.ZodString>;
-                }, z.core.$strict>>;
-                kind: z.ZodLiteral<"mint">;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"manual">;
-            }, z.core.$strict>], "kind">;
-            revocation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                kind: z.ZodLiteral<"not_applicable">;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"call">;
-                call: z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"manual">;
-            }, z.core.$strict>], "kind">;
-            verification: z.ZodOptional<z.ZodObject<{
-                probe: z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    method: z.ZodLiteral<"GET">;
-                    body: z.ZodNull;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>;
-                control: z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    method: z.ZodLiteral<"GET">;
-                    body: z.ZodNull;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>;
-            }, z.core.$strict>>;
-        }, z.core.$strict>;
         cleanup: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"http">;
             call_id: z.ZodString;
@@ -824,12 +595,15 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
             access_setting: "access_setting";
             authorization: "authorization";
             checkout: "checkout";
+            claim: "claim";
+            key_renewal: "key_renewal";
             protected_resource: "protected_resource";
             recovery: "recovery";
             registration: "registration";
             service: "service";
             status: "status";
             token: "token";
+            top_up: "top_up";
             webhook: "webhook";
         }>>;
         operated_by_participant_id: z.ZodString;
@@ -1113,51 +887,6 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     pointer: z.ZodString;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
-            error_probe: z.ZodObject<{
-                call: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    tool: z.ZodString;
-                    arguments: z.ZodJSONSchema;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>], "kind">;
-                expect: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http_error">;
-                    status_class: z.ZodLiteral<"4xx">;
-                    error_pointer: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp_error">;
-                }, z.core.$strict>], "kind">;
-            }, z.core.$strict>;
             delegation: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;
             }, z.core.$strict>, z.ZodObject<{
@@ -1319,193 +1048,6 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     x402: "x402";
                 }>;
             }, z.core.$strict>], "kind">;
-            sustain: z.ZodObject<{
-                rotation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"refresh">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"mint">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                revocation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"call">;
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                verification: z.ZodOptional<z.ZodObject<{
-                    probe: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    control: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>;
             cleanup: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"http">;
                 call_id: z.ZodString;
@@ -1604,12 +1146,15 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                 access_setting: "access_setting";
                 authorization: "authorization";
                 checkout: "checkout";
+                claim: "claim";
+                key_renewal: "key_renewal";
                 protected_resource: "protected_resource";
                 recovery: "recovery";
                 registration: "registration";
                 service: "service";
                 status: "status";
                 token: "token";
+                top_up: "top_up";
                 webhook: "webhook";
             }>>;
             operated_by_participant_id: z.ZodString;
@@ -1887,51 +1432,6 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     pointer: z.ZodString;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
-            error_probe: z.ZodObject<{
-                call: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    tool: z.ZodString;
-                    arguments: z.ZodJSONSchema;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>], "kind">;
-                expect: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http_error">;
-                    status_class: z.ZodLiteral<"4xx">;
-                    error_pointer: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp_error">;
-                }, z.core.$strict>], "kind">;
-            }, z.core.$strict>;
             delegation: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;
             }, z.core.$strict>, z.ZodObject<{
@@ -2093,193 +1593,6 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     x402: "x402";
                 }>;
             }, z.core.$strict>], "kind">;
-            sustain: z.ZodObject<{
-                rotation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"refresh">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"mint">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                revocation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"call">;
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                verification: z.ZodOptional<z.ZodObject<{
-                    probe: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    control: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>;
             cleanup: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"http">;
                 call_id: z.ZodString;
@@ -2378,12 +1691,15 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                 access_setting: "access_setting";
                 authorization: "authorization";
                 checkout: "checkout";
+                claim: "claim";
+                key_renewal: "key_renewal";
                 protected_resource: "protected_resource";
                 recovery: "recovery";
                 registration: "registration";
                 service: "service";
                 status: "status";
                 token: "token";
+                top_up: "top_up";
                 webhook: "webhook";
             }>>;
             operated_by_participant_id: z.ZodString;
@@ -2685,51 +2001,6 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     pointer: z.ZodString;
                 }, z.core.$strict>>;
             }, z.core.$strict>>;
-            error_probe: z.ZodObject<{
-                call: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    method: z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>;
-                    url: z.ZodString;
-                    headers: z.ZodArray<z.ZodObject<{
-                        name: z.ZodString;
-                        value: z.ZodString;
-                    }, z.core.$strict>>;
-                    body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/json">;
-                        json: z.ZodJSONSchema;
-                    }, z.core.$strict>, z.ZodObject<{
-                        media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                        form: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                    }, z.core.$strict>], "media_type">>;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp">;
-                    call_id: z.ZodString;
-                    endpoint_id: z.ZodString;
-                    tool: z.ZodString;
-                    arguments: z.ZodJSONSchema;
-                    credentials: z.ZodArray<z.ZodString>;
-                }, z.core.$strict>], "kind">;
-                expect: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"http_error">;
-                    status_class: z.ZodLiteral<"4xx">;
-                    error_pointer: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"mcp_error">;
-                }, z.core.$strict>], "kind">;
-            }, z.core.$strict>;
             delegation: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;
             }, z.core.$strict>, z.ZodObject<{
@@ -2891,193 +2162,6 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     x402: "x402";
                 }>;
             }, z.core.$strict>], "kind">;
-            sustain: z.ZodObject<{
-                rotation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"refresh">;
-                }, z.core.$strict>, z.ZodObject<{
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    keep: z.ZodArray<z.ZodObject<{
-                        role: z.ZodString;
-                        placement: z.ZodUnion<readonly [z.ZodObject<{
-                            scheme: z.ZodEnum<{
-                                basic: "basic";
-                                bearer: "bearer";
-                            }>;
-                            header_name: z.ZodLiteral<"authorization">;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"header">;
-                            header_name: z.ZodString;
-                        }, z.core.$strict>, z.ZodObject<{
-                            scheme: z.ZodLiteral<"form">;
-                            field: z.ZodString;
-                        }, z.core.$strict>]>;
-                        endpoint_ids: z.ZodArray<z.ZodString>;
-                        methods: z.ZodArray<z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>>;
-                        pointer: z.ZodString;
-                        expires_in_pointer: z.ZodOptional<z.ZodString>;
-                    }, z.core.$strict>>;
-                    kind: z.ZodLiteral<"mint">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                revocation: z.ZodDiscriminatedUnion<[z.ZodObject<{
-                    kind: z.ZodLiteral<"not_applicable">;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"call">;
-                    call: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        method: z.ZodEnum<{
-                            DELETE: "DELETE";
-                            GET: "GET";
-                            HEAD: "HEAD";
-                            PATCH: "PATCH";
-                            POST: "POST";
-                            PUT: "PUT";
-                        }>;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/json">;
-                            json: z.ZodJSONSchema;
-                        }, z.core.$strict>, z.ZodObject<{
-                            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
-                            form: z.ZodArray<z.ZodObject<{
-                                name: z.ZodString;
-                                value: z.ZodString;
-                            }, z.core.$strict>>;
-                        }, z.core.$strict>], "media_type">>;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"manual">;
-                }, z.core.$strict>], "kind">;
-                verification: z.ZodOptional<z.ZodObject<{
-                    probe: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                    control: z.ZodObject<{
-                        kind: z.ZodLiteral<"http">;
-                        call_id: z.ZodString;
-                        endpoint_id: z.ZodString;
-                        url: z.ZodString;
-                        headers: z.ZodArray<z.ZodObject<{
-                            name: z.ZodString;
-                            value: z.ZodString;
-                        }, z.core.$strict>>;
-                        method: z.ZodLiteral<"GET">;
-                        body: z.ZodNull;
-                        credentials: z.ZodArray<z.ZodString>;
-                    }, z.core.$strict>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>;
             cleanup: z.ZodArray<z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"http">;
                 call_id: z.ZodString;
@@ -3176,12 +2260,15 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                 access_setting: "access_setting";
                 authorization: "authorization";
                 checkout: "checkout";
+                claim: "claim";
+                key_renewal: "key_renewal";
                 protected_resource: "protected_resource";
                 recovery: "recovery";
                 registration: "registration";
                 service: "service";
                 status: "status";
                 token: "token";
+                top_up: "top_up";
                 webhook: "webhook";
             }>>;
             operated_by_participant_id: z.ZodString;

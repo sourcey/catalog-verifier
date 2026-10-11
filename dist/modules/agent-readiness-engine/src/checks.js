@@ -202,30 +202,6 @@ function recordIssue(declared, call, sent, credentialsBeforeJob) {
     }
     return null;
 }
-/**
- * Whether the safe invalid request failed typed: true or false is a fact about
- * the service; null (a transport failure, a 5xx, an unanswered call) is residue.
- */
-export function evaluateErrorProbe(probe, result) {
-    if (probe.expect.kind === "mcp_error") {
-        if (result.mcpOk === null)
-            return null;
-        return result.mcpOk
-            ? { typed: false, reason: "The invalid request was accepted." }
-            : { typed: true, reason: "The invalid request failed with a typed MCP error." };
-    }
-    if (result.status === null || result.status >= 500)
-        return null;
-    if (result.status < 400)
-        return { typed: false, reason: "The invalid request was accepted." };
-    if (!present(valueAtPointer(result.document, probe.expect.error_pointer))) {
-        return { typed: false, reason: "The refusal carries no machine-readable error." };
-    }
-    return { typed: true, reason: `HTTP ${result.status} with a machine-readable error.` };
-}
-function present(value) {
-    return value !== undefined && value !== null && value !== "";
-}
 function utf8(bytes) {
     try {
         return new TextDecoder("utf-8", { fatal: true }).decode(bytes);

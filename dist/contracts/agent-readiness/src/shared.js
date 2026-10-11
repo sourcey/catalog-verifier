@@ -87,7 +87,10 @@ export const AGENT_READINESS_PAGE_ROLES = [
     "registration",
     "access_request",
     "access_setting",
+    "claim",
     "checkout",
+    "top_up",
+    "key_renewal",
 ];
 /** A probe run requests each declared page once, and a listing names at most this many. */
 export const AGENT_READINESS_MAXIMUM_PAGES = 8;
@@ -132,6 +135,41 @@ export const agentReadinessJobOutcomeSchema = z.enum([
 ]);
 /** Once (per principal or credential lifetime), or every run, purchase or period. */
 export const agentReadinessHumanStepTimingSchema = z.enum(["setup", "recurring"]);
+/**
+ * The kinds of person-step on the shape's scale (north star §5.7), lightest
+ * first: a light, one-time step; a person signing up; a person handing over a
+ * key; a card on file; a step that recurs; a vendor's decision.
+ */
+export const AGENT_READINESS_PERSON_STEP_KINDS = [
+    "light",
+    "sign_up",
+    "key",
+    "card",
+    "recurring",
+    "gated",
+];
+export const agentReadinessPersonStepKindSchema = z.enum(AGENT_READINESS_PERSON_STEP_KINDS);
+/**
+ * Every person-step a step can need (north star §5.7): the outcomes, besides
+ * `machine`, `not_applicable` and `not_assessed`, that a step result may hold.
+ */
+export const AGENT_READINESS_PERSON_STEPS = [
+    { step: "discover", outcome: "workaround", timing: "setup" },
+    { step: "authority", outcome: "approval", timing: "setup" },
+    { step: "authority", outcome: "workaround", timing: "setup" },
+    { step: "onboard", outcome: "approval", timing: "setup" },
+    { step: "onboard", outcome: "workaround", timing: "setup" },
+    { step: "onboard", outcome: "gated", timing: null },
+    { step: "pay", outcome: "workaround", timing: "setup" },
+    { step: "pay", outcome: "workaround", timing: "recurring" },
+    { step: "confirm", outcome: "workaround", timing: "recurring" },
+    { step: "sustain", outcome: "workaround", timing: "setup" },
+    { step: "sustain", outcome: "workaround", timing: "recurring" },
+];
+/** One person-step, keyed as `step:outcome:timing`. */
+export function agentReadinessPersonStepKey(step) {
+    return `${step.step}:${step.outcome}:${step.timing ?? "-"}`;
+}
 /** The scale, best first (north star §5.7). */
 export const agentReadinessLetterSchema = z.enum(["A+", "A", "B+", "B", "C", "D", "F"]);
 export const agentReadinessEvidenceLabelSchema = z.enum([

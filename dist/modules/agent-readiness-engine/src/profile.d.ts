@@ -36,12 +36,14 @@ export interface AgentReadinessProfilePath {
  */
 export declare function agentReadinessAccessGates(declaration: Pick<Declaration, "endpoints" | "interfaces">, interfaceId: string): readonly string[];
 /**
- * The settings a person on the account turns on once before an agent can use
- * one interface (north star §5.6, Onboard `approval`): the `access_setting`
- * pages the interface lists, each holding once the probe's request for it is
- * answered.
+ * The pages one interface lists for a person's step on it (north star §5.6):
+ * the `access_setting` a person on the account turns on once and the `claim`
+ * page where a person claims later what the agent made alone (Onboard
+ * `approval`), and the `key_renewal` page where a person replaces a key the
+ * vendor expires with no API to renew it (Sustain, recurring). Each holds once
+ * the probe's request for it is answered.
  */
-export declare function agentReadinessAccessSettings(declaration: Pick<Declaration, "endpoints" | "interfaces">, interfaceId: string): readonly string[];
+export declare function agentReadinessInterfacePages(declaration: Pick<Declaration, "endpoints" | "interfaces">, interfaceId: string, role: "access_setting" | "claim" | "key_renewal"): readonly string[];
 /**
  * The declaration rules out a checkout (north star §5.6, Pay): the job is free
  * on an account, or paid per call by the offer its own request answers, which
@@ -49,8 +51,8 @@ export declare function agentReadinessAccessSettings(declaration: Pick<Declarati
  */
 export declare function agentReadinessCheckoutRuledOut(declaration: Pick<Declaration, "surface_exclusions">): boolean;
 /**
- * The path of one interface (north star §5.6): its probed path, with the
- * binding's verified outcomes replacing probed ones where assessed. With no
+ * The path of one interface (north star §5.6): its probed path, with the job
+ * verified where the binding's run proved it. With no
  * interface, nothing declared performs the job: F on the declaration itself.
  * The verifier re-derives a revision's steps here, for exactly the interface
  * and binding the revision names.
@@ -58,7 +60,7 @@ export declare function agentReadinessCheckoutRuledOut(declaration: Pick<Declara
 export declare function evaluateInterfacePath(input: {
     readonly job: AgentReadinessJob;
     readonly declaration: Declaration;
-    readonly policy: Pick<AgentReadinessPolicy, "reproduction" | "letters" | "fresh_for_days">;
+    readonly policy: Pick<AgentReadinessPolicy, "reproduction" | "letters" | "person_steps" | "fresh_for_days">;
     readonly interfaceId: string | null;
     readonly binding: AgentReadinessJobBinding | null;
     /** Probe runs of the profile's current declaration revision. */
@@ -68,7 +70,7 @@ export declare function evaluateInterfacePath(input: {
 }): AgentReadinessProfilePath;
 /**
  * Every interface that performs the job gives its own path: probes alone, or
- * each binding on it that has verified runs, whose outcomes take precedence.
+ * each binding on it that has verified runs, which can only prove the job.
  * The best letter is the profile's; at the same letter a path whose job a run
  * proved comes first, then the earlier declared operation and binding.
  * `reproducible` holds only while nothing grades, since a reproduced finding
@@ -77,7 +79,7 @@ export declare function evaluateInterfacePath(input: {
 export declare function evaluateProfile(input: {
     readonly job: AgentReadinessJob;
     readonly declaration: Declaration;
-    readonly policy: Pick<AgentReadinessPolicy, "reproduction" | "letters" | "fresh_for_days">;
+    readonly policy: Pick<AgentReadinessPolicy, "reproduction" | "letters" | "person_steps" | "fresh_for_days">;
     readonly probeRuns: readonly AgentReadinessRunRecord[];
     readonly verifiedRuns: readonly AgentReadinessRunRecord[];
 }): AgentReadinessProfilePath;

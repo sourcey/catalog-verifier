@@ -1,8 +1,7 @@
 import { z } from "zod";
 /**
  * Sourcey's job library: the canonical job per service category, each with the
- * success assertions a run must satisfy and the class of safe invalid request
- * that must fail typed. A profile binds one service to one library job; a
+ * success assertions a run must satisfy. A profile binds one service to one library job; a
  * binding maps each assertion to concrete checks, never the other way round,
  * so a service cannot choose an easier job than its category's.
  */
@@ -57,9 +56,6 @@ declare const agentReadinessJobSchema: z.ZodObject<{
             observation: z.ZodString;
         }, z.core.$strict>;
     }, z.core.$strict>>;
-    error_probe: z.ZodObject<{
-        statement: z.ZodString;
-    }, z.core.$strict>;
     effect: z.ZodEnum<{
         billable: "billable";
         consequential: "consequential";
@@ -124,9 +120,6 @@ export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
                 observation: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>>;
-        error_probe: z.ZodObject<{
-            statement: z.ZodString;
-        }, z.core.$strict>;
         effect: z.ZodEnum<{
             billable: "billable";
             consequential: "consequential";
@@ -191,9 +184,6 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
                 observation: z.ZodString;
             }, z.core.$strict>;
         }, z.core.$strict>>;
-        error_probe: z.ZodObject<{
-            statement: z.ZodString;
-        }, z.core.$strict>;
         effect: z.ZodEnum<{
             billable: "billable";
             consequential: "consequential";

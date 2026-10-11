@@ -1,13 +1,11 @@
 import { EXCHANGE_METHODS, FORM_MEDIA_TYPE, HEADER_NAME_PATTERN } from "provenry/exchange/records";
-import { canonicalJson } from "provenry/primitives";
 import { z } from "zod";
 import { agentReadinessScopeKeySchema } from "./shared.js";
 /**
  * How one interface performs one library job, for a verified run: the exact
- * calls, locations of observations consumed by Sourcey's assertions, the safe
- * invalid request that must fail typed, and how authority, payment and
- * credential upkeep work. A binding says where and how; the job library says
- * what success is. Sourcey runs a binding only where it needs no account; any
+ * calls, locations of observations consumed by Sourcey's assertions, and how
+ * authority and payment work. A run is proof, not the grade (north star §5.6).
+ * A binding says where and how; the job library says what success is. Sourcey runs a binding only where it needs no account; any
  * other is run by its account holder with their own credentials, which Sourcey
  * never holds. Origins are literal, so a binding can never send a credential
  * anywhere its declared endpoints do not name.
@@ -280,58 +278,6 @@ const agentReadinessPaymentSchema = z.discriminatedUnion("kind", [
     /** The agent pays per call inside the exchange. */
     z.object({ kind: z.literal("per_call"), protocol: z.enum(["x402", "mpp"]) }).strict(),
 ]);
-const agentReadinessSustainSchema = z
-    .object({
-    rotation: z.discriminatedUnion("kind", [
-        z.object({ kind: z.literal("not_applicable") }).strict(),
-        /** A refresh exchange issues the next credential. */
-        z.object({ kind: z.literal("refresh"), ...issuingCall }).strict(),
-        /** The service's API mints a replacement credential. */
-        z.object({ kind: z.literal("mint"), ...issuingCall }).strict(),
-        /** Only a person can rotate it; no run witnesses that, so Sustain stays not assessed. */
-        z.object({ kind: z.literal("manual") }).strict(),
-    ]),
-    revocation: z.discriminatedUnion("kind", [
-        z.object({ kind: z.literal("not_applicable") }).strict(),
-        z.object({ kind: z.literal("call"), call: agentReadinessHttpCallSchema }).strict(),
-        /** Only a person can revoke it; Sustain stays not assessed. */
-        z.object({ kind: z.literal("manual") }).strict(),
-    ]),
-    /** Read-only effect witnesses; without them a 2xx establishes no upkeep. */
-    verification: z
-        .object({
-        probe: agentReadinessHttpCallSchema.safeExtend({
-            method: z.literal("GET"),
-            body: z.null(),
-            credentials: z.array(nameSchema).min(1).max(4),
-        }),
-        control: agentReadinessHttpCallSchema.safeExtend({
-            method: z.literal("GET"),
-            body: z.null(),
-            credentials: z.array(nameSchema).min(1).max(4),
-        }),
-    })
-        .strict()
-        .optional(),
-})
-    .strict();
-const agentReadinessErrorProbeSchema = z
-    .object({
-    call: agentReadinessCallSchema,
-    expect: z.discriminatedUnion("kind", [
-        /** A 4xx whose JSON body carries a machine-readable error at `error_pointer`. */
-        z
-            .object({
-            kind: z.literal("http_error"),
-            status_class: z.literal("4xx"),
-            error_pointer: pointerSchema,
-        })
-            .strict(),
-        /** A JSON-RPC error, or a tool result marked `isError`. */
-        z.object({ kind: z.literal("mcp_error") }).strict(),
-    ]),
-})
-    .strict();
 export const agentReadinessJobBindingSchema = z
     .object({
     binding_id: agentReadinessScopeKeySchema,
@@ -348,10 +294,8 @@ export const agentReadinessJobBindingSchema = z
         .strict())
         .min(1)
         .max(8),
-    error_probe: agentReadinessErrorProbeSchema,
     delegation: agentReadinessDelegationSchema,
     payment: agentReadinessPaymentSchema,
-    sustain: agentReadinessSustainSchema,
     /** What a consequential job's calls created, removed again; may use the job's responses. */
     cleanup: z.array(agentReadinessCallSchema).max(4),
 })
@@ -366,22 +310,11 @@ export function agentReadinessBindingCalls(binding) {
     for (const [index, call] of binding.calls.entries()) {
         calls.push({ call, mayRead: jobIds.slice(0, index) });
     }
-    calls.push({ call: binding.error_probe.call, mayRead: jobIds });
-    const { rotation, revocation } = binding.sustain;
-    if (rotation.kind === "refresh" || rotation.kind === "mint") {
-        calls.push({ call: rotation.call, mayRead: [] });
-    }
-    if (revocation.kind === "call")
-        calls.push({ call: revocation.call, mayRead: [] });
-    if (binding.sustain.verification) {
-        calls.push({ call: binding.sustain.verification.probe, mayRead: jobIds });
-        calls.push({ call: binding.sustain.verification.control, mayRead: jobIds });
-    }
     for (const call of binding.cleanup)
         calls.push({ call, mayRead: jobIds });
     return calls;
 }
-/** Credential roles the binding obtains, from delegation and any minting or rotation. */
+/** Credential roles the binding obtains, from its delegation. */
 function agentReadinessBindingRoles(binding) {
     const { delegation } = binding;
     const roles = delegation.kind === "none"
@@ -391,11 +324,7 @@ function agentReadinessBindingRoles(binding) {
             : delegation.kind === "oauth"
                 ? delegation.keep.map(({ role }) => role)
                 : [delegation.from.role, ...delegation.keep.map(({ role }) => role)];
-    const rotation = binding.sustain.rotation;
-    const rotated = rotation.kind === "refresh" || rotation.kind === "mint"
-        ? rotation.keep.map(({ role }) => role)
-        : [];
-    return [...new Set([...roles, ...rotated])];
+    return [...new Set(roles)];
 }
 function validateBinding(binding, context) {
     const calls = agentReadinessBindingCalls(binding);
@@ -454,53 +383,6 @@ function validateBinding(binding, context) {
             }
         }
     }
-    const probe = binding.error_probe;
-    if ((probe.expect.kind === "mcp_error") !== (probe.call.kind === "mcp")) {
-        context.addIssue({
-            code: "custom",
-            path: ["error_probe"],
-            message: "An MCP probe expects an MCP error; an HTTP probe expects an HTTP error.",
-        });
-    }
-    const credentialed = binding.delegation.kind !== "none";
-    const { rotation, revocation } = binding.sustain;
-    if ((rotation.kind === "not_applicable") === credentialed ||
-        (revocation.kind === "not_applicable") === credentialed) {
-        context.addIssue({
-            code: "custom",
-            path: ["sustain"],
-            message: "Sustain is not applicable exactly when the job needs no credential.",
-        });
-    }
-    const verification = binding.sustain.verification;
-    if (verification) {
-        const { probe, control } = verification;
-        if (rotation.kind !== "refresh" && rotation.kind !== "mint" && revocation.kind !== "call") {
-            context.addIssue({
-                code: "custom",
-                path: ["sustain", "verification"],
-                message: "Upkeep witnesses require an executable maintenance operation.",
-            });
-        }
-        if (probe.endpoint_id !== control.endpoint_id ||
-            probe.url !== control.url ||
-            canonicalJson(probe.headers) !== canonicalJson(control.headers) ||
-            probe.credentials.some((role) => control.credentials.includes(role))) {
-            context.addIssue({
-                code: "custom",
-                path: ["sustain", "verification"],
-                message: "The control reads the same surface with independent authority.",
-            });
-        }
-        if ((rotation.kind === "mint" || rotation.kind === "refresh") &&
-            probe.credentials.some((role) => !rotation.keep.some((kept) => kept.role === role))) {
-            context.addIssue({
-                code: "custom",
-                path: ["sustain", "verification"],
-                message: "The probe uses the authority issued by rotation.",
-            });
-        }
-    }
 }
 /** Every template string a call sends. */
 export function agentReadinessCallTemplates(call) {
@@ -552,14 +434,11 @@ export function validateDeclaredJobBindings(value, context) {
                 issue(`Call '${call.call_id}' leaves the origin of '${call.endpoint_id}'.`);
             }
         }
-        const { delegation, sustain } = binding;
+        const { delegation } = binding;
         const credentialEndpoints = [
             ...(delegation.kind === "entered" ? delegation.credentials : []),
             ...(delegation.kind === "oauth" ? delegation.keep : []),
             ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
-            ...(sustain.rotation.kind === "refresh" || sustain.rotation.kind === "mint"
-                ? sustain.rotation.keep
-                : []),
         ].flatMap(({ endpoint_ids }) => endpoint_ids);
         if (delegation.kind === "oauth") {
             credentialEndpoints.push(delegation.authorization_endpoint_id, delegation.token_endpoint_id);

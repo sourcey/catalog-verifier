@@ -124,9 +124,15 @@ export function evaluateProbePath(input) {
             ...specEvidence,
         ]);
     })();
+    // What the agent makes alone lasts until a person claims it later (the shape's A): the vendor's
+    // claim page this interface lists, once it is there.
+    const claimed = pagesOf(({ page_id, found }) => input.claimPages.includes(page_id) && found);
     const onboard = (() => {
-        if (anonymous)
-            return result("onboard", "not_applicable", null, authority.evidence);
+        if (anonymous) {
+            return claimed.length > 0
+                ? result("onboard", "approval", "setup", [...authority.evidence, ...claimed])
+                : result("onboard", "not_applicable", null, authority.evidence);
+        }
         // The vendor's decision stands before any way in: whatever registration exists, it decides.
         const accessPage = pagesOf(({ page_id, found }) => input.accessGates.includes(page_id) && found);
         if (accessPage.length > 0)
@@ -134,13 +140,17 @@ export function evaluateProbePath(input) {
         // A setting a person on the account turns on once before the agent can use this interface (an
         // organization's MCP write access): a decision made once, whatever way in the agent has.
         const turnedOn = pagesOf(({ page_id, found }) => input.accessSettings.includes(page_id) && found);
-        const agentGetsIn = (evidence) => turnedOn.length > 0
-            ? result("onboard", "approval", "setup", [...evidence, ...turnedOn])
+        const agentGetsIn = (evidence) => turnedOn.length > 0 || claimed.length > 0
+            ? result("onboard", "approval", "setup", [...evidence, ...turnedOn, ...claimed])
             : result("onboard", "machine", null, evidence);
         if (registration === "agent")
             return agentGetsIn(registrationEvidence);
         if (registration === "claimable") {
-            return result("onboard", "approval", "setup", [...registrationEvidence, ...turnedOn]);
+            return result("onboard", "approval", "setup", [
+                ...registrationEvidence,
+                ...turnedOn,
+                ...claimed,
+            ]);
         }
         // The agent's own OAuth client gets it in once the server takes it to consent (the shape's A).
         if (chain?.client && authority.outcome === "approval")
@@ -181,7 +191,11 @@ export function evaluateProbePath(input) {
         // An unanswered read could have held a manifest that names the endpoint.
         if (!run)
             return notAssessed("pay");
-        // A dead or invented page sets nothing: the checkout counts once it is found.
+        // A dead or invented page sets nothing: a page counts once it is found. A balance a person tops
+        // up by hand recurs (the shape's "manual top-ups"); a checkout puts a card on file once.
+        const toppedUp = pagesOf(({ role, found }) => role === "top_up" && found);
+        if (toppedUp.length > 0)
+            return result("pay", "workaround", "recurring", toppedUp);
         const checkout = pagesOf(({ role, found }) => role === "checkout" && found);
         return checkout.length > 0
             ? result("pay", "workaround", "setup", checkout)
@@ -241,7 +255,13 @@ export function evaluateProbePath(input) {
                 ? result("sustain", "machine", null, metadata)
                 : result("sustain", "workaround", "setup", metadata);
         }
-        return result("sustain", "workaround", "setup", [...authority.evidence, ...specEvidence]);
+        // A key the vendor expires with no API to renew it: a person replaces it each time (the shape's
+        // "keys that expire with no renewal API"), at the page this interface lists, once it is there.
+        const expiring = pagesOf(({ page_id, found }) => input.keyRenewalPages.includes(page_id) && found);
+        const evidence = [...authority.evidence, ...specEvidence];
+        return expiring.length > 0
+            ? result("sustain", "workaround", "recurring", [...evidence, ...expiring])
+            : result("sustain", "workaround", "setup", evidence);
     })();
     return {
         steps: [discover, authority, onboard, pay, confirm, sustain],
@@ -253,167 +273,46 @@ export function evaluateProbePath(input) {
     };
 }
 /**
- * The verified path of one binding: what performing the job with its authority
- * establishes (north star §5.6, precedence). Only the vendor's own runs can
- * lower a letter: a refusal of authority a vendor run proved valid counts when
- * the vendor's latest run holds it and its earlier runs reproduce it (the
- * job's refusal makes the job `unavailable`, Authority's makes that step
- * `gated`, and a 402 is a balance a person tops up: Pay's recurring
- * `workaround`), and so do failed assertions reproduced the same way (the job
- * `unavailable`). Otherwise the latest run that did the job decides while it
- * is fresh; a failing run from anyone else never lowers a letter.
+ * The verified path of one binding: proof, not the grade (north star §5.6). The
+ * latest run that did the job, while it is fresh, makes the job `verified`; a
+ * verified run sets no step and never makes the job `unavailable`, which only
+ * the probes find. The path rests on that run, or on the latest run when none
+ * did the job.
  */
 export function evaluatePath(input) {
     const runs = oldestFirst(input.runs);
     const latestRun = runs.at(-1);
     if (!latestRun)
         throw new Error("A verified path needs at least one run.");
-    const { job, binding } = input;
-    const { reproduction: rule } = input.policy;
+    const { job } = input;
     const succeeded = (run) => run.assertions.length === job.assertions.length &&
         job.assertions.every(({ name }) => run.assertions.some(({ assertion, holds }) => assertion === name && holds));
     const fresh = (run) => Date.parse(input.asOf) - Date.parse(run.finished_at) <= input.policy.fresh_for_days * DAY_MS;
-    const vendorRuns = runs.filter(({ label }) => label === "vendor_run_verified");
-    const holds = (found) => found?.latest === true && reproduced(found.runs, rule);
-    // Runs whose job completed and an assertion did not hold: the API exists but does not do the job.
-    const failedRun = (run) => run.assertions.length > 0 && run.assertions.some(({ holds: held }) => !held);
-    const vendorLatest = vendorRuns.at(-1);
-    const jobRefusals = refusals(vendorRuns, "job", rule.statuses);
-    const payRefusals = refusals(vendorRuns, "job", [402]);
-    const authorityRefusals = refusals(vendorRuns, "delegation", rule.statuses);
-    const failures = vendorRuns.filter(failedRun);
-    const failing = vendorLatest !== undefined && failedRun(vendorLatest);
-    const lowered = holds(jobRefusals) ||
-        holds(payRefusals) ||
-        holds(authorityRefusals) ||
-        (failing && reproduced(failures, rule));
-    // The run that decides: the vendor's, when its runs reproduce a failure; else the latest fresh success.
-    const current = (lowered ? vendorLatest : [...runs].reverse().find((run) => succeeded(run) && fresh(run))) ??
-        vendorLatest ??
-        latestRun;
-    const ok = !lowered && succeeded(current) && fresh(current);
-    const jobEvidence = exchangeEvidence(current, (entry) => entry.purpose === "job");
-    const jobOutcome = (() => {
-        if (ok)
-            return jobResult("verified", jobEvidence);
-        if (holds(jobRefusals))
-            return jobResult("unavailable", jobRefusals.evidence);
-        if (failing && reproduced(failures, rule)) {
-            return jobResult("unavailable", failures.flatMap((run) => exchangeEvidence(run, (entry) => entry.purpose === "job")));
-        }
-        return NOT_ASSESSED_JOB;
-    })();
-    const usedRoles = [...new Set(binding.calls.flatMap(({ credentials }) => credentials))];
-    const authorityStep = (() => {
-        if (binding.delegation.kind === "none") {
-            return ok && usedRoles.length === 0
-                ? result("authority", "not_applicable", null, jobEvidence)
-                : notAssessed("authority");
-        }
-        if (holds(authorityRefusals)) {
-            return result("authority", "gated", null, authorityRefusals.evidence);
-        }
-        // The authority the job actually carried: the handles on its own requests.
-        const carried = new Set(current.exchanges.flatMap((entry) => entry.purpose === "job" && entry.role === "request"
-            ? entry.record.request.credentials.map(({ handle_digest }) => handle_digest)
-            : []));
-        const held = current.credentials.filter(({ handle_digest }) => carried.has(handle_digest));
-        if (usedRoles.length === 0 || held.length === 0 || held.length !== carried.size) {
-            return notAssessed("authority");
-        }
-        const evidence = held.map((source) => ({
-            kind: "credential",
-            run_digest: current.run_digest,
-            handle_digest: source.handle_digest,
-        }));
-        const issuedBy = new Set(held.flatMap(({ source }) => (source.kind === "issued" ? [source.exchange_digest] : [])));
-        evidence.push(...exchangeEvidence(current, (entry) => issuedBy.has(entry.record.exchange_digest)));
-        if (held.some(({ source }) => source.kind === "entered")) {
-            return result("authority", "workaround", "setup", evidence);
-        }
-        return binding.delegation.kind === "oauth"
-            ? result("authority", "approval", "setup", evidence)
-            : result("authority", "machine", null, evidence);
-    })();
-    const payStep = (() => {
-        if (holds(payRefusals)) {
-            return result("pay", "workaround", "recurring", payRefusals.evidence);
-        }
-        if (!ok)
-            return notAssessed("pay");
-        switch (binding.payment.kind) {
-            case "none":
-                return result("pay", "not_applicable", null, jobEvidence);
-            case "per_call":
-                return result("pay", "machine", null, jobEvidence);
-            case "prepaid_balance":
-                // A balance a person set up: the run leaves Pay to the probes.
-                return notAssessed("pay");
-        }
-    })();
-    const confirmStep = (() => {
-        if (!ok || current.error_probe === null)
-            return notAssessed("confirm");
-        const evidence = [
-            ...jobEvidence,
-            ...exchangeEvidence(current, (entry) => entry.purpose === "error_probe"),
-        ];
-        return current.error_probe.typed
-            ? result("confirm", "machine", null, evidence)
-            : result("confirm", "workaround", "recurring", evidence);
-    })();
-    const sustainStep = (() => {
-        if (binding.delegation.kind === "none") {
-            return ok ? result("sustain", "not_applicable", null, jobEvidence) : notAssessed("sustain");
-        }
-        const { rotation, revocation } = binding.sustain;
-        const witnessed = upkeepWitnesses(current);
-        // Only an exchange witnesses upkeep: a manual or unwitnessed part leaves Sustain to the probes.
-        const machine = (rotation.kind === "refresh" || rotation.kind === "mint") &&
-            witnessed.rotation &&
-            revocation.kind === "call" &&
-            witnessed.revocation;
-        return machine
-            ? result("sustain", "machine", null, exchangeEvidence(current, (entry) => entry.purpose.startsWith("sustain_")))
-            : notAssessed("sustain");
-    })();
-    const pending = (found) => found?.latest === true && !reproduced(found.runs, rule);
+    const proof = [...runs].reverse().find((run) => succeeded(run) && fresh(run));
     return {
-        // Discover and Onboard are the probes' alone: a verified run reads no descriptor and registers nothing.
-        steps: [
-            notAssessed("discover"),
-            authorityStep,
-            notAssessed("onboard"),
-            payStep,
-            confirmStep,
-            sustainStep,
-        ],
-        job: jobOutcome,
-        reproducible: pending(jobRefusals) ||
-            pending(payRefusals) ||
-            pending(authorityRefusals) ||
-            (failing && !reproduced(failures, rule)),
-        // A verified run reads no descriptor.
+        steps: AGENT_READINESS_STEPS.map(notAssessed),
+        job: proof
+            ? jobResult("verified", exchangeEvidence(proof, (entry) => entry.purpose === "job"))
+            : NOT_ASSESSED_JOB,
+        reproducible: false,
         discoveryRun: null,
-        verifiedRun: current,
+        verifiedRun: proof ?? latestRun,
         standingRuns: [],
     };
 }
 /**
- * Verified outcomes replace probed ones for the steps the verified run
- * assessed, and for the job (north star §5.6, precedence); a step it left
- * unassessed keeps its probed outcome.
+ * A binding's path: every step the probes', and the job verified where its run
+ * proved a job the probes found reachable (north star §5.6). A verified job
+ * grades as a reachable one does, so the run never changes the letter: it
+ * cannot lift a probed `unavailable` or settle a job the probes left open.
  */
 export function combinePaths(probed, verified) {
     return {
-        steps: probed.steps.map((step, index) => {
-            const replacement = verified.steps[index];
-            if (replacement?.step !== step.step)
-                throw new Error("Paths list steps in path order.");
-            return replacement.outcome === "not_assessed" ? step : replacement;
-        }),
-        job: verified.job.outcome === "not_assessed" ? probed.job : verified.job,
-        reproducible: probed.reproducible || verified.reproducible,
+        steps: probed.steps,
+        job: verified.job.outcome === "verified" && probed.job.outcome === "reachable"
+            ? verified.job
+            : probed.job,
+        reproducible: probed.reproducible,
         discoveryRun: probed.discoveryRun,
         verifiedRun: verified.verifiedRun,
         standingRuns: probed.standingRuns,
@@ -463,106 +362,6 @@ function ownDomain(url, domains) {
     const host = new URL(url).hostname.toLowerCase();
     return domains.some((domain) => host === domain || host.endsWith(`.${domain}`));
 }
-/** Accepted maintenance requests are not effects: correlate their readbacks. */
-function upkeepWitnesses(run) {
-    const at = (purpose) => run.exchanges.findIndex((entry) => entry.purpose === purpose && entry.role === "request");
-    const baselineAt = at("sustain_baseline");
-    const rotationAt = at("sustain_rotation");
-    const rotatedAt = at("sustain_rotated_probe");
-    const revokeAt = at("sustain_revocation");
-    const refusedAt = at("sustain_revoked_probe");
-    const controlAt = at("sustain_control_probe");
-    const baseline = run.exchanges[baselineAt];
-    const rotation = run.exchanges[rotationAt];
-    const rotated = run.exchanges[rotatedAt];
-    const revoke = run.exchanges[revokeAt];
-    const refused = run.exchanges[refusedAt];
-    const control = run.exchanges[controlAt];
-    const handles = (entry) => entry?.record.request.credentials.map(({ handle_digest }) => handle_digest) ?? [];
-    const sameHandles = (a, b) => {
-        const left = handles(a);
-        const right = handles(b);
-        return (left.length > 0 &&
-            left.length === right.length &&
-            left.every((handle) => right.includes(handle)));
-    };
-    const sameProbe = (a, b) => a !== undefined &&
-        b !== undefined &&
-        a.record.request.method === "GET" &&
-        b.record.request.method === "GET" &&
-        a.record.request.url === b.record.request.url &&
-        a.record.request.body === null &&
-        b.record.request.body === null;
-    const issued = handles(rotated).length > 0 &&
-        handles(rotated).every((handle) => run.credentials.some((credential) => credential.handle_digest === handle &&
-            credential.source.kind === "issued" &&
-            credential.source.exchange_digest === rotation?.record.exchange_digest));
-    const renewed = baselineAt >= 0 &&
-        baselineAt < rotationAt &&
-        rotationAt < rotatedAt &&
-        succeeded(baseline) &&
-        succeeded(rotation) &&
-        succeeded(rotated) &&
-        sameProbe(baseline, rotated) &&
-        issued &&
-        handles(rotated).every((handle) => !handles(baseline).includes(handle));
-    const activeAt = rotatedAt >= 0 ? rotatedAt : baselineAt;
-    const active = run.exchanges[activeAt];
-    const revoked = activeAt >= 0 &&
-        activeAt < revokeAt &&
-        revokeAt < refusedAt &&
-        refusedAt < controlAt &&
-        succeeded(active) &&
-        succeeded(revoke) &&
-        succeeded(control) &&
-        refused?.record.outcome === "responded" &&
-        [401, 403].includes(refused.record.response.status) &&
-        sameHandles(active, refused) &&
-        sameProbe(active, refused) &&
-        sameProbe(refused, control) &&
-        handles(control).length > 0 &&
-        handles(control).every((handle) => !handles(refused).includes(handle));
-    return { rotation: renewed, revocation: revoked };
-}
-/**
- * Each run's refusal at `purpose` with one of `statuses`, holding authority
- * the same run proved valid: at least one credential, each issued in the run
- * by an exchange that succeeded or carried by another exchange that succeeded.
- * A request with no credential proves nothing about authority, so it is never
- * a refusal (missing authority is residue). Null when no run refused.
- */
-function refusals(runs, purpose, statuses) {
-    const found = runs.flatMap((run) => {
-        const refused = run.exchanges.find((entry) => entry.purpose === purpose &&
-            entry.record.outcome === "responded" &&
-            statuses.includes(entry.record.response.status));
-        if (refused?.record.outcome !== "responded")
-            return [];
-        const credentials = refused.record.request.credentials.map(({ handle_digest }) => handle_digest);
-        const proved = (handle) => run.credentials.some(({ handle_digest, source }) => handle_digest === handle &&
-            source.kind === "issued" &&
-            run.exchanges.some((entry) => entry.record.exchange_digest === source.exchange_digest && succeeded(entry))) ||
-            run.exchanges.some((entry) => entry !== refused &&
-                succeeded(entry) &&
-                entry.record.request.credentials.some(({ handle_digest }) => handle_digest === handle));
-        return credentials.length > 0 && credentials.every(proved)
-            ? [{ run, entry: refused, status: refused.record.response.status }]
-            : [];
-    });
-    const last = found.at(-1);
-    if (!last)
-        return null;
-    const same = found.filter(({ status }) => status === last.status);
-    return {
-        runs: same.map(({ run }) => run),
-        evidence: same.slice(-MAXIMUM_EVIDENCE).map(({ run, entry }) => ({
-            kind: "exchange",
-            run_digest: run.run_digest,
-            exchange_digest: entry.record.exchange_digest,
-        })),
-        latest: last.run === runs.at(-1),
-    };
-}
 /**
  * The latest of `found` that reproduce a finding, the fewest that do, or none:
  * a revision cites only these (north star §5.4).
@@ -587,11 +386,6 @@ function reproduced(found, rule) {
         found.length >= rule.attempts &&
         Date.parse(last.finished_at) - Date.parse(first.finished_at) >=
             rule.minimum_interval_seconds * 1_000);
-}
-function succeeded(entry) {
-    return (entry?.record.outcome === "responded" &&
-        entry.record.response.status >= 200 &&
-        entry.record.response.status <= 299);
 }
 function oldestFirst(runs) {
     return [...runs].sort((left, right) => compareInstants(left.finished_at, right.finished_at) ||

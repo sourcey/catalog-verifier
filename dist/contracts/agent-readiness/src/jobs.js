@@ -3,8 +3,7 @@ import { z } from "zod";
 import { agentReadinessDigestSchema, agentReadinessScopeKeySchema } from "./shared.js";
 /**
  * Sourcey's job library: the canonical job per service category, each with the
- * success assertions a run must satisfy and the class of safe invalid request
- * that must fail typed. A profile binds one service to one library job; a
+ * success assertions a run must satisfy. A profile binds one service to one library job; a
  * binding maps each assertion to concrete checks, never the other way round,
  * so a service cannot choose an easier job than its category's.
  */
@@ -77,7 +76,6 @@ const agentReadinessJobSchema = z
     })
         .strict())
         .max(16),
-    error_probe: z.object({ statement: statementSchema }).strict(),
     /** A consequential job changes something and must clean it up; a billable one costs money. */
     effect: z.enum(["read", "consequential", "billable"]),
     cleanup: z.enum(["none", "required"]),

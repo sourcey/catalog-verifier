@@ -45,7 +45,7 @@ const agentReadinessRevisionFields = {
      * job (the job `unavailable`, F).
      */
     interface_id: agentReadinessScopeKeySchema.nullable(),
-    /** The binding whose verified runs the steps also rest on; null when they rest on probes alone. */
+    /** The binding whose verified runs prove the job; null when no run of one is cited. The steps rest on probes alone. */
     binding_id: agentReadinessScopeKeySchema.nullable(),
     binding_digest: agentReadinessDigestSchema.nullable(),
     /** Oldest first: probe runs and the binding's verified runs. */
