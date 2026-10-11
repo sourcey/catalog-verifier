@@ -18,7 +18,7 @@ const identityKinds = new Set([
     "agent-readiness-profile.reparented",
     "agent-readiness-profile.retired",
 ]);
-export function projectIdentities(graph, prior) {
+function projectIdentities(graph, prior) {
     const subjectIdentities = projectSubjectIdentities({
         ...(prior
             ? {
