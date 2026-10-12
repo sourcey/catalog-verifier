@@ -6,11 +6,12 @@
 /**
  * Facts that name an interface an agent can call; others (metadata,
  * registration) do not. An API catalog names an API through the OpenAPI it
- * links to, whose servers are `openapi_server` facts; its anchor alone does not.
+ * links to, whose servers are `openapi_server` facts; its anchor alone does
+ * not. An ARD entry names its artifact, not the service (ARD §5.3.2): the
+ * card or OpenAPI document it carries or links to names the endpoint.
  */
 export const AGENT_READINESS_NAMING_FACTS = new Set([
     "mcp_endpoint",
-    "ard_entry",
     "openapi_server",
     "oauth_protected_resource",
     "documentation_route",

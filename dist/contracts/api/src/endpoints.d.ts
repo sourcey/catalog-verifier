@@ -10750,6 +10750,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         }, z.core.$strict>>;
                         body: z.ZodNullable<z.ZodObject<{
                             media_type: z.ZodString;
+                            credential_field: z.ZodOptional<z.ZodString>;
                         }, z.core.$strict>>;
                         spec: z.ZodNullable<z.ZodObject<{
                             url: z.ZodURL;
@@ -17876,6 +17877,7 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                         }, z.core.$strict>>;
                         body: z.ZodNullable<z.ZodObject<{
                             media_type: z.ZodString;
+                            credential_field: z.ZodOptional<z.ZodString>;
                         }, z.core.$strict>>;
                         spec: z.ZodNullable<z.ZodObject<{
                             url: z.ZodURL;
@@ -18990,6 +18992,7 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                     }, z.core.$strict>>;
                     body: z.ZodNullable<z.ZodObject<{
                         media_type: z.ZodString;
+                        credential_field: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>>;
                     spec: z.ZodNullable<z.ZodObject<{
                         url: z.ZodURL;
@@ -32634,6 +32637,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         }, z.core.$strict>>;
                         body: z.ZodNullable<z.ZodObject<{
                             media_type: z.ZodString;
+                            credential_field: z.ZodOptional<z.ZodString>;
                         }, z.core.$strict>>;
                         spec: z.ZodNullable<z.ZodObject<{
                             url: z.ZodURL;
@@ -39758,6 +39762,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         }, z.core.$strict>>;
                         body: z.ZodNullable<z.ZodObject<{
                             media_type: z.ZodString;
+                            credential_field: z.ZodOptional<z.ZodString>;
                         }, z.core.$strict>>;
                         spec: z.ZodNullable<z.ZodObject<{
                             url: z.ZodURL;
@@ -40870,6 +40875,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>>;
                     body: z.ZodNullable<z.ZodObject<{
                         media_type: z.ZodString;
+                        credential_field: z.ZodOptional<z.ZodString>;
                     }, z.core.$strict>>;
                     spec: z.ZodNullable<z.ZodObject<{
                         url: z.ZodURL;

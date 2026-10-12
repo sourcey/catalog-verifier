@@ -59,12 +59,19 @@ export function evaluateProbePath(input) {
     const declaration = () => [{ kind: "declaration", run_digest: current.run_digest }];
     const chain = probe.authority;
     const refusal = answer === "offer" || answer === "authority" || answer === "error";
-    // No account is needed: the request itself answered, or the spec requires no security.
+    // No account is needed: the request itself answered, or the spec requires no security at
+    // all. An empty requirement beside a credential's makes security optional: some deployments
+    // let anonymous calls through (Jira, where an admin grants the public a permission), which
+    // only an answer shows. A key the listing says travels in the body (Amplitude's), which
+    // OpenAPI cannot state as a scheme, leaves the spec's empty security saying nothing.
+    const keyInBody = operation.kind === "http" && operation.body?.credential_field !== undefined;
     const anonymous = answer === "success" ||
         answer === "offer" ||
         ((answer === null || answer === "error" || answer === "page") &&
+            !keyInBody &&
             covered !== null &&
-            covered.security.includes("none"));
+            covered.security.length > 0 &&
+            covered.security.every((kind) => kind === "none"));
     // An agent registration path: the chain's auth.md registration, or a sign-up API the listing names.
     // A sign-up API answers the probe's GET as an API that asks nothing of a person: a success, an
     // offer, or a typed 405 (it signs up by POST). A CAPTCHA or a credential demanded is for people.
@@ -116,12 +123,13 @@ export function evaluateProbePath(input) {
         if (chain?.client && authorization && consentReached(authorization.record)) {
             return result("authority", "approval", "setup", [...requested, ...chainEvidence]);
         }
-        // A key or token scheme, an OAuth flow the agent's own client cannot start,
-        // or nothing machine-readable: a person hands over a credential.
+        // A key or token scheme, an OAuth flow the agent's own client cannot start, a key the
+        // listing says travels in the body, or nothing machine-readable: a person hands over a credential.
         return result("authority", "workaround", "setup", [
             ...requested,
             ...chainEvidence,
             ...specEvidence,
+            ...(keyInBody ? declaration() : []),
         ]);
     })();
     // What the agent makes alone lasts until a person claims it later (the shape's A): the vendor's

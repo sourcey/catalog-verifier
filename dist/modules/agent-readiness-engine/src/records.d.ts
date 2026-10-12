@@ -1,5 +1,5 @@
 import type { ExchangeRecord } from "provenry/exchange/records";
-import type { AgentReadinessRunRecord } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessRunRecord } from "../../../contracts/agent-readiness/src/index.js";
 /**
  * What a sealed exchange record and a run record say without any response
  * body: whether an exchange was answered, a header it kept, and whether a run
@@ -13,8 +13,23 @@ import type { AgentReadinessRunRecord } from "../../../contracts/agent-readiness
  * address) has nothing to retry.
  */
 export declare const RESIDUE_FAILURES: ReadonlySet<string>;
-/** A residue transport failure, 429 or 5xx: residue to retry, never the service's answer. */
+/**
+ * A residue transport failure, 429 or 5xx, or a gRPC call's like: residue to
+ * retry, never the service's answer. A gRPC call's own status decides it,
+ * whatever its HTTP status; one whose status the exchange could not read is
+ * residue too, never a guess.
+ */
 export declare function unansweredRecord(record: ExchangeRecord): boolean;
+/**
+ * A gRPC call's status (north star §5.4): an answer under a gRPC media type to
+ * a request that carried a gRPC message, read from the `grpc-status` it sent
+ * before any message, as a refusal does, whatever its HTTP status (a proxy may
+ * refuse with a 403). Null for any other exchange, an answer with no status
+ * there, or a `grpc-status` that is not a status. Only a gRPC call's answer is
+ * read so: a gRPC server answers other requests (a metadata read) under its
+ * media type too.
+ */
+export declare function grpcStatus(record: ExchangeRecord): number | null;
 /**
  * Whether a probe run left one job operation unanswered: the request itself,
  * the malformed request after a success, the spec it names, any read of its
