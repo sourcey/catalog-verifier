@@ -91,12 +91,42 @@ const strictCompanyFilePolicyCoreSchema = z
         .strict(),
 })
     .strict();
+/**
+ * The company-file policy, and duplicates: a correction may also merge records of its company that
+ * duplicate one another. Each removed record names its survivor by its slug, which the survivor
+ * keeps as an alias, and a person confirms the merge before it is admitted. Nothing else removes.
+ */
+const strictCompanyFileMergePolicyCoreSchema = z
+    .object({
+    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha4"),
+    ...policyHeaderShape,
+    scope: z
+        .object({
+        entity_files: z.literal(1),
+        new_company: z.object({ allowed_changes: newCompanyChangesSchema }).strict(),
+        correction: z
+            .object({
+            removed_subjects: z.literal("merged_on_person_review"),
+            offer_evidence_basis: z.literal("observed"),
+        })
+            .strict(),
+        unattended_asset_kind: z.literal("sourcey_monogram"),
+    })
+        .strict(),
+})
+    .strict();
 /** Every retained policy keeps its own contract, so a report bound to its digest still verifies. */
-export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [strictOfferPolicyCoreSchema, strictNewEntityPolicyCoreSchema, strictCompanyFilePolicyCoreSchema]);
+export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [
+    strictOfferPolicyCoreSchema,
+    strictNewEntityPolicyCoreSchema,
+    strictCompanyFilePolicyCoreSchema,
+    strictCompanyFileMergePolicyCoreSchema,
+]);
 export const startupCreditsMachineAdmissionPolicySchema = z.discriminatedUnion("policy_contract", [
     strictOfferPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
     strictNewEntityPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
     strictCompanyFilePolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
+    strictCompanyFileMergePolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
 ]);
 const changedSubjectSchema = z.discriminatedUnion("kind", [
     z
@@ -182,6 +212,27 @@ const sourceEvaluationSchema = z
         });
     }
 });
+/** A merge a person confirmed on review: each retired record becomes an alias of its survivor. */
+const identityTransitionSchema = z.discriminatedUnion("kind", [
+    z
+        .object({
+        kind: z.literal("offer.merged"),
+        entity_id: z.string().regex(ENTITY_ID_PATTERN),
+        surviving_offer_id: z.string().regex(OFFER_ID_PATTERN),
+        retired_offer_ids: z.array(z.string().regex(OFFER_ID_PATTERN)).min(1).max(8),
+        decision_digest: digestSchema,
+    })
+        .strict(),
+    z
+        .object({
+        kind: z.literal("program.merged"),
+        entity_id: z.string().regex(ENTITY_ID_PATTERN),
+        surviving_program_id: z.string().regex(PROGRAM_ID_PATTERN),
+        retired_program_ids: z.array(z.string().regex(PROGRAM_ID_PATTERN)).min(1).max(8),
+        decision_digest: digestSchema,
+    })
+        .strict(),
+]);
 const conflictSchema = z
     .object({
     kind: z.enum([
@@ -233,15 +284,18 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
         .min(1)
         .max(32),
     changed_subjects: z.array(changedSubjectSchema).min(1).max(8),
+    // A merge a person confirmed changes no revision: its admission judges no record and reads no
+    // page. The evaluator still closes these on exactly the subjects the change keeps.
     candidate_revisions: z
         .array(z.union([entityRevisionSchema, programRevisionSchema, offerRevisionSchema]))
-        .min(1)
         .max(8),
-    claim_evaluations: z.array(claimEvaluationSchema).min(1).max(8),
-    sources: z.array(sourceEvaluationSchema).min(1).max(32),
+    claim_evaluations: z.array(claimEvaluationSchema).max(8),
+    sources: z.array(sourceEvaluationSchema).max(32),
     conflicts: z.array(conflictSchema).max(64),
     /** A new company's standing binding, from Sourcey's company gate; absent in earlier inputs. */
     company_admission: companyAdmissionBindingSchema.optional(),
+    /** The merges a person confirmed for a correction's removed records; absent when none. */
+    identity_transitions: z.array(identityTransitionSchema).min(1).max(8).optional(),
     /** A new company's logo candidate; null for a correction, which keeps the company's logo. */
     asset: z
         .object({
@@ -309,6 +363,7 @@ const startupCreditsAdmissionCandidateFieldsSchema = startupCreditsMachineAdmiss
     sources: true,
     conflicts: true,
     company_admission: true,
+    identity_transitions: true,
     asset: true,
 })
     .strict();
@@ -334,6 +389,7 @@ export const startupCreditsMachineAdmissionReasonSchema = z.enum([
     "scope_requires_one_new_offer",
     "scope_requires_one_company_file",
     "scope_removal_requires_identity_transition",
+    "identity_merge_requires_person",
     "scope_unsupported_change_shape",
     "declared_offer_not_machine_admissible",
     "entity_summary_required",
@@ -364,8 +420,8 @@ export const startupCreditsMachineAdmissionResultCoreSchema = z
     outcome: startupCreditsMachineAdmissionOutcomeSchema,
     reason_codes: z.array(startupCreditsMachineAdmissionReasonSchema),
     retryable: z.boolean(),
-    claim_plan_digests: z.array(digestSchema).min(1).max(3),
-    claim_result_digests: z.array(digestSchema).min(1).max(4096),
+    claim_plan_digests: z.array(digestSchema).max(3),
+    claim_result_digests: z.array(digestSchema).max(4096),
 })
     .strict();
 export const startupCreditsMachineAdmissionResultSchema = startupCreditsMachineAdmissionResultCoreSchema.extend({ result_digest: digestSchema }).strict();
@@ -376,8 +432,8 @@ export const startupCreditsAdmissionCandidateResultCoreSchema = z
     outcome: startupCreditsMachineAdmissionOutcomeSchema,
     reason_codes: z.array(startupCreditsMachineAdmissionReasonSchema),
     retryable: z.boolean(),
-    claim_plan_digests: z.array(digestSchema).min(1).max(3),
-    claim_result_digests: z.array(digestSchema).min(1).max(4096),
+    claim_plan_digests: z.array(digestSchema).max(3),
+    claim_result_digests: z.array(digestSchema).max(4096),
 })
     .strict();
 export const startupCreditsAdmissionCandidateResultSchema = startupCreditsAdmissionCandidateResultCoreSchema.extend({ result_digest: digestSchema }).strict();
