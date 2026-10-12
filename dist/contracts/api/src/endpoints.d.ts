@@ -11269,12 +11269,13 @@ export declare const publicCatalogV1Endpoints: readonly [{
     readonly operationId: "listEvents";
     readonly method: "GET";
     readonly path: "/v1/events";
-    readonly summary: "Find catalog events by exact operation, company or revision identity.";
+    readonly summary: "Find catalog events by exact operation, company, company lineage or revision identity.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
             operation_id: z.ZodOptional<z.ZodString>;
             entity_id: z.ZodOptional<z.ZodString>;
+            identity_closure_entity_id: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodOptional<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;
@@ -33152,12 +33153,13 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
     readonly operationId: "listEvents";
     readonly method: "GET";
     readonly path: "/v1/events";
-    readonly summary: "Find catalog events by exact operation, company or revision identity.";
+    readonly summary: "Find catalog events by exact operation, company, company lineage or revision identity.";
     readonly tags: readonly ["Catalog"];
     readonly request: {
         readonly query: z.ZodObject<{
             operation_id: z.ZodOptional<z.ZodString>;
             entity_id: z.ZodOptional<z.ZodString>;
+            identity_closure_entity_id: z.ZodOptional<z.ZodString>;
             revision_digest: z.ZodOptional<z.ZodString>;
             cursor: z.ZodOptional<z.ZodString>;
             limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;

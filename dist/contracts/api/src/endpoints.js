@@ -261,7 +261,7 @@ export const publicCatalogV1Endpoints = [
         operationId: "listEvents",
         method: "GET",
         path: "/v1/events",
-        summary: "Find catalog events by exact operation, company or revision identity.",
+        summary: "Find catalog events by exact operation, company, company lineage or revision identity.",
         tags: ["Catalog"],
         request: { query: eventListQuery },
         responses: { 200: eventListResponseSchema, 400: catalogApiErrorResponseSchema },
