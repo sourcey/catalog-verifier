@@ -34,6 +34,24 @@ const strictOfferPolicyCoreSchema = z
         .strict(),
 })
     .strict();
+/** What a new company may bring: itself alone, or exactly one observed Offer; never a Program alone. */
+const newCompanyChangesSchema = z.tuple([
+    z
+        .object({
+        kind: z.literal("entity_only"),
+        added_programs: z.literal(0),
+        added_offers: z.literal(0),
+    })
+        .strict(),
+    z
+        .object({
+        kind: z.literal("observed_offer"),
+        maximum_added_programs: z.literal(1),
+        added_offers: z.literal(1),
+        offer_evidence_basis: z.literal("observed"),
+    })
+        .strict(),
+]);
 /** One new company, alone or with exactly one observed Offer; never a Program alone. */
 const strictNewEntityPolicyCoreSchema = z
     .object({
@@ -43,33 +61,42 @@ const strictNewEntityPolicyCoreSchema = z
         .object({
         added_entity_files: z.literal(1),
         added_entities: z.literal(1),
-        allowed_changes: z.tuple([
-            z
-                .object({
-                kind: z.literal("entity_only"),
-                added_programs: z.literal(0),
-                added_offers: z.literal(0),
-            })
-                .strict(),
-            z
-                .object({
-                kind: z.literal("observed_offer"),
-                maximum_added_programs: z.literal(1),
-                added_offers: z.literal(1),
-                offer_evidence_basis: z.literal("observed"),
-            })
-                .strict(),
-        ]),
+        allowed_changes: newCompanyChangesSchema,
+        unattended_asset_kind: z.literal("sourcey_monogram"),
+    })
+        .strict(),
+})
+    .strict();
+/**
+ * One company file: a new company, as the second policy admits it, or a correction to a company
+ * Sourcey lists. A correction changes, adds or corrects that company's own records, every one
+ * observed, and removes none: a removal is an identity transition, never a correction.
+ */
+const strictCompanyFilePolicyCoreSchema = z
+    .object({
+    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha3"),
+    ...policyHeaderShape,
+    scope: z
+        .object({
+        entity_files: z.literal(1),
+        new_company: z.object({ allowed_changes: newCompanyChangesSchema }).strict(),
+        correction: z
+            .object({
+            removed_subjects: z.literal(0),
+            offer_evidence_basis: z.literal("observed"),
+        })
+            .strict(),
         unattended_asset_kind: z.literal("sourcey_monogram"),
     })
         .strict(),
 })
     .strict();
 /** Every retained policy keeps its own contract, so a report bound to its digest still verifies. */
-export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [strictOfferPolicyCoreSchema, strictNewEntityPolicyCoreSchema]);
+export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [strictOfferPolicyCoreSchema, strictNewEntityPolicyCoreSchema, strictCompanyFilePolicyCoreSchema]);
 export const startupCreditsMachineAdmissionPolicySchema = z.discriminatedUnion("policy_contract", [
     strictOfferPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
     strictNewEntityPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
+    strictCompanyFilePolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
 ]);
 const changedSubjectSchema = z.discriminatedUnion("kind", [
     z
@@ -215,6 +242,7 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
     conflicts: z.array(conflictSchema).max(64),
     /** A new company's standing binding, from Sourcey's company gate; absent in earlier inputs. */
     company_admission: companyAdmissionBindingSchema.optional(),
+    /** A new company's logo candidate; null for a correction, which keeps the company's logo. */
     asset: z
         .object({
         kind: z.enum(["sourcey_monogram", "vendor_asset"]),
@@ -262,7 +290,8 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
                 message: "An unresolved or unsupported asset cannot claim candidate authority.",
             });
         }
-    }),
+    })
+        .nullable(),
 })
     .strict();
 export const startupCreditsMachineAdmissionInputSchema = startupCreditsMachineAdmissionInputCoreSchema.extend({ input_digest: digestSchema }).strict();
@@ -303,6 +332,8 @@ export const startupCreditsMachineAdmissionReasonSchema = z.enum([
     "scope_requires_one_new_entity",
     "scope_requires_zero_or_one_new_program",
     "scope_requires_one_new_offer",
+    "scope_requires_one_company_file",
+    "scope_removal_requires_identity_transition",
     "scope_unsupported_change_shape",
     "declared_offer_not_machine_admissible",
     "entity_summary_required",

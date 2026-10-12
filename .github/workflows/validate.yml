@@ -224,8 +224,13 @@ jobs:
               --input "$body" > "$RUNNER_TEMP/sourcey-validation-written.json"
           fi
           check_id="$(jq -er '.id' "$RUNNER_TEMP/sourcey-validation-written.json")"
-          gh api "repos/${GITHUB_REPOSITORY}/check-runs/${check_id}" \
-            > "$RUNNER_TEMP/sourcey-validation-readback.json"
+          # A check run GitHub has just written can read back 404 for a moment.
+          for attempt in 1 2 3 4 5; do
+            gh api "repos/${GITHUB_REPOSITORY}/check-runs/${check_id}" \
+              > "$RUNNER_TEMP/sourcey-validation-readback.json" && break
+            [[ "$attempt" -lt 5 ]] || exit 1
+            sleep "$((attempt * 2))"
+          done
           jq -e \
             --arg head_sha "$HEAD_REVISION" \
             --arg conclusion "$VALIDATION_CONCLUSION" \
