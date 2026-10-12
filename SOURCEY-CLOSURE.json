@@ -1684,19 +1684,19 @@
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.d.ts",
-      "sha256": "sha256:2c61d36fd1bdc6d6eb379fb097354d43142062404c54e16d7c13a7fa1403b1ea"
+      "sha256": "sha256:fcd6533aba329f406f461d6e6542bad784c83ca815488509700bd726e949ed6b"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.d.ts.map",
-      "sha256": "sha256:ef644e0a44ab5b0b53c00414d9921fbb6abb33ffb0b212deba37d123551e7f5a"
+      "sha256": "sha256:600281aececbdb3fd8eba5e8fa92e1c8f2b99d63d5a72cb3f791631ad6932144"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.js",
-      "sha256": "sha256:dd1484c6028c47371453b83a5774b43226a298c7ae096772b8681150514f7542"
+      "sha256": "sha256:11d77924ec9a5ca32b71326246778c378adbf7045ff98754e9d66f9e21212d95"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.js.map",
-      "sha256": "sha256:e5daa5fce0b7fd2a34b124f4ad28ed47ee1d1595e38a110ca8b0d9559295ad90"
+      "sha256": "sha256:3357ce0c0bc39a8a132d69dfba23ec8c57ef3eaaac9eeb1d8f33d373ae533975"
     },
     {
       "path": "dist/modules/catalog-admission/src/publication-assets.d.ts",
@@ -2643,5 +2643,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:0e5d92295a049d726122b35cceaa509efc8a2468359030825af73c46c9a7ee3f"
+  "closure_digest": "sha256:e69b12202b2effe0305ab8a122f4d87918f6c3c4bc8ac9a9dd74e83d461f0db5"
 }
