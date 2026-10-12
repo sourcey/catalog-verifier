@@ -1808,6 +1808,7 @@ export declare const agentReadinessOfferRelationListQuerySchema: z.ZodObject<{
 export declare const eventListQuery: z.ZodObject<{
     operation_id: z.ZodOptional<z.ZodString>;
     entity_id: z.ZodOptional<z.ZodString>;
+    identity_closure_entity_id: z.ZodOptional<z.ZodString>;
     revision_digest: z.ZodOptional<z.ZodString>;
     cursor: z.ZodOptional<z.ZodString>;
     limit: z.ZodOptional<z.ZodCoercedNumber<unknown>>;

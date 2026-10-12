@@ -110,6 +110,8 @@ export const eventListQuery = z
     .object({
     operation_id: operationId.optional(),
     entity_id: entityId.optional(),
+    /** Every event about a company in this company's identity lineage (merges and splits). */
+    identity_closure_entity_id: entityId.optional(),
     revision_digest: digest.optional(),
     cursor: z.string().min(1).optional(),
     limit: z.coerce.number().int().min(1).max(100).optional(),
@@ -117,7 +119,10 @@ export const eventListQuery = z
     .strict()
     .refine((value) => value.operation_id !== undefined ||
     value.entity_id !== undefined ||
-    value.revision_digest !== undefined, { message: "An exact operation_id, entity_id or revision_digest filter is required." });
+    value.identity_closure_entity_id !== undefined ||
+    value.revision_digest !== undefined, {
+    message: "An exact operation_id, entity_id, identity_closure_entity_id or revision_digest filter is required.",
+});
 export const sitemapPageQuery = z
     .object({
     cursor: z.string().min(1).optional(),
