@@ -13,97 +13,42 @@ const repositorySchema = z.string().regex(/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/u)
 export const entityPathSchema = z
     .string()
     .regex(/^entities\/[a-z0-9]{2}\/[a-z0-9]+(?:-[a-z0-9]+)*\.yaml$/u);
-const policyHeaderShape = {
-    policy_id: identifierSchema,
-    coverage_policy_digest: digestSchema,
-};
-/** The first strict policy: one new company with exactly one observed Offer. */
-const strictOfferPolicyCoreSchema = z
+/**
+ * Startup Credits machine admission: one company file. A new company comes alone or with exactly
+ * one observed Offer, never with a Program alone. A correction to a company Sourcey lists changes,
+ * adds or corrects that company's own records, every Offer observed. It removes a record only as a
+ * merge a person confirms: each removed record names its survivor by its slug, which the survivor
+ * keeps as an alias.
+ */
+export const startupCreditsMachineAdmissionPolicyCoreSchema = z
     .object({
     policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha1"),
-    ...policyHeaderShape,
-    scope: z
-        .object({
-        added_entity_files: z.literal(1),
-        added_entities: z.literal(1),
-        maximum_added_programs: z.literal(1),
-        added_offers: z.literal(1),
-        offer_evidence_basis: z.literal("observed"),
-        unattended_asset_kind: z.literal("sourcey_monogram"),
-    })
-        .strict(),
-})
-    .strict();
-/** What a new company may bring: itself alone, or exactly one observed Offer; never a Program alone. */
-const newCompanyChangesSchema = z.tuple([
-    z
-        .object({
-        kind: z.literal("entity_only"),
-        added_programs: z.literal(0),
-        added_offers: z.literal(0),
-    })
-        .strict(),
-    z
-        .object({
-        kind: z.literal("observed_offer"),
-        maximum_added_programs: z.literal(1),
-        added_offers: z.literal(1),
-        offer_evidence_basis: z.literal("observed"),
-    })
-        .strict(),
-]);
-/** One new company, alone or with exactly one observed Offer; never a Program alone. */
-const strictNewEntityPolicyCoreSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha2"),
-    ...policyHeaderShape,
-    scope: z
-        .object({
-        added_entity_files: z.literal(1),
-        added_entities: z.literal(1),
-        allowed_changes: newCompanyChangesSchema,
-        unattended_asset_kind: z.literal("sourcey_monogram"),
-    })
-        .strict(),
-})
-    .strict();
-/**
- * One company file: a new company, as the second policy admits it, or a correction to a company
- * Sourcey lists. A correction changes, adds or corrects that company's own records, every one
- * observed, and removes none: a removal is an identity transition, never a correction.
- */
-const strictCompanyFilePolicyCoreSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha3"),
-    ...policyHeaderShape,
+    policy_id: identifierSchema,
+    coverage_policy_digest: digestSchema,
     scope: z
         .object({
         entity_files: z.literal(1),
-        new_company: z.object({ allowed_changes: newCompanyChangesSchema }).strict(),
-        correction: z
+        new_company: z
             .object({
-            removed_subjects: z.literal(0),
-            offer_evidence_basis: z.literal("observed"),
+            allowed_changes: z.tuple([
+                z
+                    .object({
+                    kind: z.literal("entity_only"),
+                    added_programs: z.literal(0),
+                    added_offers: z.literal(0),
+                })
+                    .strict(),
+                z
+                    .object({
+                    kind: z.literal("observed_offer"),
+                    maximum_added_programs: z.literal(1),
+                    added_offers: z.literal(1),
+                    offer_evidence_basis: z.literal("observed"),
+                })
+                    .strict(),
+            ]),
         })
             .strict(),
-        unattended_asset_kind: z.literal("sourcey_monogram"),
-    })
-        .strict(),
-})
-    .strict();
-/**
- * The company-file policy, and duplicates: a correction may also merge records of its company that
- * duplicate one another. Each removed record names its survivor by its slug, which the survivor
- * keeps as an alias, and a person confirms the merge before it is admitted. Nothing else removes.
- */
-const strictCompanyFileMergePolicyCoreSchema = z
-    .object({
-    policy_contract: z.literal("sourcey.startup-credits-machine-admission-policy/v1alpha4"),
-    ...policyHeaderShape,
-    scope: z
-        .object({
-        entity_files: z.literal(1),
-        new_company: z.object({ allowed_changes: newCompanyChangesSchema }).strict(),
         correction: z
             .object({
             removed_subjects: z.literal("merged_on_person_review"),
@@ -115,19 +60,7 @@ const strictCompanyFileMergePolicyCoreSchema = z
         .strict(),
 })
     .strict();
-/** Every retained policy keeps its own contract, so a report bound to its digest still verifies. */
-export const startupCreditsMachineAdmissionPolicyCoreSchema = z.discriminatedUnion("policy_contract", [
-    strictOfferPolicyCoreSchema,
-    strictNewEntityPolicyCoreSchema,
-    strictCompanyFilePolicyCoreSchema,
-    strictCompanyFileMergePolicyCoreSchema,
-]);
-export const startupCreditsMachineAdmissionPolicySchema = z.discriminatedUnion("policy_contract", [
-    strictOfferPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
-    strictNewEntityPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
-    strictCompanyFilePolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
-    strictCompanyFileMergePolicyCoreSchema.extend({ policy_digest: digestSchema }).strict(),
-]);
+export const startupCreditsMachineAdmissionPolicySchema = startupCreditsMachineAdmissionPolicyCoreSchema.extend({ policy_digest: digestSchema }).strict();
 const changedSubjectSchema = z.discriminatedUnion("kind", [
     z
         .object({
@@ -383,7 +316,6 @@ export const startupCreditsMachineAdmissionOutcomeSchema = z.enum([
     "rejected",
 ]);
 export const startupCreditsMachineAdmissionReasonSchema = z.enum([
-    "scope_requires_one_added_entity_file",
     "scope_requires_one_new_entity",
     "scope_requires_zero_or_one_new_program",
     "scope_requires_one_new_offer",

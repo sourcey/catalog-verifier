@@ -1,65 +1,16 @@
 import { z } from "zod";
 export declare const entityPathSchema: z.ZodString;
-/** Every retained policy keeps its own contract, so a report bound to its digest still verifies. */
-export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
+/**
+ * Startup Credits machine admission: one company file. A new company comes alone or with exactly
+ * one observed Offer, never with a Program alone. A correction to a company Sourcey lists changes,
+ * adds or corrects that company's own records, every Offer observed. It removes a record only as a
+ * merge a person confirms: each removed record names its survivor by its slug, which the survivor
+ * keeps as an alias.
+ */
+export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-    scope: z.ZodObject<{
-        added_entity_files: z.ZodLiteral<1>;
-        added_entities: z.ZodLiteral<1>;
-        maximum_added_programs: z.ZodLiteral<1>;
-        added_offers: z.ZodLiteral<1>;
-        offer_evidence_basis: z.ZodLiteral<"observed">;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
     policy_id: z.ZodString;
     coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-    scope: z.ZodObject<{
-        added_entity_files: z.ZodLiteral<1>;
-        added_entities: z.ZodLiteral<1>;
-        allowed_changes: z.ZodTuple<[z.ZodObject<{
-            kind: z.ZodLiteral<"entity_only">;
-            added_programs: z.ZodLiteral<0>;
-            added_offers: z.ZodLiteral<0>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"observed_offer">;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-        }, z.core.$strict>], null>;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-    scope: z.ZodObject<{
-        entity_files: z.ZodLiteral<1>;
-        new_company: z.ZodObject<{
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-        }, z.core.$strict>;
-        correction: z.ZodObject<{
-            removed_subjects: z.ZodLiteral<0>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-        }, z.core.$strict>;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-}, z.core.$strict>, z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
     scope: z.ZodObject<{
         entity_files: z.ZodLiteral<1>;
         new_company: z.ZodObject<{
@@ -80,69 +31,11 @@ export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodDiscri
         }, z.core.$strict>;
         unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
     }, z.core.$strict>;
-}, z.core.$strict>], "policy_contract">;
-export declare const startupCreditsMachineAdmissionPolicySchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
+}, z.core.$strict>;
+export declare const startupCreditsMachineAdmissionPolicySchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-    scope: z.ZodObject<{
-        added_entity_files: z.ZodLiteral<1>;
-        added_entities: z.ZodLiteral<1>;
-        maximum_added_programs: z.ZodLiteral<1>;
-        added_offers: z.ZodLiteral<1>;
-        offer_evidence_basis: z.ZodLiteral<"observed">;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-    policy_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
     policy_id: z.ZodString;
     coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-    scope: z.ZodObject<{
-        added_entity_files: z.ZodLiteral<1>;
-        added_entities: z.ZodLiteral<1>;
-        allowed_changes: z.ZodTuple<[z.ZodObject<{
-            kind: z.ZodLiteral<"entity_only">;
-            added_programs: z.ZodLiteral<0>;
-            added_offers: z.ZodLiteral<0>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"observed_offer">;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-        }, z.core.$strict>], null>;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-    policy_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-    scope: z.ZodObject<{
-        entity_files: z.ZodLiteral<1>;
-        new_company: z.ZodObject<{
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-        }, z.core.$strict>;
-        correction: z.ZodObject<{
-            removed_subjects: z.ZodLiteral<0>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-        }, z.core.$strict>;
-        unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-    }, z.core.$strict>;
-    policy_digest: z.ZodString;
-}, z.core.$strict>, z.ZodObject<{
-    policy_id: z.ZodString;
-    coverage_policy_digest: z.ZodString;
-    policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
     scope: z.ZodObject<{
         entity_files: z.ZodLiteral<1>;
         new_company: z.ZodObject<{
@@ -164,7 +57,7 @@ export declare const startupCreditsMachineAdmissionPolicySchema: z.ZodDiscrimina
         unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
     }, z.core.$strict>;
     policy_digest: z.ZodString;
-}, z.core.$strict>], "policy_contract">;
+}, z.core.$strict>;
 /** A merge a person confirmed on review: each retired record becomes an alias of its survivor. */
 declare const identityTransitionSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"offer.merged">;
@@ -188,68 +81,10 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
     change_tree: z.ZodString;
     live_source_commit: z.ZodString;
     live_parent_release_id: z.ZodString;
-    policy: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
+    policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         policy_id: z.ZodString;
         coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-        scope: z.ZodObject<{
-            entity_files: z.ZodLiteral<1>;
-            new_company: z.ZodObject<{
-                allowed_changes: z.ZodTuple<[z.ZodObject<{
-                    kind: z.ZodLiteral<"entity_only">;
-                    added_programs: z.ZodLiteral<0>;
-                    added_offers: z.ZodLiteral<0>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"observed_offer">;
-                    maximum_added_programs: z.ZodLiteral<1>;
-                    added_offers: z.ZodLiteral<1>;
-                    offer_evidence_basis: z.ZodLiteral<"observed">;
-                }, z.core.$strict>], null>;
-            }, z.core.$strict>;
-            correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<0>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
         scope: z.ZodObject<{
             entity_files: z.ZodLiteral<1>;
             new_company: z.ZodObject<{
@@ -271,7 +106,7 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
         }, z.core.$strict>;
         policy_digest: z.ZodString;
-    }, z.core.$strict>], "policy_contract">;
+    }, z.core.$strict>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
@@ -862,68 +697,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
     change_tree: z.ZodString;
     live_source_commit: z.ZodString;
     live_parent_release_id: z.ZodString;
-    policy: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
+    policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         policy_id: z.ZodString;
         coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-        scope: z.ZodObject<{
-            entity_files: z.ZodLiteral<1>;
-            new_company: z.ZodObject<{
-                allowed_changes: z.ZodTuple<[z.ZodObject<{
-                    kind: z.ZodLiteral<"entity_only">;
-                    added_programs: z.ZodLiteral<0>;
-                    added_offers: z.ZodLiteral<0>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"observed_offer">;
-                    maximum_added_programs: z.ZodLiteral<1>;
-                    added_offers: z.ZodLiteral<1>;
-                    offer_evidence_basis: z.ZodLiteral<"observed">;
-                }, z.core.$strict>], null>;
-            }, z.core.$strict>;
-            correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<0>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
         scope: z.ZodObject<{
             entity_files: z.ZodLiteral<1>;
             new_company: z.ZodObject<{
@@ -945,7 +722,7 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
         }, z.core.$strict>;
         policy_digest: z.ZodString;
-    }, z.core.$strict>], "policy_contract">;
+    }, z.core.$strict>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
@@ -1530,68 +1307,10 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObject<{
     live_parent_release_id: z.ZodString;
-    policy: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
+    policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         policy_id: z.ZodString;
         coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-        scope: z.ZodObject<{
-            entity_files: z.ZodLiteral<1>;
-            new_company: z.ZodObject<{
-                allowed_changes: z.ZodTuple<[z.ZodObject<{
-                    kind: z.ZodLiteral<"entity_only">;
-                    added_programs: z.ZodLiteral<0>;
-                    added_offers: z.ZodLiteral<0>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"observed_offer">;
-                    maximum_added_programs: z.ZodLiteral<1>;
-                    added_offers: z.ZodLiteral<1>;
-                    offer_evidence_basis: z.ZodLiteral<"observed">;
-                }, z.core.$strict>], null>;
-            }, z.core.$strict>;
-            correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<0>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
         scope: z.ZodObject<{
             entity_files: z.ZodLiteral<1>;
             new_company: z.ZodObject<{
@@ -1613,7 +1332,7 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
         }, z.core.$strict>;
         policy_digest: z.ZodString;
-    }, z.core.$strict>], "policy_contract">;
+    }, z.core.$strict>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
@@ -2198,68 +1917,10 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
 }, z.core.$strict>;
 export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
     live_parent_release_id: z.ZodString;
-    policy: z.ZodDiscriminatedUnion<[z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
+    policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            maximum_added_programs: z.ZodLiteral<1>;
-            added_offers: z.ZodLiteral<1>;
-            offer_evidence_basis: z.ZodLiteral<"observed">;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
         policy_id: z.ZodString;
         coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha2">;
-        scope: z.ZodObject<{
-            added_entity_files: z.ZodLiteral<1>;
-            added_entities: z.ZodLiteral<1>;
-            allowed_changes: z.ZodTuple<[z.ZodObject<{
-                kind: z.ZodLiteral<"entity_only">;
-                added_programs: z.ZodLiteral<0>;
-                added_offers: z.ZodLiteral<0>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"observed_offer">;
-                maximum_added_programs: z.ZodLiteral<1>;
-                added_offers: z.ZodLiteral<1>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>], null>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha3">;
-        scope: z.ZodObject<{
-            entity_files: z.ZodLiteral<1>;
-            new_company: z.ZodObject<{
-                allowed_changes: z.ZodTuple<[z.ZodObject<{
-                    kind: z.ZodLiteral<"entity_only">;
-                    added_programs: z.ZodLiteral<0>;
-                    added_offers: z.ZodLiteral<0>;
-                }, z.core.$strict>, z.ZodObject<{
-                    kind: z.ZodLiteral<"observed_offer">;
-                    maximum_added_programs: z.ZodLiteral<1>;
-                    added_offers: z.ZodLiteral<1>;
-                    offer_evidence_basis: z.ZodLiteral<"observed">;
-                }, z.core.$strict>], null>;
-            }, z.core.$strict>;
-            correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<0>;
-                offer_evidence_basis: z.ZodLiteral<"observed">;
-            }, z.core.$strict>;
-            unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
-        }, z.core.$strict>;
-        policy_digest: z.ZodString;
-    }, z.core.$strict>, z.ZodObject<{
-        policy_id: z.ZodString;
-        coverage_policy_digest: z.ZodString;
-        policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha4">;
         scope: z.ZodObject<{
             entity_files: z.ZodLiteral<1>;
             new_company: z.ZodObject<{
@@ -2281,7 +1942,7 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
         }, z.core.$strict>;
         policy_digest: z.ZodString;
-    }, z.core.$strict>], "policy_contract">;
+    }, z.core.$strict>;
     coverage_policy: z.ZodObject<{
         policy_contract: z.ZodLiteral<"sourcey.coverage/v1alpha1">;
         version: z.ZodString;
@@ -2888,7 +2549,6 @@ export declare const startupCreditsMachineAdmissionReasonSchema: z.ZodEnum<{
     program_summary_required: "program_summary_required";
     safe_asset_required: "safe_asset_required";
     scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
-    scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
     scope_requires_one_company_file: "scope_requires_one_company_file";
     scope_requires_one_new_entity: "scope_requires_one_new_entity";
     scope_requires_one_new_offer: "scope_requires_one_new_offer";
@@ -2929,7 +2589,6 @@ export declare const startupCreditsMachineAdmissionResultCoreSchema: z.ZodObject
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
         scope_requires_one_company_file: "scope_requires_one_company_file";
         scope_requires_one_new_entity: "scope_requires_one_new_entity";
         scope_requires_one_new_offer: "scope_requires_one_new_offer";
@@ -2974,7 +2633,6 @@ export declare const startupCreditsMachineAdmissionResultSchema: z.ZodObject<{
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
         scope_requires_one_company_file: "scope_requires_one_company_file";
         scope_requires_one_new_entity: "scope_requires_one_new_entity";
         scope_requires_one_new_offer: "scope_requires_one_new_offer";
@@ -3020,7 +2678,6 @@ export declare const startupCreditsAdmissionCandidateResultCoreSchema: z.ZodObje
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
         scope_requires_one_company_file: "scope_requires_one_company_file";
         scope_requires_one_new_entity: "scope_requires_one_new_entity";
         scope_requires_one_new_offer: "scope_requires_one_new_offer";
@@ -3065,7 +2722,6 @@ export declare const startupCreditsAdmissionCandidateResultSchema: z.ZodObject<{
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
-        scope_requires_one_added_entity_file: "scope_requires_one_added_entity_file";
         scope_requires_one_company_file: "scope_requires_one_company_file";
         scope_requires_one_new_entity: "scope_requires_one_new_entity";
         scope_requires_one_new_offer: "scope_requires_one_new_offer";
