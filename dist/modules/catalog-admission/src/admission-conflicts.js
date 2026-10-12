@@ -3,6 +3,7 @@ import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primiti
 import { canonicalEntityIdentity, entityAuthoringSchema, entityIdentityAuthoringSchema, } from "../../../contracts/authoring/src/index.js";
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
 import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, } from "../../../contracts/catalog-verifier/src/index.js";
+import { hostnameIsWithinDomain } from "../../../contracts/revisions/src/index.js";
 import { validateCatalogVerifierIdentityContext, validateSignerRegistry, } from "../../authority/src/index.js";
 export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export function createCatalogAdmissionConflictLookupResponse(input) {
@@ -248,13 +249,24 @@ export function deriveCatalogAdmissionKeys(input) {
             candidateReference,
         });
     };
+    // A page on another company's host, such as a partner catalog that lists many companies'
+    // offers, says nothing about which company this is. Only the company's own pages are keys.
+    const ownDomains = entity.entity.domains
+        .filter(({ valid_until: validUntil }) => validUntil === undefined)
+        .map(({ value }) => value);
+    const addOwnPage = (kind, url, reference) => {
+        const { hostname } = new URL(url);
+        if (ownDomains.some((domain) => hostnameIsWithinDomain(hostname, domain))) {
+            add(kind, url, reference);
+        }
+    };
     const entityReference = `entity:${entity.entity.entity_id}`;
     add("entity_url", entity.profile.links.site, entityReference);
     if (entity.profile.links.pricing) {
         add("entity_url", entity.profile.links.pricing, entityReference);
     }
     for (const source of entity.sources)
-        add("evidence_url", source.url, entityReference);
+        addOwnPage("evidence_url", source.url, entityReference);
     for (const program of entity.programs) {
         const reference = `program:${program.program_id}`;
         add("program_id", program.program_id, reference);
@@ -271,16 +283,14 @@ export function deriveCatalogAdmissionKeys(input) {
         for (const alias of offer.offer_slug_aliases) {
             add("offer_slug", `${entity.entity.entity_id}/${alias}`, reference);
         }
-        if (offer.access.url) {
-            add("offer_url", offer.access.url, reference);
-        }
-        if (offer.terms_url) {
-            add("offer_url", offer.terms_url, reference);
-        }
+        if (offer.access.url)
+            addOwnPage("offer_url", offer.access.url, reference);
+        if (offer.terms_url)
+            addOwnPage("offer_url", offer.terms_url, reference);
         for (const sourceId of offer.source_ids ?? []) {
             const url = sourceUrls.get(sourceId);
             if (url)
-                add("evidence_url", url, reference);
+                addOwnPage("evidence_url", url, reference);
         }
         add("semantic_offer", canonicalJson({
             roles: offer.roles,
