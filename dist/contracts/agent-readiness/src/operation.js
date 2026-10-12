@@ -20,6 +20,14 @@ const pathTemplateSchema = z
     .max(512)
     .regex(/^\/[\x21-\x7E]*$/u, "A path template starts with '/' and holds no spaces.");
 const methodSchema = z.enum(["GET", "POST", "PUT", "PATCH", "DELETE"]);
+/**
+ * gRPC's media types: `application/grpc` and its `+proto` and `+json` forms.
+ * A call under one is a gRPC call, and its answer under one is read by its
+ * `grpc-status` (north star §5.4).
+ */
+export function isAgentReadinessGrpcMediaType(mediaType) {
+    return /^application\/grpc(?:\+(?:proto|json))?$/u.test(mediaType);
+}
 const specOperationSchema = z.object({ method: methodSchema, path: pathTemplateSchema }).strict();
 /**
  * The operations in the vendor's OpenAPI document an agent creates and
@@ -59,7 +67,8 @@ const agentReadinessHttpOperationSchema = z
      * The media type of the body the job's request carries, as the vendor
      * documents it, which the probe sends empty: services refuse a foreign
      * format before they read authority (S3 refuses JSON; a form guard refuses a
-     * bodiless POST; Sentry reads an envelope). Null for none.
+     * bodiless POST; Sentry reads an envelope; a gRPC server reads only a gRPC
+     * message, `application/grpc`). Null for none.
      */
     body: z
         .object({
@@ -67,6 +76,17 @@ const agentReadinessHttpOperationSchema = z
             .string()
             .max(127)
             .regex(/^[a-z]+\/[a-z0-9][a-z0-9.+-]*$/u, "A body format is a lower-case media type."),
+        /**
+         * The body field that carries the account's key, where the vendor
+         * takes it there (Amplitude's `api_key`): OpenAPI has no security
+         * scheme for a key in the body, so the spec cannot say it. The probe
+         * still sends the body empty; the request needs a person's key,
+         * whatever the spec's security says (north star §5.6).
+         */
+        credential_field: z
+            .string()
+            .regex(/^[A-Za-z0-9_.-]{1,64}$/u, "A body field is a plain field name.")
+            .optional(),
     })
         .strict()
         .nullable(),
@@ -76,6 +96,11 @@ const agentReadinessHttpOperationSchema = z
     .superRefine((operation, context) => {
     if (operation.method === "GET" && operation.body !== null) {
         context.addIssue({ code: "custom", path: ["body"], message: "A GET carries no body." });
+    }
+    if (operation.body !== null &&
+        isAgentReadinessGrpcMediaType(operation.body.media_type) &&
+        operation.method !== "POST") {
+        context.addIssue({ code: "custom", path: ["method"], message: "A gRPC call is a POST." });
     }
     const names = operation.headers.map(({ name }) => name);
     if (names.some((name, index) => index > 0 && names[index - 1] >= name)) {
@@ -168,17 +193,19 @@ export const AGENT_READINESS_PROBED_MODALITIES = new Set([
 ]);
 /**
  * Every API or MCP server that performs the job declares exactly one job
- * operation: an HTTP or MCP operation on one of its HTTP endpoints with the
- * `service` role (an HTTP operation keeps that endpoint's origin), or, when it
- * has no `service` endpoint, a spec operation. Other interfaces (a web
- * application, a command line, a library) are not probed and declare none.
+ * operation: an HTTP or MCP operation on one of its endpoints with the
+ * `service` role (an HTTP operation keeps that endpoint's origin; a gRPC call
+ * goes to a gRPC endpoint, which takes nothing else), or, when it has no
+ * `service` endpoint, a spec operation. Other interfaces (a web application, a
+ * command line, a library) are not probed and declare none.
  */
 export function validateDeclaredJobOperations(value, context) {
     const endpoints = new Map(value.endpoints.map((endpoint) => [endpoint.endpoint_id, endpoint]));
     const interfaces = new Map(value.interfaces.map((declared) => [declared.interface_id, declared]));
     const servesAt = (interfaceId) => (interfaces.get(interfaceId)?.endpoint_ids ?? []).filter((id) => {
         const endpoint = endpoints.get(id);
-        return endpoint?.transport === "http" && endpoint.roles.includes("service");
+        return ((endpoint?.transport === "http" || endpoint?.transport === "grpc") &&
+            endpoint.roles.includes("service"));
     });
     const operated = new Set();
     for (const [index, operation] of value.job_operations.entries()) {
@@ -203,10 +230,18 @@ export function validateDeclaredJobOperations(value, context) {
             continue;
         }
         if (!servesAt(operation.interface_id).includes(operation.endpoint_id)) {
-            issue(`Job operation needs one of its interface's HTTP endpoints with the service role.`);
+            issue(`Job operation needs one of its interface's endpoints with the service role.`);
             continue;
         }
         const endpoint = endpoints.get(operation.endpoint_id);
+        const grpcCall = operation.kind === "http" &&
+            operation.body !== null &&
+            isAgentReadinessGrpcMediaType(operation.body.media_type);
+        if (grpcCall !== (endpoint?.transport === "grpc")) {
+            issue(grpcCall
+                ? `A gRPC call goes to a gRPC endpoint, not '${operation.endpoint_id}'.`
+                : `Endpoint '${operation.endpoint_id}' is gRPC: only a gRPC call goes to it.`);
+        }
         if (operation.kind === "http" &&
             endpoint &&
             new URL(operation.url).origin !== new URL(endpoint.uri).origin) {

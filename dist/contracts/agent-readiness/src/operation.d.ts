@@ -1,5 +1,11 @@
 import { z } from "zod";
 import { type AgentReadinessDeclaredSurfaces } from "./binding.js";
+/**
+ * gRPC's media types: `application/grpc` and its `+proto` and `+json` forms.
+ * A call under one is a gRPC call, and its answer under one is read by its
+ * `grpc-status` (north star §5.4).
+ */
+export declare function isAgentReadinessGrpcMediaType(mediaType: string): boolean;
 export declare const agentReadinessJobOperationSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     operation_id: z.ZodString;
     interface_id: z.ZodString;
@@ -18,6 +24,7 @@ export declare const agentReadinessJobOperationSchema: z.ZodDiscriminatedUnion<[
     }, z.core.$strict>>;
     body: z.ZodNullable<z.ZodObject<{
         media_type: z.ZodString;
+        credential_field: z.ZodOptional<z.ZodString>;
     }, z.core.$strict>>;
     spec: z.ZodNullable<z.ZodObject<{
         url: z.ZodURL;
@@ -95,10 +102,11 @@ export declare function agentReadinessJobOperationFieldPaths(operation: AgentRea
 export declare const AGENT_READINESS_PROBED_MODALITIES: ReadonlySet<string>;
 /**
  * Every API or MCP server that performs the job declares exactly one job
- * operation: an HTTP or MCP operation on one of its HTTP endpoints with the
- * `service` role (an HTTP operation keeps that endpoint's origin), or, when it
- * has no `service` endpoint, a spec operation. Other interfaces (a web
- * application, a command line, a library) are not probed and declare none.
+ * operation: an HTTP or MCP operation on one of its endpoints with the
+ * `service` role (an HTTP operation keeps that endpoint's origin; a gRPC call
+ * goes to a gRPC endpoint, which takes nothing else), or, when it has no
+ * `service` endpoint, a spec operation. Other interfaces (a web application, a
+ * command line, a library) are not probed and declare none.
  */
 export declare function validateDeclaredJobOperations(value: AgentReadinessDeclaredSurfaces & {
     readonly job_operations: readonly AgentReadinessJobOperation[];

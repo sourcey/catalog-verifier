@@ -202,6 +202,7 @@ export declare const submissionRequestSchema: z.ZodDiscriminatedUnion<[z.ZodObje
                 }, z.core.$strict>>;
                 body: z.ZodNullable<z.ZodObject<{
                     media_type: z.ZodString;
+                    credential_field: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;
                 spec: z.ZodNullable<z.ZodObject<{
                     url: z.ZodURL;

@@ -9,7 +9,7 @@ import { verifyAgentReadinessJobLibrary } from "../../agent-readiness-jobs/src/i
 export function agentReadinessPolicySource(input) {
     return {
         policy_contract: AGENT_READINESS_POLICY_CONTRACT,
-        policy_version: "kind-2026-10-12",
+        policy_version: "kind-2026-10-12.2",
         job_library: verifyAgentReadinessJobLibrary(input.jobLibrary),
         // The kind of each person-step (north star §5.7), in the shape's words where it names one.
         person_steps: [

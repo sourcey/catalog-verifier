@@ -216,6 +216,7 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
         }, z.core.$strict>>;
         body: z.ZodNullable<z.ZodObject<{
             media_type: z.ZodString;
+            credential_field: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
         spec: z.ZodNullable<z.ZodObject<{
             url: z.ZodURL;
@@ -767,6 +768,7 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
             body: z.ZodNullable<z.ZodObject<{
                 media_type: z.ZodString;
+                credential_field: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>;
             spec: z.ZodNullable<z.ZodObject<{
                 url: z.ZodURL;
@@ -1312,6 +1314,7 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
             }, z.core.$strict>>;
             body: z.ZodNullable<z.ZodObject<{
                 media_type: z.ZodString;
+                credential_field: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>;
             spec: z.ZodNullable<z.ZodObject<{
                 url: z.ZodURL;
@@ -1881,6 +1884,7 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
             }, z.core.$strict>>;
             body: z.ZodNullable<z.ZodObject<{
                 media_type: z.ZodString;
+                credential_field: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>;
             spec: z.ZodNullable<z.ZodObject<{
                 url: z.ZodURL;

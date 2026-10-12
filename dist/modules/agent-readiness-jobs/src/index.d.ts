@@ -8,187 +8,340 @@ import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJo
  */
 export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
     readonly library_contract: "sourcey.agent-readiness-job-library/v1alpha1";
-    readonly library_version: "2026-10-12.1";
+    readonly library_version: "2026-10-12.2";
     readonly jobs: [{
-        readonly job_id: "bounty-claim";
-        readonly category: "bounty-board";
-        readonly name: "Claim a bounty";
-        readonly statement: "Claim an open bounty with a note that is the run's nonce, then read the claim back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "bounty_claimed";
-            readonly statement: "The board accepts the claim under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The claim reads back under that identifier with the nonce as its note.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "bounty_claimed";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "bucket-create";
-        readonly category: "cloud-platform";
-        readonly name: "Create a storage bucket";
-        readonly statement: "Create a storage bucket named with the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "bucket_created";
-            readonly statement: "The platform creates the bucket under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The bucket reads back under that identifier with the nonce as its name.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "bucket_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "chat-message-post";
-        readonly category: "team-chat";
-        readonly name: "Post a message";
-        readonly statement: "Post a message whose text is the run's nonce to a channel, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "message_posted";
-            readonly statement: "The service posts the message under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The message reads back under that identifier with the nonce as its text.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "message_posted";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "crm-contact-create";
-        readonly category: "crm";
-        readonly name: "Create a contact";
-        readonly statement: "Create a contact with a field set to the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "contact_created";
-            readonly statement: "The service creates the contact under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The contact reads back under that identifier with the nonce in that field.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "contact_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "database-create";
-        readonly category: "database";
-        readonly name: "Create a database deployment";
-        readonly statement: "Create a database deployment named with the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "deployment_created";
-            readonly statement: "The service creates the deployment under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The deployment reads back under that identifier with the nonce as its name.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "deployment_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "deployment-create";
-        readonly category: "frontend-hosting";
-        readonly name: "Create a deployment";
-        readonly statement: "Create a deployment named with the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "deployment_created";
-            readonly statement: "The service creates the deployment under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The deployment reads back under that identifier with the nonce as its name.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "deployment_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
         readonly job_id: "dns-resolve";
         readonly category: "dns-resolver";
@@ -246,65 +399,153 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
-        readonly job_id: "error-event-report";
-        readonly category: "error-tracking";
-        readonly name: "Report an error";
-        readonly statement: "Report an error event whose message is the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "event_reported";
-            readonly statement: "The service accepts the event under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The event reads back under that identifier with the nonce as its message.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "event_reported";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "feature-flag-create";
-        readonly category: "feature-flags";
-        readonly name: "Create a feature flag";
-        readonly statement: "Create a feature flag keyed by the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "flag_created";
-            readonly statement: "The service creates the flag under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The flag reads back under that identifier with the nonce as its key.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "flag_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
         readonly job_id: "model-chat-stream-tool";
         readonly category: "model-api";
@@ -349,95 +590,227 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
-        readonly job_id: "monitor-create";
-        readonly category: "monitoring";
-        readonly name: "Create a monitor";
-        readonly statement: "Create a monitor named with the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "monitor_created";
-            readonly statement: "The service creates the monitor under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The monitor reads back under that identifier with the nonce as its name.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "monitor_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "payment-create";
-        readonly category: "payments";
-        readonly name: "Create a payment link";
-        readonly statement: "Create a payment link with a field set to the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "link_created";
-            readonly statement: "The service creates the payment link under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The payment link reads back under that identifier with the nonce in that field.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "link_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
-        readonly job_id: "repository-create";
-        readonly category: "repository-hosting";
-        readonly name: "Create a repository";
-        readonly statement: "Create a repository named with the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "repository_created";
-            readonly statement: "The service creates the repository under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The repository reads back under that identifier with the nonce as its name.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "repository_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
         readonly job_id: "search-record-find";
         readonly category: "search";
@@ -468,6 +841,31 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         }];
         readonly effect: "consequential";
         readonly cleanup: "required";
+    }, {
+        readonly job_id: "signature-envelope-send";
+        readonly category: "e-signature";
+        readonly name: "Send an envelope for signature";
+        readonly statement: "Send an envelope to a Sourcey-controlled mailbox, its subject the run's nonce: the service accepts it, and an email carrying the nonce arrives there.";
+        readonly inputs: [{
+            readonly kind: "nonce";
+            readonly name: "nonce";
+        }, {
+            readonly kind: "sink";
+            readonly name: "recipient";
+            readonly sink: "email";
+        }];
+        readonly assertions: [{
+            readonly name: "message_accepted";
+            readonly statement: "The service accepts the envelope and returns its identifier.";
+            readonly proof: "message_accepted";
+        }, {
+            readonly name: "delivered_to_sink";
+            readonly statement: "An email carrying the nonce reaches the Sourcey-controlled mailbox.";
+            readonly proof: "sink_received";
+        }];
+        readonly observation_links: [];
+        readonly effect: "billable";
+        readonly cleanup: "none";
     }, {
         readonly job_id: "sms-send";
         readonly category: "sms-messaging";
@@ -502,35 +900,153 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         readonly effect: "billable";
         readonly cleanup: "none";
     }, {
-        readonly job_id: "user-create";
-        readonly category: "auth";
-        readonly name: "Create a user";
-        readonly statement: "Create a user with a field set to the run's nonce, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "user_created";
-            readonly statement: "The service creates the user under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The user reads back under that identifier with the nonce in that field.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "user_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }, {
         readonly job_id: "vector-upsert-query";
         readonly category: "vector-database";
@@ -562,35 +1078,116 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         readonly effect: "consequential";
         readonly cleanup: "required";
     }, {
-        readonly job_id: "workspace-page-create";
-        readonly category: "workspace";
-        readonly name: "Create a page";
-        readonly statement: "Create a page whose title is the run's nonce in a shared container, then read it back.";
-        readonly inputs: [{
-            readonly kind: "nonce";
-            readonly name: "nonce";
-        }];
-        readonly assertions: [{
-            readonly name: "page_created";
-            readonly statement: "The service creates the page in the container under an identifier it returns or was given.";
-            readonly proof: "resource_created";
-        }, {
-            readonly name: "read_back";
-            readonly statement: "The page reads back under that identifier with the nonce as its title.";
-            readonly proof: "resource_read_back";
-        }];
-        readonly observation_links: [{
-            readonly from: {
-                readonly assertion: "page_created";
-                readonly observation: "id";
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
             };
-            readonly to: {
-                readonly assertion: "read_back";
-                readonly observation: "created_id";
+            to: {
+                assertion: string;
+                observation: string;
             };
-        }];
-        readonly effect: "consequential";
-        readonly cleanup: "required";
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
+    }, {
+        job_id: string;
+        category: string;
+        name: string;
+        statement: string;
+        inputs: ({
+            kind: "fixed";
+            name: string;
+            value: string | number | boolean;
+        } | {
+            kind: "nonce";
+            name: string;
+        } | {
+            kind: "sink";
+            name: string;
+            sink: "email" | "webhook";
+        } | {
+            kind: "supplied";
+            name: string;
+        })[];
+        assertions: {
+            name: string;
+            statement: string;
+            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+        }[];
+        observation_links: {
+            from: {
+                assertion: string;
+                observation: string;
+            };
+            to: {
+                assertion: string;
+                observation: string;
+            };
+        }[];
+        effect: "billable" | "consequential" | "read";
+        cleanup: "none" | "required";
     }];
 };
 /** The library with its digest, checked as every reader checks it. */

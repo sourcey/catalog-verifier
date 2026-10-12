@@ -108,6 +108,7 @@ export const AGENT_READINESS_RESERVED_HEADERS = new Set([
     "cookie",
     "host",
     "proxy-authorization",
+    "te",
     "transfer-encoding",
     "user-agent",
 ]);

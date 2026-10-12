@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.12";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.13";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -7669,6 +7669,7 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
             }, z.core.$strict>>;
             body: z.ZodNullable<z.ZodObject<{
                 media_type: z.ZodString;
+                credential_field: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>;
             spec: z.ZodNullable<z.ZodObject<{
                 url: z.ZodURL;
@@ -8719,6 +8720,7 @@ export declare const revisionResponseSchema: z.ZodObject<{
                 }, z.core.$strict>>;
                 body: z.ZodNullable<z.ZodObject<{
                     media_type: z.ZodString;
+                    credential_field: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;
                 spec: z.ZodNullable<z.ZodObject<{
                     url: z.ZodURL;
