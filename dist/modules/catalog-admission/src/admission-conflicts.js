@@ -194,11 +194,9 @@ export function deriveCatalogEntityIdentityAdmissionKeys(input) {
     const identity = entityIdentityAuthoringSchema.parse(input);
     const keys = [];
     const add = (kind, value, candidateReference) => {
-        const normalizedValue = normalizeAdmissionKey(kind, value);
         keys.push({
             kind,
-            normalizedValue,
-            keyDigest: digest({ kind, normalized_value: normalizedValue }),
+            ...catalogAdmissionKey(kind, value),
             candidateReference,
             ...(kind === "entity_id"
                 ? { candidateIdentityDigest: catalogEntityIdentityDigest(identity) }
@@ -223,15 +221,10 @@ function deriveOpenPullRequestPathAdmissionKeys(path) {
     if (!match?.groups?.slug) {
         throw new Error("Open pull-request entity path is outside its bounded contract.");
     }
-    const normalizedValue = normalizeAdmissionKey("entity_slug", match.groups.slug);
     return [
         {
             kind: "entity_slug",
-            normalizedValue,
-            keyDigest: digest({
-                kind: "entity_slug",
-                normalized_value: normalizedValue,
-            }),
+            ...catalogAdmissionKey("entity_slug", match.groups.slug),
             candidateReference: `path:${path}`,
         },
     ];
@@ -241,13 +234,7 @@ export function deriveCatalogAdmissionKeys(input) {
     const entity = entityAuthoringSchema.parse(input);
     const keys = [...deriveCatalogEntityIdentityAdmissionKeys(entity.entity)];
     const add = (kind, value, candidateReference) => {
-        const normalizedValue = normalizeAdmissionKey(kind, value);
-        keys.push({
-            kind,
-            normalizedValue,
-            keyDigest: digest({ kind, normalized_value: normalizedValue }),
-            candidateReference,
-        });
+        keys.push({ kind, ...catalogAdmissionKey(kind, value), candidateReference });
     };
     // A page on another company's host, such as a partner catalog that lists many companies'
     // offers, says nothing about which company this is. Only the company's own pages are keys.
@@ -397,6 +384,11 @@ function conflictSourceReference(match) {
         return `submission:${match.source.candidateReference}@${match.source.candidateDigest}:${match.targetReference}`;
     }
     return `github:${match.source.repository}#${match.source.pullRequestNumber}@${match.source.headSha}:${match.targetReference}`;
+}
+/** A key's normalized value and digest, the one rule for every key and every reader of one. */
+export function catalogAdmissionKey(kind, value) {
+    const normalizedValue = normalizeAdmissionKey(kind, value);
+    return { normalizedValue, keyDigest: digest({ kind, normalized_value: normalizedValue }) };
 }
 function normalizeAdmissionKey(kind, value) {
     if (kind === "domain")

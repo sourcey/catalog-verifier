@@ -468,4 +468,9 @@ export declare function evaluateCatalogAdmissionConflicts(input: {
  * identity has one digest wherever it was written.
  */
 export declare function catalogEntityIdentityDigest(identity: unknown): Digest;
+/** A key's normalized value and digest, the one rule for every key and every reader of one. */
+export declare function catalogAdmissionKey(kind: CatalogAdmissionKeyKind, value: string): {
+    readonly normalizedValue: string;
+    readonly keyDigest: Digest;
+};
 //# sourceMappingURL=admission-conflicts.d.ts.map
