@@ -1,7 +1,7 @@
 import { HEADER_NAME_PATTERN } from "provenry/exchange/records";
 import { z } from "zod";
 import { AGENT_READINESS_RESERVED_HEADERS, } from "./binding.js";
-import { agentReadinessScopeKeySchema } from "./shared.js";
+import { agentReadinessScopeKeySchema, agentReadinessUrlOrigin } from "./shared.js";
 /**
  * The job's request on one interface (north star §5.3), in one of three kinds:
  * an HTTP request a probe sends with no authority, a vendor's MCP server and
@@ -14,6 +14,17 @@ import { agentReadinessScopeKeySchema } from "./shared.js";
 const httpsUrlSchema = z.url({ protocol: /^https$/u }).max(2_048);
 /** A header or query parameter name that says it carries a credential. */
 const CREDENTIAL_NAME = /(?:key|token|secret|auth|session|signature|password|passwd|cookie|credential)/iu;
+/** Where an operation is called: an HTTPS URL that carries no credential or fragment. */
+const operationUrlSchema = httpsUrlSchema.refine((value) => {
+    // A value that is no URL is refused by the URL check already.
+    if (!URL.canParse(value))
+        return true;
+    const url = new URL(value);
+    return !(url.username ||
+        url.password ||
+        url.hash ||
+        [...url.searchParams.keys()].some((name) => CREDENTIAL_NAME.test(name)));
+}, "An operation URL carries no credentials or fragment.");
 /** An OpenAPI path template, such as `/v1/payment_links` or `/repos/{owner}/{repo}`. */
 const pathTemplateSchema = z
     .string()
@@ -50,7 +61,7 @@ const agentReadinessHttpOperationSchema = z
     /** The declared endpoint whose origin the URL keeps. */
     endpoint_id: agentReadinessScopeKeySchema,
     method: methodSchema.exclude(["DELETE"]),
-    url: httpsUrlSchema,
+    url: operationUrlSchema,
     headers: z
         .array(z
         .object({
@@ -110,17 +121,6 @@ const agentReadinessHttpOperationSchema = z
             message: "Operation headers are unique and ordered by name.",
         });
     }
-    const url = new URL(operation.url);
-    if (url.username ||
-        url.password ||
-        url.hash ||
-        [...url.searchParams.keys()].some((name) => CREDENTIAL_NAME.test(name))) {
-        context.addIssue({
-            code: "custom",
-            path: ["url"],
-            message: "An operation URL carries no credentials or fragment.",
-        });
-    }
 });
 const agentReadinessMcpOperationSchema = z
     .object({
@@ -150,6 +150,41 @@ export const agentReadinessJobOperationSchema = z.discriminatedUnion("kind", [
     agentReadinessMcpOperationSchema,
     agentReadinessSpecOperationSchema,
 ]);
+/**
+ * What an account operation does for the agent's own account (north star
+ * §5.6): `registration` signs it up, issuing its credential; `top_up` funds the
+ * balance the job draws on, paid by the agent itself.
+ */
+export const AGENT_READINESS_ACCOUNT_OPERATION_ROLES = ["registration", "top_up"];
+/**
+ * An operation beside the job that an agent runs on its own account: a sign-up
+ * API the vendor documents for agents, or a top-up the agent pays itself. The
+ * suite sends nothing to one, since it never signs up or pays: it reads the
+ * operation in the vendor's OpenAPI document.
+ */
+export const agentReadinessAccountOperationSchema = z
+    .object({
+    operation_id: agentReadinessScopeKeySchema,
+    interface_id: agentReadinessScopeKeySchema,
+    role: z.enum(AGENT_READINESS_ACCOUNT_OPERATION_ROLES),
+    /** The declared endpoint whose origin the URL keeps, among the interface's endpoints. */
+    endpoint_id: agentReadinessScopeKeySchema,
+    method: methodSchema.exclude(["GET", "DELETE"]),
+    /** Where the agent calls it, with a placeholder for an account-specific identifier. */
+    url: operationUrlSchema,
+    /** The vendor's OpenAPI document that holds the operation under one of its servers. */
+    spec_url: httpsUrlSchema,
+})
+    .strict();
+/** The fields of an account operation its sources cover: every field it declares. */
+export const AGENT_READINESS_ACCOUNT_OPERATION_FIELD_PATHS = [
+    "/interface_id",
+    "/role",
+    "/endpoint_id",
+    "/method",
+    "/url",
+    "/spec_url",
+];
 /** The vendor's OpenAPI document an operation is read from, or null when it names none. */
 export function agentReadinessOperationSpecUrl(operation) {
     switch (operation.kind) {
@@ -242,9 +277,9 @@ export function validateDeclaredJobOperations(value, context) {
                 ? `A gRPC call goes to a gRPC endpoint, not '${operation.endpoint_id}'.`
                 : `Endpoint '${operation.endpoint_id}' is gRPC: only a gRPC call goes to it.`);
         }
-        if (operation.kind === "http" &&
-            endpoint &&
-            new URL(operation.url).origin !== new URL(endpoint.uri).origin) {
+        const origin = operation.kind === "http" ? agentReadinessUrlOrigin(operation.url) : null;
+        const endpointOrigin = endpoint ? agentReadinessUrlOrigin(endpoint.uri) : null;
+        if (origin && endpointOrigin && origin !== endpointOrigin) {
             issue(`Job operation leaves the origin of '${operation.endpoint_id}'.`);
         }
     }
@@ -258,6 +293,40 @@ export function validateDeclaredJobOperations(value, context) {
                 message: `Interface '${declared.interface_id}' performs the job and declares no job operation.`,
             });
         }
+    }
+}
+/**
+ * Each account operation serves an interface that declares the job's
+ * operation (the account is the one that interface's job runs on), and an
+ * interface names at most one of each role.
+ */
+export function validateDeclaredAccountOperations(value, context) {
+    const operated = new Set(value.job_operations.map(({ interface_id }) => interface_id));
+    const endpoints = new Map(value.endpoints.map((endpoint) => [endpoint.endpoint_id, endpoint]));
+    const interfaces = new Map(value.interfaces.map((declared) => [declared.interface_id, declared]));
+    const roles = new Set();
+    for (const [index, operation] of (value.account_operations ?? []).entries()) {
+        const issue = (message) => context.addIssue({ code: "custom", path: ["account_operations", index], message });
+        if (!operated.has(operation.interface_id)) {
+            issue(`Account operation serves '${operation.interface_id}', which declares no job operation.`);
+        }
+        const endpoint = endpoints.get(operation.endpoint_id);
+        if (!endpoint ||
+            !(interfaces.get(operation.interface_id)?.endpoint_ids ?? []).includes(operation.endpoint_id)) {
+            issue(`Account operation needs one of its interface's endpoints, not '${operation.endpoint_id}'.`);
+        }
+        else {
+            const origin = agentReadinessUrlOrigin(operation.url);
+            const endpointOrigin = agentReadinessUrlOrigin(endpoint.uri);
+            if (origin && endpointOrigin && origin !== endpointOrigin) {
+                issue(`Account operation leaves the origin of '${operation.endpoint_id}'.`);
+            }
+        }
+        const role = `${operation.interface_id} ${operation.role}`;
+        if (roles.has(role)) {
+            issue(`Interface '${operation.interface_id}' declares more than one ${operation.role} operation.`);
+        }
+        roles.add(role);
     }
 }
 //# sourceMappingURL=operation.js.map

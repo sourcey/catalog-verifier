@@ -3,7 +3,7 @@ import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { agentReadinessJobBindingSchema } from "./binding.js";
 import { agentReadinessDeclaredInterfaceSchema, agentReadinessEndpointSchema, agentReadinessOfferRelationProposalSchema, agentReadinessParticipantRoleSchema, agentReadinessResourceSchema, agentReadinessSurfaceExclusionSchema, agentReadinessSurfaceRelationSchema, } from "./declaration.js";
 import { agentReadinessAuthoringPathSchema } from "./declaration-reference.js";
-import { agentReadinessJobOperationSchema } from "./operation.js";
+import { agentReadinessAccountOperationSchema, agentReadinessJobOperationSchema, } from "./operation.js";
 import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessInstantSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, } from "./shared.js";
 const sourceUrisSchema = z.array(catalogAuthoringUrlSchema).min(1);
 export const agentReadinessDraftSubjectSchema = z.discriminatedUnion("kind", [
@@ -42,6 +42,10 @@ const agentReadinessDraftInterfaceSchema = agentReadinessDeclaredInterfaceSchema
 const agentReadinessDraftJobOperationSchema = z
     .object({ operation: agentReadinessJobOperationSchema, source_uris: sourceUrisSchema })
     .strict();
+/** An account operation as drafted, sourced from where the vendor documents it. */
+const agentReadinessDraftAccountOperationSchema = z
+    .object({ operation: agentReadinessAccountOperationSchema, source_uris: sourceUrisSchema })
+    .strict();
 /** A job binding as drafted: its calls are sourced from where the service documents them. */
 const agentReadinessDraftJobBindingSchema = z
     .object({ binding: agentReadinessJobBindingSchema, source_uris: sourceUrisSchema })
@@ -68,6 +72,9 @@ export const agentReadinessDeclarationDraftRequestSchema = z
     scope_source_uris: z.array(catalogAuthoringUrlSchema).default([]),
     subject_roles: z.array(agentReadinessParticipantRoleSchema.exclude(["subject"])).default([]),
     job_operations: z.array(agentReadinessDraftJobOperationSchema).default([]),
+    // Optional, not defaulted, as every field this request gains: a defaulted field is
+    // required in each client's request type, so adding one would break every client.
+    account_operations: z.array(agentReadinessDraftAccountOperationSchema).optional(),
     job_bindings: z.array(agentReadinessDraftJobBindingSchema).default([]),
     participants: z.array(agentReadinessDraftParticipantSchema).default([]),
     resources: z.array(agentReadinessDraftResourceSchema).default([]),

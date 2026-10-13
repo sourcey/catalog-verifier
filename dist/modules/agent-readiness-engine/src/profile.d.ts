@@ -1,6 +1,6 @@
 import type { AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/grade-policy.js";
 import { type AgentReadinessDeclaration, type AgentReadinessJob, type AgentReadinessJobBinding, type AgentReadinessJobResult, type AgentReadinessLetter, type AgentReadinessRunRecord, type AgentReadinessStepResult } from "../../../contracts/agent-readiness/src/index.js";
-type Declaration = Pick<AgentReadinessDeclaration, "job_operations" | "job_bindings" | "interfaces" | "endpoints" | "surface_exclusions">;
+type Declaration = Pick<AgentReadinessDeclaration, "job_operations" | "account_operations" | "job_bindings" | "interfaces" | "endpoints" | "surface_exclusions">;
 /** One interface's path as a card shows it, with the runs it rests on. */
 export interface AgentReadinessProfilePath {
     /** The interface whose path this is; null when the declaration names no API or MCP server for the job. */
@@ -30,11 +30,11 @@ export interface AgentReadinessProfilePath {
  * The vendor's sales or approval pages that stand between an agent and one
  * interface (north star §5.6, Onboard `gated`): one the interface names, since
  * the vendor approves who calls it whatever sign-up exists beside it; and,
- * with no sign-up endpoint, one no interface names, since the vendor decides
- * who gets an account at all. Each holds once the probe's request for it is
- * answered.
+ * with no sign-up declared (a registration endpoint or account operation),
+ * one no interface names, since the vendor decides who gets an account at
+ * all. Each holds once the probe's request for it is answered.
  */
-export declare function agentReadinessAccessGates(declaration: Pick<Declaration, "endpoints" | "interfaces">, interfaceId: string): readonly string[];
+export declare function agentReadinessAccessGates(declaration: Pick<Declaration, "endpoints" | "interfaces" | "account_operations">, interfaceId: string): readonly string[];
 /**
  * The pages one interface lists for a person's step on it (north star §5.6):
  * the `access_setting` a person on the account turns on once and the `claim`

@@ -32,14 +32,17 @@ export declare function unansweredRecord(record: ExchangeRecord): boolean;
 export declare function grpcStatus(record: ExchangeRecord): number | null;
 /**
  * Whether a probe run left one job operation unanswered: the request itself,
- * the malformed request after a success, the spec it names, any read of its
- * authority chain (a metadata location passed over for the next one could
- * have named another server), or a page the listing names (which every
- * operation's Onboard and Pay read). Residue is never a fact about the
- * service, so such a run decides nothing about the operation, and the profile
- * is probed again.
+ * the malformed request after a success, the spec it names or a document its
+ * references reach, any read of its authority chain (a metadata location
+ * passed over for the next one could have named another server), a page the
+ * listing names (which every operation's Onboard and Pay read), or the spec of
+ * an account operation its interface declares (`accountOperationIds`).
+ * Residue is never a fact about the service, so such a run decides nothing
+ * about the operation, and the profile is probed again.
  */
-export declare function probeUnanswered(run: Pick<AgentReadinessRunRecord, "probes" | "exchanges" | "pages">, operationId: string): boolean;
+export declare function probeUnanswered(run: Pick<AgentReadinessRunRecord, "probes" | "exchanges" | "pages" | "accounts">, operationId: string, accountOperationIds?: readonly string[]): boolean;
+/** A spec reading that rests on a read left unanswered: the spec's own, or a reference's. */
+export declare function specUnanswered(spec: AgentReadinessRunRecord["probes"][number]["spec"]): boolean;
 /** A response header a record kept, or null. */
 export declare function responseHeader(record: ExchangeRecord, name: string): string | null;
 //# sourceMappingURL=records.d.ts.map

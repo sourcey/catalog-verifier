@@ -100,6 +100,15 @@ export declare const agentReadinessSpecReadingSchema: z.ZodObject<{
         read: "read";
         unanswered: "unanswered";
     }>;
+    references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        url: z.ZodURL;
+        attempt_digest: z.ZodString;
+        fetched: z.ZodEnum<{
+            absent: "absent";
+            read: "read";
+            unanswered: "unanswered";
+        }>;
+    }, z.core.$strict>>>;
     covers: z.ZodBoolean;
     security: z.ZodArray<z.ZodEnum<{
         key: "key";
@@ -169,6 +178,15 @@ export declare const agentReadinessOperationProbeSchema: z.ZodObject<{
             read: "read";
             unanswered: "unanswered";
         }>;
+        references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+        }, z.core.$strict>>>;
         covers: z.ZodBoolean;
         security: z.ZodArray<z.ZodEnum<{
             key: "key";
@@ -217,6 +235,41 @@ export declare const agentReadinessPageProbeSchema: z.ZodObject<{
     found: z.ZodBoolean;
 }, z.core.$strict>;
 export type AgentReadinessPageProbe = z.infer<typeof agentReadinessPageProbeSchema>;
+/**
+ * What the probe read for one account operation: the vendor's spec alone,
+ * since nothing is sent to a sign-up or a top-up (north star §5.6).
+ */
+export declare const agentReadinessAccountReadingSchema: z.ZodObject<{
+    operation_id: z.ZodString;
+    spec: z.ZodObject<{
+        url: z.ZodURL;
+        attempt_digest: z.ZodString;
+        fetched: z.ZodEnum<{
+            absent: "absent";
+            read: "read";
+            unanswered: "unanswered";
+        }>;
+        references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+        }, z.core.$strict>>>;
+        covers: z.ZodBoolean;
+        security: z.ZodArray<z.ZodEnum<{
+            key: "key";
+            none: "none";
+            oauth: "oauth";
+        }>>;
+        typed_errors: z.ZodBoolean;
+        payment: z.ZodBoolean;
+        key_operations: z.ZodBoolean;
+    }, z.core.$strict>;
+}, z.core.$strict>;
+export type AgentReadinessAccountReading = z.infer<typeof agentReadinessAccountReadingSchema>;
 /** A runner-side failure: never a fact about the service, always residue to retry. */
 export declare const agentReadinessRunResidueSchema: z.ZodObject<{
     step: z.ZodUnion<readonly [z.ZodEnum<{
@@ -364,6 +417,15 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
                 read: "read";
                 unanswered: "unanswered";
             }>;
+            references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                url: z.ZodURL;
+                attempt_digest: z.ZodString;
+                fetched: z.ZodEnum<{
+                    absent: "absent";
+                    read: "read";
+                    unanswered: "unanswered";
+                }>;
+            }, z.core.$strict>>>;
             covers: z.ZodBoolean;
             security: z.ZodArray<z.ZodEnum<{
                 key: "key";
@@ -396,6 +458,36 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
         }>;
         found: z.ZodBoolean;
     }, z.core.$strict>>;
+    accounts: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        operation_id: z.ZodString;
+        spec: z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+            references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                url: z.ZodURL;
+                attempt_digest: z.ZodString;
+                fetched: z.ZodEnum<{
+                    absent: "absent";
+                    read: "read";
+                    unanswered: "unanswered";
+                }>;
+            }, z.core.$strict>>>;
+            covers: z.ZodBoolean;
+            security: z.ZodArray<z.ZodEnum<{
+                key: "key";
+                none: "none";
+                oauth: "oauth";
+            }>>;
+            typed_errors: z.ZodBoolean;
+            payment: z.ZodBoolean;
+            key_operations: z.ZodBoolean;
+        }, z.core.$strict>;
+    }, z.core.$strict>>>;
     assertions: z.ZodArray<z.ZodObject<{
         assertion: z.ZodString;
         holds: z.ZodBoolean;
@@ -551,6 +643,15 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
                 read: "read";
                 unanswered: "unanswered";
             }>;
+            references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                url: z.ZodURL;
+                attempt_digest: z.ZodString;
+                fetched: z.ZodEnum<{
+                    absent: "absent";
+                    read: "read";
+                    unanswered: "unanswered";
+                }>;
+            }, z.core.$strict>>>;
             covers: z.ZodBoolean;
             security: z.ZodArray<z.ZodEnum<{
                 key: "key";
@@ -583,6 +684,36 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
         }>;
         found: z.ZodBoolean;
     }, z.core.$strict>>;
+    accounts: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        operation_id: z.ZodString;
+        spec: z.ZodObject<{
+            url: z.ZodURL;
+            attempt_digest: z.ZodString;
+            fetched: z.ZodEnum<{
+                absent: "absent";
+                read: "read";
+                unanswered: "unanswered";
+            }>;
+            references: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                url: z.ZodURL;
+                attempt_digest: z.ZodString;
+                fetched: z.ZodEnum<{
+                    absent: "absent";
+                    read: "read";
+                    unanswered: "unanswered";
+                }>;
+            }, z.core.$strict>>>;
+            covers: z.ZodBoolean;
+            security: z.ZodArray<z.ZodEnum<{
+                key: "key";
+                none: "none";
+                oauth: "oauth";
+            }>>;
+            typed_errors: z.ZodBoolean;
+            payment: z.ZodBoolean;
+            key_operations: z.ZodBoolean;
+        }, z.core.$strict>;
+    }, z.core.$strict>>>;
     assertions: z.ZodArray<z.ZodObject<{
         assertion: z.ZodString;
         holds: z.ZodBoolean;

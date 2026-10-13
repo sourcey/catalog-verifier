@@ -22,7 +22,8 @@ export function evaluateProbePath(input) {
         throw new Error("A probed path needs at least one probe run.");
     const { operation } = input;
     const id = operation.operation_id;
-    const answeredRuns = runs.filter((run) => !probeUnanswered(run, id));
+    const accountIds = input.accountOperations.map(({ operation_id }) => operation_id);
+    const answeredRuns = runs.filter((run) => !probeUnanswered(run, id, accountIds));
     const current = answeredRuns.at(-1);
     const probe = current?.probes.find(({ operation_id }) => operation_id === id);
     if (!current || !probe) {
@@ -53,9 +54,21 @@ export function evaluateProbePath(input) {
     const spec = probe.spec;
     const specRead = spec?.fetched === "read" ? spec : null;
     const covered = specRead?.covers === true ? specRead : null;
-    const specEvidence = spec
-        ? [{ kind: "discovery", run_digest: current.run_digest, attempt_digest: spec.attempt_digest }]
-        : [];
+    // A spec reading rests on the spec and on each document its references reached.
+    const readFrom = (reading) => [
+        reading.attempt_digest,
+        ...(reading.references ?? []).map(({ attempt_digest }) => attempt_digest),
+    ].map((attempt_digest) => ({
+        kind: "discovery",
+        run_digest: current.run_digest,
+        attempt_digest,
+    }));
+    const specEvidence = spec ? readFrom(spec) : [];
+    // The interface's account operations, by role, as read; and those its spec covers.
+    const declaredAccounts = (role) => (current.accounts ?? []).filter(({ operation_id }) => input.accountOperations.some((declared) => declared.operation_id === operation_id && declared.role === role));
+    const accounts = (role) => declaredAccounts(role).filter(({ spec: read }) => read.fetched === "read" && read.covers);
+    // A step an account operation could have set cites its reading, whichever way it read.
+    const accountEvidence = (role) => declaredAccounts(role).flatMap(({ spec: read }) => readFrom(read));
     const declaration = () => [{ kind: "declaration", run_digest: current.run_digest }];
     const chain = probe.authority;
     const refusal = answer === "offer" || answer === "authority" || answer === "error";
@@ -72,23 +85,15 @@ export function evaluateProbePath(input) {
             covered !== null &&
             covered.security.length > 0 &&
             covered.security.every((kind) => kind === "none"));
-    // An agent registration path: the chain's auth.md registration, or a sign-up API the listing names.
-    // A sign-up API answers the probe's GET as an API that asks nothing of a person: a success, an
-    // offer, or a typed 405 (it signs up by POST). A CAPTCHA or a credential demanded is for people.
-    const pageStatus = (page) => {
-        const entry = current.exchanges.find(({ purpose, call_id }) => purpose === "probe_page" && call_id === page.page_id);
-        return entry?.record.outcome === "responded" ? entry.record.response.status : null;
-    };
-    const signUpApi = (page) => page.role === "registration" &&
-        page.found &&
-        (page.answer === "success" ||
-            page.answer === "offer" ||
-            (page.answer === "error" && pageStatus(page) === 405));
-    const signedUp = current.pages.some(signUpApi);
+    // An agent registration path: the chain's auth.md registration, or a sign-up API the listing
+    // declares as a registration account operation, which its spec covers and lets an agent call
+    // with no credential. A sign-up the spec does not declare anonymous is for people.
+    const signUps = accounts("registration").filter(({ spec: read }) => read.security.length > 0 && read.security.every((kind) => kind === "none"));
+    const signedUp = signUps.length > 0;
     const registration = chain?.registration === "agent" || signedUp ? "agent" : (chain?.registration ?? null);
     const registrationEvidence = [
         ...(chain?.registration ? chainEvidence : []),
-        ...(signedUp ? pagesOf(signUpApi) : []),
+        ...signUps.flatMap(({ spec: read }) => readFrom(read)),
     ];
     const target = operation.kind === "http" ? operation.url : input.endpoint;
     // A read unanswered on every probe since it last answered, the first of them the policy's
@@ -129,6 +134,7 @@ export function evaluateProbePath(input) {
             ...requested,
             ...chainEvidence,
             ...specEvidence,
+            ...accountEvidence("registration"),
             ...(keyInBody ? declaration() : []),
         ]);
     })();
@@ -169,6 +175,7 @@ export function evaluateProbePath(input) {
             ...pagesOf(({ role }) => role === "registration"),
             ...chainEvidence,
             ...specEvidence,
+            ...accountEvidence("registration"),
         ];
         return result("onboard", "workaround", "setup", evidence.length > 0 ? evidence : declaration());
     })();
@@ -177,6 +184,11 @@ export function evaluateProbePath(input) {
             return result("pay", "machine", null, requested);
         if (covered?.payment)
             return result("pay", "machine", null, specEvidence);
+        // The agent funds the balance the job draws on itself: a top-up its spec says is paid by 402.
+        const funded = accounts("top_up").filter(({ spec: read }) => read.payment);
+        if (funded.length > 0) {
+            return result("pay", "machine", null, funded.flatMap(({ spec: read }) => readFrom(read)));
+        }
         const manifests = (run) => target === null
             ? []
             : run.discovery.facts.filter((found) => found.fact === "payment_manifest" &&
@@ -202,11 +214,12 @@ export function evaluateProbePath(input) {
         // A dead or invented page sets nothing: a page counts once it is found. A balance a person tops
         // up by hand recurs (the shape's "manual top-ups"); a checkout puts a card on file once.
         const toppedUp = pagesOf(({ role, found }) => role === "top_up" && found);
-        if (toppedUp.length > 0)
-            return result("pay", "workaround", "recurring", toppedUp);
+        if (toppedUp.length > 0) {
+            return result("pay", "workaround", "recurring", [...toppedUp, ...accountEvidence("top_up")]);
+        }
         const checkout = pagesOf(({ role, found }) => role === "checkout" && found);
         return checkout.length > 0
-            ? result("pay", "workaround", "setup", checkout)
+            ? result("pay", "workaround", "setup", [...checkout, ...accountEvidence("top_up")])
             : notAssessed("pay");
     })();
     const pages = answeredRuns.filter((run) => run.probes.find(({ operation_id }) => operation_id === id)?.request?.answer === "page");

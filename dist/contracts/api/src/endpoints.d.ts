@@ -10816,6 +10816,22 @@ export declare const publicCatalogV1Endpoints: readonly [{
                             }, z.core.$strict>;
                         }, z.core.$strict>>;
                     }, z.core.$strict>], "kind">>;
+                    account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        operation_id: z.ZodString;
+                        interface_id: z.ZodString;
+                        role: z.ZodEnum<{
+                            registration: "registration";
+                            top_up: "top_up";
+                        }>;
+                        endpoint_id: z.ZodString;
+                        method: z.ZodEnum<{
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        url: z.ZodURL;
+                        spec_url: z.ZodURL;
+                    }, z.core.$strict>>>;
                     job_bindings: z.ZodArray<z.ZodObject<{
                         binding_id: z.ZodString;
                         interface_id: z.ZodString;
@@ -11241,6 +11257,7 @@ export declare const publicCatalogV1Endpoints: readonly [{
                         field_paths: z.ZodArray<z.ZodString>;
                         target: z.ZodObject<{
                             node_kind: z.ZodEnum<{
+                                account_operation: "account_operation";
                                 declaration: "declaration";
                                 endpoint: "endpoint";
                                 interface: "interface";
@@ -17941,6 +17958,25 @@ export declare const catalogSubmissionV1Endpoints: readonly [{
                     }, z.core.$strict>], "kind">;
                     source_uris: z.ZodArray<z.ZodURL>;
                 }, z.core.$strict>>>;
+                account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    operation: z.ZodObject<{
+                        operation_id: z.ZodString;
+                        interface_id: z.ZodString;
+                        role: z.ZodEnum<{
+                            registration: "registration";
+                            top_up: "top_up";
+                        }>;
+                        endpoint_id: z.ZodString;
+                        method: z.ZodEnum<{
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        url: z.ZodURL;
+                        spec_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    source_uris: z.ZodArray<z.ZodURL>;
+                }, z.core.$strict>>>;
                 job_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
                     binding: z.ZodObject<{
                         binding_id: z.ZodString;
@@ -19054,6 +19090,25 @@ export declare const agentReadinessDeclarationDraftV1Endpoints: readonly [{
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>], "kind">;
+                source_uris: z.ZodArray<z.ZodURL>;
+            }, z.core.$strict>>>;
+            account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                operation: z.ZodObject<{
+                    operation_id: z.ZodString;
+                    interface_id: z.ZodString;
+                    role: z.ZodEnum<{
+                        registration: "registration";
+                        top_up: "top_up";
+                    }>;
+                    endpoint_id: z.ZodString;
+                    method: z.ZodEnum<{
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    url: z.ZodURL;
+                    spec_url: z.ZodURL;
+                }, z.core.$strict>;
                 source_uris: z.ZodArray<z.ZodURL>;
             }, z.core.$strict>>>;
             job_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
@@ -32696,6 +32751,22 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                             }, z.core.$strict>;
                         }, z.core.$strict>>;
                     }, z.core.$strict>], "kind">>;
+                    account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                        operation_id: z.ZodString;
+                        interface_id: z.ZodString;
+                        role: z.ZodEnum<{
+                            registration: "registration";
+                            top_up: "top_up";
+                        }>;
+                        endpoint_id: z.ZodString;
+                        method: z.ZodEnum<{
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        url: z.ZodURL;
+                        spec_url: z.ZodURL;
+                    }, z.core.$strict>>>;
                     job_bindings: z.ZodArray<z.ZodObject<{
                         binding_id: z.ZodString;
                         interface_id: z.ZodString;
@@ -33121,6 +33192,7 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         field_paths: z.ZodArray<z.ZodString>;
                         target: z.ZodObject<{
                             node_kind: z.ZodEnum<{
+                                account_operation: "account_operation";
                                 declaration: "declaration";
                                 endpoint: "endpoint";
                                 interface: "interface";
@@ -39819,6 +39891,25 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     }, z.core.$strict>], "kind">;
                     source_uris: z.ZodArray<z.ZodURL>;
                 }, z.core.$strict>>>;
+                account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                    operation: z.ZodObject<{
+                        operation_id: z.ZodString;
+                        interface_id: z.ZodString;
+                        role: z.ZodEnum<{
+                            registration: "registration";
+                            top_up: "top_up";
+                        }>;
+                        endpoint_id: z.ZodString;
+                        method: z.ZodEnum<{
+                            PATCH: "PATCH";
+                            POST: "POST";
+                            PUT: "PUT";
+                        }>;
+                        url: z.ZodURL;
+                        spec_url: z.ZodURL;
+                    }, z.core.$strict>;
+                    source_uris: z.ZodArray<z.ZodURL>;
+                }, z.core.$strict>>>;
                 job_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{
                     binding: z.ZodObject<{
                         binding_id: z.ZodString;
@@ -40930,6 +41021,25 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                         }, z.core.$strict>;
                     }, z.core.$strict>>;
                 }, z.core.$strict>], "kind">;
+                source_uris: z.ZodArray<z.ZodURL>;
+            }, z.core.$strict>>>;
+            account_operations: z.ZodOptional<z.ZodArray<z.ZodObject<{
+                operation: z.ZodObject<{
+                    operation_id: z.ZodString;
+                    interface_id: z.ZodString;
+                    role: z.ZodEnum<{
+                        registration: "registration";
+                        top_up: "top_up";
+                    }>;
+                    endpoint_id: z.ZodString;
+                    method: z.ZodEnum<{
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>;
+                    url: z.ZodURL;
+                    spec_url: z.ZodURL;
+                }, z.core.$strict>;
                 source_uris: z.ZodArray<z.ZodURL>;
             }, z.core.$strict>>>;
             job_bindings: z.ZodDefault<z.ZodArray<z.ZodObject<{

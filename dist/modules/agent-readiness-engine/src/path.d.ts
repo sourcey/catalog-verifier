@@ -1,5 +1,5 @@
 import type { AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/grade-policy.js";
-import { type AgentReadinessJob, type AgentReadinessJobOperation, type AgentReadinessJobResult, type AgentReadinessRunRecord, type AgentReadinessStep, type AgentReadinessStepResult } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessAccountOperation, type AgentReadinessJob, type AgentReadinessJobOperation, type AgentReadinessJobResult, type AgentReadinessRunRecord, type AgentReadinessStep, type AgentReadinessStepResult } from "../../../contracts/agent-readiness/src/index.js";
 /** One interface's path, and whether a later run is due soon to settle or reproduce it. */
 export interface EvaluatedPath {
     readonly steps: readonly AgentReadinessStepResult[];
@@ -39,6 +39,8 @@ export declare function evaluateProbePath(input: {
     readonly keyRenewalPages: readonly string[];
     /** The listing rules out a checkout: the job is free, or paid per call by its request's offer. */
     readonly checkoutRuledOut: boolean;
+    /** The account operations this interface declares: its sign-up API, its top-up. */
+    readonly accountOperations: readonly Pick<AgentReadinessAccountOperation, "operation_id" | "role">[];
     /** Probe runs of the profile's current declaration revision, any order. */
     readonly runs: readonly AgentReadinessRunRecord[];
 }): EvaluatedPath;
