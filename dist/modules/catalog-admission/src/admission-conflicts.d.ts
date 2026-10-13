@@ -454,7 +454,16 @@ export declare class CompositeCatalogAdmissionConflictQuery implements CatalogAd
  */
 export declare function deriveCatalogEntityIdentityAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
 /** Derive all exact conflict keys once from the canonical compiled candidate. */
-export declare function deriveCatalogAdmissionKeys(input: unknown): readonly CatalogAdmissionKey[];
+export declare function deriveCatalogAdmissionKeys(input: unknown, 
+/**
+ * The records a candidate asks about, every one when omitted. A correction asks only about the
+ * records it changes: the company's others are published, and sharing its pages is no duplicate.
+ */
+records?: {
+    readonly entity: boolean;
+    readonly programIds: readonly string[];
+    readonly offerIds: readonly string[];
+}): readonly CatalogAdmissionKey[];
 export declare function evaluateCatalogAdmissionConflicts(input: {
     readonly keys: readonly CatalogAdmissionKey[];
     readonly matches: readonly CatalogAdmissionKeyMatch[];

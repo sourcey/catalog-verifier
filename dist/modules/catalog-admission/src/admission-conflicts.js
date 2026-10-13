@@ -230,9 +230,24 @@ function deriveOpenPullRequestPathAdmissionKeys(path) {
     ];
 }
 /** Derive all exact conflict keys once from the canonical compiled candidate. */
-export function deriveCatalogAdmissionKeys(input) {
-    const entity = entityAuthoringSchema.parse(input);
-    const keys = [...deriveCatalogEntityIdentityAdmissionKeys(entity.entity)];
+export function deriveCatalogAdmissionKeys(input, 
+/**
+ * The records a candidate asks about, every one when omitted. A correction asks only about the
+ * records it changes: the company's others are published, and sharing its pages is no duplicate.
+ */
+records) {
+    const parsed = entityAuthoringSchema.parse(input);
+    const entity = records
+        ? {
+            ...parsed,
+            programs: parsed.programs.filter(({ program_id: id }) => records.programIds.includes(id)),
+            offers: parsed.offers.filter(({ offer_id: id }) => records.offerIds.includes(id)),
+        }
+        : parsed;
+    const asked = records?.entity ?? true;
+    const keys = asked
+        ? [...deriveCatalogEntityIdentityAdmissionKeys(entity.entity)]
+        : [];
     const add = (kind, value, candidateReference) => {
         keys.push({ kind, ...catalogAdmissionKey(kind, value), candidateReference });
     };
@@ -248,12 +263,14 @@ export function deriveCatalogAdmissionKeys(input) {
         }
     };
     const entityReference = `entity:${entity.entity.entity_id}`;
-    add("entity_url", entity.profile.links.site, entityReference);
-    if (entity.profile.links.pricing) {
-        add("entity_url", entity.profile.links.pricing, entityReference);
+    if (asked) {
+        add("entity_url", entity.profile.links.site, entityReference);
+        if (entity.profile.links.pricing) {
+            add("entity_url", entity.profile.links.pricing, entityReference);
+        }
+        for (const source of entity.sources)
+            addOwnPage("evidence_url", source.url, entityReference);
     }
-    for (const source of entity.sources)
-        addOwnPage("evidence_url", source.url, entityReference);
     for (const program of entity.programs) {
         const reference = `program:${program.program_id}`;
         add("program_id", program.program_id, reference);
