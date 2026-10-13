@@ -780,7 +780,6 @@ export declare const publicDatasetEndpointByDataset: {
                     interface_id: z.ZodNullable<z.ZodString>;
                     label: z.ZodEnum<{
                         probed: "probed";
-                        sourcey_run: "sourcey_run";
                         vendor_run_verified: "vendor_run_verified";
                     }>;
                     label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -1622,7 +1621,6 @@ export declare const publicDatasetEndpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -1780,7 +1778,6 @@ export declare const agentReadinessProfileListQuerySchema: z.ZodObject<{
     }>>;
     label: z.ZodOptional<z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>>;
     visibility: z.ZodOptional<z.ZodEnum<{

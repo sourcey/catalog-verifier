@@ -1,5 +1,5 @@
 import { z } from "zod";
-export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.13";
+export declare const SOURCEY_PUBLIC_API_VERSION = "1.2.14";
 /**
  * Sourcey's response-header budget leaves transport headroom beneath the
  * 16 KiB aggregate parser ceiling used by common HTTP clients. The x402
@@ -5932,7 +5932,6 @@ export declare const entityAgentReadinessProfilesResponseSchema: z.ZodObject<{
         interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -6345,7 +6344,6 @@ export declare const agentReadinessProfileResponseSchema: z.ZodObject<{
         interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -6567,7 +6565,6 @@ export declare const agentReadinessProfileListResponseSchema: z.ZodObject<{
         interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -6944,7 +6941,6 @@ export declare const offerAgentReadinessProfilesResponseSchema: z.ZodObject<{
             interface_id: z.ZodNullable<z.ZodString>;
             label: z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
             label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -7492,7 +7488,6 @@ export declare const catalogRevisionSchema: z.ZodUnion<readonly [z.ZodObject<{
         run_digest: z.ZodString;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         finished_at: z.ZodISODateTime;
@@ -8543,7 +8538,6 @@ export declare const revisionResponseSchema: z.ZodObject<{
             run_digest: z.ZodString;
             label: z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
             finished_at: z.ZodISODateTime;

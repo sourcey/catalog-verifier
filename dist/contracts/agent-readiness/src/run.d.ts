@@ -236,7 +236,6 @@ export declare const agentReadinessRunRecordCoreSchema: z.ZodObject<{
     job_id: z.ZodString;
     label: z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>;
     engine: z.ZodObject<{
@@ -424,7 +423,6 @@ export declare const agentReadinessRunRecordSchema: z.ZodObject<{
     job_id: z.ZodString;
     label: z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>;
     engine: z.ZodObject<{
