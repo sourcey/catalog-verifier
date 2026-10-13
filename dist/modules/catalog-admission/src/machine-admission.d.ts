@@ -4,8 +4,8 @@ export declare const entityPathSchema: z.ZodString;
  * Startup Credits machine admission: one company file. A new company comes alone or with exactly
  * one observed Offer, never with a Program alone. A correction to a company Sourcey lists changes,
  * adds or corrects that company's own records, every Offer observed. It removes a record only as a
- * merge a person confirms: each removed record names its survivor by its slug, which the survivor
- * keeps as an alias.
+ * merge its survivor's pages confirm: each removed record names its survivor by its slug, which
+ * the survivor keeps as an alias, and the judge reads the survivor's pages as presenting one.
  */
 export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodObject<{
     policy_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-policy/v1alpha1">;
@@ -26,7 +26,7 @@ export declare const startupCreditsMachineAdmissionPolicyCoreSchema: z.ZodObject
             }, z.core.$strict>], null>;
         }, z.core.$strict>;
         correction: z.ZodObject<{
-            removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+            removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
             offer_evidence_basis: z.ZodLiteral<"observed">;
         }, z.core.$strict>;
         unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
@@ -51,26 +51,133 @@ export declare const startupCreditsMachineAdmissionPolicySchema: z.ZodObject<{
             }, z.core.$strict>], null>;
         }, z.core.$strict>;
         correction: z.ZodObject<{
-            removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+            removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
             offer_evidence_basis: z.ZodLiteral<"observed">;
         }, z.core.$strict>;
         unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
     }, z.core.$strict>;
     policy_digest: z.ZodString;
 }, z.core.$strict>;
-/** A merge a person confirmed on review: each retired record becomes an alias of its survivor. */
-declare const identityTransitionSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+declare const identityMergeCoreSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
     kind: z.ZodLiteral<"offer.merged">;
     entity_id: z.ZodString;
     surviving_offer_id: z.ZodString;
     retired_offer_ids: z.ZodArray<z.ZodString>;
-    decision_digest: z.ZodString;
+    survivor_revision_digest: z.ZodString;
 }, z.core.$strict>, z.ZodObject<{
     kind: z.ZodLiteral<"program.merged">;
     entity_id: z.ZodString;
     surviving_program_id: z.ZodString;
     retired_program_ids: z.ZodArray<z.ZodString>;
-    decision_digest: z.ZodString;
+    survivor_revision_digest: z.ZodString;
+}, z.core.$strict>], "kind">;
+export type StartupCreditsIdentityMerge = z.infer<typeof identityMergeCoreSchema>;
+/** The claim a merge is judged on: the merge itself, content-addressed. */
+export declare function identityMergeClaimId(merge: StartupCreditsIdentityMerge): string;
+/**
+ * A merge and the judge's reading of it: each retired record becomes an alias of its survivor,
+ * whose pages present them as one. The result's claim is `identityMergeClaimId` of the merge.
+ */
+declare const identityTransitionSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    kind: z.ZodLiteral<"offer.merged">;
+    entity_id: z.ZodString;
+    surviving_offer_id: z.ZodString;
+    retired_offer_ids: z.ZodArray<z.ZodString>;
+    survivor_revision_digest: z.ZodString;
+    result: z.ZodObject<{
+        result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+        claim_id: z.ZodString;
+        status: z.ZodEnum<{
+            contradicted: "contradicted";
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        bindings: z.ZodArray<z.ZodObject<{
+            source_id: z.ZodString;
+            capture_digest: z.ZodString;
+            normalized_object_digest: z.ZodString;
+            adapter_id: z.ZodString;
+            adapter_digest: z.ZodString;
+            proof_kind: z.ZodEnum<{
+                attested: "attested";
+                derived: "derived";
+                editorial: "editorial";
+                observed: "observed";
+            }>;
+            derivation_rule: z.ZodNullable<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
+                "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "public-availability-from-application": "public-availability-from-application";
+            }>>;
+            locators: z.ZodArray<z.ZodObject<{
+                kind: z.ZodLiteral<"utf8-range">;
+                start_byte: z.ZodNumber;
+                end_byte: z.ZodNumber;
+                value_digest: z.ZodString;
+            }, z.core.$strict>>;
+            binding_digest: z.ZodString;
+        }, z.core.$strict>>;
+        dependency_result_digests: z.ZodArray<z.ZodString>;
+        residue: z.ZodArray<z.ZodObject<{
+            code: z.ZodString;
+            detail_digest: z.ZodString;
+        }, z.core.$strict>>;
+        result_digest: z.ZodString;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"program.merged">;
+    entity_id: z.ZodString;
+    surviving_program_id: z.ZodString;
+    retired_program_ids: z.ZodArray<z.ZodString>;
+    survivor_revision_digest: z.ZodString;
+    result: z.ZodObject<{
+        result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+        claim_id: z.ZodString;
+        status: z.ZodEnum<{
+            contradicted: "contradicted";
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        bindings: z.ZodArray<z.ZodObject<{
+            source_id: z.ZodString;
+            capture_digest: z.ZodString;
+            normalized_object_digest: z.ZodString;
+            adapter_id: z.ZodString;
+            adapter_digest: z.ZodString;
+            proof_kind: z.ZodEnum<{
+                attested: "attested";
+                derived: "derived";
+                editorial: "editorial";
+                observed: "observed";
+            }>;
+            derivation_rule: z.ZodNullable<z.ZodEnum<{
+                "consideration-from-benefits": "consideration-from-benefits";
+                "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                "first-party-access-operator": "first-party-access-operator";
+                "form-access-from-first-party-application": "form-access-from-first-party-application";
+                "public-availability-from-application": "public-availability-from-application";
+            }>>;
+            locators: z.ZodArray<z.ZodObject<{
+                kind: z.ZodLiteral<"utf8-range">;
+                start_byte: z.ZodNumber;
+                end_byte: z.ZodNumber;
+                value_digest: z.ZodString;
+            }, z.core.$strict>>;
+            binding_digest: z.ZodString;
+        }, z.core.$strict>>;
+        dependency_result_digests: z.ZodArray<z.ZodString>;
+        residue: z.ZodArray<z.ZodObject<{
+            code: z.ZodString;
+            detail_digest: z.ZodString;
+        }, z.core.$strict>>;
+        result_digest: z.ZodString;
+    }, z.core.$strict>;
 }, z.core.$strict>], "kind">;
 export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<{
     evaluation_contract: z.ZodLiteral<"sourcey.startup-credits-machine-admission-input/v1alpha1">;
@@ -100,7 +207,7 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
                 }, z.core.$strict>], null>;
             }, z.core.$strict>;
             correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+                removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
                 offer_evidence_basis: z.ZodLiteral<"observed">;
             }, z.core.$strict>;
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
@@ -663,13 +770,101 @@ export declare const startupCreditsMachineAdmissionInputCoreSchema: z.ZodObject<
         entity_id: z.ZodString;
         surviving_offer_id: z.ZodString;
         retired_offer_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"program.merged">;
         entity_id: z.ZodString;
         surviving_program_id: z.ZodString;
         retired_program_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>], "kind">>>;
     asset: z.ZodNullable<z.ZodObject<{
         kind: z.ZodEnum<{
@@ -716,7 +911,7 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
                 }, z.core.$strict>], null>;
             }, z.core.$strict>;
             correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+                removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
                 offer_evidence_basis: z.ZodLiteral<"observed">;
             }, z.core.$strict>;
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
@@ -1279,13 +1474,101 @@ export declare const startupCreditsMachineAdmissionInputSchema: z.ZodObject<{
         entity_id: z.ZodString;
         surviving_offer_id: z.ZodString;
         retired_offer_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"program.merged">;
         entity_id: z.ZodString;
         surviving_program_id: z.ZodString;
         retired_program_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>], "kind">>>;
     asset: z.ZodNullable<z.ZodObject<{
         kind: z.ZodEnum<{
@@ -1326,7 +1609,7 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
                 }, z.core.$strict>], null>;
             }, z.core.$strict>;
             correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+                removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
                 offer_evidence_basis: z.ZodLiteral<"observed">;
             }, z.core.$strict>;
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
@@ -1889,13 +2172,101 @@ export declare const startupCreditsAdmissionCandidateInputCoreSchema: z.ZodObjec
         entity_id: z.ZodString;
         surviving_offer_id: z.ZodString;
         retired_offer_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"program.merged">;
         entity_id: z.ZodString;
         surviving_program_id: z.ZodString;
         retired_program_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>], "kind">>>;
     asset: z.ZodNullable<z.ZodObject<{
         kind: z.ZodEnum<{
@@ -1936,7 +2307,7 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
                 }, z.core.$strict>], null>;
             }, z.core.$strict>;
             correction: z.ZodObject<{
-                removed_subjects: z.ZodLiteral<"merged_on_person_review">;
+                removed_subjects: z.ZodLiteral<"merged_as_judged_duplicate">;
                 offer_evidence_basis: z.ZodLiteral<"observed">;
             }, z.core.$strict>;
             unattended_asset_kind: z.ZodLiteral<"sourcey_monogram">;
@@ -2499,13 +2870,101 @@ export declare const startupCreditsAdmissionCandidateInputSchema: z.ZodObject<{
         entity_id: z.ZodString;
         surviving_offer_id: z.ZodString;
         retired_offer_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>, z.ZodObject<{
         kind: z.ZodLiteral<"program.merged">;
         entity_id: z.ZodString;
         surviving_program_id: z.ZodString;
         retired_program_ids: z.ZodArray<z.ZodString>;
-        decision_digest: z.ZodString;
+        survivor_revision_digest: z.ZodString;
+        result: z.ZodObject<{
+            result_contract: z.ZodLiteral<"sourcey.material-claim-result/v1alpha1">;
+            claim_id: z.ZodString;
+            status: z.ZodEnum<{
+                contradicted: "contradicted";
+                supported: "supported";
+                unresolved: "unresolved";
+                unsupported: "unsupported";
+            }>;
+            bindings: z.ZodArray<z.ZodObject<{
+                source_id: z.ZodString;
+                capture_digest: z.ZodString;
+                normalized_object_digest: z.ZodString;
+                adapter_id: z.ZodString;
+                adapter_digest: z.ZodString;
+                proof_kind: z.ZodEnum<{
+                    attested: "attested";
+                    derived: "derived";
+                    editorial: "editorial";
+                    observed: "observed";
+                }>;
+                derivation_rule: z.ZodNullable<z.ZodEnum<{
+                    "consideration-from-benefits": "consideration-from-benefits";
+                    "contact-access-from-first-party-mailto": "contact-access-from-first-party-mailto";
+                    "eligibility-composition-from-criteria": "eligibility-composition-from-criteria";
+                    "first-party-access-operator": "first-party-access-operator";
+                    "form-access-from-first-party-application": "form-access-from-first-party-application";
+                    "public-availability-from-application": "public-availability-from-application";
+                }>>;
+                locators: z.ZodArray<z.ZodObject<{
+                    kind: z.ZodLiteral<"utf8-range">;
+                    start_byte: z.ZodNumber;
+                    end_byte: z.ZodNumber;
+                    value_digest: z.ZodString;
+                }, z.core.$strict>>;
+                binding_digest: z.ZodString;
+            }, z.core.$strict>>;
+            dependency_result_digests: z.ZodArray<z.ZodString>;
+            residue: z.ZodArray<z.ZodObject<{
+                code: z.ZodString;
+                detail_digest: z.ZodString;
+            }, z.core.$strict>>;
+            result_digest: z.ZodString;
+        }, z.core.$strict>;
     }, z.core.$strict>], "kind">>>;
     asset: z.ZodNullable<z.ZodObject<{
         kind: z.ZodEnum<{
@@ -2545,7 +3004,6 @@ export declare const startupCreditsMachineAdmissionReasonSchema: z.ZodEnum<{
     declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
     entity_summary_required: "entity_summary_required";
     exact_conflict: "exact_conflict";
-    identity_merge_requires_person: "identity_merge_requires_person";
     program_summary_required: "program_summary_required";
     safe_asset_required: "safe_asset_required";
     scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
@@ -2585,7 +3043,6 @@ export declare const startupCreditsMachineAdmissionResultCoreSchema: z.ZodObject
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
-        identity_merge_requires_person: "identity_merge_requires_person";
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
@@ -2629,7 +3086,6 @@ export declare const startupCreditsMachineAdmissionResultSchema: z.ZodObject<{
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
-        identity_merge_requires_person: "identity_merge_requires_person";
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
@@ -2674,7 +3130,6 @@ export declare const startupCreditsAdmissionCandidateResultCoreSchema: z.ZodObje
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
-        identity_merge_requires_person: "identity_merge_requires_person";
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";
@@ -2718,7 +3173,6 @@ export declare const startupCreditsAdmissionCandidateResultSchema: z.ZodObject<{
         declared_offer_not_machine_admissible: "declared_offer_not_machine_admissible";
         entity_summary_required: "entity_summary_required";
         exact_conflict: "exact_conflict";
-        identity_merge_requires_person: "identity_merge_requires_person";
         program_summary_required: "program_summary_required";
         safe_asset_required: "safe_asset_required";
         scope_removal_requires_identity_transition: "scope_removal_requires_identity_transition";

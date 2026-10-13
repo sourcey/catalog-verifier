@@ -17,8 +17,8 @@ export const entityPathSchema = z
  * Startup Credits machine admission: one company file. A new company comes alone or with exactly
  * one observed Offer, never with a Program alone. A correction to a company Sourcey lists changes,
  * adds or corrects that company's own records, every Offer observed. It removes a record only as a
- * merge a person confirms: each removed record names its survivor by its slug, which the survivor
- * keeps as an alias.
+ * merge its survivor's pages confirm: each removed record names its survivor by its slug, which
+ * the survivor keeps as an alias, and the judge reads the survivor's pages as presenting one.
  */
 export const startupCreditsMachineAdmissionPolicyCoreSchema = z
     .object({
@@ -51,7 +51,7 @@ export const startupCreditsMachineAdmissionPolicyCoreSchema = z
             .strict(),
         correction: z
             .object({
-            removed_subjects: z.literal("merged_on_person_review"),
+            removed_subjects: z.literal("merged_as_judged_duplicate"),
             offer_evidence_basis: z.literal("observed"),
         })
             .strict(),
@@ -145,15 +145,14 @@ const sourceEvaluationSchema = z
         });
     }
 });
-/** A merge a person confirmed on review: each retired record becomes an alias of its survivor. */
-const identityTransitionSchema = z.discriminatedUnion("kind", [
+const identityMergeCoreSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("offer.merged"),
         entity_id: z.string().regex(ENTITY_ID_PATTERN),
         surviving_offer_id: z.string().regex(OFFER_ID_PATTERN),
         retired_offer_ids: z.array(z.string().regex(OFFER_ID_PATTERN)).min(1).max(8),
-        decision_digest: digestSchema,
+        survivor_revision_digest: digestSchema,
     })
         .strict(),
     z
@@ -162,9 +161,21 @@ const identityTransitionSchema = z.discriminatedUnion("kind", [
         entity_id: z.string().regex(ENTITY_ID_PATTERN),
         surviving_program_id: z.string().regex(PROGRAM_ID_PATTERN),
         retired_program_ids: z.array(z.string().regex(PROGRAM_ID_PATTERN)).min(1).max(8),
-        decision_digest: digestSchema,
+        survivor_revision_digest: digestSchema,
     })
         .strict(),
+]);
+/** The claim a merge is judged on: the merge itself, content-addressed. */
+export function identityMergeClaimId(merge) {
+    return digest(identityMergeCoreSchema.parse(merge));
+}
+/**
+ * A merge and the judge's reading of it: each retired record becomes an alias of its survivor,
+ * whose pages present them as one. The result's claim is `identityMergeClaimId` of the merge.
+ */
+const identityTransitionSchema = z.discriminatedUnion("kind", [
+    identityMergeCoreSchema.options[0].extend({ result: materialClaimResultSchema }).strict(),
+    identityMergeCoreSchema.options[1].extend({ result: materialClaimResultSchema }).strict(),
 ]);
 const conflictSchema = z
     .object({
@@ -217,8 +228,8 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
         .min(1)
         .max(32),
     changed_subjects: z.array(changedSubjectSchema).min(1).max(8),
-    // A merge a person confirmed changes no revision: its admission judges no record and reads no
-    // page. The evaluator still closes these on exactly the subjects the change keeps.
+    // A merge changes no revision: it judges no record, only the merge itself on its survivor's
+    // pages. The evaluator still closes these on exactly the subjects the change keeps.
     candidate_revisions: z
         .array(z.union([entityRevisionSchema, programRevisionSchema, offerRevisionSchema]))
         .max(8),
@@ -227,7 +238,7 @@ export const startupCreditsMachineAdmissionInputCoreSchema = z
     conflicts: z.array(conflictSchema).max(64),
     /** A new company's standing binding, from Sourcey's company gate; absent in earlier inputs. */
     company_admission: companyAdmissionBindingSchema.optional(),
-    /** The merges a person confirmed for a correction's removed records; absent when none. */
+    /** The judged merges behind a correction's removed records; absent when none. */
     identity_transitions: z.array(identityTransitionSchema).min(1).max(8).optional(),
     /** A new company's logo candidate; null for a correction, which keeps the company's logo. */
     asset: z
@@ -321,7 +332,6 @@ export const startupCreditsMachineAdmissionReasonSchema = z.enum([
     "scope_requires_one_new_offer",
     "scope_requires_one_company_file",
     "scope_removal_requires_identity_transition",
-    "identity_merge_requires_person",
     "scope_unsupported_change_shape",
     "declared_offer_not_machine_admissible",
     "entity_summary_required",

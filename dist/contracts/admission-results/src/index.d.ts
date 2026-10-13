@@ -47,15 +47,12 @@ declare const startupCreditsAdmissionReportCoreSchema: z.ZodObject<{
         normalized_object_digest: z.ZodNullable<z.ZodString>;
     }, z.core.$strict>>;
     claims: z.ZodArray<z.ZodObject<{
-        subject_revision_digest: z.ZodString;
-        path: z.ZodString;
         status: z.ZodEnum<{
             contradicted: "contradicted";
             supported: "supported";
             unresolved: "unresolved";
             unsupported: "unsupported";
         }>;
-        guidance: z.ZodString;
         result_digest: z.ZodString;
         bindings: z.ZodArray<z.ZodObject<{
             source_id: z.ZodString;
@@ -68,7 +65,32 @@ declare const startupCreditsAdmissionReportCoreSchema: z.ZodObject<{
             }, z.core.$strict>>;
         }, z.core.$strict>>;
         residue_codes: z.ZodArray<z.ZodString>;
+        subject_revision_digest: z.ZodString;
+        path: z.ZodString;
+        guidance: z.ZodString;
     }, z.core.$strict>>;
+    merges: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        status: z.ZodEnum<{
+            contradicted: "contradicted";
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        result_digest: z.ZodString;
+        bindings: z.ZodArray<z.ZodObject<{
+            source_id: z.ZodString;
+            binding_digest: z.ZodString;
+            locators: z.ZodArray<z.ZodObject<{
+                kind: z.ZodLiteral<"utf8-range">;
+                start_byte: z.ZodNumber;
+                end_byte: z.ZodNumber;
+                value_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>>;
+        residue_codes: z.ZodArray<z.ZodString>;
+        survivor_revision_digest: z.ZodString;
+        description: z.ZodString;
+    }, z.core.$strict>>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodString;
         strength: z.ZodEnum<{
@@ -182,15 +204,12 @@ declare const startupCreditsAdmissionReportSchema: z.ZodObject<{
         normalized_object_digest: z.ZodNullable<z.ZodString>;
     }, z.core.$strict>>;
     claims: z.ZodArray<z.ZodObject<{
-        subject_revision_digest: z.ZodString;
-        path: z.ZodString;
         status: z.ZodEnum<{
             contradicted: "contradicted";
             supported: "supported";
             unresolved: "unresolved";
             unsupported: "unsupported";
         }>;
-        guidance: z.ZodString;
         result_digest: z.ZodString;
         bindings: z.ZodArray<z.ZodObject<{
             source_id: z.ZodString;
@@ -203,7 +222,32 @@ declare const startupCreditsAdmissionReportSchema: z.ZodObject<{
             }, z.core.$strict>>;
         }, z.core.$strict>>;
         residue_codes: z.ZodArray<z.ZodString>;
+        subject_revision_digest: z.ZodString;
+        path: z.ZodString;
+        guidance: z.ZodString;
     }, z.core.$strict>>;
+    merges: z.ZodOptional<z.ZodArray<z.ZodObject<{
+        status: z.ZodEnum<{
+            contradicted: "contradicted";
+            supported: "supported";
+            unresolved: "unresolved";
+            unsupported: "unsupported";
+        }>;
+        result_digest: z.ZodString;
+        bindings: z.ZodArray<z.ZodObject<{
+            source_id: z.ZodString;
+            binding_digest: z.ZodString;
+            locators: z.ZodArray<z.ZodObject<{
+                kind: z.ZodLiteral<"utf8-range">;
+                start_byte: z.ZodNumber;
+                end_byte: z.ZodNumber;
+                value_digest: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>>;
+        residue_codes: z.ZodArray<z.ZodString>;
+        survivor_revision_digest: z.ZodString;
+        description: z.ZodString;
+    }, z.core.$strict>>>;
     conflicts: z.ZodArray<z.ZodObject<{
         kind: z.ZodString;
         strength: z.ZodEnum<{

@@ -4,19 +4,19 @@
   "files": [
     {
       "path": "dist/contracts/admission-results/src/index.d.ts",
-      "sha256": "sha256:76bcab26153f1c300aa0d87f5e5700e9d1db20db06013dd9d5ecc4929494b5dd"
+      "sha256": "sha256:d05bbc16e860f3846e70f0bc74b7575477c9e6d5b00878a16e18b723844d4927"
     },
     {
       "path": "dist/contracts/admission-results/src/index.d.ts.map",
-      "sha256": "sha256:904598186bf12370504fc8bd9b924b8980cc9659c21fe9a8af041cb983a91e43"
+      "sha256": "sha256:4b09be703187854bb840681cbf50a856df30896b6a65ab0788eaaf1e0ae961e4"
     },
     {
       "path": "dist/contracts/admission-results/src/index.js",
-      "sha256": "sha256:106d34bc42bbc193c48b541124ce0fd8a014730dd1b900ad70c11d19c073c7a4"
+      "sha256": "sha256:591a2574cb20ba7884dbaf247b44992dc4369e4e505a6f077bbcbf6c5d81c1f8"
     },
     {
       "path": "dist/contracts/admission-results/src/index.js.map",
-      "sha256": "sha256:07ec5433f2ca87e366db98a355cb1479efcd2b2089bf3b1f0bc5e04480091b89"
+      "sha256": "sha256:5d29a6e6b246652817b2fc8d7aa7e78fc01d5d9189741cc1085df7e2ecb37c06"
     },
     {
       "path": "dist/contracts/agent-readiness/src/authority.d.ts",
@@ -1684,19 +1684,19 @@
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.d.ts",
-      "sha256": "sha256:fcd6533aba329f406f461d6e6542bad784c83ca815488509700bd726e949ed6b"
+      "sha256": "sha256:c18f67734baac8454d3cf5237fa90482adc21608832d4b0f32bc24577fe2219d"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.d.ts.map",
-      "sha256": "sha256:600281aececbdb3fd8eba5e8fa92e1c8f2b99d63d5a72cb3f791631ad6932144"
+      "sha256": "sha256:1785142fe090cc6640ba71aef3510d701be5dc2856bbe33646601d4f3e19f840"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.js",
-      "sha256": "sha256:11d77924ec9a5ca32b71326246778c378adbf7045ff98754e9d66f9e21212d95"
+      "sha256": "sha256:02b4b6002ca6c406ab008da9205ac91dcc40658beae3d31cb5e3b7622993f6d1"
     },
     {
       "path": "dist/modules/catalog-admission/src/machine-admission.js.map",
-      "sha256": "sha256:3357ce0c0bc39a8a132d69dfba23ec8c57ef3eaaac9eeb1d8f33d373ae533975"
+      "sha256": "sha256:adf811b282916116a4b190c22a86a3d86c4013ed0b07525ed74ee06e0ba92c28"
     },
     {
       "path": "dist/modules/catalog-admission/src/publication-assets.d.ts",
@@ -2260,19 +2260,19 @@
     },
     {
       "path": "dist/modules/provenance/src/material-claims.d.ts",
-      "sha256": "sha256:3bd89ea991037e8a87c5017978120f6ba760a42e958b78893b6b7a7b46abbb6e"
+      "sha256": "sha256:5780b804641549e00c6f6d0e3eb9e12ce08186b6589a7d08aef541cd51eb7236"
     },
     {
       "path": "dist/modules/provenance/src/material-claims.d.ts.map",
-      "sha256": "sha256:a057ab461af30005aee18346f81b05c7011e7c025b523685f3b08795ad850d04"
+      "sha256": "sha256:44195a52620ab2fe0a4e31fc6651219004d8567d0353b2367d257ab21a5a0d06"
     },
     {
       "path": "dist/modules/provenance/src/material-claims.js",
-      "sha256": "sha256:a74e34dd27f3bb7efba9bb44577557396321a26745fd7f3d6640c1357a1e8a84"
+      "sha256": "sha256:6f9989a1866ea0e56f76af89e04fc0b7df848210aa3faacf0b18edf93bd28854"
     },
     {
       "path": "dist/modules/provenance/src/material-claims.js.map",
-      "sha256": "sha256:a0a4028c093096ef374fb9c4bada934d925ca778c9a7d59e29a0f14f6dcd8e14"
+      "sha256": "sha256:526856ccb82e38d7fd23e92fc3c2778db8686a670110801c2bffbfef8f9279ce"
     },
     {
       "path": "dist/modules/provenance/src/prospective-evidence.d.ts",
@@ -2643,5 +2643,5 @@
       "sha256": "sha256:cec1e15c14a9958a061bcea4ac0bad33e10242994c25556c1ec952b52ef2735e"
     }
   ],
-  "closure_digest": "sha256:e69b12202b2effe0305ab8a122f4d87918f6c3c4bc8ac9a9dd74e83d461f0db5"
+  "closure_digest": "sha256:b443d68bd14f458cba7eb51ef813470bf8f18f9f5adf43d2e3e525a7a5ab10e1"
 }
