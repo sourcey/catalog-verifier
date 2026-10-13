@@ -1,7 +1,7 @@
 import { EXCHANGE_METHODS, verifyExchangeRecord, } from "provenry/exchange/records";
 import { compareInstants } from "provenry/primitives";
 import { z } from "zod";
-import { AGENT_READINESS_MAXIMUM_PAGES, AGENT_READINESS_PAGE_ROLES, AGENT_READINESS_PERSON_STEPS, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessHostnameSchema, agentReadinessHumanStepTimingSchema, agentReadinessInstantSchema, agentReadinessJobOutcomeSchema, agentReadinessPersonStepKey, agentReadinessScopeKeySchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, } from "./shared.js";
+import { AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS, AGENT_READINESS_MAXIMUM_PAGES, AGENT_READINESS_MAXIMUM_REFERENCED_DOCUMENTS, AGENT_READINESS_PAGE_ROLES, AGENT_READINESS_PERSON_STEPS, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessEvidenceLabelSchema, agentReadinessHostnameSchema, agentReadinessHumanStepTimingSchema, agentReadinessInstantSchema, agentReadinessJobOutcomeSchema, agentReadinessPersonStepKey, agentReadinessScopeKeySchema, agentReadinessStepOutcomeSchema, agentReadinessStepSchema, } from "./shared.js";
 /**
  * One assessment run as evidence: what was discovered, every exchange made (by
  * its sealed exchange record and retained outcome), and what was read from the
@@ -166,13 +166,34 @@ export const agentReadinessSpecReadingSchema = z
     attempt_digest: agentReadinessDigestSchema,
     /** Read; absent (an error status, or not an OpenAPI 3 document); or unanswered (residue). */
     fetched: z.enum(["read", "absent", "unanswered"]),
+    /**
+     * The documents on the spec's host its references reached for this
+     * reading, in the order they were read (north star §5.6): read, absent (an
+     * error status, or not JSON or YAML) or unanswered (residue). Named only
+     * when the reading reached one, so every earlier run's record reads as it
+     * was written.
+     */
+    references: z
+        .array(z
+        .object({
+        url: z.url({ protocol: /^https$/u }),
+        attempt_digest: agentReadinessDigestSchema,
+        fetched: z.enum(["read", "absent", "unanswered"]),
+    })
+        .strict())
+        .min(1)
+        .max(AGENT_READINESS_MAXIMUM_REFERENCED_DOCUMENTS)
+        .optional(),
     /** The document is OpenAPI 3 and has the job's method under a matching path template. */
     covers: z.boolean(),
     /** The kinds of security the operation accepts; empty when it does not cover the job. */
     security: z.array(agentReadinessSpecSecuritySchema).max(3),
     /** The operation declares a 4xx response with a JSON or XML schema. */
     typed_errors: z.boolean(),
-    /** The operation declares a machine payment (`x-payment-info`). */
+    /**
+     * The operation declares a machine payment: `x-payment-info`, or a 402
+     * response with a `WWW-Authenticate` challenge (MPP).
+     */
     payment: z.boolean(),
     /** The document covers the key operations the listing names. */
     key_operations: z.boolean(),
@@ -318,6 +339,16 @@ export const agentReadinessPageProbeSchema = z
     .refine((page) => !(page.found && page.answer === "unanswered"), {
     message: "An unanswered page is not found.",
 });
+/**
+ * What the probe read for one account operation: the vendor's spec alone,
+ * since nothing is sent to a sign-up or a top-up (north star §5.6).
+ */
+export const agentReadinessAccountReadingSchema = z
+    .object({
+    operation_id: agentReadinessScopeKeySchema,
+    spec: agentReadinessSpecReadingSchema,
+})
+    .strict();
 /** A runner-side failure: never a fact about the service, always residue to retry. */
 export const agentReadinessRunResidueSchema = z
     .object({ step: z.union([agentReadinessStepSchema, z.literal("job")]), reason: reasonSchema })
@@ -369,6 +400,16 @@ export const agentReadinessRunRecordCoreSchema = z
     probes: z.array(agentReadinessOperationProbeSchema).max(4),
     /** A probe run's requests for the pages its listing names; empty for a verified run. */
     pages: z.array(agentReadinessPageProbeSchema).max(AGENT_READINESS_MAXIMUM_PAGES),
+    /**
+     * A probe run's reading of each account operation its listing declares,
+     * from the vendor's spec alone. Named only when the listing declares one,
+     * so every earlier run's record reads as it was written.
+     */
+    accounts: z
+        .array(agentReadinessAccountReadingSchema)
+        .min(1)
+        .max(AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS)
+        .optional(),
     /** Empty when the job's calls did not all complete. */
     assertions: z.array(agentReadinessAssertionResultSchema).max(8),
     residue: z.array(agentReadinessRunResidueSchema).max(16),
@@ -420,11 +461,11 @@ export const agentReadinessRunRecordCoreSchema = z
             message: "A probe run holds no credential and checks no assertion.",
         });
     }
-    if (!probe && (run.probes.length > 0 || run.pages.length > 0)) {
+    if (!probe && (run.probes.length > 0 || run.pages.length > 0 || run.accounts)) {
         context.addIssue({
             code: "custom",
             path: ["probes"],
-            message: "Only a probe run reads job operations and pages.",
+            message: "Only a probe run reads job operations, pages and account operations.",
         });
     }
     const pages = run.pages.map(({ page_id, role }) => `${page_id} ${role}`);

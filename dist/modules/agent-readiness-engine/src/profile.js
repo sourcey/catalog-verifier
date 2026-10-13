@@ -6,14 +6,15 @@ import { agentReadinessLetterRank, rateGrade } from "./rate.js";
  * The vendor's sales or approval pages that stand between an agent and one
  * interface (north star §5.6, Onboard `gated`): one the interface names, since
  * the vendor approves who calls it whatever sign-up exists beside it; and,
- * with no sign-up endpoint, one no interface names, since the vendor decides
- * who gets an account at all. Each holds once the probe's request for it is
- * answered.
+ * with no sign-up declared (a registration endpoint or account operation),
+ * one no interface names, since the vendor decides who gets an account at
+ * all. Each holds once the probe's request for it is answered.
  */
 export function agentReadinessAccessGates(declaration, interfaceId) {
     const own = new Set(declaration.interfaces.find(({ interface_id }) => interface_id === interfaceId)?.endpoint_ids);
     const named = new Set(declaration.interfaces.flatMap(({ endpoint_ids }) => endpoint_ids));
-    const signUp = declaration.endpoints.some(({ roles }) => roles.includes("registration"));
+    const signUp = declaration.endpoints.some(({ roles }) => roles.includes("registration")) ||
+        (declaration.account_operations ?? []).some(({ role }) => role === "registration");
     return declaration.endpoints
         .filter(({ endpoint_id, roles }) => roles.includes("access_request") &&
         (own.has(endpoint_id) || (!signUp && !named.has(endpoint_id))))
@@ -89,6 +90,7 @@ export function evaluateInterfacePath(input) {
             claimPages: agentReadinessInterfacePages(declaration, operation.interface_id, "claim"),
             keyRenewalPages: agentReadinessInterfacePages(declaration, operation.interface_id, "key_renewal"),
             checkoutRuledOut: agentReadinessCheckoutRuledOut(declaration),
+            accountOperations: (declaration.account_operations ?? []).filter(({ interface_id }) => interface_id === operation.interface_id),
             runs: input.probeRuns,
         });
         if (!binding)

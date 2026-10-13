@@ -3,10 +3,10 @@ import { authoringSourceSchema, entityIdentityAuthoringSchema, entityProfileAuth
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { standardImplementationBindingSchema } from "../../standards/src/index.js";
 import { agentReadinessJobBindingSchema, validateDeclaredJobBindings } from "./binding.js";
-import { agentReadinessJobOperationFieldPaths, agentReadinessJobOperationSchema, validateDeclaredJobOperations, } from "./operation.js";
+import { AGENT_READINESS_ACCOUNT_OPERATION_FIELD_PATHS, agentReadinessAccountOperationSchema, agentReadinessJobOperationFieldPaths, agentReadinessJobOperationSchema, validateDeclaredAccountOperations, validateDeclaredJobOperations, } from "./operation.js";
 import { validateProbedSurfaces } from "./surfaces.js";
 export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadinessDeclarationProvenanceSchema, agentReadinessDeclarationReferenceSchema, } from "./declaration-reference.js";
-import { agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessHostnameSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessResourceRoleSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
+import { AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS, agentReadinessDigestSchema, agentReadinessEntityIdSchema, agentReadinessHostnameSchema, agentReadinessIdentifierSchema, agentReadinessInstantSchema, agentReadinessOfferIdSchema, agentReadinessResourceRoleSchema, agentReadinessScopeKeySchema, agentReadinessScopeSchema, agentReadinessSurfaceReferenceSchema, } from "./shared.js";
 export const agentReadinessParticipantRoleSchema = z.enum([
     "subject",
     "access_operator",
@@ -171,6 +171,7 @@ const agentReadinessDeclarationSourceTargetSchema = z
         "relation",
         "offer_relation",
         "job_operation",
+        "account_operation",
         "job_binding",
         "surface_exclusion",
     ]),
@@ -202,6 +203,7 @@ const agentReadinessDeclarationGraphSourceTargetSchema = z
         "interface",
         "relation",
         "job_operation",
+        "account_operation",
         "job_binding",
         "surface_exclusion",
     ]),
@@ -233,6 +235,16 @@ const agentReadinessDeclarationCoreSchema = z
      * §5.3): what the probe suite reads, and what every listing's letter rests on.
      */
     job_operations: z.array(agentReadinessJobOperationSchema).max(4),
+    /**
+     * The operations an agent runs on its own account beside the job (north
+     * star §5.6): a sign-up API, or a top-up it pays itself. Absent when the
+     * listing declares none.
+     */
+    account_operations: z
+        .array(agentReadinessAccountOperationSchema)
+        .min(1)
+        .max(AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS)
+        .optional(),
     /**
      * How a declared interface performs the job end to end, for a verified run.
      * Optional: a listing is probed and graded without one, and a binding adds
@@ -372,7 +384,7 @@ export const agentReadinessAuthoringSchema = z
     }
 });
 function validateDeclarationGraph(value, context) {
-    assertUnique(value.job_operations.map((operation) => operation.operation_id), context, ["job_operations"], "Job operation IDs must be unique.");
+    assertUnique([...value.job_operations, ...(value.account_operations ?? [])].map((operation) => operation.operation_id), context, ["job_operations"], "Job and account operation IDs must be unique.");
     assertUnique(value.job_bindings.map((binding) => binding.binding_id), context, ["job_bindings"], "Job binding IDs must be unique.");
     assertUnique(value.participants.map((participant) => participant.participant_id), context, ["participants"], "Participant IDs must be unique.");
     assertUnique(value.resources.map((resource) => resource.resource_id), context, ["resources"], "Resource IDs must be unique.");
@@ -391,6 +403,7 @@ function validateDeclarationGraph(value, context) {
     const resourceIds = new Set(value.resources.map((resource) => resource.resource_id));
     const endpointIds = new Set(value.endpoints.map((endpoint) => endpoint.endpoint_id));
     validateDeclaredJobOperations(value, context);
+    validateDeclaredAccountOperations(value, context);
     validateDeclaredJobBindings(value, context);
     for (const [index, declaredInterface] of value.interfaces.entries()) {
         for (const endpointId of declaredInterface.endpoint_ids) {
@@ -473,6 +486,9 @@ function validateSourceBindings(value, context) {
     addTarget("declaration", value.declaration_id, ["/scope/product/name", "/scope/job/name"]);
     for (const operation of value.job_operations) {
         addTarget("job_operation", operation.operation_id, agentReadinessJobOperationFieldPaths(operation));
+    }
+    for (const operation of value.account_operations ?? []) {
+        addTarget("account_operation", operation.operation_id, AGENT_READINESS_ACCOUNT_OPERATION_FIELD_PATHS);
     }
     for (const binding of value.job_bindings) {
         addTarget("job_binding", binding.binding_id, ["/interface_id", "/calls"]);

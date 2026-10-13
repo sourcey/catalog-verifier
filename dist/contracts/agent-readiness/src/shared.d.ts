@@ -24,6 +24,12 @@ export declare const agentReadinessScopeSchema: z.ZodObject<{
     }, z.core.$strict>;
 }, z.core.$strict>;
 export declare function sameAgentReadinessScopeIdentity(left: z.infer<typeof agentReadinessScopeSchema>, right: z.infer<typeof agentReadinessScopeSchema>): boolean;
+/**
+ * A URL's origin, or null for a value that is not a URL. A declaration's own
+ * checks compare origins whatever its fields read, so a value its URL check
+ * refused is reported there, never thrown on.
+ */
+export declare function agentReadinessUrlOrigin(value: string): string | null;
 export declare const agentReadinessCatalogBindingSchema: z.ZodObject<{
     base_release_id: z.ZodString;
     entity_revision_digest: z.ZodString;
@@ -79,6 +85,13 @@ export declare const AGENT_READINESS_MAXIMUM_REVISION_RUNS: number;
 export declare const AGENT_READINESS_PAGE_ROLES: readonly ["registration", "access_request", "access_setting", "claim", "checkout", "top_up", "key_renewal"];
 /** A probe run requests each declared page once, and a listing names at most this many. */
 export declare const AGENT_READINESS_MAXIMUM_PAGES = 8;
+/** A listing declares at most this many account operations (north star §5.6). */
+export declare const AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS = 4;
+/**
+ * The most documents a spec's references reach in one run, beside the spec
+ * itself, each read under the document bound (north star §5.6).
+ */
+export declare const AGENT_READINESS_MAXIMUM_REFERENCED_DOCUMENTS = 4;
 /**
  * The path, in the shape's order: the agent finds the job, gets authority for
  * it, registers, pays, confirms, and keeps its access up (north star §5.1).

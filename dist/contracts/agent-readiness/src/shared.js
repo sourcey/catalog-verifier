@@ -32,6 +32,14 @@ export const agentReadinessScopeSchema = z
 export function sameAgentReadinessScopeIdentity(left, right) {
     return left.product.key === right.product.key && left.job.key === right.job.key;
 }
+/**
+ * A URL's origin, or null for a value that is not a URL. A declaration's own
+ * checks compare origins whatever its fields read, so a value its URL check
+ * refused is reported there, never thrown on.
+ */
+export function agentReadinessUrlOrigin(value) {
+    return URL.canParse(value) ? new URL(value).origin : null;
+}
 export const agentReadinessCatalogBindingSchema = z
     .object({
     base_release_id: agentReadinessDigestSchema,
@@ -94,6 +102,13 @@ export const AGENT_READINESS_PAGE_ROLES = [
 ];
 /** A probe run requests each declared page once, and a listing names at most this many. */
 export const AGENT_READINESS_MAXIMUM_PAGES = 8;
+/** A listing declares at most this many account operations (north star §5.6). */
+export const AGENT_READINESS_MAXIMUM_ACCOUNT_OPERATIONS = 4;
+/**
+ * The most documents a spec's references reach in one run, beside the spec
+ * itself, each read under the document bound (north star §5.6).
+ */
+export const AGENT_READINESS_MAXIMUM_REFERENCED_DOCUMENTS = 4;
 /**
  * The path, in the shape's order: the agent finds the job, gets authority for
  * it, registers, pays, confirms, and keeps its access up (north star §5.1).

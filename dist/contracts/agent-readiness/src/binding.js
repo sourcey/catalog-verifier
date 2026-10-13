@@ -1,6 +1,6 @@
 import { EXCHANGE_METHODS, FORM_MEDIA_TYPE, HEADER_NAME_PATTERN } from "provenry/exchange/records";
 import { z } from "zod";
-import { agentReadinessScopeKeySchema } from "./shared.js";
+import { agentReadinessScopeKeySchema, agentReadinessUrlOrigin } from "./shared.js";
 /**
  * How one interface performs one library job, for a verified run: the exact
  * calls, locations of observations consumed by Sourcey's assertions, and how
@@ -430,8 +430,10 @@ export function validateDeclaredJobBindings(value, context) {
             if (endpoint.transport !== "http") {
                 issue(`Call '${call.call_id}' needs an HTTP endpoint.`);
             }
+            const endpointOrigin = agentReadinessUrlOrigin(endpoint.uri);
             if (call.kind === "http" &&
-                call.url.match(/^https:\/\/[^/?#]+/u)?.[0] !== new URL(endpoint.uri).origin) {
+                endpointOrigin &&
+                call.url.match(/^https:\/\/[^/?#]+/u)?.[0] !== endpointOrigin) {
                 issue(`Call '${call.call_id}' leaves the origin of '${call.endpoint_id}'.`);
             }
         }

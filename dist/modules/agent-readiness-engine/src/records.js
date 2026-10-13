@@ -90,23 +90,31 @@ const AUTHORITY_CHAIN = new Set([
 ]);
 /**
  * Whether a probe run left one job operation unanswered: the request itself,
- * the malformed request after a success, the spec it names, any read of its
- * authority chain (a metadata location passed over for the next one could
- * have named another server), or a page the listing names (which every
- * operation's Onboard and Pay read). Residue is never a fact about the
- * service, so such a run decides nothing about the operation, and the profile
- * is probed again.
+ * the malformed request after a success, the spec it names or a document its
+ * references reach, any read of its authority chain (a metadata location
+ * passed over for the next one could have named another server), a page the
+ * listing names (which every operation's Onboard and Pay read), or the spec of
+ * an account operation its interface declares (`accountOperationIds`).
+ * Residue is never a fact about the service, so such a run decides nothing
+ * about the operation, and the profile is probed again.
  */
-export function probeUnanswered(run, operationId) {
+export function probeUnanswered(run, operationId, accountOperationIds = []) {
     const probe = run.probes.find(({ operation_id }) => operation_id === operationId);
     if (!probe ||
         probe.request?.answer === "unanswered" ||
         probe.malformed?.answer === "unanswered" ||
-        probe.spec?.fetched === "unanswered" ||
-        run.pages.some(({ answer }) => answer === "unanswered")) {
+        specUnanswered(probe.spec) ||
+        run.pages.some(({ answer }) => answer === "unanswered") ||
+        (run.accounts ?? []).some(({ operation_id, spec }) => accountOperationIds.includes(operation_id) && specUnanswered(spec))) {
         return true;
     }
     return run.exchanges.some(({ call_id, purpose, record }) => call_id === operationId && AUTHORITY_CHAIN.has(purpose) && unansweredRecord(record));
+}
+/** A spec reading that rests on a read left unanswered: the spec's own, or a reference's. */
+export function specUnanswered(spec) {
+    return (spec !== null &&
+        (spec.fetched === "unanswered" ||
+            (spec.references ?? []).some(({ fetched }) => fetched === "unanswered")));
 }
 /** A response header a record kept, or null. */
 export function responseHeader(record, name) {
