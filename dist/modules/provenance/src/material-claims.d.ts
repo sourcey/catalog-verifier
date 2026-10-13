@@ -256,5 +256,7 @@ export declare function verifyMaterialClaimEvaluation(input: {
     readonly plan: MaterialClaimPlan;
     readonly results: readonly MaterialClaimResult[];
 };
+/** One claim result, content-addressed with every binding it records. */
+export declare function verifyMaterialClaimResult(value: unknown): MaterialClaimResult;
 export {};
 //# sourceMappingURL=material-claims.d.ts.map

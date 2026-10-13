@@ -205,7 +205,7 @@ export function verifyMaterialClaimEvaluation(input) {
             throw new Error(`Material claim ${claimId} is not content-addressed correctly.`);
         }
     }
-    const results = input.results.map((value) => materialClaimResultSchema.parse(value));
+    const results = input.results.map(verifyMaterialClaimResult);
     const resultByClaim = new Map(results.map((result) => [result.claim_id, result]));
     const expected = [...plan.claims.map(({ claim_id: claimId }) => claimId)].sort(compareCanonicalStrings);
     const actual = [...results.map(({ claim_id: claimId }) => claimId)].sort(compareCanonicalStrings);
@@ -214,18 +214,12 @@ export function verifyMaterialClaimEvaluation(input) {
         throw new Error("Material claim results do not close the exact claim plan.");
     }
     for (const result of results) {
-        const { result_digest: resultDigest, ...resultCore } = result;
-        if (digest(materialClaimResultCoreSchema.parse(resultCore)) !== resultDigest) {
-            throw new Error(`Material claim result ${resultDigest} is not content-addressed correctly.`);
-        }
+        const { result_digest: resultDigest } = result;
         const claim = plan.claims.find(({ claim_id: claimId }) => claimId === result.claim_id);
         if (!claim)
             throw new Error(`Material claim result ${resultDigest} names no claim.`);
         for (const binding of result.bindings) {
-            const { binding_digest: bindingDigest, ...bindingCore } = binding;
-            if (digest(materialClaimMatchBindingCoreSchema.parse(bindingCore)) !== bindingDigest) {
-                throw new Error(`Material claim binding ${bindingDigest} is not content-addressed.`);
-            }
+            const { binding_digest: bindingDigest } = binding;
             if (!claim.proof_kinds.includes(binding.proof_kind) ||
                 (binding.derivation_rule !== null &&
                     !claim.derivation_rules.includes(binding.derivation_rule))) {
@@ -251,6 +245,20 @@ export function verifyMaterialClaimEvaluation(input) {
         plan,
         results: [...results].sort((left, right) => compareCanonicalStrings(left.claim_id, right.claim_id)),
     };
+}
+/** One claim result, content-addressed with every binding it records. */
+export function verifyMaterialClaimResult(value) {
+    const result = materialClaimResultSchema.parse(value);
+    const { result_digest: resultDigest, ...resultCore } = result;
+    if (digest(materialClaimResultCoreSchema.parse(resultCore)) !== resultDigest) {
+        throw new Error(`Material claim result ${resultDigest} is not content-addressed correctly.`);
+    }
+    for (const { binding_digest: bindingDigest, ...bindingCore } of result.bindings) {
+        if (digest(materialClaimMatchBindingCoreSchema.parse(bindingCore)) !== bindingDigest) {
+            throw new Error(`Material claim binding ${bindingDigest} is not content-addressed.`);
+        }
+    }
+    return result;
 }
 function compositionClaims(content, requirement, leaves) {
     const candidatePaths = new Set();

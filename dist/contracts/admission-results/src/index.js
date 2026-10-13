@@ -38,12 +38,9 @@ const sourceSchema = z
     normalized_object_digest: digestSchema.nullable(),
 })
     .strict();
-const claimSchema = z
+const judgedSchema = z
     .object({
-    subject_revision_digest: digestSchema,
-    path: z.string().min(1).max(500),
     status: z.enum(["supported", "unsupported", "contradicted", "unresolved"]),
-    guidance: z.string().min(1).max(500),
     result_digest: digestSchema,
     bindings: z.array(z
         .object({
@@ -53,6 +50,20 @@ const claimSchema = z
     })
         .strict()),
     residue_codes: z.array(identifierSchema),
+})
+    .strict();
+const claimSchema = judgedSchema
+    .extend({
+    subject_revision_digest: digestSchema,
+    path: z.string().min(1).max(500),
+    guidance: z.string().min(1).max(500),
+})
+    .strict();
+/** A merge the change makes, judged on the pages of the record it keeps. */
+const mergeSchema = judgedSchema
+    .extend({
+    survivor_revision_digest: digestSchema,
+    description: z.string().min(1).max(600),
 })
     .strict();
 const conflictSchema = z
@@ -81,6 +92,8 @@ const startupCreditsAdmissionReportCoreSchema = z
     candidate_domains: z.array(z.string().min(1).max(253)).max(32),
     sources: z.array(sourceSchema).max(REPORT_SOURCES_LIMIT),
     claims: z.array(claimSchema).max(4096),
+    /** Each merge the change makes; absent when it makes none. */
+    merges: z.array(mergeSchema).min(1).max(8).optional(),
     conflicts: z.array(conflictSchema).max(64),
     /** The standing binding a new company was admitted on, from Sourcey's company gate. */
     company_admission: companyAdmissionBindingSchema.optional(),
