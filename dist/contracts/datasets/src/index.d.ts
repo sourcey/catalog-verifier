@@ -773,7 +773,6 @@ export declare const agentReadinessDatasetSchema: z.ZodObject<{
         interface_id: z.ZodNullable<z.ZodString>;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         label_run_at: z.ZodNullable<z.ZodISODateTime>;

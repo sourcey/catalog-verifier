@@ -65,7 +65,6 @@ export declare const agentReadinessProfileInputSchema: z.ZodObject<{
         run_digest: z.ZodString;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         finished_at: z.ZodISODateTime;
@@ -215,7 +214,6 @@ export declare const agentReadinessProfileInputSchema: z.ZodObject<{
         job_id: z.ZodString;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         engine: z.ZodObject<{
@@ -473,7 +471,6 @@ export declare const agentReadinessProfileReleaseInputSchema: z.ZodObject<{
             run_digest: z.ZodString;
             label: z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
             finished_at: z.ZodISODateTime;
@@ -623,7 +620,6 @@ export declare const agentReadinessProfileReleaseInputSchema: z.ZodObject<{
             job_id: z.ZodString;
             label: z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>;
             engine: z.ZodObject<{
@@ -1427,7 +1423,6 @@ export declare const agentReadinessRevisionCoreSchema: z.ZodObject<{
         run_digest: z.ZodString;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         finished_at: z.ZodISODateTime;
@@ -1629,7 +1624,6 @@ export declare const agentReadinessRevisionSchema: z.ZodObject<{
         run_digest: z.ZodString;
         label: z.ZodEnum<{
             probed: "probed";
-            sourcey_run: "sourcey_run";
             vendor_run_verified: "vendor_run_verified";
         }>;
         finished_at: z.ZodISODateTime;
@@ -2016,7 +2010,6 @@ export declare const agentReadinessProjectionCoreSchema: z.ZodObject<{
     interface_id: z.ZodNullable<z.ZodString>;
     label: z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>;
     label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -2412,7 +2405,6 @@ export declare const agentReadinessProjectionSchema: z.ZodObject<{
     interface_id: z.ZodNullable<z.ZodString>;
     label: z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>;
     label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -2610,7 +2602,6 @@ export declare const agentReadinessProfileSummarySchema: z.ZodObject<{
     interface_id: z.ZodNullable<z.ZodString>;
     label: z.ZodEnum<{
         probed: "probed";
-        sourcey_run: "sourcey_run";
         vendor_run_verified: "vendor_run_verified";
     }>;
     label_run_at: z.ZodNullable<z.ZodISODateTime>;

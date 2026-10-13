@@ -209,7 +209,6 @@ export declare const agentReadinessLetterSchema: z.ZodEnum<{
 export type AgentReadinessLetter = z.infer<typeof agentReadinessLetterSchema>;
 export declare const agentReadinessEvidenceLabelSchema: z.ZodEnum<{
     probed: "probed";
-    sourcey_run: "sourcey_run";
     vendor_run_verified: "vendor_run_verified";
 }>;
 export type AgentReadinessEvidenceLabel = z.infer<typeof agentReadinessEvidenceLabelSchema>;

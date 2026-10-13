@@ -3701,7 +3701,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -4195,7 +4194,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -10573,7 +10571,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     run_digest: z.ZodString;
                     label: z.ZodEnum<{
                         probed: "probed";
-                        sourcey_run: "sourcey_run";
                         vendor_run_verified: "vendor_run_verified";
                     }>;
                     finished_at: z.ZodISODateTime;
@@ -16213,7 +16210,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
             }>>;
             label: z.ZodOptional<z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>>;
             visibility: z.ZodOptional<z.ZodEnum<{
@@ -16265,7 +16261,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -16691,7 +16686,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -17386,7 +17380,6 @@ export declare const publicCatalogV1Endpoints: readonly [{
                     interface_id: z.ZodNullable<z.ZodString>;
                     label: z.ZodEnum<{
                         probed: "probed";
-                        sourcey_run: "sourcey_run";
                         vendor_run_verified: "vendor_run_verified";
                     }>;
                     label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -25588,7 +25581,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -26082,7 +26074,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -32460,7 +32451,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     run_digest: z.ZodString;
                     label: z.ZodEnum<{
                         probed: "probed";
-                        sourcey_run: "sourcey_run";
                         vendor_run_verified: "vendor_run_verified";
                     }>;
                     finished_at: z.ZodISODateTime;
@@ -38100,7 +38090,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
             }>>;
             label: z.ZodOptional<z.ZodEnum<{
                 probed: "probed";
-                sourcey_run: "sourcey_run";
                 vendor_run_verified: "vendor_run_verified";
             }>>;
             visibility: z.ZodOptional<z.ZodEnum<{
@@ -38152,7 +38141,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -38578,7 +38566,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -39273,7 +39260,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                     interface_id: z.ZodNullable<z.ZodString>;
                     label: z.ZodEnum<{
                         probed: "probed";
-                        sourcey_run: "sourcey_run";
                         vendor_run_verified: "vendor_run_verified";
                     }>;
                     label_run_at: z.ZodNullable<z.ZodISODateTime>;
@@ -44519,7 +44505,6 @@ export declare const catalogOpenApiV1Endpoints: readonly [{
                 interface_id: z.ZodNullable<z.ZodString>;
                 label: z.ZodEnum<{
                     probed: "probed";
-                    sourcey_run: "sourcey_run";
                     vendor_run_verified: "vendor_run_verified";
                 }>;
                 label_run_at: z.ZodNullable<z.ZodISODateTime>;

@@ -172,9 +172,5 @@ export function agentReadinessPersonStepKey(step) {
 }
 /** The scale, best first (north star §5.7). */
 export const agentReadinessLetterSchema = z.enum(["A+", "A", "B+", "B", "C", "D", "F"]);
-export const agentReadinessEvidenceLabelSchema = z.enum([
-    "sourcey_run",
-    "vendor_run_verified",
-    "probed",
-]);
+export const agentReadinessEvidenceLabelSchema = z.enum(["vendor_run_verified", "probed"]);
 //# sourceMappingURL=shared.js.map
