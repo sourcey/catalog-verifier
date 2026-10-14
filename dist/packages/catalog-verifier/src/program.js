@@ -2,11 +2,11 @@ import { execFile } from "node:child_process";
 import { readFile } from "node:fs/promises";
 import { promisify } from "node:util";
 import { digest } from "provenry/primitives";
-import { z } from "zod";
 import { verifierRepositoryKindSchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { readCatalogTaxonomy } from "../../../modules/catalog-admission/src/taxonomy.js";
 import { requiredFlag, requiredPath } from "../../../modules/cli/src/index.js";
 import { CatalogVerifierApplication } from "./application.js";
+import { catalogVerifierError, outputFormat, renderResult } from "./cli.js";
 const execFileAsync = promisify(execFile);
 export async function main(arguments_) {
     try {
@@ -107,19 +107,6 @@ async function run(arguments_) {
         renderCriteria(application.explain(repositoryKind), outputFormat(args));
         return;
     }
-    if (command === "verify-release") {
-        if (commandArguments[0] && !commandArguments[0].startsWith("--")) {
-            throw new Error("verify-release accepts flags only.");
-        }
-        const result = await application.verifyRelease({
-            directory: requiredPath(commandArguments, "--release"),
-            trustedRootDigest: requiredFlag(commandArguments, "--trusted-root-digest"),
-        });
-        renderResult(result, outputFormat(commandArguments));
-        if (result.status === "invalid")
-            process.exitCode = 2;
-        return;
-    }
     throw new Error(usage());
 }
 function candidateIdentity(repositoryKind, baseRevision, headRevision, args) {
@@ -176,44 +163,6 @@ export async function resolveCatalogVerifierCommit(repositoryRoot, revision) {
     }
     return commit;
 }
-export function catalogVerifierError(error) {
-    if (!(error instanceof z.ZodError)) {
-        return error instanceof Error ? error : new Error(String(error));
-    }
-    const issues = error.issues.map((issue) => {
-        const path = issue.path.reduce((result, segment) => typeof segment === "number"
-            ? `${result}[${segment}]`
-            : `${result}${result ? "." : ""}${String(segment)}`, "");
-        return `- ${path || "document"}: ${issue.message}`;
-    });
-    return new Error(`Catalog data is invalid:\n${issues.join("\n")}`);
-}
-function outputFormat(args) {
-    const formatIndex = args.indexOf("--format");
-    if (formatIndex < 0)
-        return "human";
-    const format = args[formatIndex + 1];
-    if (format !== "human" && format !== "json") {
-        throw new Error("--format must be human or json.");
-    }
-    return format;
-}
-function renderResult(result, format) {
-    if (format === "json") {
-        process.stdout.write(`${JSON.stringify(result)}\n`);
-        return;
-    }
-    if (result.status === "valid") {
-        const counts = Object.entries(result.summary ?? {})
-            .map(([key, value]) => `${key.replaceAll("_", " ")}: ${value}`)
-            .join(", ");
-        process.stdout.write(`Sourcey verification passed (${counts}).\n`);
-        return;
-    }
-    for (const diagnostic of result.diagnostics) {
-        process.stderr.write(`${diagnostic.rule_id} [${diagnostic.classification}]${diagnostic.path ? ` ${diagnostic.path}` : ""}\n${diagnostic.message}\n${diagnostic.guidance}\n`);
-    }
-}
 function renderCriteria(criteria, format) {
     if (format === "json") {
         process.stdout.write(`${JSON.stringify({ criteria_contract: "sourcey.catalog-verifier-criteria/v1alpha1", criteria })}\n`);
@@ -233,7 +182,6 @@ function usage() {
         "  sourcey-catalog-verify validate startup-credits --repository DIR --base COMMIT --head COMMIT --taxonomy FILE --identity-context FILE --root-set FILE --trusted-root-digest DIGEST --verified-at INSTANT [--candidate-repository OWNER/REPO --pull-request NUMBER] [--format human|json]",
         "  sourcey-catalog-verify validate agent-readiness --repository DIR --base COMMIT --head COMMIT --identity-context FILE --root-set FILE --trusted-root-digest DIGEST --verified-at INSTANT [--candidate-repository OWNER/REPO --pull-request NUMBER] [--format human|json]",
         "  sourcey-catalog-verify explain startup-credits|agent-readiness [--format human|json]",
-        "  sourcey-catalog-verify verify-release --release DIR --trusted-root-digest DIGEST [--format human|json]",
     ].join("\n");
 }
 //# sourceMappingURL=program.js.map

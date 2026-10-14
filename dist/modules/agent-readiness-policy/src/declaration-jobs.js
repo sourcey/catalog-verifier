@@ -1,12 +1,12 @@
-import { agentReadinessBindingIssues } from "../../agent-readiness-engine/src/binding.js";
+import { agentReadinessBindingIssues, } from "../../../contracts/agent-readiness/src/binding.js";
 /**
- * Why a declaration cannot be rated under a policy, as declaration-relative
- * paths: its job is not one of the policy's library, or a binding does not
- * perform that job. Empty when it can be rated.
+ * Why a declaration cannot be rated, as declaration-relative paths: its job is
+ * not in the job library, or a binding does not perform that job. Empty when
+ * it can be rated. Only the library decides this, never the grading rules.
  */
 export function agentReadinessDeclarationJobIssues(input) {
-    const { declaration, policy } = input;
-    const job = policy.job_library.jobs.find(({ job_id }) => job_id === declaration.scope.job.key);
+    const { declaration, jobLibrary } = input;
+    const job = jobLibrary.jobs.find(({ job_id }) => job_id === declaration.scope.job.key);
     if (!job) {
         return [
             {
@@ -20,7 +20,7 @@ export function agentReadinessDeclarationJobIssues(input) {
         message,
     })));
 }
-/** Refuses a declaration its policy cannot rate. */
+/** Refuses a declaration its job library cannot rate. */
 export function assertAgentReadinessDeclarationJobs(input) {
     const issues = agentReadinessDeclarationJobIssues(input);
     if (issues.length > 0) {

@@ -36,7 +36,7 @@
     "properties": [
       {
         "name": "sourcey:distribution-definition-sha256",
-        "value": "sha256:56c6104b1f8de751b08df2167b3f79ba41a06ea03281645af17a7e86f71f0da2"
+        "value": "sha256:210a640183995050c9c9a1e18d1a05fd34ce9cf365b0a5e074d5a45cb31d04b0"
       },
       {
         "name": "sourcey:toolchain-sha256",
@@ -123,54 +123,6 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/tldts@7.4.16",
-      "name": "tldts",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "version": "7.4.16",
-      "purl": "pkg:npm/tldts@7.4.16",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "43004447928c47ce88223a4888eec7fd9dc83093ec67503a44a3c0ab34d380ec944144adf4576729caa14da266918e8756b828b991d94749dc2b9431be69d07a"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/tldts/-/tldts-7.4.16.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
-      "bom-ref": "pkg:npm/tldts-core@7.4.16",
-      "name": "tldts-core",
-      "licenses": [
-        {
-          "expression": "MIT"
-        }
-      ],
-      "version": "7.4.16",
-      "purl": "pkg:npm/tldts-core@7.4.16",
-      "hashes": [
-        {
-          "alg": "SHA-512",
-          "content": "303a257da489b6548ae58d00d71977dbbede92e6d9c286e9063ba09270e2cc8f4ee519bad1ad66f24e0808af8c46c083ccfca04fcd66a770417f944a0e51517c"
-        }
-      ],
-      "externalReferences": [
-        {
-          "type": "distribution",
-          "url": "https://registry.npmjs.org/tldts-core/-/tldts-core-7.4.16.tgz"
-        }
-      ]
-    },
-    {
-      "type": "library",
       "bom-ref": "pkg:npm/yaml@2.9.1",
       "name": "yaml",
       "licenses": [
@@ -223,7 +175,6 @@
       "ref": "urn:sourcey:code-distribution:catalog-verifier",
       "dependsOn": [
         "pkg:npm/provenry@0.2.2",
-        "pkg:npm/tldts@7.4.16",
         "pkg:npm/yaml@2.9.1",
         "pkg:npm/zod@4.6.5"
       ]
@@ -244,16 +195,6 @@
         "pkg:npm/parse5@8.0.1",
         "pkg:npm/zod@4.6.5"
       ]
-    },
-    {
-      "ref": "pkg:npm/tldts@7.4.16",
-      "dependsOn": [
-        "pkg:npm/tldts-core@7.4.16"
-      ]
-    },
-    {
-      "ref": "pkg:npm/tldts-core@7.4.16",
-      "dependsOn": []
     },
     {
       "ref": "pkg:npm/yaml@2.9.1",

@@ -3,11 +3,17 @@
 `@sourcey/catalog-verifier` is Sourcey's deterministic contribution preflight for
 the [Startup Credits](https://github.com/sourcey/startup-credits) and
 [Agent Ready Services](https://github.com/sourcey/agent-ready-services) data
-repositories. It also verifies immutable Sourcey Catalog release bundles, and
-re-derives every Agent Readiness card in them from the declarations and run
-records they carry: every step and the letter from the declaration and its
-probe runs, and the job's proof from any run of a job binding, which marks the
-job verified and never changes a step or the letter.
+repositories.
+
+It does not verify Catalog releases. Each release names, by digest, the exact
+verifier archive that verifies it. That archive re-derives every Agent
+Readiness card the release carries from its declarations and run records. To
+verify a release, use the archive it names, published at
+`https://artifacts.sourcey.com/catalog/code/catalog-verifier/sha256-<digest>/`.
+Using that archive, rather than whichever version of this package is current,
+means a release is always judged by the verifier that admitted it. Since 1.2.0
+this package no longer has a `verify-release` command or
+`CatalogVerifierApplication.verifyRelease`.
 
 The verifier checks exact local candidate bytes. It does not crawl vendors,
 judge factual truth, prove submitter authority, run an Agent Readiness

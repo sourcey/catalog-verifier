@@ -1,5 +1,5 @@
 import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, type AgentReadinessAuthoring, type AgentReadinessDeclaration } from "../../../contracts/agent-readiness/src/declaration.js";
-import type { AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/index.js";
+import type { AgentReadinessJobLibrary } from "../../../contracts/agent-readiness/src/jobs.js";
 export * from "./declaration-blob.js";
 export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL };
 export declare function inspectAgentReadinessCandidateSources(input: {
@@ -7,7 +7,7 @@ export declare function inspectAgentReadinessCandidateSources(input: {
         readonly source: string;
         readonly content: string;
     }[];
-    readonly policy: AgentReadinessPolicy;
+    readonly jobLibrary: AgentReadinessJobLibrary;
 }): {
     readonly authoring: readonly AgentReadinessAuthoring[];
     readonly summary: {
@@ -17,12 +17,12 @@ export declare function inspectAgentReadinessCandidateSources(input: {
 };
 /**
  * Validate the complete current declaration tree with the same canonical
- * parser and policy-closure authority used for changed Git blobs. This is a
+ * parser and job-library authority used for changed Git blobs. This is a
  * local/audit adapter only; ordinary PR validation remains changed-closure.
  */
 export declare function validateAgentReadinessRepositoryTree(input: {
     readonly repositoryRoot: string;
-    readonly policy: AgentReadinessPolicy;
+    readonly jobLibrary: AgentReadinessJobLibrary;
 }): Promise<{
     readonly entities: number;
     readonly declarations: number;

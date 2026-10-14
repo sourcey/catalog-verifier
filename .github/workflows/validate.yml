@@ -89,34 +89,53 @@ jobs:
           if [[ "$SOURCEY_PRODUCT" == startup-credits ]]; then
             taxonomy=(--taxonomy trusted/.github/catalog-verifier/node_modules/@sourcey/catalog-verifier/taxonomy.json)
           fi
-          curl --fail-with-body --silent --show-error --max-time 30 \
-            https://api.sourcey.com/v1/release \
-            --output "$RUNNER_TEMP/sourcey-live-release.json"
-          live_parent_release_id="$(
-            jq -er '.release_id | select(test("^sha256:[a-f0-9]{64}$"))' \
-              "$RUNNER_TEMP/sourcey-live-release.json"
-          )"
-          live_root_digest="$(
-            jq -er '.descriptor.snapshot_core.root_set_digest
-              | select(test("^sha256:[a-f0-9]{64}$"))' \
-              "$RUNNER_TEMP/sourcey-live-release.json"
-          )"
-          trusted_root_digest="$(<trusted/.github/sourcey-root-set.digest)"
-          test "$live_root_digest" = "$trusted_root_digest"
-          "$verifier" identity-context-request "$SOURCEY_PRODUCT" \
-            --repository "$GITHUB_WORKSPACE/candidate" \
-            --base "$BASE_REVISION" \
-            --head "$HEAD_REVISION" \
-            "${taxonomy[@]}" \
-            --live-parent-release-id "$live_parent_release_id" \
-            --candidate-repository "$GITHUB_REPOSITORY" \
-            --pull-request "$PULL_REQUEST_NUMBER" \
-            > "$RUNNER_TEMP/sourcey-identity-query.json"
-          curl --fail-with-body --silent --show-error --max-time 30 \
-            -H 'content-type: application/json' \
-            --data-binary @"$RUNNER_TEMP/sourcey-identity-query.json" \
-            https://api.sourcey.com/v1/catalog-verifier/identity-contexts \
-            --output "$RUNNER_TEMP/sourcey-identity-response.json"
+          # The API refuses (409) a query for a parent that a newer release has replaced, as it
+          # does while the previous merge's release activates. Only a new query can pass, so on
+          # 409 alone the live release is read again and the whole request is issued afresh.
+          for attempt in $(seq 1 8); do
+            curl --fail-with-body --silent --show-error --max-time 30 \
+              https://api.sourcey.com/v1/release \
+              --output "$RUNNER_TEMP/sourcey-live-release.json"
+            live_parent_release_id="$(
+              jq -er '.release_id | select(test("^sha256:[a-f0-9]{64}$"))' \
+                "$RUNNER_TEMP/sourcey-live-release.json"
+            )"
+            live_root_digest="$(
+              jq -er '.descriptor.snapshot_core.root_set_digest
+                | select(test("^sha256:[a-f0-9]{64}$"))' \
+                "$RUNNER_TEMP/sourcey-live-release.json"
+            )"
+            trusted_root_digest="$(<trusted/.github/sourcey-root-set.digest)"
+            test "$live_root_digest" = "$trusted_root_digest"
+            "$verifier" identity-context-request "$SOURCEY_PRODUCT" \
+              --repository "$GITHUB_WORKSPACE/candidate" \
+              --base "$BASE_REVISION" \
+              --head "$HEAD_REVISION" \
+              "${taxonomy[@]}" \
+              --live-parent-release-id "$live_parent_release_id" \
+              --candidate-repository "$GITHUB_REPOSITORY" \
+              --pull-request "$PULL_REQUEST_NUMBER" \
+              > "$RUNNER_TEMP/sourcey-identity-query.json"
+            status="$(
+              curl --silent --show-error --max-time 30 \
+                -H 'content-type: application/json' \
+                --data-binary @"$RUNNER_TEMP/sourcey-identity-query.json" \
+                --output "$RUNNER_TEMP/sourcey-identity-response.json" \
+                --write-out '%{http_code}' \
+                https://api.sourcey.com/v1/catalog-verifier/identity-contexts
+            )"
+            if [[ "$status" == 409 && "$attempt" -lt 8 ]]; then
+              echo "The live Catalog release advanced while this check ran; reading it again." >&2
+              sleep 15
+              continue
+            fi
+            if [[ ! "$status" =~ ^2[0-9][0-9]$ ]]; then
+              cat "$RUNNER_TEMP/sourcey-identity-response.json" >&2
+              echo "Sourcey's identity context answered ${status}." >&2
+              exit 1
+            fi
+            break
+          done
           jq -e \
             --arg release_id "$live_parent_release_id" \
             '.release_id == $release_id

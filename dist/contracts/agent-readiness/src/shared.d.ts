@@ -30,6 +30,8 @@ export declare function sameAgentReadinessScopeIdentity(left: z.infer<typeof age
  * refused is reported there, never thrown on.
  */
 export declare function agentReadinessUrlOrigin(value: string): string | null;
+/** The value an RFC 6901 pointer names, or undefined. */
+export declare function valueAtPointer(document: unknown, pointer: string): unknown;
 export declare const agentReadinessCatalogBindingSchema: z.ZodObject<{
     base_release_id: z.ZodString;
     entity_revision_digest: z.ZodString;

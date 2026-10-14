@@ -1,3 +1,4 @@
+import type { ExchangeMethod } from "provenry/exchange/records";
 import { z } from "zod";
 /**
  * Sourcey's job library: the canonical job per service category, each with the
@@ -197,5 +198,40 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
     library_digest: z.ZodString;
 }, z.core.$strict>;
 export type AgentReadinessJobLibrary = z.infer<typeof agentReadinessJobLibrarySchema>;
+export type AgentReadinessProof = AgentReadinessJob["assertions"][number]["proof"];
+/** The HTTP methods an observed call may use; a query may send its terms in a body. */
+export declare const AGENT_READINESS_OBSERVED_CALL_METHODS: Readonly<Record<"read" | "write" | "query", readonly ExchangeMethod[]>>;
+/** One value a proof reads, which a binding locates as an observation. */
+export interface AgentReadinessProofOperand {
+    readonly name: string;
+    /**
+     * The call's JSON response or event stream, or what it sent. A binding must
+     * place the run's nonce wherever it locates a request observation, so the
+     * value is the run's, never the binding's.
+     */
+    readonly source: "json" | "stream" | "request";
+    readonly method?: keyof typeof AGENT_READINESS_OBSERVED_CALL_METHODS;
+    /**
+     * An identifier the caller may name, as a storage bucket or a vector is named: a binding
+     * may locate it in what the write call sent instead of its response, and then the value
+     * must carry the run's nonce. A call is observed only once it succeeded, so the service
+     * accepted that name.
+     */
+    readonly callerNamed?: true;
+}
+/** Whether an observation may locate the operand from this source. */
+export declare function agentReadinessOperandReads(operand: AgentReadinessProofOperand, source: AgentReadinessProofOperand["source"]): boolean;
+/**
+ * What a proof reads and how its reads correlate: the part of its semantics a
+ * binding is held to. The engine evaluates what was read.
+ */
+export interface AgentReadinessProofSignature {
+    readonly observations: readonly AgentReadinessProofOperand[];
+    readonly sameCall?: readonly (readonly [string, string])[];
+    readonly differentCall?: readonly (readonly [string, string])[];
+    /** [a, b]: a's call is sent without reading anything b's call returned. */
+    readonly independentCall?: readonly (readonly [string, string])[];
+}
+export declare function agentReadinessProofSignature(proof: AgentReadinessProof): AgentReadinessProofSignature;
 export {};
 //# sourceMappingURL=jobs.d.ts.map

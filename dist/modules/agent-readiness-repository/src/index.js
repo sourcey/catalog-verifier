@@ -15,7 +15,7 @@ export function inspectAgentReadinessCandidateSources(input) {
     for (const revision of revisions) {
         assertAgentReadinessDeclarationJobs({
             declaration: revision.declaration,
-            policy: input.policy,
+            jobLibrary: input.jobLibrary,
         });
     }
     return {
@@ -25,7 +25,7 @@ export function inspectAgentReadinessCandidateSources(input) {
 }
 /**
  * Validate the complete current declaration tree with the same canonical
- * parser and policy-closure authority used for changed Git blobs. This is a
+ * parser and job-library authority used for changed Git blobs. This is a
  * local/audit adapter only; ordinary PR validation remains changed-closure.
  */
 export async function validateAgentReadinessRepositoryTree(input) {
@@ -51,7 +51,7 @@ export async function validateAgentReadinessRepositoryTree(input) {
                         authoring: parsed,
                         declaration,
                     }).declaration,
-                    policy: input.policy,
+                    jobLibrary: input.jobLibrary,
                 });
             }
             authoring.push(parsed);

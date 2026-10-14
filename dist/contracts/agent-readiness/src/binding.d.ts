@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { type AgentReadinessJob } from "./jobs.js";
 type AgentReadinessTemplateReference = {
     readonly kind: "input";
     readonly name: string;
@@ -413,5 +414,16 @@ export interface AgentReadinessDeclaredSurfaces {
 export declare function validateDeclaredJobBindings(value: AgentReadinessDeclaredSurfaces & {
     readonly job_bindings: readonly AgentReadinessJobBinding[];
 }, context: z.RefinementCtx): void;
+/**
+ * Why a binding cannot perform its library job, or nothing. A binding maps
+ * every library observation exactly once, reads only the job's inputs and sinks,
+ * places the run's nonce wherever it locates a request observation, and cleans
+ * up when the job is consequential. Whether its calls stay on its declared
+ * surface is the declaration's own rule, checked where it is parsed.
+ */
+export declare function agentReadinessBindingIssues(input: {
+    readonly job: AgentReadinessJob;
+    readonly binding: AgentReadinessJobBinding;
+}): readonly string[];
 export {};
 //# sourceMappingURL=binding.d.ts.map

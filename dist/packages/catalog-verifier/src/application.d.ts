@@ -1,6 +1,6 @@
 import { type CatalogVerifierCandidateInput, type CatalogVerifierCriterion, type CatalogVerifierResult, type VerifierRepositoryKind } from "../../../contracts/catalog-verifier/src/index.js";
 import type { CatalogTaxonomy } from "../../../contracts/taxonomy/src/index.js";
-import { type CatalogAdmissionCandidate } from "../../../modules/catalog-admission/src/index.js";
+import { type CatalogAdmissionCandidate } from "../../../modules/catalog-admission/src/admission-conflicts.js";
 export interface CatalogVerifierIdentityContextInput {
     readonly packet: unknown;
     readonly rootSet: unknown;
@@ -95,10 +95,6 @@ export declare class CatalogVerifierApplication {
             candidateReference: string;
         };
     };
-    verifyRelease(input: {
-        readonly directory: string;
-        readonly trustedRootDigest: string;
-    }): Promise<CatalogVerifierResult>;
 }
 export {};
 //# sourceMappingURL=application.d.ts.map

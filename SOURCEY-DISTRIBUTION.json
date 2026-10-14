@@ -2,24 +2,50 @@
   "code_distribution_definition_contract": "sourcey.code-distribution-definition/v1",
   "distribution_id": "catalog-verifier",
   "package_name": "@sourcey/catalog-verifier",
-  "description": "Validate changed Catalog YAML and verify immutable Sourcey release bundles.",
-  "audience": "Public Catalog pull-request CI, Sourcey release construction, and isolated release custody.",
-  "channel": "One purpose-scoped closure projected as a content-addressed Sourcey artifact and the public @sourcey/catalog-verifier npm package.",
+  "description": "Validate Sourcey data contributions before admission.",
+  "audience": "Public data repository pull-request CI and contributors.",
+  "channel": "The public @sourcey/catalog-verifier npm package.",
   "entries": {
-    ".": "index"
+    ".": "contribution"
   },
   "bin": {
     "sourcey-catalog-verify": "program"
   },
-  "extras": ["taxonomy.json"],
+  "extras": [
+    "taxonomy.json"
+  ],
   "forbidden_closure_prefixes": [
     "dist/apps/",
-    "dist/modules/evidence-operations/src/discovery-scanner",
-    "dist/modules/evidence-operations/src/offer-harvest",
-    "dist/modules/evidence-operations/src/offer-refresh",
-    "dist/modules/evidence-operations/src/source-inventory",
-    "dist/modules/evidence-operations/src/workflow"
+    "dist/contracts/admission-results/",
+    "dist/contracts/agent-readiness/src/grade-policy",
+    "dist/contracts/agent-readiness/src/index",
+    "dist/contracts/api/",
+    "dist/contracts/artifact/",
+    "dist/contracts/billing/",
+    "dist/contracts/company-verification/",
+    "dist/contracts/events/",
+    "dist/contracts/feed/",
+    "dist/contracts/funded-work/",
+    "dist/contracts/publication/",
+    "dist/contracts/release/",
+    "dist/contracts/startup-credits-commercial/",
+    "dist/modules/agent-readiness-engine/",
+    "dist/modules/agent-readiness-policy/src/current-policy",
+    "dist/modules/agent-readiness-policy/src/grade-policy",
+    "dist/modules/artifact/",
+    "dist/modules/authority/src/index",
+    "dist/modules/catalog-admission/src/machine-admission",
+    "dist/modules/catalog-admission/src/publication",
+    "dist/modules/catalog-admission/src/submission",
+    "dist/modules/evidence-operations/",
+    "dist/modules/publication-instance/",
+    "dist/modules/release/",
+    "dist/modules/sourcey-publication/",
+    "dist/packages/catalog-verifier/src/release"
   ],
-  "dependencies": ["provenry", "tldts", "yaml", "zod"],
-  "self_contained": true
+  "dependencies": [
+    "provenry",
+    "yaml",
+    "zod"
+  ]
 }

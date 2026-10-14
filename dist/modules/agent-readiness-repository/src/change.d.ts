@@ -1,5 +1,6 @@
 import { type Digest } from "provenry/primitives";
-import { AGENT_READINESS_REPOSITORY, type AgentReadinessPolicy } from "../../../contracts/agent-readiness/src/index.js";
+import { AGENT_READINESS_REPOSITORY } from "../../../contracts/agent-readiness/src/declaration.js";
+import type { AgentReadinessJobLibrary } from "../../../contracts/agent-readiness/src/jobs.js";
 import { type AgentReadinessDeclarationBlob } from "./declaration-blob.js";
 type AgentReadinessDeclarationDelta = {
     readonly kind: "declaration_added";
@@ -54,12 +55,12 @@ export declare function inspectAgentReadinessRepositoryChangePacket(input: {
     readonly repositoryRoot: string;
     readonly baseRevision: string;
     readonly headRevision: string;
-    readonly policy: AgentReadinessPolicy;
+    readonly jobLibrary: AgentReadinessJobLibrary;
 }): Promise<AgentReadinessRepositoryChangePacket>;
 export declare function verifyAgentReadinessRepositoryChangePacket(input: {
     readonly packet: AgentReadinessRepositoryChangePacket;
     readonly repositoryRoot: string;
-    readonly policy: AgentReadinessPolicy;
+    readonly jobLibrary: AgentReadinessJobLibrary;
 }): Promise<void>;
 export declare function selectedAgentReadinessDeclarationDeltas(packet: AgentReadinessRepositoryChangePacket): readonly AgentReadinessDeclarationDelta[];
 /**
