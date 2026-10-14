@@ -23,3 +23,8 @@ test("the public package exposes both exact contribution criteria sets", () => {
     ],
   );
 });
+
+test("the public package validates contributions and verifies no releases", () => {
+  // A release is verified with the exact verifier archive it names, never this package.
+  assert.equal("verifyRelease" in CatalogVerifierApplication.prototype, false);
+});

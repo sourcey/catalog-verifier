@@ -4,7 +4,7 @@ import { promisify } from "node:util";
 import { gitComparisonBase } from "provenry/git";
 import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
 import { ZodError } from "zod";
-import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/index.js";
+import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/declaration.js";
 import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
@@ -41,9 +41,9 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
                 ? null
                 : readAgentReadinessDeclarationBlobAtRevision(repositoryRoot, headRevision, file),
         ]);
-        // The base is historical authoring. A stricter current policy must not
+        // The base is historical authoring. A stricter current library must not
         // prevent a contributor from bringing its head into compliance.
-        assertAgentReadinessBlobPolicy(head, input.policy);
+        assertAgentReadinessBlobJobs(head, input.jobLibrary);
         return pathDelta(status, path, base, head);
     }));
     const core = {
@@ -64,7 +64,7 @@ export async function verifyAgentReadinessRepositoryChangePacket(input) {
         repositoryRoot: input.repositoryRoot,
         baseRevision: input.packet.comparisonBase,
         headRevision: input.packet.headRevision,
-        policy: input.policy,
+        jobLibrary: input.jobLibrary,
     });
     if (canonicalJson(verified) !== canonicalJson(input.packet)) {
         throw new Error("Agent Readiness repository-change packet failed exact Git readback.");
@@ -231,12 +231,12 @@ async function readBaseBlob(repositoryRoot, revision, file) {
         throw error;
     }
 }
-/** Every declaration in the bytes closes over the installed readiness policy. */
-function assertAgentReadinessBlobPolicy(blob, policy) {
+/** Every declaration in the bytes closes over the installed job library. */
+function assertAgentReadinessBlobJobs(blob, jobLibrary) {
     if (!blob)
         return;
     for (const revision of Object.values(blob.declarationRevisions)) {
-        assertAgentReadinessDeclarationJobs({ declaration: revision.declaration, policy });
+        assertAgentReadinessDeclarationJobs({ declaration: revision.declaration, jobLibrary });
     }
 }
 //# sourceMappingURL=change.js.map

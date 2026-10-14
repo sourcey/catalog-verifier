@@ -124,6 +124,86 @@ export const agentReadinessJobLibraryCoreSchema = z
 export const agentReadinessJobLibrarySchema = agentReadinessJobLibraryCoreSchema
     .safeExtend({ library_digest: agentReadinessDigestSchema })
     .strict();
+/** The HTTP methods an observed call may use; a query may send its terms in a body. */
+export const AGENT_READINESS_OBSERVED_CALL_METHODS = {
+    read: ["GET", "HEAD"],
+    write: ["POST", "PUT", "PATCH", "DELETE"],
+    query: ["GET", "POST"],
+};
+/** Whether an observation may locate the operand from this source. */
+export function agentReadinessOperandReads(operand, source) {
+    return source === operand.source || (operand.callerNamed === true && source === "request");
+}
+/**
+ * Portable Sourcey job semantics. A binding supplies locations only: never a
+ * comparison value, predicate, threshold, verdict or executable callback.
+ */
+const PROOF_SIGNATURES = {
+    dns_answer: {
+        observations: [
+            { name: "query_name", source: "json", method: "read" },
+            { name: "records", source: "json", method: "read" },
+        ],
+        sameCall: [["query_name", "records"]],
+    },
+    dns_success: { observations: [{ name: "status", source: "json", method: "read" }] },
+    model_selected: {
+        observations: [
+            { name: "models", source: "json", method: "read" },
+            { name: "used_model", source: "stream", method: "write" },
+        ],
+        differentCall: [["models", "used_model"]],
+    },
+    stream_chunks: { observations: [{ name: "chunks", source: "stream", method: "write" }] },
+    tool_called: {
+        observations: [
+            { name: "tool_name", source: "stream", method: "write" },
+            { name: "tool_arguments", source: "stream", method: "write" },
+        ],
+        sameCall: [["tool_name", "tool_arguments"]],
+    },
+    resource_created: {
+        observations: [{ name: "id", source: "json", method: "write", callerNamed: true }],
+    },
+    resource_read_back: {
+        observations: [
+            { name: "created_id", source: "json", method: "write", callerNamed: true },
+            { name: "read_id", source: "json", method: "read" },
+            { name: "content", source: "json", method: "read" },
+        ],
+        sameCall: [["read_id", "content"]],
+        differentCall: [["created_id", "read_id"]],
+    },
+    resource_found_by_query: {
+        observations: [
+            { name: "created_id", source: "json", method: "write", callerNamed: true },
+            { name: "query", source: "request", method: "query" },
+            { name: "found_id", source: "json", method: "query" },
+            { name: "content", source: "json", method: "query" },
+        ],
+        sameCall: [
+            ["query", "found_id"],
+            ["found_id", "content"],
+        ],
+        differentCall: [["created_id", "found_id"]],
+        independentCall: [["query", "created_id"]],
+    },
+    /** A message's identifier is the service's: a caller never names it. */
+    message_accepted: { observations: [{ name: "id", source: "json", method: "write" }] },
+    message_delivered: {
+        observations: [
+            { name: "message_id", source: "json", method: "write" },
+            { name: "read_id", source: "json", method: "read" },
+            { name: "status", source: "json", method: "read" },
+        ],
+        sameCall: [["read_id", "status"]],
+        differentCall: [["message_id", "read_id"]],
+    },
+    sink_received: { observations: [] },
+};
+export function agentReadinessProofSignature(proof) {
+    return PROOF_SIGNATURES[proof];
+}
 function unique(values, context, path, message) {
     if (new Set(values).size !== values.length)
         context.addIssue({ code: "custom", path, message });

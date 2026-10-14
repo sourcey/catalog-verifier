@@ -1,6 +1,6 @@
 import { type Digest } from "provenry/primitives";
 import type { z } from "zod";
-import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJobLibraryCoreSchema } from "../../../contracts/agent-readiness/src/index.js";
+import { type AgentReadinessJob, type AgentReadinessJobLibrary, agentReadinessJobLibraryCoreSchema } from "../../../contracts/agent-readiness/src/jobs.js";
 /**
  * The job library's authored source, sealed into the current policy. Releases
  * read the library inside the pinned policy file generated from it, so the

@@ -4,7 +4,8 @@ import { canonicalEntityIdentity, entityAuthoringSchema, entityIdentityAuthoring
 import { rootSetSchema } from "../../../contracts/authority/src/index.js";
 import { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseCoreSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, catalogVerifierIdentityContextCoreSchema, catalogVerifierIdentityContextPacketSchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, } from "../../../contracts/catalog-verifier/src/index.js";
 import { hostnameIsWithinDomain } from "../../../contracts/revisions/src/index.js";
-import { validateCatalogVerifierIdentityContext, validateSignerRegistry, } from "../../authority/src/index.js";
+import { validateCatalogVerifierIdentityContext } from "../../authority/src/identity-context.js";
+import { validateSignerRegistry } from "../../authority/src/registry.js";
 export { catalogAdmissionCandidateSchema, catalogAdmissionConflictLookupRequestSchema, catalogAdmissionConflictLookupResponseSchema, catalogAdmissionKeyDigestsSchema, catalogAdmissionKeyKindSchema, catalogAdmissionKeyMatchSchema, catalogAdmissionKeySchema, MAXIMUM_CATALOG_ADMISSION_KEYS, MAXIMUM_CATALOG_ADMISSION_MATCHES, MAXIMUM_PENDING_ADMISSION_KEYS, openPullRequestAdmissionCandidateSchema, openPullRequestAdmissionKeySchema, };
 export function createCatalogAdmissionConflictLookupResponse(input) {
     const query = catalogAdmissionConflictLookupRequestSchema.parse(input.query);

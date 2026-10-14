@@ -40,6 +40,27 @@ export function sameAgentReadinessScopeIdentity(left, right) {
 export function agentReadinessUrlOrigin(value) {
     return URL.canParse(value) ? new URL(value).origin : null;
 }
+/** The value an RFC 6901 pointer names, or undefined. */
+export function valueAtPointer(document, pointer) {
+    if (pointer === "")
+        return document;
+    let value = document;
+    for (const raw of pointer.slice(1).split("/")) {
+        const token = raw.replaceAll("~1", "/").replaceAll("~0", "~");
+        if (Array.isArray(value)) {
+            if (!/^(?:0|[1-9][0-9]*)$/u.test(token))
+                return undefined;
+            value = value[Number(token)];
+        }
+        else if (value !== null && typeof value === "object" && Object.hasOwn(value, token)) {
+            value = value[token];
+        }
+        else {
+            return undefined;
+        }
+    }
+    return value;
+}
 export const agentReadinessCatalogBindingSchema = z
     .object({
     base_release_id: agentReadinessDigestSchema,

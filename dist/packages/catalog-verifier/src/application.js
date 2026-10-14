@@ -2,14 +2,13 @@ import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { assertDigest, canonicalJson, compareCanonicalStrings, digest, } from "provenry/primitives";
 import { z } from "zod";
-import { catalogVerifierCriterionSchema, catalogVerifierDiagnosticSchema, catalogVerifierResultSchema, } from "../../../contracts/catalog-verifier/src/index.js";
-import { currentAgentReadinessPolicy } from "../../../modules/agent-readiness-policy/src/current-policy.js";
+import { catalogVerifierCriterionSchema, catalogVerifierDiagnosticSchema, } from "../../../contracts/catalog-verifier/src/index.js";
+import { currentAgentReadinessJobLibrary } from "../../../modules/agent-readiness-jobs/src/current.js";
 import { inspectAgentReadinessCandidateSources, inspectAgentReadinessRepositoryChangePacket, } from "../../../modules/agent-readiness-repository/src/index.js";
-import { verifyCatalogRelease } from "../../../modules/artifact/src/index.js";
-import { catalogAdmissionCandidateSchema, createCatalogAdmissionConflictLookupRequest, evaluateCatalogAdmissionConflicts, inspectCatalogPrTree, verifyCatalogVerifierIdentityContextPacket, } from "../../../modules/catalog-admission/src/index.js";
+import { catalogAdmissionCandidateSchema, createCatalogAdmissionConflictLookupRequest, evaluateCatalogAdmissionConflicts, verifyCatalogVerifierIdentityContextPacket, } from "../../../modules/catalog-admission/src/admission-conflicts.js";
+import { inspectCatalogPrTree } from "../../../modules/catalog-admission/src/pull-request-tree.js";
 import { assertCatalogContributionAuthoring, inspectCatalogCandidateSources, } from "../../../modules/catalog-authoring-validation/src/index.js";
-import { readVerifiedSourceyRelease } from "../../../modules/publication-instance/src/index.js";
-import { verifyCatalogDelta } from "../../../modules/sourcey-publication/src/verifier.js";
+import { contractDiagnostic, invalid, valid } from "./result.js";
 const execFileAsync = promisify(execFile);
 const criteria = Object.freeze([
     {
@@ -176,7 +175,7 @@ export class CatalogVerifierApplication {
             }
             const inspection = inspectAgentReadinessCandidateSources({
                 sources: input.sources,
-                policy: currentAgentReadinessPolicy,
+                jobLibrary: currentAgentReadinessJobLibrary,
             });
             const context = verifyIdentityContext({
                 identities: inspection.authoring.map(({ entity }) => entity),
@@ -213,33 +212,13 @@ export class CatalogVerifierApplication {
         }
         const inspection = inspectAgentReadinessCandidateSources({
             sources: input.sources,
-            policy: currentAgentReadinessPolicy,
+            jobLibrary: currentAgentReadinessJobLibrary,
         });
         return createCatalogAdmissionConflictLookupRequest({
             identities: inspection.authoring.map(({ entity }) => entity),
             liveParentReleaseId: input.liveParentReleaseId,
             candidate,
         });
-    }
-    async verifyRelease(input) {
-        const operation = "verify-release";
-        try {
-            assertDigest(input.trustedRootDigest, "trusted root digest");
-            const release = await readVerifiedSourceyRelease(input.directory);
-            const trust = { rootSetDigest: input.trustedRootDigest };
-            const result = release.kind === "delta"
-                ? await verifyCatalogDelta(release, trust)
-                : await verifyCatalogRelease(release, trust);
-            return valid(operation, {
-                entities: "artifact" in result ? result.artifact.entities.length : result.entities.size,
-                release_id: result.bundle.release.release_id,
-                snapshot_id: result.bundle.release.snapshot_id,
-                files: result.files.size,
-            });
-        }
-        catch (error) {
-            return invalid(operation, diagnosticFor(error, "release.immutable-closure"));
-        }
     }
 }
 async function inspectRepositoryChange(input) {
@@ -266,7 +245,7 @@ async function inspectRepositoryChange(input) {
         repositoryRoot: input.repositoryRoot,
         baseRevision: input.baseRevision,
         headRevision: input.headRevision,
-        policy: currentAgentReadinessPolicy,
+        jobLibrary: currentAgentReadinessJobLibrary,
     });
     return {
         identities: inspection.paths.flatMap(({ head }) => (head ? [head.authoring.entity] : [])),
@@ -432,24 +411,6 @@ function ruleForError(error, repositoryKind) {
 function primaryRule(repositoryKind) {
     return `${repositoryKind}.changed-closure`;
 }
-function valid(operation, summary) {
-    return catalogVerifierResultSchema.parse({
-        result_contract: "sourcey.catalog-verifier-result/v1alpha1",
-        operation,
-        status: "valid",
-        summary,
-        diagnostics: [],
-    });
-}
-function invalid(operation, diagnostic) {
-    return catalogVerifierResultSchema.parse({
-        result_contract: "sourcey.catalog-verifier-result/v1alpha1",
-        operation,
-        status: "invalid",
-        summary: null,
-        diagnostics: [diagnostic],
-    });
-}
 function diagnosticFor(error, ruleId) {
     if (error instanceof CatalogVerifierIdentityConflictError) {
         return catalogVerifierDiagnosticSchema.parse({
@@ -487,33 +448,6 @@ function diagnosticFor(error, ruleId) {
             guidance: "Supply every exact input required by this verifier operation.",
         });
     }
-    if (error instanceof z.ZodError) {
-        const issue = error.issues[0];
-        return catalogVerifierDiagnosticSchema.parse({
-            rule_id: ruleId,
-            classification: "contract_failure",
-            path: issue ? jsonPointer(issue.path) : null,
-            message: issue?.message ?? "Candidate bytes do not satisfy the current contract.",
-            guidance: "Correct the exact candidate field and run the same verifier again.",
-        });
-    }
-    const candidate = error;
-    const environmental = typeof candidate?.code === "string";
-    return catalogVerifierDiagnosticSchema.parse({
-        rule_id: ruleId,
-        classification: environmental ? "environmental_failure" : "contract_failure",
-        path: null,
-        message: error instanceof Error ? error.message : String(error),
-        guidance: environmental
-            ? "Restore the exact local input or Git object and retry without changing candidate bytes."
-            : "Correct the candidate closure described by this rule and run the same verifier again.",
-    });
-}
-function jsonPointer(path) {
-    if (path.length === 0)
-        return "/";
-    return `/${path
-        .map((segment) => String(segment).replaceAll("~", "~0").replaceAll("/", "~1"))
-        .join("/")}`;
+    return contractDiagnostic(error, ruleId);
 }
 //# sourceMappingURL=application.js.map

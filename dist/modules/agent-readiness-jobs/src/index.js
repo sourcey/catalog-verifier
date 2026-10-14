@@ -1,5 +1,5 @@
 import { digest } from "provenry/primitives";
-import { AGENT_READINESS_JOB_LIBRARY_CONTRACT, agentReadinessJobLibraryCoreSchema, agentReadinessJobLibrarySchema, } from "../../../contracts/agent-readiness/src/index.js";
+import { AGENT_READINESS_JOB_LIBRARY_CONTRACT, agentReadinessJobLibraryCoreSchema, agentReadinessJobLibrarySchema, } from "../../../contracts/agent-readiness/src/jobs.js";
 /**
  * The shape most jobs share: make one thing carrying the run's nonce, then read
  * it back under the identifier its creation returned or was given. A
