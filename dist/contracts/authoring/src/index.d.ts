@@ -93,6 +93,7 @@ export declare const retainedEntityAuthoringSchema: z.ZodObject<{
             status: z.ZodEnum<{
                 active: "active";
                 ended: "ended";
+                paused: "paused";
                 withdrawn: "withdrawn";
             }>;
             effective_from: z.ZodISODateTime;
@@ -372,6 +373,7 @@ export declare const entityAuthoringSchema: z.ZodObject<{
             status: z.ZodEnum<{
                 active: "active";
                 ended: "ended";
+                paused: "paused";
                 withdrawn: "withdrawn";
             }>;
             effective_from: z.ZodISODateTime;
@@ -651,6 +653,7 @@ export declare const contributionEntityAuthoringSchema: z.ZodObject<{
             status: z.ZodEnum<{
                 active: "active";
                 ended: "ended";
+                paused: "paused";
                 withdrawn: "withdrawn";
             }>;
             effective_from: z.ZodISODateTime;
