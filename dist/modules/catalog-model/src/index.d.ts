@@ -22,6 +22,6 @@ export interface CompiledEntityFacts {
     readonly programs: readonly CompiledProgramFacts[];
     readonly offers: readonly CompiledOfferFacts[];
 }
-export { canonicalEntityDomains } from "../../../contracts/authoring/src/index.js";
 export declare function compileEntity(authoring: EntityAuthoring): CompiledEntityFacts;
+export {};
 //# sourceMappingURL=index.d.ts.map

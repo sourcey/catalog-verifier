@@ -1,7 +1,7 @@
-import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, type AgentReadinessAuthoring, type AgentReadinessDeclaration } from "../../../contracts/agent-readiness/src/declaration.js";
+import { AGENT_READINESS_REPOSITORY, type AgentReadinessAuthoring, type AgentReadinessDeclaration } from "../../../contracts/agent-readiness/src/declaration.js";
 import type { AgentReadinessJobLibrary } from "../../../contracts/agent-readiness/src/jobs.js";
 export * from "./declaration-blob.js";
-export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL };
+export { AGENT_READINESS_REPOSITORY };
 export declare function inspectAgentReadinessCandidateSources(input: {
     readonly sources: readonly {
         readonly source: string;

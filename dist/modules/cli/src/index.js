@@ -4,10 +4,10 @@ import { resolve } from "node:path";
  * flags; the generated root shim owns every process concern, so nothing here
  * touches argv, stdout, or the exit code.
  */
-export function flag(args, name) {
+function flag(args, name) {
     return flags(args, name)[0];
 }
-export function flags(args, name) {
+function flags(args, name) {
     const values = [];
     for (let index = 0; index < args.length; index += 1) {
         if (args[index] !== name)

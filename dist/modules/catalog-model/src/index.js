@@ -4,7 +4,6 @@ import { catalogRevisionContracts, entityRevisionCoreSchema, entityRevisionSchem
 function withDigest(core) {
     return { ...core, revision_digest: digest(core) };
 }
-export { canonicalEntityDomains } from "../../../contracts/authoring/src/index.js";
 export function compileEntity(authoring) {
     const entity = authoring.entity;
     const profile = authoring.profile;

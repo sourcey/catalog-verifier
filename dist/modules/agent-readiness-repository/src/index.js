@@ -6,7 +6,7 @@ import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadin
 import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { compileAgentReadinessDeclarationRevision, compileAgentReadinessDeclarationSource, } from "./declaration-blob.js";
 export * from "./declaration-blob.js";
-export { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL };
+export { AGENT_READINESS_REPOSITORY };
 export function inspectAgentReadinessCandidateSources(input) {
     const compiled = input.sources.map((source) => compileAgentReadinessDeclarationSource(source));
     assertUnique(compiled.map(({ authoring }) => authoring.entity.entity_id), "Agent Readiness candidate Entity IDs");

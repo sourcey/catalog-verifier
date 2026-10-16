@@ -292,19 +292,19 @@
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/index.d.ts",
-      "sha256": "sha256:852cf7842a6121a102e030274401305653d7ed949bb0e338ac81a43eba49c8e8"
+      "sha256": "sha256:f690c8e5a0281fbf32f40fdb3af39506790c2cd986532327dd797487a5d6625c"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/index.d.ts.map",
-      "sha256": "sha256:f115ad6a9386ee7c73526ec7c441c7daca99fcdb0b1fb2d486bec3c69a154a89"
+      "sha256": "sha256:dea25d5101605872c27d20a0e327456d1cdcc2df36e051eeb119585c39120427"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/index.js",
-      "sha256": "sha256:c066b437698b65494ba23bb66ca533882a1703188096073174935197e1999bc2"
+      "sha256": "sha256:b38028a2575e1f1853c7473fa2f204c68b85985789a24b9a23b164842395d14b"
     },
     {
       "path": "dist/modules/agent-readiness-repository/src/index.js.map",
-      "sha256": "sha256:c6fa4c99385d4417c4fca78161718d79a238f5a48c9d21b17e4f7e670c9ad803"
+      "sha256": "sha256:6ead10b764373086aba3a30e685a92f0632acecfecb0cf8bc0e294b4e9e2dec1"
     },
     {
       "path": "dist/modules/authority/src/identity-context.d.ts",
@@ -452,19 +452,19 @@
     },
     {
       "path": "dist/modules/catalog-model/src/index.d.ts",
-      "sha256": "sha256:93323dcddb1e28fdd90c60ba016ccd24bc5f61ccb33fd9f7fbc565725cfa3397"
+      "sha256": "sha256:ca05c0785ad1b29639a86c5410a918c38f1797ca0da59f69f1adb067ab533b7c"
     },
     {
       "path": "dist/modules/catalog-model/src/index.d.ts.map",
-      "sha256": "sha256:42b3551a81c54e280794d853aa99169ac4719f4fff342ab8e46f096f0950edee"
+      "sha256": "sha256:f20ee16f3e2c47cc0e7e6e5397c9ceb5d78badfe9185a540088264555ca5a6d2"
     },
     {
       "path": "dist/modules/catalog-model/src/index.js",
-      "sha256": "sha256:a7489a6b690971df6f86d09e7b4e2b9bd6ef4ef49079d98835c3c5f687e0fb51"
+      "sha256": "sha256:ab1dfca791d80e0a468718b43140115f8411ccd4c5f1184e0f972eccf7e552ae"
     },
     {
       "path": "dist/modules/catalog-model/src/index.js.map",
-      "sha256": "sha256:fa06eb4bf7fd3bca9c983ce9fbc855ce39a91f416e3927baeb31a1a01502c409"
+      "sha256": "sha256:72e5c63cf827ab370c8c541d88f8f4e5c554e07d5f30ae36ec05db022a717802"
     },
     {
       "path": "dist/modules/catalog-primitives/src/index.d.ts",
@@ -484,19 +484,19 @@
     },
     {
       "path": "dist/modules/cli/src/index.d.ts",
-      "sha256": "sha256:192e29c0c84db8dd8c78f86a12be26ca1bba7b745dc02efb80cdaa605d2faeec"
+      "sha256": "sha256:88a43a9cc4f2dfaced97303feeecc099bde988ff7629da8a9870fd9712855926"
     },
     {
       "path": "dist/modules/cli/src/index.d.ts.map",
-      "sha256": "sha256:3f1b3d308ce2e0c61567f7aef69fec855567580b04446978328db1b16b339b8a"
+      "sha256": "sha256:0e9754e75a906870fc9fb8c700a2a3250294d8ead42224aab0a1ece5a8959d43"
     },
     {
       "path": "dist/modules/cli/src/index.js",
-      "sha256": "sha256:07ee83b46be76ffbba52b610ec21373c0a5ae79de5b853504b6e03647b388e65"
+      "sha256": "sha256:d8403e9750c09974744a29a4171dc2223ae6d59fbe52d10823dafcfa066a173f"
     },
     {
       "path": "dist/modules/cli/src/index.js.map",
-      "sha256": "sha256:210442ad1a74f43b1c8ec86eafbbdc09d64a98597f6345df55e1d181716bd912"
+      "sha256": "sha256:d765536060268f5e05a81b37978a74dc4aa2a001bb2f7bc03a93387cca477383"
     },
     {
       "path": "dist/modules/compiler/src/index.d.ts",
@@ -595,5 +595,5 @@
       "sha256": "sha256:03838bd3077b4c16b4db7cd4d3e94722fbeb27e12a9593272af716425e64e5e7"
     }
   ],
-  "closure_digest": "sha256:e4ad07abdcd888c48a69839bef0e08569f8935e81369cf059e223c5f8a945e23"
+  "closure_digest": "sha256:8c5d95ac282e3372205d1166186f0696d0da637c562a60a8c1cf4d5b199031cb"
 }
