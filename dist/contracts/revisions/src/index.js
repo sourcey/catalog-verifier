@@ -510,7 +510,8 @@ export const programRevisionSchema = programRevisionCoreSchema
     revision_digest: digest,
 })
     .strict();
-export const lifecycleStatusSchema = z.enum(["active", "ended", "withdrawn"]);
+/** `paused`: the offer exists but takes no new applications or claims for now; it may reopen. */
+export const lifecycleStatusSchema = z.enum(["active", "paused", "ended", "withdrawn"]);
 export const offerRevisionContentSchema = z
     .object({
     title: z.string().min(1),

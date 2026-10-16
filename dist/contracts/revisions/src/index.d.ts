@@ -829,11 +829,14 @@ export declare const programRevisionSchema: z.ZodObject<{
     }, z.core.$strict>;
     revision_digest: z.ZodString;
 }, z.core.$strict>;
+/** `paused`: the offer exists but takes no new applications or claims for now; it may reopen. */
 export declare const lifecycleStatusSchema: z.ZodEnum<{
     active: "active";
     ended: "ended";
+    paused: "paused";
     withdrawn: "withdrawn";
 }>;
+export type LifecycleStatus = z.infer<typeof lifecycleStatusSchema>;
 export declare const offerRevisionContentSchema: z.ZodObject<{
     title: z.ZodString;
     summary: z.ZodString;
@@ -842,6 +845,7 @@ export declare const offerRevisionContentSchema: z.ZodObject<{
         status: z.ZodEnum<{
             active: "active";
             ended: "ended";
+            paused: "paused";
             withdrawn: "withdrawn";
         }>;
         effective_from: z.ZodISODateTime;
@@ -1081,6 +1085,7 @@ export declare const offerRevisionCoreSchema: z.ZodObject<{
             status: z.ZodEnum<{
                 active: "active";
                 ended: "ended";
+                paused: "paused";
                 withdrawn: "withdrawn";
             }>;
             effective_from: z.ZodISODateTime;
@@ -1321,6 +1326,7 @@ export declare const offerRevisionSchema: z.ZodObject<{
             status: z.ZodEnum<{
                 active: "active";
                 ended: "ended";
+                paused: "paused";
                 withdrawn: "withdrawn";
             }>;
             effective_from: z.ZodISODateTime;
