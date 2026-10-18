@@ -18,7 +18,6 @@ jobs:
       - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
         with:
           node-version: 22.12.0
-          registry-url: https://registry.npmjs.org
           cache: npm
       - name: Verify immutable version identity
         run: test "v$(node -p "require('./package.json').version")" = "$GITHUB_REF_NAME"
@@ -35,7 +34,6 @@ jobs:
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
       - name: Publish the tested bytes with npm provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
         run: |
           version="$(node -p "require('./package.json').version")"
