@@ -27,9 +27,9 @@
     "support"
   ],
   "labels": {
-    "ai-ml": "AI and ML",
-    "apis-integration": "APIs and integration",
-    "auth-security": "Auth and security",
+    "ai-ml": "AI and machine learning",
+    "apis-integration": "APIs and integrations",
+    "auth-security": "Authentication and security",
     "banking": "Banking",
     "ci-cd": "CI/CD",
     "commerce": "Commerce",
@@ -45,7 +45,7 @@
     "insurance": "Insurance",
     "legal-compliance": "Legal and compliance",
     "marketing": "Marketing",
-    "no-code": "No-code",
+    "no-code": "No-code tools",
     "observability": "Observability",
     "other": "Other",
     "payments-fintech": "Payments and fintech",

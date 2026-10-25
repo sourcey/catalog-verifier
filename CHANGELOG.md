@@ -2,6 +2,11 @@
 
 Release notes are maintained per immutable package version in GitHub Releases.
 
+## 1.2.5
+
+- The taxonomy names its categories in full: AI and machine learning, APIs and integrations,
+  Authentication and security, and No-code tools.
+
 ## 1.2.4
 
 1.2.3 was tagged but never reached npm; 1.2.4 carries its changes.
