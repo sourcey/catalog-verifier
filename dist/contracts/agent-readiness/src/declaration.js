@@ -81,7 +81,12 @@ const agentReadinessEndpointRoleSchema = z.enum([
 export const agentReadinessEndpointSchema = z
     .object({
     endpoint_id: agentReadinessScopeKeySchema,
-    uri: catalogAuthoringUrlSchema,
+    /**
+     * An RFC 6570 URI template: a path parameter such as `{kid}` names what the
+     * caller fills in. A URI with none is a template too, so published schemas
+     * say `uri-template`, which allows the braces `uri` forbids.
+     */
+    uri: catalogAuthoringUrlSchema.meta({ format: "uri-template" }),
     transport: agentReadinessEndpointTransportSchema,
     roles: z.array(agentReadinessEndpointRoleSchema).min(1),
     operated_by_participant_id: agentReadinessScopeKeySchema,

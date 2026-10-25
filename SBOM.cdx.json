@@ -44,11 +44,111 @@
       },
       {
         "name": "sourcey:license-policy-sha256",
-        "value": "sha256:42d44b9a8c8da9f48c20a5f1f4da61b1826888cf4d56764757350cc993fc1730"
+        "value": "sha256:582f3ef8f0554fc19d55af065091eb26e773d839ecfd362e40bd7e94cdd4ed16"
       }
     ]
   },
   "components": [
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40sigstore/verify@3.1.1",
+      "group": "@sigstore",
+      "name": "verify",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "version": "3.1.1",
+      "purl": "pkg:npm/%40sigstore/verify@3.1.1",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "aafefe1b727671ceb0c058f7c8abd739a9b3aa13304a4d6880f1a68694bc89796570fac968820103ee076edb651d5bb5a6a5937666821ff584ed4382e7591da0"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@sigstore/verify/-/verify-3.1.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40sigstore/bundle@4.0.0",
+      "group": "@sigstore",
+      "name": "bundle",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "version": "4.0.0",
+      "purl": "pkg:npm/%40sigstore/bundle@4.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "3700a5e58d15e838b435ec6f913a9da157e68d3690c282ccdb7eabf3d284a231a6abf8cc96cf12fb36fbc8ec003dd5ef6f07ca0e53fe9665e000be2f292413f8"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@sigstore/bundle/-/bundle-4.0.0.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40sigstore/core@3.2.1",
+      "group": "@sigstore",
+      "name": "core",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "version": "3.2.1",
+      "purl": "pkg:npm/%40sigstore/core@3.2.1",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "a91b313e70ab6c2fe9b9e806c4abb29df9f180b887a964adad28f192807860aaaadd9dece1cc99ca3e3665d5850046e534feb90beac11fc12e4441c85e88bcde"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@sigstore/core/-/core-3.2.1.tgz"
+        }
+      ]
+    },
+    {
+      "type": "library",
+      "bom-ref": "pkg:npm/%40sigstore/protobuf-specs@0.5.2",
+      "group": "@sigstore",
+      "name": "protobuf-specs",
+      "licenses": [
+        {
+          "expression": "Apache-2.0"
+        }
+      ],
+      "version": "0.5.2",
+      "purl": "pkg:npm/%40sigstore/protobuf-specs@0.5.2",
+      "hashes": [
+        {
+          "alg": "SHA-512",
+          "content": "490aaf14cb7857bf1f7637037585fa1db89548e47840add983009ad8a3aca290203c81f2d6b539503526ccb974dabe68cb26987181d1d61a700d193fc947be33"
+        }
+      ],
+      "externalReferences": [
+        {
+          "type": "distribution",
+          "url": "https://registry.npmjs.org/@sigstore/protobuf-specs/-/protobuf-specs-0.5.2.tgz"
+        }
+      ]
+    },
     {
       "type": "library",
       "bom-ref": "pkg:npm/entities@8.1.0",
@@ -99,25 +199,25 @@
     },
     {
       "type": "library",
-      "bom-ref": "pkg:npm/provenry@0.2.2",
+      "bom-ref": "pkg:npm/provenry@0.3.0",
       "name": "provenry",
       "licenses": [
         {
           "expression": "MIT"
         }
       ],
-      "version": "0.2.2",
-      "purl": "pkg:npm/provenry@0.2.2",
+      "version": "0.3.0",
+      "purl": "pkg:npm/provenry@0.3.0",
       "hashes": [
         {
           "alg": "SHA-512",
-          "content": "29f7b712498b45438146dfce8258889f9c120e330c3991a4d4a243f28bed25e572fdbaf13672f6be4226d44d6c54324a60870c34ba7f0a53d1494436d46aceb5"
+          "content": "18012f90894ca376cebfa83fae13c24f9aa538fa32442f77a1e29cd6c40e4e0e468b8174d6c5a596cd73e5df0078865eef48b08247529edc03598868712360a4"
         }
       ],
       "externalReferences": [
         {
           "type": "distribution",
-          "url": "https://registry.npmjs.org/provenry/-/provenry-0.2.2.tgz"
+          "url": "https://registry.npmjs.org/provenry/-/provenry-0.3.0.tgz"
         }
       ]
     },
@@ -174,10 +274,32 @@
     {
       "ref": "urn:sourcey:code-distribution:catalog-verifier",
       "dependsOn": [
-        "pkg:npm/provenry@0.2.2",
+        "pkg:npm/provenry@0.3.0",
         "pkg:npm/yaml@2.9.1",
         "pkg:npm/zod@4.6.5"
       ]
+    },
+    {
+      "ref": "pkg:npm/%40sigstore/verify@3.1.1",
+      "dependsOn": [
+        "pkg:npm/%40sigstore/bundle@4.0.0",
+        "pkg:npm/%40sigstore/core@3.2.1",
+        "pkg:npm/%40sigstore/protobuf-specs@0.5.2"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40sigstore/bundle@4.0.0",
+      "dependsOn": [
+        "pkg:npm/%40sigstore/protobuf-specs@0.5.2"
+      ]
+    },
+    {
+      "ref": "pkg:npm/%40sigstore/core@3.2.1",
+      "dependsOn": []
+    },
+    {
+      "ref": "pkg:npm/%40sigstore/protobuf-specs@0.5.2",
+      "dependsOn": []
     },
     {
       "ref": "pkg:npm/entities@8.1.0",
@@ -190,8 +312,12 @@
       ]
     },
     {
-      "ref": "pkg:npm/provenry@0.2.2",
+      "ref": "pkg:npm/provenry@0.3.0",
       "dependsOn": [
+        "pkg:npm/%40sigstore/bundle@4.0.0",
+        "pkg:npm/%40sigstore/core@3.2.1",
+        "pkg:npm/%40sigstore/protobuf-specs@0.5.2",
+        "pkg:npm/%40sigstore/verify@3.1.1",
         "pkg:npm/parse5@8.0.1",
         "pkg:npm/zod@4.6.5"
       ]

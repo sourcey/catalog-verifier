@@ -2,6 +2,12 @@
 
 Release notes are maintained per immutable package version in GitHub Releases.
 
+## 1.2.3
+
+- Job bindings declare OAuth client credentials and refresh-token delegations, each
+  naming its token endpoint, and credentials placed as a query parameter. The `oauth`
+  delegation, which obtained consent inside a run, is removed.
+
 ## 1.2.0
 
 - Breaking: release verification leaves this package. `verify-release` and

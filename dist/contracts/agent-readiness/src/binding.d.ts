@@ -90,6 +90,9 @@ declare const agentReadinessCredentialDeclarationSchema: z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         scheme: z.ZodLiteral<"form">;
         field: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        scheme: z.ZodLiteral<"query">;
+        parameter: z.ZodString;
     }, z.core.$strict>]>;
     endpoint_ids: z.ZodArray<z.ZodString>;
     methods: z.ZodArray<z.ZodEnum<{
@@ -117,6 +120,9 @@ declare const agentReadinessKeptCredentialSchema: z.ZodObject<{
     }, z.core.$strict>, z.ZodObject<{
         scheme: z.ZodLiteral<"form">;
         field: z.ZodString;
+    }, z.core.$strict>, z.ZodObject<{
+        scheme: z.ZodLiteral<"query">;
+        parameter: z.ZodString;
     }, z.core.$strict>]>;
     endpoint_ids: z.ZodArray<z.ZodString>;
     methods: z.ZodArray<z.ZodEnum<{
@@ -131,6 +137,175 @@ declare const agentReadinessKeptCredentialSchema: z.ZodObject<{
     expires_in_pointer: z.ZodOptional<z.ZodString>;
 }, z.core.$strict>;
 export type AgentReadinessKeptCredential = z.infer<typeof agentReadinessKeptCredentialSchema>;
+/**
+ * How the job's authority is obtained on the account holder's runner (north
+ * star §7.4). Consent never happens inside a run: an OAuth grant starts from
+ * what the account holder already holds.
+ */
+declare const agentReadinessDelegationSchema: z.ZodDiscriminatedUnion<[z.ZodObject<{
+    kind: z.ZodLiteral<"none">;
+}, z.core.$strict>, z.ZodObject<{
+    kind: z.ZodLiteral<"entered">;
+    credentials: z.ZodArray<z.ZodObject<{
+        role: z.ZodString;
+        placement: z.ZodUnion<readonly [z.ZodObject<{
+            scheme: z.ZodEnum<{
+                basic: "basic";
+                bearer: "bearer";
+            }>;
+            header_name: z.ZodLiteral<"authorization">;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"header">;
+            header_name: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"form">;
+            field: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"query">;
+            parameter: z.ZodString;
+        }, z.core.$strict>]>;
+        endpoint_ids: z.ZodArray<z.ZodString>;
+        methods: z.ZodArray<z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>>;
+    }, z.core.$strict>>;
+}, z.core.$strict>, z.ZodObject<{
+    call: z.ZodObject<{
+        kind: z.ZodLiteral<"http">;
+        call_id: z.ZodString;
+        endpoint_id: z.ZodString;
+        method: z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>;
+        url: z.ZodString;
+        headers: z.ZodArray<z.ZodObject<{
+            name: z.ZodString;
+            value: z.ZodString;
+        }, z.core.$strict>>;
+        body: z.ZodNullable<z.ZodDiscriminatedUnion<[z.ZodObject<{
+            media_type: z.ZodLiteral<"application/json">;
+            json: z.ZodJSONSchema;
+        }, z.core.$strict>, z.ZodObject<{
+            media_type: z.ZodLiteral<"application/x-www-form-urlencoded">;
+            form: z.ZodArray<z.ZodObject<{
+                name: z.ZodString;
+                value: z.ZodString;
+            }, z.core.$strict>>;
+        }, z.core.$strict>], "media_type">>;
+        credentials: z.ZodArray<z.ZodString>;
+    }, z.core.$strict>;
+    keep: z.ZodArray<z.ZodObject<{
+        role: z.ZodString;
+        placement: z.ZodUnion<readonly [z.ZodObject<{
+            scheme: z.ZodEnum<{
+                basic: "basic";
+                bearer: "bearer";
+            }>;
+            header_name: z.ZodLiteral<"authorization">;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"header">;
+            header_name: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"form">;
+            field: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"query">;
+            parameter: z.ZodString;
+        }, z.core.$strict>]>;
+        endpoint_ids: z.ZodArray<z.ZodString>;
+        methods: z.ZodArray<z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>>;
+        pointer: z.ZodString;
+        expires_in_pointer: z.ZodOptional<z.ZodString>;
+    }, z.core.$strict>>;
+    kind: z.ZodLiteral<"minted">;
+    from: z.ZodObject<{
+        role: z.ZodString;
+        placement: z.ZodUnion<readonly [z.ZodObject<{
+            scheme: z.ZodEnum<{
+                basic: "basic";
+                bearer: "bearer";
+            }>;
+            header_name: z.ZodLiteral<"authorization">;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"header">;
+            header_name: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"form">;
+            field: z.ZodString;
+        }, z.core.$strict>, z.ZodObject<{
+            scheme: z.ZodLiteral<"query">;
+            parameter: z.ZodString;
+        }, z.core.$strict>]>;
+        endpoint_ids: z.ZodArray<z.ZodString>;
+        methods: z.ZodArray<z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>>;
+    }, z.core.$strict>;
+}, z.core.$strict>, z.ZodObject<{
+    token_endpoint_id: z.ZodString;
+    scopes: z.ZodArray<z.ZodString>;
+    access: z.ZodObject<{
+        role: z.ZodString;
+        endpoint_ids: z.ZodArray<z.ZodString>;
+        methods: z.ZodArray<z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>>;
+    }, z.core.$strict>;
+    kind: z.ZodLiteral<"oauth_client_credentials">;
+    client_authentication: z.ZodEnum<{
+        client_secret_basic: "client_secret_basic";
+        client_secret_post: "client_secret_post";
+    }>;
+}, z.core.$strict>, z.ZodObject<{
+    token_endpoint_id: z.ZodString;
+    scopes: z.ZodArray<z.ZodString>;
+    access: z.ZodObject<{
+        role: z.ZodString;
+        endpoint_ids: z.ZodArray<z.ZodString>;
+        methods: z.ZodArray<z.ZodEnum<{
+            DELETE: "DELETE";
+            GET: "GET";
+            HEAD: "HEAD";
+            PATCH: "PATCH";
+            POST: "POST";
+            PUT: "PUT";
+        }>>;
+    }, z.core.$strict>;
+    kind: z.ZodLiteral<"oauth_refresh_token">;
+    client_authentication: z.ZodEnum<{
+        client_secret_basic: "client_secret_basic";
+        client_secret_post: "client_secret_post";
+        none: "none";
+    }>;
+}, z.core.$strict>], "kind">;
+export type AgentReadinessDelegation = z.infer<typeof agentReadinessDelegationSchema>;
 export declare const agentReadinessJobBindingSchema: z.ZodObject<{
     binding_id: z.ZodString;
     interface_id: z.ZodString;
@@ -201,6 +376,9 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 scheme: z.ZodLiteral<"form">;
                 field: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                scheme: z.ZodLiteral<"query">;
+                parameter: z.ZodString;
             }, z.core.$strict>]>;
             endpoint_ids: z.ZodArray<z.ZodString>;
             methods: z.ZodArray<z.ZodEnum<{
@@ -211,43 +389,6 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
                 POST: "POST";
                 PUT: "PUT";
             }>>;
-        }, z.core.$strict>>;
-    }, z.core.$strict>, z.ZodObject<{
-        kind: z.ZodLiteral<"oauth">;
-        authorization_endpoint_id: z.ZodString;
-        token_endpoint_id: z.ZodString;
-        client: z.ZodEnum<{
-            client_id_metadata_document: "client_id_metadata_document";
-            dynamic_registration: "dynamic_registration";
-            preregistered: "preregistered";
-        }>;
-        scopes: z.ZodArray<z.ZodString>;
-        keep: z.ZodArray<z.ZodObject<{
-            role: z.ZodString;
-            placement: z.ZodUnion<readonly [z.ZodObject<{
-                scheme: z.ZodEnum<{
-                    basic: "basic";
-                    bearer: "bearer";
-                }>;
-                header_name: z.ZodLiteral<"authorization">;
-            }, z.core.$strict>, z.ZodObject<{
-                scheme: z.ZodLiteral<"header">;
-                header_name: z.ZodString;
-            }, z.core.$strict>, z.ZodObject<{
-                scheme: z.ZodLiteral<"form">;
-                field: z.ZodString;
-            }, z.core.$strict>]>;
-            endpoint_ids: z.ZodArray<z.ZodString>;
-            methods: z.ZodArray<z.ZodEnum<{
-                DELETE: "DELETE";
-                GET: "GET";
-                HEAD: "HEAD";
-                PATCH: "PATCH";
-                POST: "POST";
-                PUT: "PUT";
-            }>>;
-            pointer: z.ZodString;
-            expires_in_pointer: z.ZodOptional<z.ZodString>;
         }, z.core.$strict>>;
     }, z.core.$strict>, z.ZodObject<{
         call: z.ZodObject<{
@@ -293,6 +434,9 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 scheme: z.ZodLiteral<"form">;
                 field: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                scheme: z.ZodLiteral<"query">;
+                parameter: z.ZodString;
             }, z.core.$strict>]>;
             endpoint_ids: z.ZodArray<z.ZodString>;
             methods: z.ZodArray<z.ZodEnum<{
@@ -321,6 +465,9 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
             }, z.core.$strict>, z.ZodObject<{
                 scheme: z.ZodLiteral<"form">;
                 field: z.ZodString;
+            }, z.core.$strict>, z.ZodObject<{
+                scheme: z.ZodLiteral<"query">;
+                parameter: z.ZodString;
             }, z.core.$strict>]>;
             endpoint_ids: z.ZodArray<z.ZodString>;
             methods: z.ZodArray<z.ZodEnum<{
@@ -332,6 +479,47 @@ export declare const agentReadinessJobBindingSchema: z.ZodObject<{
                 PUT: "PUT";
             }>>;
         }, z.core.$strict>;
+    }, z.core.$strict>, z.ZodObject<{
+        token_endpoint_id: z.ZodString;
+        scopes: z.ZodArray<z.ZodString>;
+        access: z.ZodObject<{
+            role: z.ZodString;
+            endpoint_ids: z.ZodArray<z.ZodString>;
+            methods: z.ZodArray<z.ZodEnum<{
+                DELETE: "DELETE";
+                GET: "GET";
+                HEAD: "HEAD";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>>;
+        }, z.core.$strict>;
+        kind: z.ZodLiteral<"oauth_client_credentials">;
+        client_authentication: z.ZodEnum<{
+            client_secret_basic: "client_secret_basic";
+            client_secret_post: "client_secret_post";
+        }>;
+    }, z.core.$strict>, z.ZodObject<{
+        token_endpoint_id: z.ZodString;
+        scopes: z.ZodArray<z.ZodString>;
+        access: z.ZodObject<{
+            role: z.ZodString;
+            endpoint_ids: z.ZodArray<z.ZodString>;
+            methods: z.ZodArray<z.ZodEnum<{
+                DELETE: "DELETE";
+                GET: "GET";
+                HEAD: "HEAD";
+                PATCH: "PATCH";
+                POST: "POST";
+                PUT: "PUT";
+            }>>;
+        }, z.core.$strict>;
+        kind: z.ZodLiteral<"oauth_refresh_token">;
+        client_authentication: z.ZodEnum<{
+            client_secret_basic: "client_secret_basic";
+            client_secret_post: "client_secret_post";
+            none: "none";
+        }>;
     }, z.core.$strict>], "kind">;
     payment: z.ZodDiscriminatedUnion<[z.ZodObject<{
         kind: z.ZodLiteral<"none">;
@@ -387,6 +575,20 @@ export declare function agentReadinessBindingCalls(binding: Pick<AgentReadinessJ
     readonly call: AgentReadinessCall;
     readonly mayRead: readonly string[];
 }[];
+/**
+ * The OAuth client and grant credentials a delegation starts from, by the role
+ * the account holder names each under. They travel only to the token endpoint,
+ * never with a job call.
+ */
+export declare const AGENT_READINESS_OAUTH_ROLES: {
+    readonly clientId: "client_id";
+    readonly clientSecret: "client_secret";
+    readonly refreshToken: "refresh_token";
+    /** A basic client's one credential: the form-encoded `client_id:client_secret` pair (RFC 6749 §2.3.1). */
+    readonly client: "client";
+};
+/** The call id an OAuth delegation's token request is recorded under; no binding call takes it. */
+export declare const AGENT_READINESS_OAUTH_TOKEN_CALL = "oauth-token";
 /** Every template string a call sends. */
 export declare function agentReadinessCallTemplates(call: AgentReadinessCall): readonly string[];
 /** The declared surfaces a job operation or binding resolves against. */

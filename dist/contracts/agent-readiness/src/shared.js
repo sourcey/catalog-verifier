@@ -160,8 +160,8 @@ export const agentReadinessStepOutcomeSchema = z.enum([
 ]);
 /**
  * The job itself, which is not a step (north star §5.1): an interface for it
- * answers and the job has not been run, a run did it, or no machine interface
- * performs it (F). `not_assessed` until the probes settle it.
+ * answers, a fresh run did it, or no machine interface performs it (F).
+ * `not_assessed` until the probes settle it.
  */
 export const agentReadinessJobOutcomeSchema = z.enum([
     "reachable",

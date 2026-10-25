@@ -3,8 +3,68 @@
   "distribution_id": "catalog-verifier",
   "package_name": "@sourcey/catalog-verifier",
   "package_license": "MIT",
-  "license_policy_sha256": "sha256:42d44b9a8c8da9f48c20a5f1f4da61b1826888cf4d56764757350cc993fc1730",
+  "license_policy_sha256": "sha256:582f3ef8f0554fc19d55af065091eb26e773d839ecfd362e40bd7e94cdd4ed16",
   "dependencies": [
+    {
+      "name": "@sigstore/verify",
+      "version": "3.1.1",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/verify/-/verify-3.1.1.tgz",
+      "integrity": "sha512-qv7+G3J2cc6wwFj3yKvXOamzqhMwSk1ogPGmhpS8iXllcPrJaIIBA+4HbttlHVu1pqWTdmaCH/WE7UOC51kdoA==",
+      "lock_path": "node_modules/@sigstore/verify",
+      "license_files": [
+        {
+          "path": "distributions/licenses/sigstore-verify-3.1.1.txt",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/bundle",
+      "version": "4.0.0",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/bundle/-/bundle-4.0.0.tgz",
+      "integrity": "sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A==",
+      "lock_path": "node_modules/@sigstore/verify/node_modules/@sigstore/bundle",
+      "license_files": [
+        {
+          "path": "node_modules/@sigstore/verify/node_modules/@sigstore/bundle/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/core",
+      "version": "3.2.1",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/core/-/core-3.2.1.tgz",
+      "integrity": "sha512-qRsxPnCrbC/puegGxKuynfnxgLiHqWStrSjxkoB4YKqq3Z3s4cyZyj42ZdWFAEblNP65C+rBH8EuREHIXoi83g==",
+      "lock_path": "node_modules/@sigstore/verify/node_modules/@sigstore/core",
+      "license_files": [
+        {
+          "path": "node_modules/@sigstore/verify/node_modules/@sigstore/core/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/protobuf-specs",
+      "version": "0.5.2",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/protobuf-specs/-/protobuf-specs-0.5.2.tgz",
+      "integrity": "sha512-SQqvFMt4V78fdjcDdYX6HbiVSOR4QK3ZgwCa2KOsopAgPIHy1rU5UDUmzLl02r5oyyaYcYHR1hpwDRk/yUe+Mw==",
+      "lock_path": "node_modules/@sigstore/verify/node_modules/@sigstore/protobuf-specs",
+      "license_files": [
+        {
+          "path": "node_modules/@sigstore/verify/node_modules/@sigstore/protobuf-specs/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
     {
       "name": "entities",
       "version": "8.1.0",
@@ -37,16 +97,61 @@
     },
     {
       "name": "provenry",
-      "version": "0.2.2",
+      "version": "0.3.0",
       "license": "MIT",
-      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.2.2.tgz",
-      "integrity": "sha512-Kfe3EkmLRUOBRt/OgliIn5wSDjMMOZGk1KJD8ovtJeVy/brxNnL2vkIm1E1sVDJKYIcMNLp/ClPRSUQ21GrOtQ==",
+      "resolved": "https://registry.npmjs.org/provenry/-/provenry-0.3.0.tgz",
+      "integrity": "sha512-GAEvkIlMo3bOv6g/rhPCT5qlOPoyRC93oeKc1sQOTg5Gi4F01sWlls1z5d8AeIZe70iwgkdSntwDWYhocSNgpA==",
       "lock_path": "node_modules/provenry",
       "license_files": [
         {
           "path": "node_modules/provenry/LICENSE",
           "sha256": "sha256:60dd3fcb1bd0f2668ffd74c316ae6664ea317407361a1ad62152008416aebb6d",
           "bytes": 1064
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/bundle",
+      "version": "4.0.0",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/bundle/-/bundle-4.0.0.tgz",
+      "integrity": "sha512-NwCl5Y0V6Di0NexvkTqdoVfmjTaQwoLM236r89KEojGmq/jMls8S+zb7yOwAPdXvbwfKDlP+lmXgAL4vKSQT+A==",
+      "lock_path": "node_modules/provenry/node_modules/@sigstore/bundle",
+      "license_files": [
+        {
+          "path": "node_modules/provenry/node_modules/@sigstore/bundle/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/core",
+      "version": "3.2.1",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/core/-/core-3.2.1.tgz",
+      "integrity": "sha512-qRsxPnCrbC/puegGxKuynfnxgLiHqWStrSjxkoB4YKqq3Z3s4cyZyj42ZdWFAEblNP65C+rBH8EuREHIXoi83g==",
+      "lock_path": "node_modules/provenry/node_modules/@sigstore/core",
+      "license_files": [
+        {
+          "path": "node_modules/provenry/node_modules/@sigstore/core/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
+        }
+      ]
+    },
+    {
+      "name": "@sigstore/protobuf-specs",
+      "version": "0.5.2",
+      "license": "Apache-2.0",
+      "resolved": "https://registry.npmjs.org/@sigstore/protobuf-specs/-/protobuf-specs-0.5.2.tgz",
+      "integrity": "sha512-SQqvFMt4V78fdjcDdYX6HbiVSOR4QK3ZgwCa2KOsopAgPIHy1rU5UDUmzLl02r5oyyaYcYHR1hpwDRk/yUe+Mw==",
+      "lock_path": "node_modules/provenry/node_modules/@sigstore/protobuf-specs",
+      "license_files": [
+        {
+          "path": "node_modules/provenry/node_modules/@sigstore/protobuf-specs/LICENSE",
+          "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+          "bytes": 11351
         }
       ]
     },

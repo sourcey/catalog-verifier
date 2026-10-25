@@ -7,7 +7,7 @@ import { z } from "zod";
  * so a service cannot choose an easier job than its category's.
  */
 export declare const AGENT_READINESS_JOB_LIBRARY_CONTRACT: "sourcey.agent-readiness-job-library/v1alpha1";
-declare const agentReadinessJobSchema: z.ZodObject<{
+export declare const agentReadinessJobSchema: z.ZodObject<{
     job_id: z.ZodString;
     category: z.ZodString;
     name: z.ZodString;
@@ -233,5 +233,4 @@ export interface AgentReadinessProofSignature {
     readonly independentCall?: readonly (readonly [string, string])[];
 }
 export declare function agentReadinessProofSignature(proof: AgentReadinessProof): AgentReadinessProofSignature;
-export {};
 //# sourceMappingURL=jobs.d.ts.map

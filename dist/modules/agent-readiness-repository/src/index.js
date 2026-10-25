@@ -2,7 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import { compareCanonicalStrings } from "provenry/primitives";
 import { parse as parseYaml } from "yaml";
-import { AGENT_READINESS_REPOSITORY, AGENT_READINESS_REPOSITORY_URL, agentReadinessAuthoringSchema, } from "../../../contracts/agent-readiness/src/declaration.js";
+import { AGENT_READINESS_REPOSITORY, agentReadinessAuthoringSchema, } from "../../../contracts/agent-readiness/src/declaration.js";
 import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { compileAgentReadinessDeclarationRevision, compileAgentReadinessDeclarationSource, } from "./declaration-blob.js";
 export * from "./declaration-blob.js";

@@ -215,6 +215,12 @@ const placementSchema = z.union([
     z
         .object({ scheme: z.literal("form"), field: z.string().regex(/^[A-Za-z0-9_.-]{1,64}$/u) })
         .strict(),
+    z
+        .object({
+        scheme: z.literal("query"),
+        parameter: z.string().regex(/^[A-Za-z0-9_.-]{1,64}$/u),
+    })
+        .strict(),
 ]);
 /** One credential the binding uses: its role, how it travels, and where it may go. */
 const agentReadinessCredentialDeclarationSchema = z
@@ -236,6 +242,28 @@ const issuingCall = {
     call: agentReadinessHttpCallSchema,
     keep: z.array(agentReadinessKeptCredentialSchema).min(1).max(4),
 };
+/** Where an access token an OAuth grant issues may go: the binding's calls carry it by its role. */
+const agentReadinessOAuthAccessSchema = z
+    .object({
+    role: nameSchema,
+    endpoint_ids: z.array(agentReadinessScopeKeySchema).min(1).max(8),
+    methods: methodsSchema,
+})
+    .strict();
+const oauthGrant = {
+    /** The declared endpoint whose URI is the authorization server's token endpoint. */
+    token_endpoint_id: agentReadinessScopeKeySchema,
+    scopes: z
+        .array(z.string().regex(/^[\x21\x23-\x5B\x5D-\x7E]{1,128}$/u))
+        .max(32)
+        .refine((scopes) => new Set(scopes).size === scopes.length, "Scopes are unique."),
+    access: agentReadinessOAuthAccessSchema,
+};
+/**
+ * How the job's authority is obtained on the account holder's runner (north
+ * star §7.4). Consent never happens inside a run: an OAuth grant starts from
+ * what the account holder already holds.
+ */
 const agentReadinessDelegationSchema = z.discriminatedUnion("kind", [
     /** The job needs no authority. */
     z.object({ kind: z.literal("none") }).strict(),
@@ -249,26 +277,32 @@ const agentReadinessDelegationSchema = z.discriminatedUnion("kind", [
         credentials: z.array(agentReadinessCredentialDeclarationSchema).min(1).max(4),
     })
         .strict(),
-    /**
-     * The principal consents through OAuth, MCP authorization included; the
-     * runner's custody keeps the tokens.
-     */
-    z
-        .object({
-        kind: z.literal("oauth"),
-        authorization_endpoint_id: agentReadinessScopeKeySchema,
-        token_endpoint_id: agentReadinessScopeKeySchema,
-        client: z.enum(["client_id_metadata_document", "dynamic_registration", "preregistered"]),
-        scopes: z.array(z.string().regex(/^[\x21\x23-\x5B\x5D-\x7E]{1,128}$/u)).max(32),
-        keep: z.array(agentReadinessKeptCredentialSchema).min(1).max(4),
-    })
-        .strict(),
     /** A credential the account holder entered mints the job's, through the service's own API. */
     z
         .object({
         kind: z.literal("minted"),
         from: agentReadinessCredentialDeclarationSchema,
         ...issuingCall,
+    })
+        .strict(),
+    /** A client id and secret obtain a fresh access token each run (RFC 6749 §4.4). */
+    z
+        .object({
+        kind: z.literal("oauth_client_credentials"),
+        client_authentication: z.enum(["client_secret_basic", "client_secret_post"]),
+        ...oauthGrant,
+    })
+        .strict(),
+    /**
+     * A refresh token from one consent the account holder gave obtains an access
+     * token each run (RFC 6749 §6); a rotated one is kept, for the account holder
+     * to write back to their own secret.
+     */
+    z
+        .object({
+        kind: z.literal("oauth_refresh_token"),
+        client_authentication: z.enum(["client_secret_basic", "client_secret_post", "none"]),
+        ...oauthGrant,
     })
         .strict(),
 ]);
@@ -316,21 +350,45 @@ export function agentReadinessBindingCalls(binding) {
         calls.push({ call, mayRead: jobIds });
     return calls;
 }
-/** Credential roles the binding obtains, from its delegation. */
+/** Credential roles the binding's calls may carry, from its delegation. */
 function agentReadinessBindingRoles(binding) {
     const { delegation } = binding;
-    const roles = delegation.kind === "none"
-        ? []
-        : delegation.kind === "entered"
-            ? delegation.credentials.map(({ role }) => role)
-            : delegation.kind === "oauth"
-                ? delegation.keep.map(({ role }) => role)
-                : [delegation.from.role, ...delegation.keep.map(({ role }) => role)];
-    return [...new Set(roles)];
+    switch (delegation.kind) {
+        case "none":
+            return [];
+        case "entered":
+            return [...new Set(delegation.credentials.map(({ role }) => role))];
+        case "minted":
+            return [...new Set([delegation.from.role, ...delegation.keep.map(({ role }) => role)])];
+        case "oauth_client_credentials":
+        case "oauth_refresh_token":
+            return [delegation.access.role];
+    }
 }
+/**
+ * The OAuth client and grant credentials a delegation starts from, by the role
+ * the account holder names each under. They travel only to the token endpoint,
+ * never with a job call.
+ */
+export const AGENT_READINESS_OAUTH_ROLES = {
+    clientId: "client_id",
+    clientSecret: "client_secret",
+    refreshToken: "refresh_token",
+    /** A basic client's one credential: the form-encoded `client_id:client_secret` pair (RFC 6749 §2.3.1). */
+    client: "client",
+};
+/** The call id an OAuth delegation's token request is recorded under; no binding call takes it. */
+export const AGENT_READINESS_OAUTH_TOKEN_CALL = "oauth-token";
 function validateBinding(binding, context) {
     const calls = agentReadinessBindingCalls(binding);
     unique(calls.map(({ call }) => call.call_id), context, ["calls"], "Call ids are unique across the binding.");
+    if (calls.some(({ call }) => call.call_id === AGENT_READINESS_OAUTH_TOKEN_CALL)) {
+        context.addIssue({
+            code: "custom",
+            path: ["calls"],
+            message: `The call id ${AGENT_READINESS_OAUTH_TOKEN_CALL} names an OAuth delegation's token request.`,
+        });
+    }
     const roles = new Set(agentReadinessBindingRoles(binding));
     for (const { call, mayRead } of calls) {
         for (const role of call.credentials) {
@@ -439,17 +497,20 @@ export function validateDeclaredJobBindings(value, context) {
             }
         }
         const { delegation } = binding;
+        const oauth = delegation.kind === "oauth_client_credentials" || delegation.kind === "oauth_refresh_token";
         const credentialEndpoints = [
             ...(delegation.kind === "entered" ? delegation.credentials : []),
-            ...(delegation.kind === "oauth" ? delegation.keep : []),
             ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
+            ...(oauth ? [delegation.access] : []),
         ].flatMap(({ endpoint_ids }) => endpoint_ids);
-        if (delegation.kind === "oauth") {
-            credentialEndpoints.push(delegation.authorization_endpoint_id, delegation.token_endpoint_id);
-        }
+        if (oauth)
+            credentialEndpoints.push(delegation.token_endpoint_id);
         for (const id of new Set(credentialEndpoints)) {
             if (!endpoints.has(id))
                 issue(`Credentials reach unknown endpoint '${id}'.`);
+        }
+        if (oauth && endpoints.get(delegation.token_endpoint_id)?.transport !== "http") {
+            issue(`The token endpoint '${delegation.token_endpoint_id}' is an HTTP endpoint.`);
         }
     }
 }

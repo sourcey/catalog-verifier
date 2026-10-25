@@ -1,6 +1,6 @@
 {
   "name": "@sourcey/catalog-verifier",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Validate Sourcey data contributions before admission.",
   "keywords": [
     "sourcey",
@@ -46,13 +46,14 @@
     "SOURCEY-CLOSURE.json",
     "SOURCEY-DISTRIBUTION.json",
     "SOURCEY-LICENSE-POLICY.json",
-    "SOURCEY-TOOLCHAIN.json"
+    "SOURCEY-TOOLCHAIN.json",
+    "distributions/licenses/sigstore-verify-3.1.1.txt"
   ],
   "scripts": {
     "test": "node --test test/*.test.mjs"
   },
   "dependencies": {
-    "provenry": "0.2.2",
+    "provenry": "0.3.0",
     "yaml": "2.9.1",
     "zod": "4.6.5"
   },

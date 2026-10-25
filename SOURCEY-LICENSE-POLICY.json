@@ -1,16 +1,15 @@
 {
   "code_distribution_license_policy_contract": "sourcey.code-distribution-license-policy/v1",
   "package_license": "MIT",
-  "allowed_dependency_licenses": ["Apache-2.0", "BSD-2-Clause", "BSD-3-Clause", "ISC", "MIT"],
+  "allowed_dependency_licenses": [
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "ISC",
+    "MIT",
+    "Unlicense"
+  ],
   "reviewed_license_texts": [
-    {
-      "package": "data-uri-to-buffer",
-      "version": "4.0.1",
-      "license": "MIT",
-      "path": "README.md",
-      "sha256": "sha256:a7cc4332acfa1f9b6530e01aac77fefe74f2efa32579215fddaa473013f9a25c",
-      "reason": "Upstream ships the full MIT license text inside README.md under its License heading and no separate license file; pulled by @google/genai through google-auth-library, gaxios and node-fetch."
-    },
     {
       "package": "@nodable/entities",
       "version": "3.1.0",
@@ -18,6 +17,24 @@
       "path": "README.md",
       "sha256": "sha256:7e3484a07c208b5c5813290a993244c6841efc3d4241c29a07ef948e8129a758",
       "reason": "Upstream ships its MIT license notice in README.md and no separate license file; pulled by fast-xml-parser for safe submitted SVG inspection."
+    }
+  ],
+  "supplied_license_texts": [
+    {
+      "package": "err-code",
+      "version": "2.0.3",
+      "license": "MIT",
+      "path": "distributions/licenses/err-code-2.0.3.txt",
+      "sha256": "sha256:5cfd203775f0b7ba0bd84e059d37b224c161497bf2a2d649a13fabce46c1c452",
+      "reason": "Upstream declares MIT in package.json and ships no license text in its package or its repository at the release's commit; this is the standard MIT text naming the package's declared author. Pulled by @sigstore/sign through promise-retry."
+    },
+    {
+      "package": "@sigstore/verify",
+      "version": "3.1.1",
+      "license": "Apache-2.0",
+      "path": "distributions/licenses/sigstore-verify-3.1.1.txt",
+      "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
+      "reason": "Upstream declares Apache-2.0 in package.json and its package ships no license text; this is sigstore-js's root LICENSE at the release's commit (1a8709a), byte-identical to the text @sigstore/core ships. Pulled by provenry's GitHub Actions verifiers."
     }
   ]
 }

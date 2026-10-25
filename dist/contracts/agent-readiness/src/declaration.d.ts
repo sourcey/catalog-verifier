@@ -371,6 +371,9 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     scheme: z.ZodLiteral<"form">;
                     field: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    scheme: z.ZodLiteral<"query">;
+                    parameter: z.ZodString;
                 }, z.core.$strict>]>;
                 endpoint_ids: z.ZodArray<z.ZodString>;
                 methods: z.ZodArray<z.ZodEnum<{
@@ -381,43 +384,6 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                     POST: "POST";
                     PUT: "PUT";
                 }>>;
-            }, z.core.$strict>>;
-        }, z.core.$strict>, z.ZodObject<{
-            kind: z.ZodLiteral<"oauth">;
-            authorization_endpoint_id: z.ZodString;
-            token_endpoint_id: z.ZodString;
-            client: z.ZodEnum<{
-                client_id_metadata_document: "client_id_metadata_document";
-                dynamic_registration: "dynamic_registration";
-                preregistered: "preregistered";
-            }>;
-            scopes: z.ZodArray<z.ZodString>;
-            keep: z.ZodArray<z.ZodObject<{
-                role: z.ZodString;
-                placement: z.ZodUnion<readonly [z.ZodObject<{
-                    scheme: z.ZodEnum<{
-                        basic: "basic";
-                        bearer: "bearer";
-                    }>;
-                    header_name: z.ZodLiteral<"authorization">;
-                }, z.core.$strict>, z.ZodObject<{
-                    scheme: z.ZodLiteral<"header">;
-                    header_name: z.ZodString;
-                }, z.core.$strict>, z.ZodObject<{
-                    scheme: z.ZodLiteral<"form">;
-                    field: z.ZodString;
-                }, z.core.$strict>]>;
-                endpoint_ids: z.ZodArray<z.ZodString>;
-                methods: z.ZodArray<z.ZodEnum<{
-                    DELETE: "DELETE";
-                    GET: "GET";
-                    HEAD: "HEAD";
-                    PATCH: "PATCH";
-                    POST: "POST";
-                    PUT: "PUT";
-                }>>;
-                pointer: z.ZodString;
-                expires_in_pointer: z.ZodOptional<z.ZodString>;
             }, z.core.$strict>>;
         }, z.core.$strict>, z.ZodObject<{
             call: z.ZodObject<{
@@ -463,6 +429,9 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     scheme: z.ZodLiteral<"form">;
                     field: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    scheme: z.ZodLiteral<"query">;
+                    parameter: z.ZodString;
                 }, z.core.$strict>]>;
                 endpoint_ids: z.ZodArray<z.ZodString>;
                 methods: z.ZodArray<z.ZodEnum<{
@@ -491,6 +460,9 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                 }, z.core.$strict>, z.ZodObject<{
                     scheme: z.ZodLiteral<"form">;
                     field: z.ZodString;
+                }, z.core.$strict>, z.ZodObject<{
+                    scheme: z.ZodLiteral<"query">;
+                    parameter: z.ZodString;
                 }, z.core.$strict>]>;
                 endpoint_ids: z.ZodArray<z.ZodString>;
                 methods: z.ZodArray<z.ZodEnum<{
@@ -502,6 +474,47 @@ declare const agentReadinessDeclarationSchema: z.ZodObject<{
                     PUT: "PUT";
                 }>>;
             }, z.core.$strict>;
+        }, z.core.$strict>, z.ZodObject<{
+            token_endpoint_id: z.ZodString;
+            scopes: z.ZodArray<z.ZodString>;
+            access: z.ZodObject<{
+                role: z.ZodString;
+                endpoint_ids: z.ZodArray<z.ZodString>;
+                methods: z.ZodArray<z.ZodEnum<{
+                    DELETE: "DELETE";
+                    GET: "GET";
+                    HEAD: "HEAD";
+                    PATCH: "PATCH";
+                    POST: "POST";
+                    PUT: "PUT";
+                }>>;
+            }, z.core.$strict>;
+            kind: z.ZodLiteral<"oauth_client_credentials">;
+            client_authentication: z.ZodEnum<{
+                client_secret_basic: "client_secret_basic";
+                client_secret_post: "client_secret_post";
+            }>;
+        }, z.core.$strict>, z.ZodObject<{
+            token_endpoint_id: z.ZodString;
+            scopes: z.ZodArray<z.ZodString>;
+            access: z.ZodObject<{
+                role: z.ZodString;
+                endpoint_ids: z.ZodArray<z.ZodString>;
+                methods: z.ZodArray<z.ZodEnum<{
+                    DELETE: "DELETE";
+                    GET: "GET";
+                    HEAD: "HEAD";
+                    PATCH: "PATCH";
+                    POST: "POST";
+                    PUT: "PUT";
+                }>>;
+            }, z.core.$strict>;
+            kind: z.ZodLiteral<"oauth_refresh_token">;
+            client_authentication: z.ZodEnum<{
+                client_secret_basic: "client_secret_basic";
+                client_secret_post: "client_secret_post";
+                none: "none";
+            }>;
         }, z.core.$strict>], "kind">;
         payment: z.ZodDiscriminatedUnion<[z.ZodObject<{
             kind: z.ZodLiteral<"none">;
@@ -940,6 +953,9 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -950,43 +966,6 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                         POST: "POST";
                         PUT: "PUT";
                     }>>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"oauth">;
-                authorization_endpoint_id: z.ZodString;
-                token_endpoint_id: z.ZodString;
-                client: z.ZodEnum<{
-                    client_id_metadata_document: "client_id_metadata_document";
-                    dynamic_registration: "dynamic_registration";
-                    preregistered: "preregistered";
-                }>;
-                scopes: z.ZodArray<z.ZodString>;
-                keep: z.ZodArray<z.ZodObject<{
-                    role: z.ZodString;
-                    placement: z.ZodUnion<readonly [z.ZodObject<{
-                        scheme: z.ZodEnum<{
-                            basic: "basic";
-                            bearer: "bearer";
-                        }>;
-                        header_name: z.ZodLiteral<"authorization">;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"header">;
-                        header_name: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"form">;
-                        field: z.ZodString;
-                    }, z.core.$strict>]>;
-                    endpoint_ids: z.ZodArray<z.ZodString>;
-                    methods: z.ZodArray<z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>>;
-                    pointer: z.ZodString;
-                    expires_in_pointer: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodObject<{
                 call: z.ZodObject<{
@@ -1032,6 +1011,9 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -1060,6 +1042,9 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -1071,6 +1056,47 @@ export declare const agentReadinessDeclarationRevisionCoreSchema: z.ZodObject<{
                         PUT: "PUT";
                     }>>;
                 }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_client_credentials">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                }>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_refresh_token">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                    none: "none";
+                }>;
             }, z.core.$strict>], "kind">;
             payment: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;
@@ -1503,6 +1529,9 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -1513,43 +1542,6 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                         POST: "POST";
                         PUT: "PUT";
                     }>>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"oauth">;
-                authorization_endpoint_id: z.ZodString;
-                token_endpoint_id: z.ZodString;
-                client: z.ZodEnum<{
-                    client_id_metadata_document: "client_id_metadata_document";
-                    dynamic_registration: "dynamic_registration";
-                    preregistered: "preregistered";
-                }>;
-                scopes: z.ZodArray<z.ZodString>;
-                keep: z.ZodArray<z.ZodObject<{
-                    role: z.ZodString;
-                    placement: z.ZodUnion<readonly [z.ZodObject<{
-                        scheme: z.ZodEnum<{
-                            basic: "basic";
-                            bearer: "bearer";
-                        }>;
-                        header_name: z.ZodLiteral<"authorization">;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"header">;
-                        header_name: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"form">;
-                        field: z.ZodString;
-                    }, z.core.$strict>]>;
-                    endpoint_ids: z.ZodArray<z.ZodString>;
-                    methods: z.ZodArray<z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>>;
-                    pointer: z.ZodString;
-                    expires_in_pointer: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodObject<{
                 call: z.ZodObject<{
@@ -1595,6 +1587,9 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -1623,6 +1618,9 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -1634,6 +1632,47 @@ export declare const agentReadinessDeclarationRevisionSchema: z.ZodObject<{
                         PUT: "PUT";
                     }>>;
                 }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_client_credentials">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                }>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_refresh_token">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                    none: "none";
+                }>;
             }, z.core.$strict>], "kind">;
             payment: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;
@@ -2090,6 +2129,9 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -2100,43 +2142,6 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                         POST: "POST";
                         PUT: "PUT";
                     }>>;
-                }, z.core.$strict>>;
-            }, z.core.$strict>, z.ZodObject<{
-                kind: z.ZodLiteral<"oauth">;
-                authorization_endpoint_id: z.ZodString;
-                token_endpoint_id: z.ZodString;
-                client: z.ZodEnum<{
-                    client_id_metadata_document: "client_id_metadata_document";
-                    dynamic_registration: "dynamic_registration";
-                    preregistered: "preregistered";
-                }>;
-                scopes: z.ZodArray<z.ZodString>;
-                keep: z.ZodArray<z.ZodObject<{
-                    role: z.ZodString;
-                    placement: z.ZodUnion<readonly [z.ZodObject<{
-                        scheme: z.ZodEnum<{
-                            basic: "basic";
-                            bearer: "bearer";
-                        }>;
-                        header_name: z.ZodLiteral<"authorization">;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"header">;
-                        header_name: z.ZodString;
-                    }, z.core.$strict>, z.ZodObject<{
-                        scheme: z.ZodLiteral<"form">;
-                        field: z.ZodString;
-                    }, z.core.$strict>]>;
-                    endpoint_ids: z.ZodArray<z.ZodString>;
-                    methods: z.ZodArray<z.ZodEnum<{
-                        DELETE: "DELETE";
-                        GET: "GET";
-                        HEAD: "HEAD";
-                        PATCH: "PATCH";
-                        POST: "POST";
-                        PUT: "PUT";
-                    }>>;
-                    pointer: z.ZodString;
-                    expires_in_pointer: z.ZodOptional<z.ZodString>;
                 }, z.core.$strict>>;
             }, z.core.$strict>, z.ZodObject<{
                 call: z.ZodObject<{
@@ -2182,6 +2187,9 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -2210,6 +2218,9 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                     }, z.core.$strict>, z.ZodObject<{
                         scheme: z.ZodLiteral<"form">;
                         field: z.ZodString;
+                    }, z.core.$strict>, z.ZodObject<{
+                        scheme: z.ZodLiteral<"query">;
+                        parameter: z.ZodString;
                     }, z.core.$strict>]>;
                     endpoint_ids: z.ZodArray<z.ZodString>;
                     methods: z.ZodArray<z.ZodEnum<{
@@ -2221,6 +2232,47 @@ export declare const agentReadinessAuthoringSchema: z.ZodObject<{
                         PUT: "PUT";
                     }>>;
                 }, z.core.$strict>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_client_credentials">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                }>;
+            }, z.core.$strict>, z.ZodObject<{
+                token_endpoint_id: z.ZodString;
+                scopes: z.ZodArray<z.ZodString>;
+                access: z.ZodObject<{
+                    role: z.ZodString;
+                    endpoint_ids: z.ZodArray<z.ZodString>;
+                    methods: z.ZodArray<z.ZodEnum<{
+                        DELETE: "DELETE";
+                        GET: "GET";
+                        HEAD: "HEAD";
+                        PATCH: "PATCH";
+                        POST: "POST";
+                        PUT: "PUT";
+                    }>>;
+                }, z.core.$strict>;
+                kind: z.ZodLiteral<"oauth_refresh_token">;
+                client_authentication: z.ZodEnum<{
+                    client_secret_basic: "client_secret_basic";
+                    client_secret_post: "client_secret_post";
+                    none: "none";
+                }>;
             }, z.core.$strict>], "kind">;
             payment: z.ZodDiscriminatedUnion<[z.ZodObject<{
                 kind: z.ZodLiteral<"none">;

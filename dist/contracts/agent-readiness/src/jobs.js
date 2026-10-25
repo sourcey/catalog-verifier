@@ -59,7 +59,7 @@ const agentReadinessJobAssertionSchema = z
     ]),
 })
     .strict();
-const agentReadinessJobSchema = z
+export const agentReadinessJobSchema = z
     .object({
     job_id: agentReadinessScopeKeySchema,
     category: agentReadinessScopeKeySchema,
