@@ -25,7 +25,6 @@
       "version": "2.0.3",
       "license": "MIT",
       "path": "distributions/licenses/err-code-2.0.3.txt",
-      "sha256": "sha256:5cfd203775f0b7ba0bd84e059d37b224c161497bf2a2d649a13fabce46c1c452",
       "reason": "Upstream declares MIT in package.json and ships no license text in its package or its repository at the release's commit; this is the standard MIT text naming the package's declared author. Pulled by @sigstore/sign through promise-retry."
     },
     {
@@ -33,7 +32,6 @@
       "version": "3.1.1",
       "license": "Apache-2.0",
       "path": "distributions/licenses/sigstore-verify-3.1.1.txt",
-      "sha256": "sha256:364a130d2ca340bd56eb1e6d045fc6929bb0f9d0aa018f2c1949b29517e1cdd0",
       "reason": "Upstream declares Apache-2.0 in package.json and its package ships no license text; this is sigstore-js's root LICENSE at the release's commit (1a8709a), byte-identical to the text @sigstore/core ships. Pulled by provenry's GitHub Actions verifiers."
     }
   ]

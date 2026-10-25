@@ -2,6 +2,11 @@
 
 Release notes are maintained per immutable package version in GitHub Releases.
 
+## 1.2.6
+
+- The license policy carries no copied digest of a license text the package supplies; each text's
+  digest is in the SBOM, computed from its bytes.
+
 ## 1.2.5
 
 - The taxonomy names its categories in full: AI and machine learning, APIs and integrations,
