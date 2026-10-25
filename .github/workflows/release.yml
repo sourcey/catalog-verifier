@@ -33,9 +33,14 @@ jobs:
           sha="$(sha256sum "$filename" | awk '{print $1}')"
           echo "filename=$filename" >> "$GITHUB_OUTPUT"
           echo "sha256=$sha" >> "$GITHUB_OUTPUT"
+      # npm's trusted publisher authenticates the publish from this run's OIDC token, which takes
+      # npm 11.5.1 or later: Node 24's npm publishes the bytes Node 22.12 tested and packed.
+      - uses: actions/setup-node@a0853c24544627f65ddf259abe73b1d18a591444 # v5
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org
       - name: Publish the tested bytes with npm provenance
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           EXPECTED_SHA256: ${{ steps.pack.outputs.sha256 }}
         run: |
           version="$(node -p "require('./package.json').version")"

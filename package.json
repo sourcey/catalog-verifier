@@ -1,6 +1,6 @@
 {
   "name": "@sourcey/catalog-verifier",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Validate Sourcey data contributions before admission.",
   "keywords": [
     "sourcey",
