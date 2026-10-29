@@ -2,6 +2,12 @@
 
 Release notes are maintained per immutable package version in GitHub Releases.
 
+## 1.2.7
+
+- Startup Credits contributions can explicitly declare vendor or independent community intent.
+- The same authority-intent contract is used by both data repositories. Local validation and
+  contributor sign-off do not replace domain proof or exact-content vendor approval.
+
 ## 1.2.6
 
 - The license policy carries no copied digest of a license text the package supplies; each text's

@@ -58,6 +58,21 @@ A green result means only that the supplied bytes satisfy the deterministic
 contribution and identity-context contracts. Sourcey's admission and release
 authority remains separate.
 
+## Your relationship to the company
+
+For a Startup Credits file, set `authority_intent: entity` at the top level when you represent
+the company, or `authority_intent: community` for an independent contribution. A file without
+this field remains a community contribution. Agent Ready Services uses the same choices on each
+declaration's `authority_intent`.
+
+A company representative confirms domain control and approves the exact submitted details on
+Sourcey's continuation for the pull request. An existing company claim does not approve future
+changes. Independent contributions are checked against public sources and publish as observed
+records, not vendor statements. Contributor DCO sign-off is required in either case.
+
+If an otherwise eligible company does not meet automatic listing criteria, the same submission
+offers Human verification. Payment does not supply a vendor signature or fix unsupported facts.
+
 ## Supply chain
 
 This repository is a generated public release-source projection from Sourcey's

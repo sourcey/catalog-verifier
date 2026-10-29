@@ -121,9 +121,12 @@ const authoringProgramSchema = z
     source_ids: z.array(identifier).min(1),
 })
     .strict();
+/** A requested contribution role. Only verified proof can establish vendor authority. */
+export const authoringAuthorityIntentSchema = z.enum(["entity", "community"]);
 export const retainedEntityAuthoringSchema = z
     .object({
     schema_version: z.literal("sourcey.entity-authoring/v1alpha1"),
+    authority_intent: authoringAuthorityIntentSchema.optional(),
     entity: retainedEntityIdentityAuthoringSchema,
     profile: retainedEntityProfileAuthoringSchema,
     sources: z.array(retainedAuthoringSourceSchema).min(1),

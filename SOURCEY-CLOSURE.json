@@ -40,15 +40,15 @@
     },
     {
       "path": "dist/contracts/agent-readiness/src/declaration.d.ts.map",
-      "sha256": "sha256:afb080f6d8136199f78ccb2b6c22d45a38ecd53347e04b3564a238f3f3e35efc"
+      "sha256": "sha256:5693b93b3a3fbee8bc64b20ddda6093cdc0d6df7fa613898813fb8882c591f96"
     },
     {
       "path": "dist/contracts/agent-readiness/src/declaration.js",
-      "sha256": "sha256:4ad31085325fc886f3aeabc81a3d0908884769890ab95eef31ef19e3066f639a"
+      "sha256": "sha256:e57ea5c7b01bd92f517550812bd1f3fa24ebf5b7fdb811f55834d8e79803f3e6"
     },
     {
       "path": "dist/contracts/agent-readiness/src/declaration.js.map",
-      "sha256": "sha256:c2125e71b4cb88ccde11c68cf0833b5d2fda4fc117727deeec6050496321169e"
+      "sha256": "sha256:434bded60b7202e0378ccf9249267c6170f5e273b25efb9614482b4eb7c4200a"
     },
     {
       "path": "dist/contracts/agent-readiness/src/jobs.d.ts",
@@ -116,19 +116,19 @@
     },
     {
       "path": "dist/contracts/authoring/src/index.d.ts",
-      "sha256": "sha256:777b934ec077c4bc2b3a40623d0bca71dbf28efbc4148899adb870f9bac814d6"
+      "sha256": "sha256:8f06a0cf78aaaf310160b574ff7712adcae2be5569601e93e27ab9caccba9170"
     },
     {
       "path": "dist/contracts/authoring/src/index.d.ts.map",
-      "sha256": "sha256:889b4c9f1fa185a6ad5654a0ee04e8a93e6b78661f290f47a0ed30569c1a0dfa"
+      "sha256": "sha256:dcfc60562663dae5d0cf1ffc8a99c1d1d8c0f57525be4272099f21e34f70a40e"
     },
     {
       "path": "dist/contracts/authoring/src/index.js",
-      "sha256": "sha256:c8432071126af35ddea4d97b41f4e11c62abd5a224a469af4367966005b52ad0"
+      "sha256": "sha256:87d19c0296f6c011b9648e1e83618a1fe0cab87bd4cfc3d1bac7dceb63b740d4"
     },
     {
       "path": "dist/contracts/authoring/src/index.js.map",
-      "sha256": "sha256:effc98bc65239281b1257eb712cdec258e6055b9a184f20c9df1e81f07437240"
+      "sha256": "sha256:4cb74020e30bf29d3227d02ded97a2f7d98f6d7cd9e1a659c68e5601ab49eff8"
     },
     {
       "path": "dist/contracts/authority/src/index.d.ts",
@@ -168,15 +168,15 @@
     },
     {
       "path": "dist/contracts/revisions/src/index.d.ts.map",
-      "sha256": "sha256:f447c7b54ed85654adbd37faefd4ebaf5d1865e23cb162ec54915900d8851653"
+      "sha256": "sha256:b32c48d88ebcf1ecca96a6acf1f5556d8d381d9cd9c688e265951ae453387bd5"
     },
     {
       "path": "dist/contracts/revisions/src/index.js",
-      "sha256": "sha256:eec5a811bf3fe241dd9fee2bfb97a6bcd0b85ac97630e24c4e74ae1d9720cb92"
+      "sha256": "sha256:1b9602053139b7a241ba75dd77cedc336667d825e41a13f1df6e3d4c6e938e63"
     },
     {
       "path": "dist/contracts/revisions/src/index.js.map",
-      "sha256": "sha256:53ae814c3b62d5b7d4faba128704500e4fedf36304ef30afb54a77181b160fe7"
+      "sha256": "sha256:a123fd6cd4e689f2a0e2cc5db53cde38c94e2fa4e59ad8b199fa9060ab198a2b"
     },
     {
       "path": "dist/contracts/standards/src/index.d.ts",
@@ -595,5 +595,5 @@
       "sha256": "sha256:03838bd3077b4c16b4db7cd4d3e94722fbeb27e12a9593272af716425e64e5e7"
     }
   ],
-  "closure_digest": "sha256:454ffdaadd73f8f7775b6cc1f783f09d5264b0d19304dd15d26450e1ce5e523c"
+  "closure_digest": "sha256:156a950c8e15ad8296b79e27e40803da05129139ce389c8d8cdff3e339baaa3e"
 }

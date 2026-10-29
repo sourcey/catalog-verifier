@@ -369,7 +369,8 @@ export const eligibilityConstantSchema = z
     value: z.boolean(),
 })
     .strict();
-const eligibilityRuleSchema = z.lazy(() => z.union([
+const eligibilityRuleSchema = z
+    .lazy(() => z.union([
     eligibilityPredicateSchema,
     eligibilityManualSchema,
     eligibilityConstantSchema,
@@ -381,7 +382,8 @@ const eligibilityRuleSchema = z.lazy(() => z.union([
         rule: eligibilityRuleSchema,
     })
         .strict(),
-]));
+]))
+    .meta({ id: "SourceyEligibilityRule" });
 export const eligibilitySchema = z
     .object({
     rule: eligibilityRuleSchema,

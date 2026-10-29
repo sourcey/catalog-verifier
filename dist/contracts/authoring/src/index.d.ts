@@ -43,8 +43,17 @@ export declare const entityProfileAuthoringSchema: z.ZodObject<{
         pricing: z.ZodOptional<z.ZodURL>;
     }, z.core.$strict>;
 }, z.core.$strict>;
+/** A requested contribution role. Only verified proof can establish vendor authority. */
+export declare const authoringAuthorityIntentSchema: z.ZodEnum<{
+    community: "community";
+    entity: "entity";
+}>;
 export declare const retainedEntityAuthoringSchema: z.ZodObject<{
     schema_version: z.ZodLiteral<"sourcey.entity-authoring/v1alpha1">;
+    authority_intent: z.ZodOptional<z.ZodEnum<{
+        community: "community";
+        entity: "entity";
+    }>>;
     entity: z.ZodObject<{
         entity_id: z.ZodString;
         slug: z.ZodString;
@@ -325,6 +334,10 @@ export declare const retainedEntityAuthoringSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const entityAuthoringSchema: z.ZodObject<{
     schema_version: z.ZodLiteral<"sourcey.entity-authoring/v1alpha1">;
+    authority_intent: z.ZodOptional<z.ZodEnum<{
+        community: "community";
+        entity: "entity";
+    }>>;
     programs: z.ZodArray<z.ZodObject<{
         program_id: z.ZodString;
         program_slug: z.ZodString;
@@ -605,6 +618,10 @@ export declare const entityAuthoringSchema: z.ZodObject<{
 }, z.core.$strict>;
 export declare const contributionEntityAuthoringSchema: z.ZodObject<{
     schema_version: z.ZodLiteral<"sourcey.entity-authoring/v1alpha1">;
+    authority_intent: z.ZodOptional<z.ZodEnum<{
+        community: "community";
+        entity: "entity";
+    }>>;
     programs: z.ZodArray<z.ZodObject<{
         program_id: z.ZodString;
         program_slug: z.ZodString;

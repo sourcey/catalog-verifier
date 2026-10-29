@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { authoringSourceSchema, entityIdentityAuthoringSchema, entityProfileAuthoringSchema, } from "../../authoring/src/index.js";
+import { authoringAuthorityIntentSchema, authoringSourceSchema, entityIdentityAuthoringSchema, entityProfileAuthoringSchema, } from "../../authoring/src/index.js";
 import { catalogAuthoringUrlSchema } from "../../revisions/src/index.js";
 import { standardImplementationBindingSchema } from "../../standards/src/index.js";
 import { agentReadinessJobBindingSchema, validateDeclaredJobBindings } from "./binding.js";
@@ -264,7 +264,7 @@ const agentReadinessDeclarationCoreSchema = z
     offer_relations: z.array(agentReadinessOfferRelationProposalSchema),
     source_bindings: z.array(agentReadinessDeclarationSourceBindingSchema).min(1),
     surface_exclusions: z.array(agentReadinessSurfaceExclusionSchema),
-    authority_intent: z.enum(["entity", "community"]),
+    authority_intent: authoringAuthorityIntentSchema,
     declared_at: agentReadinessInstantSchema,
 })
     .strict();
