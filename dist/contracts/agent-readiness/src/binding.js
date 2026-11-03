@@ -377,6 +377,26 @@ export const AGENT_READINESS_OAUTH_ROLES = {
     /** A basic client's one credential: the form-encoded `client_id:client_secret` pair (RFC 6749 §2.3.1). */
     client: "client",
 };
+/**
+ * The names an account holder gives its runner values for, in the order a run
+ * reads them: each credential the binding's delegation enters, or the OAuth
+ * fields its client authentication and grant need. The Action's one secret is
+ * a JSON object of exactly these, and any input the job asks its runner for.
+ */
+export function agentReadinessBindingSecretNames(binding) {
+    const { delegation } = binding;
+    const roles = AGENT_READINESS_OAUTH_ROLES;
+    if (delegation.kind === "none")
+        return [];
+    if (delegation.kind === "entered")
+        return delegation.credentials.map(({ role }) => role);
+    if (delegation.kind === "minted")
+        return [delegation.from.role];
+    const client = delegation.client_authentication === "none"
+        ? [roles.clientId]
+        : [roles.clientId, roles.clientSecret];
+    return delegation.kind === "oauth_refresh_token" ? [...client, roles.refreshToken] : client;
+}
 /** The call id an OAuth delegation's token request is recorded under; no binding call takes it. */
 export const AGENT_READINESS_OAUTH_TOKEN_CALL = "oauth-token";
 function validateBinding(binding, context) {
@@ -497,22 +517,38 @@ export function validateDeclaredJobBindings(value, context) {
             }
         }
         const { delegation } = binding;
-        const oauth = delegation.kind === "oauth_client_credentials" || delegation.kind === "oauth_refresh_token";
-        const credentialEndpoints = [
-            ...(delegation.kind === "entered" ? delegation.credentials : []),
-            ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
-            ...(oauth ? [delegation.access] : []),
-        ].flatMap(({ endpoint_ids }) => endpoint_ids);
-        if (oauth)
-            credentialEndpoints.push(delegation.token_endpoint_id);
-        for (const id of new Set(credentialEndpoints)) {
+        for (const id of bindingCredentialEndpointIds(binding)) {
             if (!endpoints.has(id))
                 issue(`Credentials reach unknown endpoint '${id}'.`);
         }
-        if (oauth && endpoints.get(delegation.token_endpoint_id)?.transport !== "http") {
+        if ((delegation.kind === "oauth_client_credentials" ||
+            delegation.kind === "oauth_refresh_token") &&
+            endpoints.get(delegation.token_endpoint_id)?.transport !== "http") {
             issue(`The token endpoint '${delegation.token_endpoint_id}' is an HTTP endpoint.`);
         }
     }
+}
+/** Every declared endpoint a binding reaches: those its calls use and those its credentials reach. */
+export function agentReadinessBindingEndpointIds(binding) {
+    return [
+        ...new Set([
+            ...agentReadinessBindingCalls(binding).map(({ call }) => call.endpoint_id),
+            ...bindingCredentialEndpointIds(binding),
+        ]),
+    ];
+}
+/** The endpoints a binding's credentials reach, its OAuth token endpoint among them. */
+function bindingCredentialEndpointIds(binding) {
+    const { delegation } = binding;
+    const oauth = delegation.kind === "oauth_client_credentials" || delegation.kind === "oauth_refresh_token";
+    return new Set([
+        ...[
+            ...(delegation.kind === "entered" ? delegation.credentials : []),
+            ...(delegation.kind === "minted" ? [delegation.from, ...delegation.keep] : []),
+            ...(oauth ? [delegation.access] : []),
+        ].flatMap(({ endpoint_ids }) => endpoint_ids),
+        ...(oauth ? [delegation.token_endpoint_id] : []),
+    ]);
 }
 /**
  * Why a binding cannot perform its library job, or nothing. A binding maps

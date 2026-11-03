@@ -2,6 +2,12 @@
 
 Release notes are maintained per immutable package version in GitHub Releases.
 
+## 1.2.8
+
+- Agent Readiness job bindings are checked through the binding contract that the Agent Readiness
+  Action and Sourcey's intake share: the endpoints a binding reaches and the names its one
+  credentials secret holds come from one place. What a binding must declare is unchanged.
+
 ## 1.2.7
 
 - Startup Credits contributions can explicitly declare vendor or independent community intent.

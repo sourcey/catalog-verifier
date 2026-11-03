@@ -587,6 +587,13 @@ export declare const AGENT_READINESS_OAUTH_ROLES: {
     /** A basic client's one credential: the form-encoded `client_id:client_secret` pair (RFC 6749 §2.3.1). */
     readonly client: "client";
 };
+/**
+ * The names an account holder gives its runner values for, in the order a run
+ * reads them: each credential the binding's delegation enters, or the OAuth
+ * fields its client authentication and grant need. The Action's one secret is
+ * a JSON object of exactly these, and any input the job asks its runner for.
+ */
+export declare function agentReadinessBindingSecretNames(binding: Pick<AgentReadinessJobBinding, "delegation">): readonly string[];
 /** The call id an OAuth delegation's token request is recorded under; no binding call takes it. */
 export declare const AGENT_READINESS_OAUTH_TOKEN_CALL = "oauth-token";
 /** Every template string a call sends. */
@@ -616,6 +623,8 @@ export interface AgentReadinessDeclaredSurfaces {
 export declare function validateDeclaredJobBindings(value: AgentReadinessDeclaredSurfaces & {
     readonly job_bindings: readonly AgentReadinessJobBinding[];
 }, context: z.RefinementCtx): void;
+/** Every declared endpoint a binding reaches: those its calls use and those its credentials reach. */
+export declare function agentReadinessBindingEndpointIds(binding: Pick<AgentReadinessJobBinding, "calls" | "delegation" | "cleanup">): readonly string[];
 /**
  * Why a binding cannot perform its library job, or nothing. A binding maps
  * every library observation exactly once, reads only the job's inputs and sinks,

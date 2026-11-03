@@ -4,19 +4,19 @@
   "files": [
     {
       "path": "dist/contracts/agent-readiness/src/binding.d.ts",
-      "sha256": "sha256:96785f69d5e669ce78c0f5380e68d33415d5e4bdec443624c3fcaf9ea3ff6c9a"
+      "sha256": "sha256:e7e1d8528f1d0befef597fe629d773b06439456ae794caca1f1af40ef7ae89d1"
     },
     {
       "path": "dist/contracts/agent-readiness/src/binding.d.ts.map",
-      "sha256": "sha256:f82efa073177eb01678b1902ae0112bb30f55c511fbe7a1137466932003c3d91"
+      "sha256": "sha256:6b24baf1ab9e5b52b2caa5d56cede9601cc7b211f47dcb9dbdd7afd70a758b8f"
     },
     {
       "path": "dist/contracts/agent-readiness/src/binding.js",
-      "sha256": "sha256:31870b30760f8b419016d261b05b6511c0e902e5cec2ef546bf7ec87c30695d9"
+      "sha256": "sha256:b6f4f3a1fba1f4b839920f7fdf28d4a0513c081b4629724bd00b26b1bd32f4e2"
     },
     {
       "path": "dist/contracts/agent-readiness/src/binding.js.map",
-      "sha256": "sha256:7244eb4d3cf46afdd1a3d0f90fdb8cdbcde34a92f60aa7af8d185ba621a9eb15"
+      "sha256": "sha256:bb8ce7a7f75d4e4d3e52c41f5a22303c8cf91f146a98a51b6a818f013bb90f25"
     },
     {
       "path": "dist/contracts/agent-readiness/src/declaration-reference.d.ts",
@@ -595,5 +595,5 @@
       "sha256": "sha256:03838bd3077b4c16b4db7cd4d3e94722fbeb27e12a9593272af716425e64e5e7"
     }
   ],
-  "closure_digest": "sha256:156a950c8e15ad8296b79e27e40803da05129139ce389c8d8cdff3e339baaa3e"
+  "closure_digest": "sha256:08c96cc918d4e016fcd1a53a7354e7cbfcc315410f7733afc96a77651c4a2004"
 }
