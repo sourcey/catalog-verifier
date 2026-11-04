@@ -7,6 +7,10 @@ export const agentReadinessOfferIdSchema = z.string().regex(OFFER_ID_PATTERN);
 export const agentReadinessProfileIdSchema = z.string().regex(AGENT_READINESS_PROFILE_ID_PATTERN);
 export const agentReadinessIdentifierSchema = z.string().regex(IDENTIFIER_PATTERN);
 export const agentReadinessInstantSchema = z.iso.datetime({ offset: true });
+/** The day an instant falls on, as a card names a run by it: its date in UTC, `YYYY-MM-DD`. */
+export function agentReadinessDay(instant) {
+    return new Date(Date.parse(instant)).toISOString().slice(0, 10);
+}
 export const agentReadinessScopeKeySchema = z.string().regex(SLUG_PATTERN);
 export const agentReadinessHostnameSchema = z
     .string()
@@ -96,8 +100,8 @@ export const agentReadinessSurfaceReferenceSchema = z
 })
     .strict();
 /**
- * The earlier runs of each group a refresh reads, newest first: the profile's
- * probe runs, and each binding's (north star §5.4).
+ * The earlier probe runs a refresh reads, newest first (north star §5.4). A
+ * binding's are every run that can still decide its path.
  */
 export const AGENT_READINESS_PRIOR_RUNS_READ = 4;
 /** The most runs a policy asks to hold one finding before it counts (its reproduction's `attempts`). */

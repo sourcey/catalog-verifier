@@ -6,10 +6,11 @@ import { agentReadinessScopeKeySchema, agentReadinessUrlOrigin, valueAtPointer }
  * How one interface performs one library job, for a verified run: the exact
  * calls, locations of observations consumed by Sourcey's assertions, and how
  * authority and payment work. A run is proof, not the grade (north star §5.6).
- * A binding says where and how; the job library says what success is. Sourcey runs a binding only where it needs no account; any
- * other is run by its account holder with their own credentials, which Sourcey
- * never holds. Origins are literal, so a binding can never send a credential
- * anywhere its declared endpoints do not name.
+ * A binding says where and how; the job library says what success is. Its
+ * account holder runs it through the Action with their own credentials, which
+ * Sourcey never holds, and Sourcey replays what the run recorded. Origins are
+ * literal, so a binding can never send a credential anywhere its declared
+ * endpoints do not name.
  *
  * Templates substitute only `{{input.<name>}}`, `{{run.nonce}}`,
  * `{{sink.<name>}}` and `{{call.<call id><json pointer>}}` (an earlier call's
@@ -377,6 +378,28 @@ export const AGENT_READINESS_OAUTH_ROLES = {
     /** A basic client's one credential: the form-encoded `client_id:client_secret` pair (RFC 6749 §2.3.1). */
     client: "client",
 };
+/**
+ * Whether a run of this binding can be verified now, and when not, why, in the
+ * words its account holder reads: a job proved by a message to Sourcey's own
+ * inbox, which intake cannot read yet (D14), or a binding that pays for each
+ * call, which the Action cannot. The challenge desk refuses by it, and the
+ * verify page says it instead of offering a workflow.
+ */
+export function agentReadinessBindingVerifiable(input) {
+    if (input.job.inputs.some(({ kind }) => kind === "sink")) {
+        return {
+            verifiable: false,
+            reason: "This job is proved by a message to Sourcey's own inbox, which Sourcey can't check yet.",
+        };
+    }
+    if (input.binding.payment.kind === "per_call") {
+        return {
+            verifiable: false,
+            reason: "This binding pays for each request, which the Action can't do yet.",
+        };
+    }
+    return { verifiable: true };
+}
 /**
  * The names an account holder gives its runner values for, in the order a run
  * reads them: each credential the binding's delegation enters, or the OAuth

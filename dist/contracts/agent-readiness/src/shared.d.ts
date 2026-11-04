@@ -5,6 +5,8 @@ export declare const agentReadinessOfferIdSchema: z.ZodString;
 export declare const agentReadinessProfileIdSchema: z.ZodString;
 export declare const agentReadinessIdentifierSchema: z.ZodString;
 export declare const agentReadinessInstantSchema: z.ZodISODateTime;
+/** The day an instant falls on, as a card names a run by it: its date in UTC, `YYYY-MM-DD`. */
+export declare function agentReadinessDay(instant: string): string;
 export declare const agentReadinessScopeKeySchema: z.ZodString;
 export declare const agentReadinessHostnameSchema: z.ZodString;
 /** Whether a profile's last successful check is within the policy's freshness window. */
@@ -68,8 +70,8 @@ export declare const agentReadinessSurfaceReferenceSchema: z.ZodObject<{
     node_id: z.ZodString;
 }, z.core.$strict>;
 /**
- * The earlier runs of each group a refresh reads, newest first: the profile's
- * probe runs, and each binding's (north star §5.4).
+ * The earlier probe runs a refresh reads, newest first (north star §5.4). A
+ * binding's are every run that can still decide its path.
  */
 export declare const AGENT_READINESS_PRIOR_RUNS_READ = 4;
 /** The most runs a policy asks to hold one finding before it counts (its reproduction's `attempts`). */

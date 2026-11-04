@@ -1,6 +1,13 @@
 # Changelog
 
-Release notes are maintained per immutable package version in GitHub Releases.
+Each version is published to npm under its own immutable version and tagged in this repository.
+
+## 1.2.9
+
+- Agent Readiness job bindings share one check of whether a run of them can be verified yet, which
+  Sourcey's challenge desk and its Verify the job page both use: a job proved by a message to
+  Sourcey's own inbox, or a binding that pays for each request, cannot be yet. What a binding must
+  declare is unchanged.
 
 ## 1.2.8
 

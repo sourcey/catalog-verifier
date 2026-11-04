@@ -588,6 +588,22 @@ export declare const AGENT_READINESS_OAUTH_ROLES: {
     readonly client: "client";
 };
 /**
+ * Whether a run of this binding can be verified now, and when not, why, in the
+ * words its account holder reads: a job proved by a message to Sourcey's own
+ * inbox, which intake cannot read yet (D14), or a binding that pays for each
+ * call, which the Action cannot. The challenge desk refuses by it, and the
+ * verify page says it instead of offering a workflow.
+ */
+export declare function agentReadinessBindingVerifiable(input: {
+    readonly job: Pick<AgentReadinessJob, "inputs">;
+    readonly binding: Pick<AgentReadinessJobBinding, "payment">;
+}): {
+    readonly verifiable: true;
+} | {
+    readonly verifiable: false;
+    readonly reason: string;
+};
+/**
  * The names an account holder gives its runner values for, in the order a run
  * reads them: each credential the binding's delegation enters, or the OAuth
  * fields its client authentication and grant need. The Action's one secret is
