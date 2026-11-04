@@ -52,6 +52,7 @@ const agentReadinessJobAssertionSchema = z
         "tool_called",
         "resource_created",
         "resource_read_back",
+        "claim_read_back",
         "resource_found_by_query",
         "message_accepted",
         "message_delivered",
@@ -76,7 +77,7 @@ export const agentReadinessJobSchema = z
     })
         .strict())
         .max(16),
-    /** A consequential job changes something and must clean it up; a billable one costs money. */
+    /** A consequential job changes something; a billable one costs money. */
     effect: z.enum(["read", "consequential", "billable"]),
     cleanup: z.enum(["none", "required"]),
 })
@@ -94,14 +95,18 @@ export const agentReadinessJobSchema = z
             });
         }
     }
-    if ((job.effect === "consequential") !== (job.cleanup === "required")) {
+    if (job.cleanup === "required" && job.effect !== "consequential") {
         context.addIssue({
             code: "custom",
             path: ["cleanup"],
-            message: "A consequential job, and only a consequential job, requires cleanup.",
+            message: "Only a consequential job requires cleanup.",
         });
     }
 });
+/** A retained consequential result needs a deliberate run, never a scheduled one. */
+export function agentReadinessJobAllowsSchedule(job) {
+    return job.effect !== "consequential" || job.cleanup === "required";
+}
 export const agentReadinessJobLibraryCoreSchema = z
     .object({
     library_contract: z.literal(AGENT_READINESS_JOB_LIBRARY_CONTRACT),
@@ -129,6 +134,7 @@ export const AGENT_READINESS_OBSERVED_CALL_METHODS = {
     read: ["GET", "HEAD"],
     write: ["POST", "PUT", "PATCH", "DELETE"],
     query: ["GET", "POST"],
+    create: ["POST"],
 };
 /** Whether an observation may locate the operand from this source. */
 export function agentReadinessOperandReads(operand, source) {
@@ -173,6 +179,28 @@ const PROOF_SIGNATURES = {
         ],
         sameCall: [["read_id", "content"]],
         differentCall: [["created_id", "read_id"]],
+    },
+    claim_read_back: {
+        observations: [
+            { name: "created_id", source: "json", method: "create" },
+            { name: "requested_subject", source: "request", method: "create", input: "bounty" },
+            { name: "requested_claimant", source: "request", method: "create", input: "claimant" },
+            { name: "read_id", source: "json", method: "read" },
+            { name: "subject", source: "json", method: "read" },
+            { name: "claimant", source: "json", method: "read" },
+        ],
+        sameCall: [
+            ["created_id", "requested_subject"],
+            ["created_id", "requested_claimant"],
+            ["read_id", "subject"],
+            ["read_id", "claimant"],
+        ],
+        differentCall: [["created_id", "read_id"]],
+        differentLocation: [
+            ["read_id", "subject"],
+            ["read_id", "claimant"],
+            ["subject", "claimant"],
+        ],
     },
     resource_found_by_query: {
         observations: [

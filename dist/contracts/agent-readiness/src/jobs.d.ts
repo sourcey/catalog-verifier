@@ -34,6 +34,7 @@ export declare const agentReadinessJobSchema: z.ZodObject<{
         name: z.ZodString;
         statement: z.ZodString;
         proof: z.ZodEnum<{
+            claim_read_back: "claim_read_back";
             dns_answer: "dns_answer";
             dns_success: "dns_success";
             message_accepted: "message_accepted";
@@ -68,6 +69,8 @@ export declare const agentReadinessJobSchema: z.ZodObject<{
     }>;
 }, z.core.$strict>;
 export type AgentReadinessJob = z.infer<typeof agentReadinessJobSchema>;
+/** A retained consequential result needs a deliberate run, never a scheduled one. */
+export declare function agentReadinessJobAllowsSchedule(job: AgentReadinessJob): boolean;
 export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
     library_contract: z.ZodLiteral<"sourcey.agent-readiness-job-library/v1alpha1">;
     library_version: z.ZodString;
@@ -98,6 +101,7 @@ export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
             name: z.ZodString;
             statement: z.ZodString;
             proof: z.ZodEnum<{
+                claim_read_back: "claim_read_back";
                 dns_answer: "dns_answer";
                 dns_success: "dns_success";
                 message_accepted: "message_accepted";
@@ -162,6 +166,7 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
             name: z.ZodString;
             statement: z.ZodString;
             proof: z.ZodEnum<{
+                claim_read_back: "claim_read_back";
                 dns_answer: "dns_answer";
                 dns_success: "dns_success";
                 message_accepted: "message_accepted";
@@ -200,14 +205,14 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
 export type AgentReadinessJobLibrary = z.infer<typeof agentReadinessJobLibrarySchema>;
 export type AgentReadinessProof = AgentReadinessJob["assertions"][number]["proof"];
 /** The HTTP methods an observed call may use; a query may send its terms in a body. */
-export declare const AGENT_READINESS_OBSERVED_CALL_METHODS: Readonly<Record<"read" | "write" | "query", readonly ExchangeMethod[]>>;
+export declare const AGENT_READINESS_OBSERVED_CALL_METHODS: Readonly<Record<"read" | "write" | "query" | "create", readonly ExchangeMethod[]>>;
 /** One value a proof reads, which a binding locates as an observation. */
 export interface AgentReadinessProofOperand {
     readonly name: string;
     /**
      * The call's JSON response or event stream, or what it sent. A binding must
-     * place the run's nonce wherever it locates a request observation, so the
-     * value is the run's, never the binding's.
+     * place the canonical job input (or the nonce) wherever it locates a request
+     * observation, so the value is the run's, never the binding's.
      */
     readonly source: "json" | "stream" | "request";
     readonly method?: keyof typeof AGENT_READINESS_OBSERVED_CALL_METHODS;
@@ -218,6 +223,8 @@ export interface AgentReadinessProofOperand {
      * accepted that name.
      */
     readonly callerNamed?: true;
+    /** A request operand must send this exact job input, rather than the run nonce. */
+    readonly input?: string;
 }
 /** Whether an observation may locate the operand from this source. */
 export declare function agentReadinessOperandReads(operand: AgentReadinessProofOperand, source: AgentReadinessProofOperand["source"]): boolean;
@@ -231,6 +238,8 @@ export interface AgentReadinessProofSignature {
     readonly differentCall?: readonly (readonly [string, string])[];
     /** [a, b]: a's call is sent without reading anything b's call returned. */
     readonly independentCall?: readonly (readonly [string, string])[];
+    /** Distinct semantic roles cannot all locate the same field of one response. */
+    readonly differentLocation?: readonly (readonly [string, string])[];
 }
 export declare function agentReadinessProofSignature(proof: AgentReadinessProof): AgentReadinessProofSignature;
 //# sourceMappingURL=jobs.d.ts.map

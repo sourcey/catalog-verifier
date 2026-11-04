@@ -576,8 +576,8 @@ function bindingCredentialEndpointIds(binding) {
 /**
  * Why a binding cannot perform its library job, or nothing. A binding maps
  * every library observation exactly once, reads only the job's inputs and sinks,
- * places the run's nonce wherever it locates a request observation, and cleans
- * up when the job is consequential. Whether its calls stay on its declared
+ * places the canonical input wherever it locates a request observation, and
+ * cleans up when the job requires it. Whether its calls stay on its declared
  * surface is the declaration's own rule, checked where it is parsed.
  */
 export function agentReadinessBindingIssues(input) {
@@ -622,14 +622,17 @@ export function agentReadinessBindingIssues(input) {
             if (call &&
                 observed.source === "request" &&
                 agentReadinessOperandReads(required, "request")) {
-                // A query is the nonce itself; a name the caller gives carries it.
+                // A canonical input is exact; a query is the nonce; a caller-given name carries it.
                 const template = valueAtPointer(agentReadinessRequestTemplate(call), observed.pointer);
                 const placed = typeof template === "string" &&
-                    (required.source === "request"
-                        ? nonces.has(template)
-                        : [...nonces].some((nonce) => template.includes(nonce)));
+                    (required.input !== undefined
+                        ? job.inputs.some(({ name }) => name === required.input) &&
+                            template === `{{input.${required.input}}}`
+                        : required.source === "request"
+                            ? nonces.has(template)
+                            : [...nonces].some((nonce) => template.includes(nonce)));
                 if (!placed) {
-                    issues.push(`Assertion ${assertion.name}'s ${required.name} must locate the run's nonce in the request.`);
+                    issues.push(`Assertion ${assertion.name}'s ${required.name} must locate ${required.input === undefined ? "the run's nonce" : `input.${required.input}`} in the request.`);
                 }
             }
         }
@@ -649,6 +652,13 @@ export function agentReadinessBindingIssues(input) {
             const b = observations.get(right);
             if (a && b && a.call === b.call)
                 issues.push(`Assertion ${assertion.name}'s ${left} and ${right} must read different calls.`);
+        }
+        for (const [left, right] of proof.differentLocation ?? []) {
+            const a = observations.get(left);
+            const b = observations.get(right);
+            if (a && b && a.call === b.call && a.source === b.source && a.pointer === b.pointer) {
+                issues.push(`Assertion ${assertion.name}'s ${left} and ${right} must locate different fields.`);
+            }
         }
         for (const [left, right] of proof.independentCall ?? []) {
             const a = observations.get(left);

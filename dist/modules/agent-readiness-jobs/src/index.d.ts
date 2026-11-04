@@ -10,6 +10,39 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
     readonly library_contract: "sourcey.agent-readiness-job-library/v1alpha1";
     readonly library_version: "2026-10-12.2";
     readonly jobs: [{
+        readonly job_id: "bounty-claim";
+        readonly category: "bounty-board";
+        readonly name: "Claim a bounty";
+        readonly statement: "Claim an open bounty, then read the returned claim back for that bounty and claimant.";
+        readonly inputs: [{
+            readonly kind: "supplied";
+            readonly name: "bounty";
+        }, {
+            readonly kind: "supplied";
+            readonly name: "claimant";
+        }];
+        readonly assertions: [{
+            readonly name: "bounty_claimed";
+            readonly statement: "The board returns the claim's identifier.";
+            readonly proof: "resource_created";
+        }, {
+            readonly name: "read_back";
+            readonly statement: "The returned claim reads back for the bounty and claimant the run supplied.";
+            readonly proof: "claim_read_back";
+        }];
+        readonly observation_links: [{
+            readonly from: {
+                readonly assertion: "bounty_claimed";
+                readonly observation: "id";
+            };
+            readonly to: {
+                readonly assertion: "read_back";
+                readonly observation: "created_id";
+            };
+        }];
+        readonly effect: "consequential";
+        readonly cleanup: "none";
+    }, {
         job_id: string;
         category: string;
         name: string;
@@ -32,7 +65,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -69,7 +102,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -106,7 +139,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -143,7 +176,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -180,7 +213,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -217,7 +250,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -254,7 +287,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -291,44 +324,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
-        }[];
-        observation_links: {
-            from: {
-                assertion: string;
-                observation: string;
-            };
-            to: {
-                assertion: string;
-                observation: string;
-            };
-        }[];
-        effect: "billable" | "consequential" | "read";
-        cleanup: "none" | "required";
-    }, {
-        job_id: string;
-        category: string;
-        name: string;
-        statement: string;
-        inputs: ({
-            kind: "fixed";
-            name: string;
-            value: string | number | boolean;
-        } | {
-            kind: "nonce";
-            name: string;
-        } | {
-            kind: "sink";
-            name: string;
-            sink: "email" | "webhook";
-        } | {
-            kind: "supplied";
-            name: string;
-        })[];
-        assertions: {
-            name: string;
-            statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -421,7 +417,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -458,7 +454,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -495,7 +491,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -532,7 +528,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -612,7 +608,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -649,7 +645,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -686,7 +682,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -723,7 +719,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -760,7 +756,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -797,7 +793,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -922,7 +918,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -959,7 +955,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -996,7 +992,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -1033,7 +1029,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -1100,7 +1096,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -1137,7 +1133,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {
@@ -1174,7 +1170,7 @@ export declare const AGENT_READINESS_JOB_LIBRARY_SOURCE: {
         assertions: {
             name: string;
             statement: string;
-            proof: "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
+            proof: "claim_read_back" | "dns_answer" | "dns_success" | "message_accepted" | "message_delivered" | "model_selected" | "resource_created" | "resource_found_by_query" | "resource_read_back" | "sink_received" | "stream_chunks" | "tool_called";
         }[];
         observation_links: {
             from: {

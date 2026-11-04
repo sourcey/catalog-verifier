@@ -36,15 +36,38 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
     library_contract: AGENT_READINESS_JOB_LIBRARY_CONTRACT,
     library_version: "2026-10-12.2",
     jobs: [
-        madeAndReadBack({
+        {
             job_id: "bounty-claim",
             category: "bounty-board",
             name: "Claim a bounty",
-            statement: "Claim an open bounty with a note that is the run's nonce, then read the claim back.",
-            made: "bounty_claimed",
-            made_statement: "The board accepts the claim under an identifier it returns or was given.",
-            read_back_statement: "The claim reads back under that identifier with the nonce as its note.",
-        }),
+            statement: "Claim an open bounty, then read the returned claim back for that bounty and claimant.",
+            inputs: [
+                { kind: "supplied", name: "bounty" },
+                { kind: "supplied", name: "claimant" },
+            ],
+            assertions: [
+                {
+                    name: "bounty_claimed",
+                    statement: "The board returns the claim's identifier.",
+                    proof: "resource_created",
+                },
+                {
+                    name: "read_back",
+                    statement: "The returned claim reads back for the bounty and claimant the run supplied.",
+                    proof: "claim_read_back",
+                },
+            ],
+            observation_links: [
+                {
+                    from: { assertion: "bounty_claimed", observation: "id" },
+                    to: { assertion: "read_back", observation: "created_id" },
+                },
+            ],
+            effect: "consequential",
+            // A claim is a commitment to work, not a disposable CRUD resource. The caller chooses
+            // the bounty for a deliberate run; the Action never schedules retained consequences.
+            cleanup: "none",
+        },
         madeAndReadBack({
             job_id: "bucket-create",
             category: "cloud-platform",
