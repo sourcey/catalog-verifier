@@ -1,6 +1,6 @@
 {
   "name": "@sourcey/catalog-verifier",
-  "version": "1.2.10",
+  "version": "1.2.11",
   "description": "Validate Sourcey data contributions before admission.",
   "keywords": [
     "sourcey",
@@ -55,7 +55,7 @@
   "dependencies": {
     "provenry": "0.3.0",
     "yaml": "2.9.1",
-    "zod": "4.6.5"
+    "zod": "4.6.7"
   },
   "publishConfig": {
     "access": "public",

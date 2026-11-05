@@ -2,6 +2,11 @@
 
 Each version is published to npm under its own immutable version and tagged in this repository.
 
+## 1.2.11
+
+- Use Zod 4.6.7 for contribution validation, including its oversized-collection
+  safety fix. Submission criteria and public contracts are unchanged.
+
 ## 1.2.9
 
 - Agent Readiness job bindings share one check of whether a run of them can be verified yet, which
