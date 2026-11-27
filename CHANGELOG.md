@@ -2,6 +2,10 @@
 
 Each version is published to npm under its own immutable version and tagged in this repository.
 
+## 1.2.13
+
+- Refresh the dependency and license inventory. Contribution validation is unchanged.
+
 ## 1.2.11
 
 - Use Zod 4.6.7 for contribution validation, including its oversized-collection
