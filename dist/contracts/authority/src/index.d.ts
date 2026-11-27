@@ -1,4 +1,6 @@
 import { z } from "zod";
+/** An attributable actor, including namespaced human reviewers such as operator.kam. */
+export declare const actorIdentifierSchema: z.ZodString;
 export declare const signaturePurposeSchema: z.ZodEnum<{
     "catalog-attestation": "catalog-attestation";
     "catalog-authority": "catalog-authority";

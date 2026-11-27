@@ -2,7 +2,8 @@ import { ACTOR_IDENTIFIER_PATTERN, DIGEST_PATTERN, IDENTIFIER_PATTERN } from "pr
 import { z } from "zod";
 const digest = z.string().regex(DIGEST_PATTERN);
 const identifier = z.string().regex(IDENTIFIER_PATTERN);
-const actorIdentifier = z.string().regex(ACTOR_IDENTIFIER_PATTERN);
+/** An attributable actor, including namespaced human reviewers such as operator.kam. */
+export const actorIdentifierSchema = z.string().regex(ACTOR_IDENTIFIER_PATTERN);
 const instant = z.iso.datetime({ offset: true });
 const rootSignatureSchema = z
     .object({
@@ -32,7 +33,7 @@ export const decisionBasisSchema = z.discriminatedUnion("kind", [
     z
         .object({
         kind: z.literal("human"),
-        actor_id: actorIdentifier,
+        actor_id: actorIdentifierSchema,
     })
         .strict(),
     z

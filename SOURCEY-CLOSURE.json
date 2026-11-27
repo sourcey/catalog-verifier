@@ -148,19 +148,19 @@
     },
     {
       "path": "dist/contracts/authority/src/index.d.ts",
-      "sha256": "sha256:fd4841884eb5fae0fc03b126680b0f793753833ebbacab8ec8760ae7fd7cef0a"
+      "sha256": "sha256:5f0a03596f0a1ee2e25fc0967a962079fed353e3e54042aab75f45364b36c2da"
     },
     {
       "path": "dist/contracts/authority/src/index.d.ts.map",
-      "sha256": "sha256:417327aa4b516fd7088602b7c459cf1f7cca299762dd694f2736e49e3bcac1bf"
+      "sha256": "sha256:8d82dad4941fedf4d1ce546b584aa5533d84b07062d07390251f0aaba9cd1008"
     },
     {
       "path": "dist/contracts/authority/src/index.js",
-      "sha256": "sha256:6030a8d76ee0420915c56fd26ad65d54801b6e2fa2e240289de6411c2c06df70"
+      "sha256": "sha256:0cf6b3653c68f0f67dfdf7544ff52d388c728b9971b3d8220daf54d5b84c6e85"
     },
     {
       "path": "dist/contracts/authority/src/index.js.map",
-      "sha256": "sha256:07b907db4d7cfc8900cf8c4b666fbe307ea3d3e838acfbc1ea1b5042b0b7c4a0"
+      "sha256": "sha256:9fa7f5191254d5116013f4da1c8c0f5253e43aed1ac64c1c1c806e12575eee9a"
     },
     {
       "path": "dist/contracts/catalog-verifier/src/index.d.ts",
@@ -611,5 +611,5 @@
       "sha256": "sha256:03838bd3077b4c16b4db7cd4d3e94722fbeb27e12a9593272af716425e64e5e7"
     }
   ],
-  "closure_digest": "sha256:f3b5ebc14bc0e65cda2034adcf80333357acd0772cdee52356b825f5e0651bbc"
+  "closure_digest": "sha256:2c8f36cba22852a2f86b3a0270f5168e14f5eaded8ac6434a585919e983d59c1"
 }

@@ -2,6 +2,10 @@
 
 Each version is published to npm under its own immutable version and tagged in this repository.
 
+## 1.2.14
+
+- Share the canonical actor identifier used by review authority. Contribution validation is unchanged.
+
 ## 1.2.13
 
 - Refresh the dependency and license inventory. Contribution validation is unchanged.
