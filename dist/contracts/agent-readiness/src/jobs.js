@@ -54,6 +54,7 @@ const agentReadinessJobAssertionSchema = z
         "resource_read_back",
         "claim_read_back",
         "resource_found_by_query",
+        "web_search_result",
         "message_accepted",
         "message_delivered",
         "sink_received",
@@ -215,6 +216,13 @@ const PROOF_SIGNATURES = {
         ],
         differentCall: [["created_id", "found_id"]],
         independentCall: [["query", "created_id"]],
+    },
+    web_search_result: {
+        observations: [
+            { name: "query", source: "request", method: "query", input: "query" },
+            { name: "result_url", source: "json", method: "query" },
+        ],
+        sameCall: [["query", "result_url"]],
     },
     /** A message's identifier is the service's: a caller never names it. */
     message_accepted: { observations: [{ name: "id", source: "json", method: "write" }] },

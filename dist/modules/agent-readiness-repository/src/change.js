@@ -2,9 +2,11 @@ import { execFile } from "node:child_process";
 import { resolve } from "node:path";
 import { promisify } from "node:util";
 import { gitComparisonBase } from "provenry/git";
-import { canonicalJson, compareCanonicalStrings, digest } from "provenry/primitives";
+import { canonicalJson, compareCanonicalStrings, digest, sha256Bytes, } from "provenry/primitives";
+import { parse as parseYaml } from "yaml";
 import { ZodError } from "zod";
 import { AGENT_READINESS_REPOSITORY, } from "../../../contracts/agent-readiness/src/declaration.js";
+import { agentReadinessVerificationPath, agentReadinessVerificationPathSchema, agentReadinessVerificationProposalSchema, } from "../../../contracts/agent-readiness/src/verification-proposal.js";
 import { assertAgentReadinessDeclarationJobs } from "../../agent-readiness-policy/src/declaration-jobs.js";
 import { readAgentReadinessDeclarationBlobAtRevision, } from "./declaration-blob.js";
 const executeFile = promisify(execFile);
@@ -17,8 +19,12 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
     const comparisonBase = await gitComparisonBase(input);
     const changed = await changedRepositoryPaths(repositoryRoot, comparisonBase, input.headRevision);
     const entityPaths = changed.filter(({ path }) => path.startsWith("entities/"));
-    const otherPaths = changed.filter(({ path }) => !path.startsWith("entities/"));
-    if (entityPaths.length > 0 && otherPaths.length > 0) {
+    const verificationPaths = changed.filter(({ path }) => path.startsWith("verifications/"));
+    if (entityPaths.length > 0 && verificationPaths.length > 0) {
+        throw new Error("Submit declaration changes and verification references in separate pull requests; a run must bind an already admitted declaration.");
+    }
+    const otherPaths = changed.filter(({ path }) => !path.startsWith("entities/") && !path.startsWith("verifications/"));
+    if (entityPaths.length + verificationPaths.length > 0 && otherPaths.length > 0) {
         throw new Error(`Agent Readiness declaration changes cannot be mixed with other repository paths: ${otherPaths
             .map(({ path }) => path)
             .join(", ")}.`);
@@ -46,6 +52,25 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
         assertAgentReadinessBlobJobs(head, input.jobLibrary);
         return pathDelta(status, path, base, head);
     }));
+    const verifications = await Promise.all(verificationPaths.map(async ({ path, status }) => {
+        agentReadinessVerificationPathSchema.parse(path);
+        if (status === "removed") {
+            throw new Error("Deleting a verification proposal cannot revoke retained evidence.");
+        }
+        const [{ stdout }, gitBlobOid] = await Promise.all([
+            executeFile("git", ["show", `${headRevision}:${path}`], {
+                cwd: repositoryRoot,
+                encoding: "buffer",
+                maxBuffer: 64 * 1024,
+            }),
+            resolveGitObject(repositoryRoot, `${headRevision}:${path}`),
+        ]);
+        const proposal = agentReadinessVerificationProposalSchema.parse(parseYaml(stdout.toString("utf8")));
+        if (path !== agentReadinessVerificationPath(proposal.profile_id)) {
+            throw new Error("A verification proposal must use its exact profile path.");
+        }
+        return { path, gitBlobOid, blobDigest: sha256Bytes(stdout), proposal };
+    }));
     const core = {
         change_contract: "sourcey.agent-readiness-repository-change/v1alpha1",
         repository: AGENT_READINESS_REPOSITORY,
@@ -56,6 +81,7 @@ export async function inspectAgentReadinessRepositoryChangePacket(input) {
         headRootTreeOid,
         headEntitiesTreeOid,
         paths: paths.sort((left, right) => compareCanonicalStrings(left.path, right.path)),
+        verifications: verifications.sort((left, right) => compareCanonicalStrings(left.path, right.path)),
     };
     return { ...core, packetDigest: digest(core) };
 }

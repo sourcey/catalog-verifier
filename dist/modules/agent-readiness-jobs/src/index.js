@@ -34,7 +34,7 @@ function madeAndReadBack(job) {
  */
 export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
     library_contract: AGENT_READINESS_JOB_LIBRARY_CONTRACT,
-    library_version: "2026-10-12.2",
+    library_version: "2026-10-12.3",
     jobs: [
         {
             job_id: "bounty-claim",
@@ -473,6 +473,26 @@ export const AGENT_READINESS_JOB_LIBRARY_SOURCE = {
             made_statement: "The service creates the asset under an identifier it returns or was given.",
             read_back_statement: "The asset reads back under that identifier with the nonce as its title.",
         }),
+        {
+            job_id: "web-search",
+            category: "web-search",
+            name: "Search the web",
+            statement: "Search the public web for a known page and receive that page's URL in the results.",
+            inputs: [
+                { kind: "fixed", name: "query", value: 'site:example.com "Example Domain"' },
+                { kind: "fixed", name: "expected_url", value: "https://example.com/" },
+            ],
+            assertions: [
+                {
+                    name: "page_found",
+                    statement: "The search sends the library's query and returns the known public page's URL.",
+                    proof: "web_search_result",
+                },
+            ],
+            observation_links: [],
+            effect: "billable",
+            cleanup: "none",
+        },
         madeAndReadBack({
             job_id: "workflow-run",
             category: "workflow-automation",

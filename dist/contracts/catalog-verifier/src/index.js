@@ -153,6 +153,7 @@ const validationSummarySchema = z
     programs: z.number().int().nonnegative().optional(),
     offers: z.number().int().nonnegative().optional(),
     declarations: z.number().int().nonnegative().optional(),
+    verifications: z.number().int().nonnegative().optional(),
     release_id: z
         .string()
         .regex(/^sha256:[a-f0-9]{64}$/u)

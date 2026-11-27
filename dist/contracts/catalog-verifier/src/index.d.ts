@@ -220,6 +220,7 @@ export declare const catalogVerifierResultSchema: z.ZodObject<{
         programs: z.ZodOptional<z.ZodNumber>;
         offers: z.ZodOptional<z.ZodNumber>;
         declarations: z.ZodOptional<z.ZodNumber>;
+        verifications: z.ZodOptional<z.ZodNumber>;
         release_id: z.ZodOptional<z.ZodString>;
         snapshot_id: z.ZodOptional<z.ZodString>;
         files: z.ZodOptional<z.ZodNumber>;

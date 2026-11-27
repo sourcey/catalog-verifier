@@ -3,6 +3,7 @@ export declare const agentReadinessDigestSchema: z.ZodString;
 export declare const agentReadinessEntityIdSchema: z.ZodString;
 export declare const agentReadinessOfferIdSchema: z.ZodString;
 export declare const agentReadinessProfileIdSchema: z.ZodString;
+export declare const agentReadinessIntakeIdSchema: z.ZodString;
 export declare const agentReadinessIdentifierSchema: z.ZodString;
 export declare const agentReadinessInstantSchema: z.ZodISODateTime;
 /** The day an instant falls on, as a card names a run by it: its date in UTC, `YYYY-MM-DD`. */

@@ -46,6 +46,7 @@ export declare const agentReadinessJobSchema: z.ZodObject<{
             sink_received: "sink_received";
             stream_chunks: "stream_chunks";
             tool_called: "tool_called";
+            web_search_result: "web_search_result";
         }>;
     }, z.core.$strict>>;
     observation_links: z.ZodArray<z.ZodObject<{
@@ -113,6 +114,7 @@ export declare const agentReadinessJobLibraryCoreSchema: z.ZodObject<{
                 sink_received: "sink_received";
                 stream_chunks: "stream_chunks";
                 tool_called: "tool_called";
+                web_search_result: "web_search_result";
             }>;
         }, z.core.$strict>>;
         observation_links: z.ZodArray<z.ZodObject<{
@@ -178,6 +180,7 @@ export declare const agentReadinessJobLibrarySchema: z.ZodObject<{
                 sink_received: "sink_received";
                 stream_chunks: "stream_chunks";
                 tool_called: "tool_called";
+                web_search_result: "web_search_result";
             }>;
         }, z.core.$strict>>;
         observation_links: z.ZodArray<z.ZodObject<{

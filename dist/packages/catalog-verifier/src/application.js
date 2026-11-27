@@ -251,6 +251,7 @@ async function inspectRepositoryChange(input) {
         identities: inspection.paths.flatMap(({ head }) => (head ? [head.authoring.entity] : [])),
         summary: {
             entities: inspection.paths.length,
+            verifications: inspection.verifications.length,
             declarations: inspection.paths.reduce((count, path) => count + path.declarations.filter((item) => item.kind !== "declaration_unchanged").length, 0),
         },
     };

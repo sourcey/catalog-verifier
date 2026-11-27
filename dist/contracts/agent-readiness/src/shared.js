@@ -5,6 +5,7 @@ export const agentReadinessDigestSchema = z.string().regex(DIGEST_PATTERN);
 export const agentReadinessEntityIdSchema = z.string().regex(ENTITY_ID_PATTERN);
 export const agentReadinessOfferIdSchema = z.string().regex(OFFER_ID_PATTERN);
 export const agentReadinessProfileIdSchema = z.string().regex(AGENT_READINESS_PROFILE_ID_PATTERN);
+export const agentReadinessIntakeIdSchema = z.string().regex(/^ari_[0-9a-hjkmnp-tv-z]{26}$/u);
 export const agentReadinessIdentifierSchema = z.string().regex(IDENTIFIER_PATTERN);
 export const agentReadinessInstantSchema = z.iso.datetime({ offset: true });
 /** The day an instant falls on, as a card names a run by it: its date in UTC, `YYYY-MM-DD`. */

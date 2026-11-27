@@ -1,6 +1,7 @@
 import { type Digest } from "provenry/primitives";
 import { AGENT_READINESS_REPOSITORY } from "../../../contracts/agent-readiness/src/declaration.js";
 import type { AgentReadinessJobLibrary } from "../../../contracts/agent-readiness/src/jobs.js";
+import { type AgentReadinessVerificationProposal } from "../../../contracts/agent-readiness/src/verification-proposal.js";
 import { type AgentReadinessDeclarationBlob } from "./declaration-blob.js";
 type AgentReadinessDeclarationDelta = {
     readonly kind: "declaration_added";
@@ -35,6 +36,13 @@ interface AgentReadinessRepositoryPathDelta extends AgentReadinessAuthoringDelta
     readonly status: "added" | "modified" | "removed";
     readonly path: string;
 }
+/** A proposed reference, bound to its exact Git bytes; admission resolves its retained evidence. */
+interface AgentReadinessVerificationDelta {
+    readonly path: string;
+    readonly gitBlobOid: string;
+    readonly blobDigest: Digest;
+    readonly proposal: AgentReadinessVerificationProposal;
+}
 export interface AgentReadinessRepositoryChangePacket {
     readonly change_contract: "sourcey.agent-readiness-repository-change/v1alpha1";
     readonly repository: typeof AGENT_READINESS_REPOSITORY;
@@ -45,6 +53,7 @@ export interface AgentReadinessRepositoryChangePacket {
     readonly headRootTreeOid: string;
     readonly headEntitiesTreeOid: string | null;
     readonly paths: readonly AgentReadinessRepositoryPathDelta[];
+    readonly verifications: readonly AgentReadinessVerificationDelta[];
     readonly packetDigest: Digest;
 }
 /**
